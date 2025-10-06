@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hybrid Sticky Notes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        // ADDED GoogleAuthProvider, signInWithPopup, signInWithRedirect
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            signInWithCustomToken, 
+            onAuthStateChanged,
+            GoogleAuthProvider,
+            signInWithPopup,
+            signInWithRedirect
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // Expose Firebase tools globally for use in the main script block
+        window.FirebaseTools = { 
+            initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, 
+            GoogleAuthProvider, signInWithPopup, signInWithRedirect, 
+            getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot 
+        };
+    </script>
+    <style>
+        /* Custom styles for the note appearance and behavior */
+        body, html { 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+            background: #f1f5f9; /* Slate 100 */
+            overflow: hidden; 
+            font-family: 'Inter', sans-serif;
+        }
+        
+        #notesContainer { 
+            position: relative; 
+            width: 100%; 
+            height: 100%;
+            overflow-y: auto; 
+            overflow-x: hidden;
+        }
+
+        .note {
+            position: absolute;
+            background: #fff8b3;
+            padding: 0.75rem;
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.15);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            cursor: grab;
+            transition: background 0.2s, transform 0.2s;
+            z-index: 10;
+            min-width: 150px; 
+            min-height: 120px;
+        }
+
+        /* Mobile Styles (Apply full width, relative positioning, and stacking) */
+        @media (max-width: 640px) {
+            .note {
+                position: relative !important; 
+                width: 95% !important; 
+                max-width: 400px;
+                margin: 10px auto; 
+                box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+                top: auto !important;
+                left: auto !important;
+                cursor: default;
+            }
+            .resize-handle { display: none !important; }
+        }
+        
+        /* Note Content Area */
+        .note textarea {
+            flex: 1;
+            border: none;
+            background: transparent;
+            resize: none;
+            outline: none;
+            width: 100%;
+            font-size: 1rem;
+            line-height: 1.35;
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            gap: 8px; 
+        }
+        
+        .note-header-actions {
+            display: flex;
+            flex-direction: row-reverse; 
+            gap: 8px;
+        }
+        
+        .icon-btn {
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: opacity 0.15s;
+        }
+        
+        .color-toggle-btn {
+            font-size: 1rem;
+            padding: 2px 4px;
+        }
+
+        .delete-btn {
+            font-size: 1.25rem;
+        }
+
+        .icon-btn:hover { opacity: 0.8; }
+        
+        /* Color Palette Styles */
+        .color-palette-container {
+            padding-bottom: 8px;
+            display: none; 
+        }
+        .color-palette {
+            display: flex;
+            gap: 8px;
+            padding: 4px 0;
+            border-radius: 4px;
+        }
+        .color-swatch {
+            width: 20px; 
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        .color-swatch:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 3px rgba(0,0,0,0.2), 0 0 0 1px #fff;
+        }
+
+        /* Resize Handles */
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 15px;
+            height: 15px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 8px 0;
+            cursor: se-resize;
+            z-index: 1;
+        }
+        
+        .mobile-resize-bar {
+            position: absolute;
+            bottom: 0; 
+            left: 0;
+            transform: none; 
+            width: 100%; 
+            height: 6px; 
+            background: rgba(0, 0, 0, 0.25); 
+            border-radius: 0 0 8px 8px; 
+            cursor: ns-resize; 
+            z-index: 5;
+            opacity: 1;
+        }
+        @media (min-width: 641px) {
+            .mobile-resize-bar { display: none !important; }
+        }
+
+        /* Confirmation Modal Styles */
+        #confirmationModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            text-align: center;
+        }
+
+        /* Loader styles */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: none; 
+            justify-content: center;
+            align-items: center;
+            z-index: 1500;
+            flex-direction: column;
+            gap: 1rem;
+            font-weight: bold;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Custom Toggle Switch Styles */
+        .switch-container {
+            display: flex;
+            align-items: center;
+            user-select: none;
+            gap: 8px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 38px; 
+            height: 22px; 
+        }
+
+        /* Hide default HTML checkbox */
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        /* The slider */
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 22px; 
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px; 
+            width: 16px; 
+            left: 3px; 
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #4f46e5; /* Indigo 600 */
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(16px); 
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="fixed top-0 left-0 right-0 p-3 bg-white shadow-md flex justify-between items-center z-50">
+    <div class="flex items-center">
+        <button id="addNote" title="Add Note" class="text-2xl text-indigo-600 hover:text-indigo-800 transition duration-150 p-1">
+            📝 <span class="hidden sm:inline text-base font-semibold">Add Note</span>
+        </button>
+        <button id="clearNotesBtn" title="Clear All" class="text-2xl text-red-600 hover:text-red-800 transition duration-150 p-1 ml-4">
+            🗑️ <span class="hidden sm:inline text-base font-semibold">Clear All</span>
+        </button>
+    </div>
+    
+    <label class="switch-container">
+        <span id="localModeLabel" class="text-sm font-medium text-gray-700">Local (Fast)</span>
+        <div class="switch">
+            <input type="checkbox" id="modeToggleCheckbox">
+            <span class="slider"></span>
+        </div>
+        <span id="firebaseModeLabel" class="text-sm font-medium text-indigo-600">Cloud Sync</span>
+    </label>
+</div>
+
+<div id="notesContainer" class="pt-16"></div>
+
+<div id="confirmationModal">
+    <div class="modal-content">
+        <h3 id="modalTitle" class="text-xl font-bold mb-4 text-gray-800">Confirm Deletion</h3>
+        <p id="modalMessage" class="mb-6">Are you sure you want to delete ALL sticky notes? This cannot be undone.</p>
+        <div class="flex justify-center space-x-4">
+            <button id="modalConfirm" class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-150">Delete All</button>
+            <button id="modalCancel" class="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition duration-150">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="cloudAuthPromptModal" class="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 hidden justify-center items-center z-[3000]">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-80 text-center">
+        <h3 class="text-xl font-bold mb-4 text-gray-800">Start Cloud Sync</h3>
+        <p class="mb-6 text-gray-700">Choose how you want to access your cloud notes. Permanent login is recommended for secure data saving.</p>
+        
+        <button id="authGoogleBtn" class="w-full py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-150 flex items-center justify-center mb-3">
+            <svg class="w-5 h-5 mr-2" viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg"><path d="M533.5 244.5h-2.3c-.7-8.1-1.3-16.1-2.1-24.2H271.7v50.9h148.8c-6.7 30-24.6 55-49.8 72.3l-1.3-1.1-26.6 20.6 1.8 1.4c30.2 23.4 69.1 37.2 110.1 37.2 30.2 0 55.4-8 74.4-22.3l-1.4-1.1 27.2-21.1 1.7 1.3c28.3-21.9 44.8-54 44.8-90.4 0-11-1.1-21.9-3.2-32.3z" fill="#4285f4"/><path d="M271.7 544.3c74.6 0 138-24.6 184-66.8l-29-22.5c-20.1 13.9-45.7 22.2-76 22.2-58.4 0-108.6-38.6-126.1-90.6l-1.1-.3-29.3 22.8-1.5 1.1c25.4 50 78.4 83.2 138.8 83.2z" fill="#34a853"/><path d="M145.6 329c-3.1-9-5.4-18.3-5.4-27.9s2.3-18.9 5.4-27.9l-1.2-.9-29.4-22.8-1.3 1c-6.8 13.9-10.7 29.4-10.7 45.7s3.9 31.8 10.7 45.7l1.3 1-29.4 22.8 1.2.9c3.1-9 5.4-18.3 5.4-27.9z" fill="#fbbc05"/><path d="M271.7 108.2c33.3 0 63.1 11.5 86.8 33.7l2.8 2.5 44.2-43.1 3.5-3.4c-28.7-27.4-66.9-44.6-114-44.6-60.4 0-113.4 33.2-138.8 83.2l29.4 22.8 1.2.9c17.5-52 67.7-90.6 126.1-90.6z" fill="#ea4335"/></svg>
+            Sign in with Google
+        </button>
+        
+        <button id="authGuestBtn" class="w-full py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition duration-150 mb-4">
+            Continue as Guest (Temporary Cloud)
+        </button>
+
+        <button id="authPromptCancel" class="w-full py-1 text-sm text-gray-600 hover:text-gray-800">
+            Cancel
+        </button>
+        <p id="authPromptError" class="text-red-500 text-sm mt-3 hidden"></p>
+    </div>
+</div>
+
+<div id="loadingOverlay">
+    <div class="spinner"></div>
+    <p>Connecting to Cloud Sync...</p>
+</div>
+
+<script>
+  // PASTE YOUR FIREBASE CONFIG HERE
+  window.__firebase_config = JSON.stringify({
+    apiKey: "AIzaSyDHUMDVGfZY2dwF-uxeG17r9yW3f2gBr-A",
+    authDomain: "multitools-fbc73.firebaseapp.com",
+    projectId: "multitools-fbc73",
+    storageBucket: "multitools-fbc73.firebasestorage.app",
+    messagingSenderId: "277024201427",
+    appId: "1:277024201427:web:b1d23c088add4324cd1226",
+    measurementId: "G-1HJ0N30X1W"
+  });
+</script>
+<script>
+    // --- GLOBAL CONSTANTS ---
+    const STORAGE_KEY = 'instantStickyNotes';
+    const MIN_WIDTH = 150;
+    const MIN_HEIGHT = 120;
+    const MOBILE_DEFAULT_WIDTH = 200;
+    const MOBILE_DEFAULT_HEIGHT = 180;
+
+    const COLOR_PALETTE = [
+        "#fff8b3", // Classic Yellow
+        "#b3d8ff", // Light Blue
+        "#ffb3e6", // Light Pink
+        "#b3ffc8", // Light Green
+        "#e6b3ff", // Light Purple
+    ];
+    
+    // --- APP STATE ---
+    let notes = []; 
+    let currentMode = 'local'; // 'local' or 'firebase'
+    let deletionContext = { type: null, indexOrId: null };
+    
+    // --- FIREBASE GLOBALS ---
+    let db, auth, userId, unsubscribeSnapshot;
+    let isAuthPermanent = false; // Tracks if the user is Google/Email signed in
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    
+    // --- FOCUS TRACKING (Fix for Firebase re-render issue) ---
+    let activeElementIdentifier = null;
+    let activeElementCursorPosition = 0;
+
+    // --- UTILITY DOM ELEMENTS ---
+    const notesContainer = document.getElementById('notesContainer');
+    const modeToggleCheckbox = document.getElementById('modeToggleCheckbox');
+    const localModeLabel = document.getElementById('localModeLabel');
+    const firebaseModeLabel = document.getElementById('firebaseModeLabel');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    // NEW AUTH PROMPT MODAL ELEMENTS
+    const cloudAuthPromptModal = document.getElementById('cloudAuthPromptModal');
+    const authGoogleBtn = document.getElementById('authGoogleBtn');
+    const authGuestBtn = document.getElementById('authGuestBtn');
+    const authPromptCancel = document.getElementById('authPromptCancel');
+    const authPromptError = document.getElementById('authPromptError');
+    
+    // --- FIREBASE INITIALIZATION & AUTH ---
+
+    async function initializeFirebase() {
+        if (!window.FirebaseTools) {
+             console.error("Firebase SDK not loaded.");
+             return;
+        }
+        
+        try {
+            const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+            const { initializeApp, getAuth, signInWithCustomToken, signInAnonymously, getFirestore, onAuthStateChanged } = window.FirebaseTools;
+            
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
+            // Initial anonymous sign-in or custom token sign-in
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = user.uid;
+                    isAuthPermanent = !user.isAnonymous; 
+
+                    // If Cloud Auth Prompt Modal is open, close it (successful login)
+                    if (cloudAuthPromptModal.style.display === 'flex') {
+                        cloudAuthPromptModal.style.display = 'none';
+                        loadingOverlay.style.display = 'none';
+                    }
+
+                    // If we initialized during 'local' mode, only listen if we switch
+                    if (currentMode === 'firebase' && !unsubscribeSnapshot) {
+                        startFirebaseListener();
+                    }
+                } else {
+                    userId = null;
+                    isAuthPermanent = false; 
+                }
+            });
+
+        } catch (e) {
+            console.error("Firebase Initialization Failed:", e);
+        }
+    }
+
+    // --- NEW AUTHENTICATION LOGIC (FIXED signInAsGuest) ---
+
+    async function signInWithGoogle() {
+    authPromptError.style.display = 'none';
+    // Remove signInWithRedirect from the destructuring as it's no longer used.
+    const { GoogleAuthProvider, signInWithPopup } = window.FirebaseTools; 
+    const provider = new GoogleAuthProvider();
+
+    try {
+        // FIX: Always use signInWithPopup to bypass local domain/port authorization issues
+        // This replaces the previous if/else block for window.innerWidth.
+        await signInWithPopup(auth, provider);
+        
+        // Success: onAuthStateChanged handles modal close and listener start
+        
+    } catch (error) {
+        let errorMessage = "An error occurred during Google Sign-In.";
+        if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+             errorMessage = "Sign-in cancelled.";
+        } else if (error.code === 'auth/unauthorized-domain') {
+             errorMessage = "Authentication failed: Domain not authorized. Check Firebase console settings.";
+        } else {
+            console.error("Google Auth error:", error);
+            errorMessage = error.message;
+        }
+        authPromptError.textContent = errorMessage;
+        authPromptError.style.display = 'block';
+    }
+}
+
+    async function signInAsGuest() {
+        authPromptError.style.display = 'none';
+        const { signInAnonymously } = window.FirebaseTools;
+        try {
+            // This ensures we have an anonymous user
+            await signInAnonymously(auth); 
+            
+            // Fix: Explicitly close the modal 
+            cloudAuthPromptModal.style.display = 'none'; 
+            loadingOverlay.style.display = 'none';
+            
+            // 🐛 FIX: Manually call loadNotes() to start the Firebase listener 
+            // and sync the notes, since onAuthStateChanged might not fire for existing anonymous users.
+            loadNotes(); 
+            
+        } catch (e) {
+            console.error("Guest Sign-in failed:", e);
+            authPromptError.textContent = "Failed to create temporary cloud account.";
+            authPromptError.style.display = 'block';
+        }
+    }
+
+    function cancelAuthPrompt() {
+        cloudAuthPromptModal.style.display = 'none';
+        // Untick the checkbox and switch mode back to local
+        modeToggleCheckbox.checked = false;
+        currentMode = 'local';
+        updateModeDisplay();
+        loadNotes(); // Reload local notes
+    }
+
+    // --- FOCUS TRACKING LOGIC ---
+    function trackFocus(e) {
+        const textarea = e.target;
+        const noteEl = textarea.closest('.note');
+        if (noteEl) {
+            activeElementIdentifier = noteEl.dataset.identifier;
+            activeElementCursorPosition = textarea.selectionStart;
+        }
+    }
+
+    function untrackFocus() {
+        activeElementIdentifier = null;
+        activeElementCursorPosition = 0;
+    }
+
+    function restoreFocus() {
+        if (activeElementIdentifier) {
+            const textarea = document.querySelector(`#note-${activeElementIdentifier} textarea`);
+            if (textarea) {
+                textarea.focus();
+                // Restore cursor position
+                if (activeElementCursorPosition !== undefined) {
+                    textarea.setSelectionRange(activeElementCursorPosition, activeElementCursorPosition);
+                }
+            }
+        }
+    }
+
+    // --- MODE MANAGEMENT ---
+    
+    function updateModeDisplay() {
+        if (currentMode === 'local') {
+            modeToggleCheckbox.checked = false;
+            localModeLabel.classList.add('text-gray-700', 'font-semibold');
+            localModeLabel.classList.remove('text-indigo-600', 'font-normal');
+            firebaseModeLabel.classList.add('text-indigo-600', 'font-normal');
+            firebaseModeLabel.classList.remove('text-gray-700', 'font-semibold');
+        } else {
+            modeToggleCheckbox.checked = true;
+            localModeLabel.classList.add('text-indigo-600', 'font-normal');
+            localModeLabel.classList.remove('text-gray-700', 'font-semibold');
+            firebaseModeLabel.classList.add('text-gray-700', 'font-semibold');
+            firebaseModeLabel.classList.remove('text-indigo-600', 'font-normal');
+        }
+    }
+    
+    function switchMode() {
+        const newMode = modeToggleCheckbox.checked ? 'firebase' : 'local';
+
+        if (newMode === currentMode) return;
+        
+        // Stop listening to the old mode's updates
+        if (unsubscribeSnapshot) {
+            unsubscribeSnapshot();
+            unsubscribeSnapshot = null;
+        }
+        
+        notesContainer.innerHTML = ''; // Clear DOM
+        notes = []; // Clear array
+        untrackFocus(); // Clear focus tracking on mode switch
+        
+        if (newMode === 'firebase') {
+            // Check if user is already permanently logged in
+            if (userId && isAuthPermanent) {
+                currentMode = newMode;
+                loadNotes();
+            } else {
+                // User is anonymous or logged out: Show the prompt modal
+                currentMode = newMode; // Set mode to firebase
+                updateModeDisplay();   // Update the toggle switch visual
+                cloudAuthPromptModal.style.display = 'flex';
+                loadingOverlay.style.display = 'none'; // Ensure loader is hidden before auth starts
+            }
+        } else {
+            // Switching to local mode
+            currentMode = newMode;
+            loadNotes();
+        }
+    }
+    
+    // --- FIREBASE CRUD IMPLEMENTATION ---
+    
+    function getNotesCollectionRef() {
+        if (!db || !userId) return null;
+        const { collection } = window.FirebaseTools;
+        const path = `/artifacts/${appId}/users/${userId}/sticky_notes`;
+        return collection(db, path);
+    }
+    
+    function getNoteDocumentRef(id) {
+        if (!db || !userId) return null;
+        const { doc } = window.FirebaseTools;
+        const path = `/artifacts/${appId}/users/${userId}/sticky_notes`;
+        return doc(db, path, id);
+    }
+
+    function startFirebaseListener() {
+        const notesRef = getNotesCollectionRef();
+        if (!notesRef) {
+            loadingOverlay.style.display = 'flex';
+            console.warn("Firebase not ready or User not authenticated. Showing loading screen.");
+            return;
+        }
+
+        loadingOverlay.style.display = 'flex';
+        loadingOverlay.querySelector('p').textContent = `Syncing notes for User: ${userId.substring(0, 8)}...`;
+
+        const { onSnapshot } = window.FirebaseTools;
+        
+        if (unsubscribeSnapshot) unsubscribeSnapshot();
+        
+        unsubscribeSnapshot = onSnapshot(notesRef, (snapshot) => {
+            const newNotes = [];
+            snapshot.forEach(doc => {
+                newNotes.push({ 
+                    id: doc.id, 
+                    ...doc.data() 
+                });
+            });
+            
+            if (currentMode === 'firebase') {
+                notes = newNotes;
+                updateNotesDOM(); 
+                loadingOverlay.style.display = 'none';
+            }
+        }, (error) => {
+            console.error("Firebase snapshot error:", error);
+            loadingOverlay.style.display = 'none';
+        });
+    }
+
+    async function addFirebaseNote(noteData) {
+        const notesRef = getNotesCollectionRef();
+        if (!notesRef) return console.error("Cannot add note: Firebase not ready.");
+        
+        const { addDoc } = window.FirebaseTools;
+        await addDoc(notesRef, noteData);
+    }
+    
+    async function updateFirebaseNote(id, data) {
+        const noteRef = getNoteDocumentRef(id);
+        if (!noteRef) return console.error("Cannot update note: Firebase ref not found.");
+        
+        const { updateDoc } = window.FirebaseTools;
+        await updateDoc(noteRef, data);
+    }
+
+    async function deleteFirebaseNote(id) {
+        const noteRef = getNoteDocumentRef(id);
+        if (!noteRef) return console.error("Cannot delete note: Firebase ref not found.");
+        
+        const { deleteDoc } = window.FirebaseTools;
+        await deleteDoc(noteRef);
+    }
+    
+    // --- LOCAL STORAGE CRUD IMPLEMENTATION ---
+    
+    function loadLocalNotes() {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                notes = JSON.parse(saved); 
+            } else {
+                notes = [];
+            }
+        } catch (e) {
+            console.error("Error loading notes from local storage:", e);
+            notes = [];
+        }
+        updateNotesDOM(); 
+    }
+
+    function saveLocalNotes() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+        } catch (e) {
+            console.error("Error saving notes to local storage:", e);
+        }
+    }
+
+    function deleteLocalNote(index) {
+        notes.splice(index, 1);
+        saveLocalNotes();
+        updateNotesDOM(); 
+    }
+    
+    function clearAllLocalNotes() {
+        notes = [];
+        saveLocalNotes();
+        updateNotesDOM(); 
+    }
+
+    // --- GENERAL CRUD & HANDLERS ---
+    
+    function loadNotes() {
+        updateModeDisplay();
+        if (currentMode === 'local') {
+            loadLocalNotes();
+        } else {
+            if (userId) {
+                startFirebaseListener();
+            } else {
+                loadingOverlay.style.display = 'flex';
+                loadingOverlay.querySelector('p').textContent = 'Waiting for Authentication...';
+            }
+        }
+    }
+    
+    function addNote() {
+        const newNoteData = {
+            text: '', 
+            top: 50 + Math.random() * 50,
+            left: 50 + Math.random() * 50,
+            color: COLOR_PALETTE[0],
+            height: MOBILE_DEFAULT_HEIGHT,
+            width: MOBILE_DEFAULT_WIDTH,
+        };
+
+        if (currentMode === 'local') {
+            notes.push(newNoteData);
+            updateNotesDOM();
+            saveLocalNotes();
+        } else {
+            addFirebaseNote(newNoteData); 
+        }
+    }
+
+    function updateNoteProperty(identifier, property, value) {
+        if (currentMode === 'local') {
+            const index = parseInt(identifier, 10); // Ensure index is an integer
+            
+            if (isNaN(index) || index < 0 || index >= notes.length) {
+                console.error("Invalid local note index for update:", identifier);
+                return;
+            }
+            
+            notes[index][property] = value;
+            saveLocalNotes();
+            
+            // Manual DOM update for local mode
+            const noteEl = document.getElementById(`note-${identifier}`);
+            if (noteEl) {
+                if (property === 'top' || property === 'left') {
+                    noteEl.style[property] = `${value}px`;
+                } else if (property === 'width' || property === 'height') {
+                     noteEl.style[property] = `${value}px`;
+                }
+            }
+        } else {
+            const id = identifier;
+            updateFirebaseNote(id, { [property]: value });
+        }
+    }
+
+    function changeColor(identifier, color) {
+        if (currentMode === 'local') {
+            const index = parseInt(identifier, 10); 
+            
+            if (isNaN(index) || index < 0 || index >= notes.length) {
+                console.error("Invalid local note index for color change:", identifier);
+                return;
+            }
+            
+            notes[index].color = color; 
+            const noteEl = document.getElementById(`note-${identifier}`);
+            if (noteEl) noteEl.style.background = color;
+            saveLocalNotes();
+        } else {
+            const noteEl = document.getElementById(`note-${identifier}`);
+            if (noteEl) noteEl.style.background = color; 
+            updateFirebaseNote(identifier, { color: color });
+        }
+    }
+
+    function clearAllNotes() {
+        untrackFocus(); 
+        if (currentMode === 'local') {
+            clearAllLocalNotes();
+        } else {
+            // Delete notes one by one in Firebase, which triggers the listener to clear the local array
+            [...notes].forEach(note => deleteFirebaseNote(note.id));
+        }
+    }
+    
+    // --- INTELLIGENT DOM UPDATE (Crucial for Focus Fix) ---
+    function updateNotesDOM() {
+        const existingIds = new Set();
+        const currentNotesInDom = new Set(Array.from(notesContainer.querySelectorAll('.note')).map(el => el.dataset.identifier));
+        
+        // 1. Update existing/render new notes based on the 'notes' array
+        notes.forEach((note, index) => {
+            const identifier = currentMode === 'local' ? index.toString() : note.id;
+            existingIds.add(identifier);
+            
+            let noteEl = document.getElementById(`note-${identifier}`);
+            
+            if (noteEl) {
+                // Update element properties without destroying it
+                
+                const textarea = noteEl.querySelector('textarea');
+
+                // Update text only if the element is NOT focused
+                if (activeElementIdentifier !== identifier || currentMode === 'local') {
+                    if (textarea.value !== note.text) {
+                         textarea.value = note.text;
+                    }
+                }
+                
+                // Update styles/position/size
+                if (noteEl.style.background !== note.color) { noteEl.style.background = note.color; }
+                if (noteEl.style.top !== `${note.top}px`) { noteEl.style.top = `${note.top}px`; }
+                if (noteEl.style.left !== `${note.left}px`) { noteEl.style.left = `${note.left}px`; }
+                if (noteEl.style.width !== `${note.width}px`) { noteEl.style.width = `${note.width}px`; }
+                if (noteEl.style.height !== `${note.height}px`) { noteEl.style.height = `${note.height}px`; }
+
+                // Crucial for local mode: ensure data-identifier is the correct index
+                if (currentMode === 'local' && noteEl.dataset.identifier !== identifier) {
+                    noteEl.id = `note-${identifier}`;
+                    noteEl.dataset.identifier = identifier;
+                }
+
+            } else {
+                // New element: RENDER it fully
+                renderNote(note, index, note.id);
+            }
+        });
+
+        // 2. Remove deleted notes from DOM
+        currentNotesInDom.forEach(domId => {
+            if (!existingIds.has(domId)) {
+                const el = document.getElementById(`note-${domId}`);
+                if (el) el.remove();
+            }
+        });
+        
+        // 3. Restore focus after all updates
+        restoreFocus();
+    }
+
+    
+    // --- DOM RENDERING AND EVENT BINDING ---
+    
+    function renderNote(note, index, id = null) {
+        const identifier = currentMode === 'local' ? index.toString() : note.id;
+        
+        const noteEl = document.createElement('div');
+        noteEl.id = `note-${identifier}`; 
+        noteEl.dataset.identifier = identifier; 
+        noteEl.className = 'note transform hover:scale-[1.01]';
+        
+        // Initial positioning and size
+        noteEl.style.cssText = `
+            top: ${note.top}px; 
+            left: ${note.left}px; 
+            background: ${note.color};
+            height: ${note.height}px;
+            width: ${note.width}px;
+        `;
+
+        // Generate color palette swatches HTML
+        const paletteHtml = COLOR_PALETTE.map(color => 
+            `<div class="color-swatch" style="background-color: ${color};" data-color="${color}"></div>`
+        ).join('');
+
+
+        noteEl.innerHTML = `
+            <div class="note-header">
+                <span class="text-xs text-gray-500 font-medium">Sticky Note</span>
+                <div class="note-header-actions">
+                    
+                    <span class="icon-btn delete-btn text-red-500 hover:text-red-700" title="Delete note">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 10-2 0v6a1 1 0 102 0V8z" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    <span class="icon-btn color-toggle-btn text-gray-700 hover:text-indigo-600" title="Change color">🎨</span>
+                </div>
+            </div>
+            <div class="color-palette-container" data-state="hidden">
+                <div class="color-palette">
+                    ${paletteHtml}
+                </div>
+            </div>
+            <textarea placeholder="Start typing...">${note.text}</textarea> 
+            <div class="resize-handle hidden sm:block"></div>
+            <div class="mobile-resize-bar sm:hidden"></div>
+        `;
+        
+        notesContainer.appendChild(noteEl);
+        
+        const colorPaletteContainer = noteEl.querySelector('.color-palette-container');
+        const colorToggleBtn = noteEl.querySelector('.color-toggle-btn');
+        const textarea = noteEl.querySelector('textarea');
+        
+        // --- Event Listeners ---
+        
+        // 1. Focus Tracking
+        textarea.addEventListener('focus', trackFocus);
+        textarea.addEventListener('blur', untrackFocus);
+        
+        // 2. Text Update
+        textarea.addEventListener('input', (e) => {
+            activeElementCursorPosition = e.target.selectionStart;
+            updateNoteProperty(identifier, 'text', e.target.value);
+        });
+
+        // 3. Delete Button (Triggers modal)
+        noteEl.querySelector('.delete-btn').addEventListener('click', () => {
+            deletionContext.type = 'single';
+            deletionContext.indexOrId = identifier;
+            
+            document.getElementById('modalTitle').textContent = 'Confirm Note Deletion';
+            document.getElementById('modalMessage').textContent = 'Are you sure you want to delete this sticky note? This cannot be undone.';
+            document.getElementById('modalConfirm').textContent = 'Delete Note';
+            
+            modal.style.display = 'flex';
+        });
+
+        // 4. Color Palette Toggle
+        colorToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            if (colorPaletteContainer.style.display === 'flex') {
+                colorPaletteContainer.style.display = 'none';
+            } else {
+                document.querySelectorAll('.color-palette-container').forEach(p => {
+                    if (p !== colorPaletteContainer) p.style.display = 'none';
+                });
+                colorPaletteContainer.style.display = 'flex';
+            }
+        });
+
+        // 5. Color Palette Swatches
+        noteEl.querySelectorAll('.color-swatch').forEach(swatch => {
+            swatch.addEventListener('click', (e) => {
+                const color = e.target.dataset.color;
+                changeColor(identifier, color);
+                colorPaletteContainer.style.display = 'none';
+            });
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (colorPaletteContainer.style.display === 'flex') {
+                if (e.target !== colorToggleBtn && !colorPaletteContainer.contains(e.target)) {
+                    colorPaletteContainer.style.display = 'none';
+                }
+            }
+        });
+
+
+        // 6. Drag and Resize Logic
+        const isDesktop = window.innerWidth >= 640;
+
+        if (isDesktop) {
+            noteEl.addEventListener('mousedown', startDrag);
+            const handle = noteEl.querySelector('.resize-handle');
+            if (handle) handle.addEventListener('mousedown', startResize);
+        } else {
+            const mobileBar = noteEl.querySelector('.mobile-resize-bar');
+            if (mobileBar) mobileBar.addEventListener('touchstart', startMobileResize, { passive: false });
+        }
+        
+        noteEl.addEventListener('touchstart', startDrag, { passive: false });
+        const desktopHandle = noteEl.querySelector('.resize-handle');
+        if (desktopHandle) desktopHandle.addEventListener('touchstart', startResize, { passive: false });
+    }
+    
+    // --- DRAG IMPLEMENTATION (Supports Mouse and Touch) ---
+    function startDrag(e) {
+        const noteEl = this;
+        
+        const isTouch = e.type.startsWith('touch');
+        const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+        const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+        
+        const isInteractive = e.target.tagName === 'TEXTAREA' || e.target.closest('.note-header-actions') || e.target.classList.contains('resize-handle') || e.target.classList.contains('mobile-resize-bar') || e.target.closest('.color-palette-container');
+        if (isInteractive) return;
+        
+        if (isTouch) e.preventDefault(); 
+        
+        const identifier = noteEl.dataset.identifier;
+        const offsetX = clientX - noteEl.getBoundingClientRect().left;
+        const offsetY = clientY - noteEl.getBoundingClientRect().top;
+
+        const isPositionalDrag = window.innerWidth >= 640; 
+        
+        if (isPositionalDrag) {
+            noteEl.style.zIndex = 1000; 
+            noteEl.style.cursor = 'grabbing';
+        }
+
+
+        function drag(moveEvent) {
+            if (!isPositionalDrag) return;
+
+            const isMoveTouch = moveEvent.type.startsWith('touch');
+            const moveClientX = isMoveTouch ? moveEvent.touches[0].clientX : moveEvent.clientX;
+            const moveClientY = isMoveTouch ? moveEvent.touches[0].clientY : moveEvent.clientY;
+
+            let newLeft = moveClientX - offsetX;
+            let newTop = moveClientY - offsetY;
+
+            const containerRect = notesContainer.getBoundingClientRect();
+            const noteRect = noteEl.getBoundingClientRect();
+            
+            newLeft = Math.max(0, Math.min(newLeft, containerRect.width - noteRect.width));
+            newTop = Math.max(50, Math.min(newTop, containerRect.height - noteRect.height)); 
+
+            noteEl.style.left = `${newLeft}px`;
+            noteEl.style.top = `${newTop}px`;
+        }
+
+        function stopDrag() {
+            document.removeEventListener(isTouch ? 'touchmove' : 'mousemove', drag);
+            document.removeEventListener(isTouch ? 'touchend' : 'mouseup', stopDrag);
+            
+            if (isPositionalDrag) {
+                noteEl.style.zIndex = 10;
+                noteEl.style.cursor = 'grab';
+
+                const finalTop = parseInt(noteEl.style.top, 10);
+                const finalLeft = parseInt(noteEl.style.left, 10);
+                
+                updateNoteProperty(identifier, 'top', finalTop);
+                updateNoteProperty(identifier, 'left', finalLeft);
+            }
+        }
+
+        document.addEventListener(isTouch ? 'touchmove' : 'mousemove', drag, { passive: false });
+        document.addEventListener(isTouch ? 'touchend' : 'mouseup', stopDrag);
+    }
+    
+    // --- RESIZE IMPLEMENTATION ---
+    function startResize(e) {
+        const handle = this;
+        const noteEl = handle.closest('.note');
+        
+        const isTouch = e.type.startsWith('touch');
+        if (isTouch) e.preventDefault(); 
+        e.stopPropagation();
+
+        const identifier = noteEl.dataset.identifier;
+        noteEl.style.zIndex = 1001; 
+
+        const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+        const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+
+        const startWidth = noteEl.offsetWidth;
+        const startHeight = noteEl.offsetHeight;
+        const startX = clientX;
+        const startY = clientY;
+
+        function doResize(moveEvent) {
+            const isMoveTouch = moveEvent.type.startsWith('touch');
+            const moveClientX = isMoveTouch ? moveEvent.touches[0].clientX : moveEvent.clientX;
+            const moveClientY = isMoveTouch ? moveEvent.touches[0].clientY : moveEvent.clientY;
+            
+            const dx = moveClientX - startX;
+            const dy = moveClientY - startY;
+
+            let newWidth = Math.max(startWidth + dx, MIN_WIDTH);
+            let newHeight = Math.max(startHeight + dy, MIN_HEIGHT);
+
+            noteEl.style.width = `${newWidth}px`;
+            noteEl.style.height = `${newHeight}px`;
+        }
+
+        function stopResize() {
+            document.removeEventListener(isTouch ? 'touchmove' : 'mousemove', doResize);
+            document.removeEventListener(isTouch ? 'touchend' : 'mouseup', stopResize);
+
+            noteEl.style.zIndex = 10; 
+
+            const finalWidth = parseInt(noteEl.style.width, 10);
+            const finalHeight = parseInt(noteEl.style.height, 10);
+            
+            updateNoteProperty(identifier, 'width', finalWidth);
+            updateNoteProperty(identifier, 'height', finalHeight);
+        }
+
+        document.addEventListener(isTouch ? 'touchmove' : 'mousemove', doResize, { passive: false });
+        document.addEventListener(isTouch ? 'touchend' : 'mouseup', stopResize);
+    }
+    
+    function startMobileResize(e) {
+        const handle = this;
+        const noteEl = handle.closest('.note');
+        
+        const isTouch = e.type.startsWith('touch');
+        if (isTouch) e.preventDefault(); 
+        e.stopPropagation(); 
+
+        const identifier = noteEl.dataset.identifier;
+        noteEl.style.zIndex = 1001; 
+        
+        const startY = isTouch ? e.touches[0].clientY : e.clientY;
+        const startHeight = noteEl.offsetHeight;
+
+        function doMobileResize(moveEvent) {
+            const isMoveTouch = moveEvent.type.startsWith('touch');
+            const moveClientY = isMoveTouch ? moveEvent.touches[0].clientY : moveEvent.clientY;
+            
+            const dy = moveClientY - startY;
+            let newHeight = Math.max(startHeight + dy, MIN_HEIGHT);
+
+            noteEl.style.height = `${newHeight}px`;
+        }
+
+        function stopMobileResize() {
+            document.removeEventListener(isTouch ? 'touchmove' : 'mousemove', doMobileResize);
+            document.removeEventListener(isTouch ? 'touchend' : 'mouseup', stopMobileResize);
+
+            noteEl.style.zIndex = 10; 
+
+            const finalHeight = parseInt(noteEl.style.height, 10);
+            
+            updateNoteProperty(identifier, 'height', finalHeight);
+        }
+
+        document.addEventListener(isTouch ? 'touchmove' : 'mousemove', doMobileResize, { passive: false });
+        document.addEventListener(isTouch ? 'touchend' : 'mouseup', stopMobileResize);
+    }
+
+    // --- MODAL CONFIRMATION LOGIC ---
+    const modal = document.getElementById('confirmationModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const modalConfirm = document.getElementById('modalConfirm');
+    const modalCancel = document.getElementById('modalCancel');
+
+    function resetModalContext() {
+        deletionContext.type = null;
+        deletionContext.indexOrId = null;
+    }
+
+    document.getElementById('clearNotesBtn').addEventListener('click', () => {
+        // Set context for 'Delete All'
+        deletionContext.type = 'all';
+        deletionContext.indexOrId = null; 
+
+        // Set modal text for 'Delete All'
+        document.getElementById('modalTitle').textContent = 'Confirm Deletion';
+        document.getElementById('modalMessage').textContent = 'Are you sure you want to delete ALL sticky notes? This cannot be undone.';
+        document.getElementById('modalConfirm').textContent = 'Delete All';
+        
+        modal.style.display = 'flex';
+    });
+
+    modalCancel.addEventListener('click', () => {
+        modal.style.display = 'none';
+        resetModalContext();
+    });
+
+    modalConfirm.addEventListener('click', () => {
+        modal.style.display = 'none';
+        
+        if (deletionContext.type === 'all') {
+            clearAllNotes();
+        } else if (deletionContext.type === 'single' && deletionContext.indexOrId !== null) {
+            if (currentMode === 'local') {
+                deleteLocalNote(parseInt(deletionContext.indexOrId, 10));
+            } else {
+                deleteFirebaseNote(deletionContext.indexOrId);
+            }
+        }
+        
+        resetModalContext();
+    });
+
+    // --- INITIALIZATION ---
+    
+    window.addEventListener('load', async () => {
+        await initializeFirebase();
+        loadNotes();
+
+        // Attach event listeners
+        document.getElementById('addNote').addEventListener('click', addNote);
+        modeToggleCheckbox.addEventListener('change', switchMode);
+
+        // NEW AUTH PROMPT LISTENERS
+        authGoogleBtn.addEventListener('click', signInWithGoogle);
+        authGuestBtn.addEventListener('click', signInAsGuest);
+        authPromptCancel.addEventListener('click', cancelAuthPrompt);
+    });
+
+</script>
+</body>
+</html>

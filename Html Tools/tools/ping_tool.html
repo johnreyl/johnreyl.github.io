@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Advanced Network Latency Reporter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Use Inter for main UI, Roboto Mono for results */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f7f7f7; 
+        }
+        #results {
+            height: 300px;
+            overflow-y: auto;
+            background: #1f2937; /* Dark Slate Gray */
+            color: #10b981; /* Tailwind Green 500 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            white-space: pre-wrap;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.875rem;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .ping-success { color: #10b981; } /* Green */
+        .ping-error { color: #f87171; } /* Red */
+        .timestamp { color: #9ca3af; margin-right: 0.5rem; } /* Gray */
+        .recommended span {
+            cursor: pointer;
+            color: #4f46e5; /* Indigo */
+            margin-right: 1rem;
+            transition: color 0.1s;
+            font-weight: 500;
+        }
+        .recommended span:hover { text-decoration: underline; color: #6366f1; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-2xl">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">
+            Network Latency Reporter
+        </h1>
+
+        <!-- Recommended Targets -->
+        <div class="recommended mb-4 p-3 bg-indigo-50 rounded-lg">
+            <strong class="text-indigo-700">Recommended Targets (Click to Select):</strong>
+            <span data-target="google.com">google.com</span>
+            <span data-target="api.github.com">api.github.com</span>
+            <span data-target="wikipedia.org">wikipedia.org</span>
+        </div>
+
+        <!-- Input Form -->
+        <form id="pingForm" class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6">
+            <div class="md:col-span-6">
+                <label for="target" class="block text-sm font-medium text-gray-700">Target Host</label>
+                <input type="text" id="target" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g. example.com" value="pinoybpo.com" required>
+            </div>
+            <div class="md:col-span-2">
+                <label for="count" class="block text-sm font-medium text-gray-700">Pings</label>
+                <input type="number" id="count" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" value="10" min="1" max="50">
+            </div>
+            <div class="md:col-span-4 flex items-end gap-2">
+                <button type="submit" id="startButton" class="btn-primary w-full px-4 py-2 text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-700 transition duration-150 ease-in-out font-semibold">
+                    Start Ping
+                </button>
+                <button type="button" id="stopButton" class="btn-stop w-full px-4 py-2 text-white bg-red-500 rounded-lg shadow-md hover:bg-red-600 transition duration-150 ease-in-out font-semibold" disabled>
+                    Stop
+                </button>
+            </div>
+        </form>
+
+        <!-- Statistics and Results Panel -->
+        <div class="bg-gray-100 p-4 rounded-lg mb-6 border border-gray-200">
+            <h3 class="text-xl font-semibold mb-3 text-gray-700">Statistics</h3>
+            <div id="statsPanel" class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <!-- Stat Card: Min -->
+                <div class="p-3 bg-white rounded-lg shadow-inner">
+                    <div class="text-gray-500 text-xs uppercase font-medium">Min RTT</div>
+                    <div id="minRtt" class="text-lg font-bold text-green-600">--</div>
+                </div>
+                <!-- Stat Card: Max -->
+                <div class="p-3 bg-white rounded-lg shadow-inner">
+                    <div class="text-gray-500 text-xs uppercase font-medium">Max RTT</div>
+                    <div id="maxRtt" class="text-lg font-bold text-red-600">--</div>
+                </div>
+                <!-- Stat Card: Avg -->
+                <div class="p-3 bg-white rounded-lg shadow-inner">
+                    <div class="text-gray-500 text-xs uppercase font-medium">Avg RTT</div>
+                    <div id="avgRtt" class="text-lg font-bold text-blue-600">--</div>
+                </div>
+                <!-- Stat Card: Loss -->
+                <div class="p-3 bg-white rounded-lg shadow-inner">
+                    <div class="text-gray-500 text-xs uppercase font-medium">Loss</div>
+                    <div id="packetLoss" class="text-lg font-bold text-yellow-600">0%</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Console -->
+        <div class="flex justify-between items-center mb-2">
+             <h3 class="text-xl font-semibold text-gray-700">Console Output</h3>
+             <button type="button" id="clearResults" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition shadow-sm">
+                Clear Console
+             </button>
+        </div>
+        <div id="results">Console ready. Click 'Start Ping' to begin.</div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const targetInput = document.getElementById('target');
+        const countInput = document.getElementById('count');
+        const pingForm = document.getElementById('pingForm');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const clearButton = document.getElementById('clearResults');
+        const resultsDiv = document.getElementById('results');
+        const recommendedSpans = document.querySelectorAll('.recommended span');
+
+        // Statistics Display
+        const minRttDisplay = document.getElementById('minRtt');
+        const maxRttDisplay = document.getElementById('maxRtt');
+        const avgRttDisplay = document.getElementById('avgRtt');
+        const lossDisplay = document.getElementById('packetLoss');
+
+        // State Variables
+        let isRunning = false;
+        let pingStats = {
+            totalCount: 0,
+            successCount: 0,
+            errorCount: 0,
+            rtts: [], // Array to store all successful RTT values
+        };
+
+        // --- Core Ping Logic ---
+
+        /**
+         * Cleans the URL input by prepending a protocol if missing.
+         * @param {string} url 
+         * @returns {string} The cleaned URL.
+         */
+        function cleanUrl(url) {
+            let cleaned = url.trim();
+            // Automatically add https:// if no protocol is present
+            if (!/^https?:\/\//i.test(cleaned)) {
+                cleaned = "https://" + cleaned;
+            }
+            return cleaned;
+        }
+
+        /**
+         * Performs a simulated network ping using a cross-origin fetch request.
+         * @param {string} url 
+         * @returns {Promise<{rtt: number, error: boolean}>}
+         */
+        async function httpPing(url) {
+            const start = performance.now();
+            try {
+                // Use cache-busting to prevent cached responses
+                await fetch(url + "?_=" + Date.now(), { 
+                    mode: "no-cors",
+                    // Use a short timeout (e.g., 5 seconds) for robustness
+                    signal: AbortSignal.timeout(5000) 
+                });
+                const rtt = performance.now() - start;
+                return { rtt, error: false };
+            } catch (e) {
+                const rtt = performance.now() - start;
+                // Treat any error (network, CORS, or timeout) as a simulated packet loss
+                return { rtt, error: true };
+            }
+        }
+
+        // --- UI & Utility Functions ---
+
+        /** Gets formatted timestamp */
+        function getTimestamp() {
+            const d = new Date();
+            const format = (n) => n.toString().padStart(2, '0');
+            return `[${format(d.getHours())}:${format(d.getMinutes())}:${format(d.getSeconds())}]`;
+        }
+
+        /** Appends result to the console and scrolls to the bottom. */
+        function appendResult(text, isError = false) {
+            const ts = getTimestamp();
+            const line = document.createElement('div');
+            
+            const tsSpan = document.createElement('span');
+            tsSpan.textContent = ts;
+            tsSpan.className = "timestamp";
+
+            const textSpan = document.createElement('span');
+            textSpan.textContent = text;
+            textSpan.className = isError ? "ping-error" : "ping-success";
+
+            line.appendChild(tsSpan);
+            line.appendChild(textSpan);
+            resultsDiv.appendChild(line);
+
+            // Scroll to bottom
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        /** Clears the console output. */
+        function clearResults() {
+            resultsDiv.innerHTML = 'Console ready. Click \'Start Ping\' to begin.';
+            updateStats(true); // Reset stats on clear
+        }
+        
+        /** Updates the statistics panel with current data. */
+        function updateStats(reset = false) {
+            if (reset) {
+                pingStats = { totalCount: 0, successCount: 0, errorCount: 0, rtts: [] };
+                minRttDisplay.textContent = '--';
+                maxRttDisplay.textContent = '--';
+                avgRttDisplay.textContent = '--';
+                lossDisplay.textContent = '0%';
+                return;
+            }
+
+            const { totalCount, successCount, errorCount, rtts } = pingStats;
+
+            if (totalCount === 0) return;
+
+            // Calculate RTT Stats
+            if (successCount > 0) {
+                const minRtt = Math.min(...rtts).toFixed(2);
+                const maxRtt = Math.max(...rtts).toFixed(2);
+                const avgRtt = (rtts.reduce((a, b) => a + b, 0) / successCount).toFixed(2);
+                
+                minRttDisplay.textContent = `${minRtt} ms`;
+                maxRttDisplay.textContent = `${maxRtt} ms`;
+                avgRttDisplay.textContent = `${avgRtt} ms`;
+            } else {
+                minRttDisplay.textContent = '--';
+                maxRttDisplay.textContent = '--';
+                avgRttDisplay.textContent = '--';
+            }
+
+            // Calculate Packet Loss
+            const lossPercent = ((errorCount / totalCount) * 100).toFixed(0);
+            lossDisplay.textContent = `${lossPercent}%`;
+            
+            // Adjust color for high loss
+            lossDisplay.classList.toggle('text-red-600', lossPercent > 50);
+            lossDisplay.classList.toggle('text-yellow-600', lossPercent <= 50);
+        }
+
+        /** Sets the state of the control buttons. */
+        function setControlState(running) {
+            isRunning = running;
+            startButton.disabled = running;
+            stopButton.disabled = !running;
+            targetInput.disabled = running;
+            countInput.disabled = running;
+            
+            startButton.classList.toggle('bg-gray-400', running);
+            startButton.classList.toggle('bg-indigo-600', !running);
+        }
+
+        // --- Main Control Flow ---
+
+        /** Starts the ping sequence. */
+        async function startPingSequence(target, count) {
+            setControlState(true);
+            updateStats(true); // Reset stats for a new session
+
+            appendResult(`Pinging ${target} with ${count} requests...`);
+            
+            for (let i = 1; i <= count; i++) {
+                if (!isRunning) break; // Check for stop command
+
+                pingStats.totalCount = i;
+                
+                const { rtt, error } = await httpPing(target);
+
+                if (error) {
+                    pingStats.errorCount++;
+                    appendResult(`Request ${i}: Destination Unreachable or Timeout (${rtt.toFixed(2)} ms)`, true);
+                } else {
+                    pingStats.successCount++;
+                    pingStats.rtts.push(rtt);
+                    appendResult(`Request ${i}: Reply from ${target} time=${rtt.toFixed(2)} ms`);
+                }
+                
+                updateStats();
+
+                // Wait 1 second before next ping (like a standard ping utility)
+                if (i < count && isRunning) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+
+            if (isRunning) {
+                appendResult(`\n--- Ping test to ${target} finished ---`);
+            } else {
+                appendResult(`\n--- Ping test stopped by user ---`, true);
+            }
+
+            // Final state transition
+            setControlState(false);
+        }
+
+        // --- Event Listeners ---
+        
+        // Form Submission (Start Ping)
+        pingForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (isRunning) return; // Prevent double click
+
+            const target = cleanUrl(targetInput.value);
+            const count = parseInt(countInput.value, 10);
+
+            if (!target || count < 1) {
+                alert('Please enter a valid target and a number of pings.');
+                return;
+            }
+
+            startPingSequence(target, count);
+        });
+
+        // Stop Button
+        stopButton.addEventListener('click', function() {
+            setControlState(false); // This stops the loop in startPingSequence
+        });
+
+        // Clear Button
+        clearButton.addEventListener('click', clearResults);
+
+        // Recommended Targets Click Handler
+        recommendedSpans.forEach(span => {
+            span.addEventListener('click', function() {
+                targetInput.value = this.getAttribute('data-target');
+                targetInput.focus();
+            });
+        });
+        
+        // Initial setup
+        setControlState(false);
+        clearResults();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Image Actual Pixel Coordinate Tracker with Mini-Map and Scale</title>
+
+<!-- Load Tailwind CSS -->
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Load jQuery -->
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Apply Inter font for better typography -->
+
+<style>
+
+body {
+
+font-family: 'Inter', sans-serif;
+
+background-color: #f3f4f6;
+
+/* Light gray background */
+
+/* Add padding to the bottom of the body to prevent content from hiding behind the fixed panel */
+
+padding-bottom: 8rem;
+
+/* Increased padding for the larger fixed panel */
+
+}
+
+
+/* Custom styles for the coordinate display box (floating) */
+
+#coordinateDisplay {
+
+pointer-events: none;
+
+/* Allows mouse events to pass through to the image */
+
+transition: opacity 0.2s;
+
+}
+
+
+/* Custom styles for the draggable viewport box */
+
+#miniMapViewport {
+
+transition: none;
+
+/* Disable transitions during drag for smooth movement */
+
+cursor: grab;
+
+touch-action: none;
+
+/* Prevent browser touch behavior interference */
+
+}
+
+
+#miniMapViewport.cursor-grabbing {
+
+cursor: grabbing;
+
+}
+
+
+/* Style for the range sliders */
+
+input[type="range"]::-webkit-slider-thumb {
+
+-webkit-appearance: none;
+
+appearance: none;
+
+width: 12px;
+
+height: 12px;
+
+background: #3b82f6;
+
+/* blue-500 */
+
+border-radius: 50%;
+
+cursor: pointer;
+
+box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+
+}
+
+
+input[type="range"]::-moz-range-thumb {
+
+width: 12px;
+
+height: 12px;
+
+background: #3b82f6;
+
+border-radius: 50%;
+
+cursor: pointer;
+
+box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+
+}
+
+</style>
+
+</head>
+
+
+<body class="p-4 sm:p-8 min-h-screen flex items-start justify-center">
+
+
+<div class="w-full max-w-5xl bg-white shadow-2xl rounded-xl p-6 md:p-8 space-y-6">
+
+
+<h1 class="text-3xl font-extrabold text-gray-800 text-center">
+
+Displayed Image Pixel Tracker & Mini-Map
+
+</h1>
+
+
+<p class="text-gray-500 text-center">
+
+Coordinates are tracked to the **displayed resolution** (scaled size). Use the controls at the bottom to adjust the target resolution.
+
+</p>
+
+
+
+<!-- Image URL Input and Load Button -->
+
+<div class="flex flex-col sm:flex-row gap-3">
+
+<input type="url" id="imageUrlInput" placeholder="Paste your image URL here"
+
+class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+
+value="https://upload.wikimedia.org/wikipedia/commons/9/9e/Equal-Earth-Physical-No-Type_%28cropped%29.jpg">
+
+<button id="loadImageButton"
+
+class="shrink-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-[1.01]">
+
+Load Image
+
+</button>
+
+</div>
+
+
+
+<!-- Coordinates Display and Image Container -->
+
+<!-- Added overflow-auto for scrollability -->
+
+<div id="imageContainerScroll"
+
+class="mt-8 relative border-4 border-dashed border-gray-300 rounded-lg p-2 bg-gray-100 overflow-auto max-h-[70vh]">
+
+
+
+<!-- Coordinate Display Box (Floating near mouse) -->
+
+<div id="coordinateDisplay"
+
+class="absolute top-2 right-2 bg-black text-white px-4 py-2 rounded-lg text-sm font-mono shadow-xl opacity-0">
+
+X: 0, Y: 0
+
+</div>
+
+
+
+<!-- Image Container -->
+
+<img id="targetImage"
+
+src="https://upload.wikimedia.org/wikipedia/commons/9/9e/Equal-Earth-Physical-No-Type_%28cropped%29.jpg"
+
+alt="Target Image" class="rounded-lg shadow-lg cursor-crosshair"
+
+style="width: auto; height: auto; max-width: none;"
+
+onerror="this.onerror=null; this.src='https://placehold.co/600x400/EF4444/FFFFFF?text=Error!+Check+URL';">
+
+
+</div>
+
+
+
+<!-- Status Message -->
+
+<div id="statusMessage" class="text-center text-sm text-gray-600 pt-4">
+
+Image loaded. Now move your mouse over the image.
+
+</div>
+
+
+</div>
+
+
+
+<script>
+
+// Global variables for dimensions and scaling state
+
+let actualWidth = 0;
+
+let actualHeight = 0;
+
+let aspectRatio = 1; // ActualWidth / ActualHeight
+
+let displayedWidth = 0;
+
+let displayedHeight = 0;
+
+let miniMapRatioX = 0;
+
+let miniMapRatioY = 0;
+
+let isDragging = false;
+
+let dragStartX = 0;
+
+let dragStartY = 0;
+
+
+
+let scrollContainer;
+
+let miniMapContainer;
+
+let miniMapViewport;
+
+let $miniMapImage;
+
+let $fixedPanel;
+
+// NEW: Input elements and display elements
+
+let $widthSlider, $heightSlider, $widthInput, $heightInput, $aspectRatioLock;
+
+let $actualSizeDisplay, $displayedSizeDisplay; // New elements for showing dimensions
+
+
+const MIN_DIMENSION = 100;
+
+
+
+// Function to update the main image size and recalculate mini-map settings
+
+function updateImageDisplayAndMap(newWidth, newHeight) {
+
+if (actualWidth === 0) return;
+
+
+
+const maxWidth = parseInt($widthSlider.attr('max'));
+
+const maxHeight = parseInt($heightSlider.attr('max'));
+
+
+
+// Clamp dimensions to the defined limits
+
+displayedWidth = Math.max(MIN_DIMENSION, Math.min(newWidth, maxWidth));
+
+displayedHeight = Math.max(MIN_DIMENSION, Math.min(newHeight, maxHeight));
+
+
+
+// Apply new dimensions to main image
+
+$('#targetImage').css({
+
+width: displayedWidth + 'px',
+
+height: displayedHeight + 'px',
+
+'max-width': 'none'
+
+});
+
+
+// --- Update UI Controls ---
+
+$widthSlider.val(displayedWidth);
+
+$widthInput.val(displayedWidth);
+
+$heightSlider.val(displayedHeight);
+
+$heightInput.val(displayedHeight);
+
+
+// --- Update the Displayed Size UI ---
+
+$displayedSizeDisplay.text(`Display: ${displayedWidth} x ${displayedHeight} px`);
+
+
+
+// --- Mini-Map Setup Recalculation ---
+
+const imageContainerWidth = scrollContainer.clientWidth;
+
+const imageContainerHeight = scrollContainer.clientHeight;
+
+const miniMapWidth = miniMapContainer.clientWidth;
+
+const miniMapHeight = miniMapContainer.clientHeight;
+
+
+
+// Ratios are based on the *displayed* size of the main image
+
+miniMapRatioX = displayedWidth / miniMapWidth;
+
+miniMapRatioY = displayedHeight / miniMapHeight;
+
+
+
+// Calculate viewport box size
+
+let viewportWidth = imageContainerWidth / miniMapRatioX;
+
+let viewportHeight = imageContainerHeight / miniMapRatioY;
+
+
+
+// Constrain viewport size to mini-map bounds
+
+viewportWidth = Math.min(viewportWidth, miniMapWidth);
+
+viewportHeight = Math.min(viewportHeight, miniMapHeight);
+
+
+
+$(miniMapViewport).css({
+
+width: viewportWidth + 'px',
+
+height: viewportHeight + 'px',
+
+});
+
+
+// Ensure the scroll position is valid for the new size, then sync map position
+
+scrollContainer.scrollLeft = Math.min(scrollContainer.scrollLeft, displayedWidth - imageContainerWidth);
+
+scrollContainer.scrollTop = Math.min(scrollContainer.scrollTop, displayedHeight - imageContainerHeight);
+
+syncScrollToMap();
+
+}
+
+
+
+// Handles resizing from any control (slider or input)
+
+function handleResize(source, value) {
+
+if (actualWidth === 0) return;
+
+
+
+let newWidth = displayedWidth;
+
+let newHeight = displayedHeight;
+
+const isLocked = $aspectRatioLock.is(':checked');
+
+const parsedValue = parseInt(value);
+
+if (isNaN(parsedValue)) return;
+
+// Determine the primary dimension being adjusted
+
+if (source.includes('width')) {
+
+newWidth = parsedValue;
+
+if (isLocked) {
+
+newHeight = Math.round(newWidth / aspectRatio);
+
+}
+
+} else if (source.includes('height')) {
+
+newHeight = parsedValue;
+
+if (isLocked) {
+
+newWidth = Math.round(newHeight * aspectRatio);
+
+}
+
+}
+
+
+
+// Update the display and map with the calculated or clamped dimensions
+
+updateImageDisplayAndMap(newWidth, newHeight);
+
+}
+
+
+
+// Function to synchronize main image scroll to mini-map viewport position
+
+function syncScrollToMap() {
+
+if (actualWidth === 0 || !scrollContainer || !miniMapViewport) return;
+
+
+
+const scrollLeft = scrollContainer.scrollLeft;
+
+const scrollTop = scrollContainer.scrollTop;
+
+
+
+const mapLeft = scrollLeft / miniMapRatioX;
+
+const mapTop = scrollTop / miniMapRatioY;
+
+
+
+$(miniMapViewport).css({
+
+left: mapLeft + 'px',
+
+top: mapTop + 'px',
+
+});
+
+}
+
+
+
+// Function to synchronize mini-map viewport position to main image scroll
+
+function syncMapToScroll(mapX, mapY) {
+
+if (actualWidth === 0 || !scrollContainer) return;
+
+
+
+const newScrollLeft = mapX * miniMapRatioX;
+
+const newScrollTop = mapY * miniMapRatioY;
+
+
+
+scrollContainer.scrollLeft = newScrollLeft;
+
+scrollContainer.scrollTop = newScrollTop;
+
+}
+
+
+
+$(document).ready(function() {
+
+
+const $input = $('#imageUrlInput');
+
+const $button = $('#loadImageButton');
+
+const $image = $('#targetImage');
+
+const $display = $('#coordinateDisplay');
+
+const $status = $('#statusMessage');
+
+
+// Cache all elements
+
+scrollContainer = $('#imageContainerScroll')[0];
+
+$fixedPanel = $('#fixedCoordinatePanel');
+
+const $fixedCoords = $('#fixedCoords');
+
+miniMapContainer = $('#miniMapContainer')[0];
+
+miniMapViewport = $('#miniMapViewport')[0];
+
+$miniMapImage = $('#miniMapImage');
+
+// Cache sliders, inputs, checkbox, and dimension displays
+
+$widthSlider = $('#widthSlider');
+
+$heightSlider = $('#heightSlider');
+
+$widthInput = $('#widthInput');
+
+$heightInput = $('#heightInput');
+
+$aspectRatioLock = $('#aspectRatioLock');
+
+$actualSizeDisplay = $('#actualSizeDisplay'); 
+
+$displayedSizeDisplay = $('#displayedSizeDisplay');
+
+
+
+// --- 1. Load Image Handler ---
+
+$button.on('click', function() {
+
+const url = $input.val().trim();
+
+if (!url) {
+
+$status.text('Please enter a valid image URL.');
+
+$image.attr('src', 'https://placehold.co/600x400/EF4444/FFFFFF?text=No+URL+Provided');
+
+$fixedPanel.removeClass('opacity-100').addClass('opacity-0');
+
+return;
+
+}
+
+
+
+$status.text('Loading image...');
+
+$display.removeClass('opacity-100').addClass('opacity-0');
+
+$fixedPanel.removeClass('opacity-100').addClass('opacity-0');
+
+
+
+const tempImg = new Image();
+
+
+tempImg.onload = function() {
+
+actualWidth = tempImg.naturalWidth;
+
+actualHeight = tempImg.naturalHeight;
+
+aspectRatio = actualWidth / actualHeight;
+
+// Initialize displayed size to actual size
+
+displayedWidth = actualWidth;
+
+displayedHeight = actualHeight;
+
+
+
+$image.attr('src', url);
+
+$miniMapImage.attr('src', url);
+
+
+// Set slider/input max based on actual dimension (150% zoom factor)
+
+const maxZoomFactor = 1.5;
+
+const maxWidth = Math.round(actualWidth * maxZoomFactor);
+
+const maxHeight = Math.round(actualHeight * maxZoomFactor);
+
+const initialWidth = Math.min(actualWidth, 1000); // Start at actual size, capped for UI comfort
+
+const initialHeight = Math.min(actualHeight, 1000);
+
+
+
+$widthSlider.attr({ 'min': MIN_DIMENSION, 'max': maxWidth, 'value': initialWidth });
+
+$heightSlider.attr({ 'min': MIN_DIMENSION, 'max': maxHeight, 'value': initialHeight });
+
+$widthInput.val(initialWidth).attr('max', maxWidth).attr('min', MIN_DIMENSION);
+
+$heightInput.val(initialHeight).attr('max', maxHeight).attr('min', MIN_DIMENSION);
+
+
+// Set the STATIC Actual Size display
+
+$actualSizeDisplay.text(`Actual: ${actualWidth} x ${actualHeight} px`);
+
+
+// Call update to set the initial size and update the DYNAMIC Displayed Size
+
+updateImageDisplayAndMap(initialWidth, initialHeight);
+
+
+
+$status.html(`Image loaded successfully (Actual: <span class="font-bold text-black">${actualWidth} x ${actualHeight}</span> pixels). Use controls to scale.`);
+
+
+$fixedPanel.removeClass('opacity-0').addClass('opacity-100');
+
+};
+
+
+tempImg.onerror = function() {
+
+$image.attr('src', 'https://placehold.co/600x400/EF4444/FFFFFF?text=Error!+Check+URL');
+
+$status.text('Error loading image. Please check the URL and try again.');
+
+actualWidth = 0;
+
+displayedWidth = 0;
+
+// Clear the dimension displays on error
+
+$actualSizeDisplay.text(`Actual: -- x -- px`);
+
+$displayedSizeDisplay.text(`Display: -- x -- px`);
+
+$fixedPanel.removeClass('opacity-100').addClass('opacity-0');
+
+};
+
+
+tempImg.src = url;
+
+});
+
+// --- 1b. Scaling Control Handlers ---
+
+
+
+// Slider Handlers
+
+$widthSlider.on('input', function() {
+
+handleResize('widthSlider', $(this).val());
+
+});
+
+$heightSlider.on('input', function() {
+
+handleResize('heightSlider', $(this).val());
+
+});
+
+
+
+// Text Input Handlers (use 'input' for real-time update)
+
+$widthInput.on('input', function() {
+
+handleResize('widthInput', $(this).val());
+
+});
+
+$heightInput.on('input', function() {
+
+handleResize('heightInput', $(this).val());
+
+});
+
+
+
+// Aspect Ratio Lock Handler (If lock is checked/unchecked, re-run update to synchronize)
+
+$aspectRatioLock.on('change', function() {
+
+if ($(this).is(':checked')) {
+
+// When locking, adjust the height based on the current width to ensure consistency
+
+handleResize('widthInput', $widthInput.val());
+
+}
+
+});
+
+
+
+
+// --- 2. Mouse Move Tracker (Main Image) ---
+
+$image.on('mousemove', function(event) {
+
+if (actualWidth === 0) return;
+
+
+
+const offset = $image.offset();
+
+const displayedX = event.pageX - offset.left;
+
+const displayedY = event.pageY - offset.top;
+
+
+// --- MODIFIED LOGIC START ---
+
+// Now clamping coordinates to the displayed width and height
+
+const clampedX = Math.max(0, Math.min(Math.round(displayedX), displayedWidth)); 
+
+const clampedY = Math.max(0, Math.min(Math.round(displayedY), displayedHeight));
+
+// --- MODIFIED LOGIC END ---
+
+
+
+// Update the floating display box content
+
+$display.css({
+
+left: event.pageX + 15, // Offset from mouse cursor
+
+top: event.pageY + 15
+
+}).text(`X: ${clampedX}, Y: ${clampedY}`);
+
+
+
+// Update the fixed panel content
+
+$fixedCoords.html(`<span class="text-blue-400">X: ${clampedX}</span>, <span class="text-blue-400">Y: ${clampedY}</span>`);
+
+});
+
+
+
+// --- 3. Hover Visibility Control (Main Image) ---
+
+
+// Move the floating display with the mouse
+
+$image.on('mouseenter', function(event) {
+
+if (actualWidth > 0) {
+
+$display.removeClass('opacity-0').addClass('opacity-100');
+
+}
+
+}).on('mouseleave', function() {
+
+$display.removeClass('opacity-100').addClass('opacity-0');
+
+$fixedCoords.html('<span class="text-gray-400">Hover over the image...</span>');
+
+});
+
+
+
+// --- 4. Main Image Scroll Listener (Scroll -> Map) ---
+
+$(scrollContainer).on('scroll', syncScrollToMap);
+
+
+
+// --- 5. Mini-Map Interaction Handlers (Map -> Scroll) ---
+
+
+
+// 5a. Click/Tap to center
+
+$(miniMapContainer).on('click', function(e) {
+
+if (isDragging || actualWidth === 0) return;
+
+
+
+const $target = $(e.target);
+
+if ($target.is(miniMapViewport)) return;
+
+
+
+const offset = $(this).offset();
+
+const clickX = e.pageX - offset.left;
+
+const clickY = e.pageY - offset.top;
+
+
+
+const viewportWidth = miniMapViewport.clientWidth;
+
+const viewportHeight = miniMapViewport.clientHeight;
+
+
+
+let targetLeft = clickX - (viewportWidth / 2);
+
+let targetTop = clickY - (viewportHeight / 2);
+
+
+
+const maxX = miniMapContainer.clientWidth - viewportWidth;
+
+const maxY = miniMapContainer.clientHeight - viewportHeight;
+
+targetLeft = Math.max(0, Math.min(targetLeft, maxX));
+
+targetTop = Math.max(0, Math.min(targetTop, maxY));
+
+
+
+syncMapToScroll(targetLeft, targetTop);
+
+$(miniMapViewport).css({
+
+left: targetLeft + 'px',
+
+top: targetTop + 'px'
+
+});
+
+});
+
+
+
+
+// 5b. Draggable functionality
+
+$(miniMapViewport).on('mousedown touchstart', function(e) {
+
+if (actualWidth === 0) return;
+
+
+
+isDragging = true;
+
+e.preventDefault();
+
+const event = e.originalEvent.touches ? e.originalEvent.touches[0] : e;
+
+
+
+dragStartX = event.pageX - $(miniMapViewport).position().left;
+
+dragStartY = event.pageY - $(miniMapViewport).position().top;
+
+
+
+$(miniMapViewport).addClass('cursor-grabbing');
+
+
+
+$(document).on('mousemove.drag touchmove.drag', function(e) {
+
+if (!isDragging) return;
+
+
+
+const event = e.originalEvent.touches ? e.originalEvent.touches[0] : e;
+
+let newX = event.pageX - dragStartX;
+
+let newY = event.pageY - dragStartY;
+
+
+
+const maxX = miniMapContainer.clientWidth - miniMapViewport.clientWidth;
+
+const maxY = miniMapContainer.clientHeight - miniMapViewport.clientHeight;
+
+
+
+newX = Math.max(0, Math.min(newX, maxX));
+
+newY = Math.max(0, Math.min(newY, maxY));
+
+
+
+syncMapToScroll(newX, newY);
+
+$(miniMapViewport).css({
+
+left: newX + 'px',
+
+top: newY + 'px'
+
+});
+
+});
+
+
+
+$(document).on('mouseup.drag touchend.drag', function() {
+
+isDragging = false;
+
+$(document).off('.drag');
+
+$(miniMapViewport).removeClass('cursor-grabbing');
+
+syncScrollToMap();
+
+});
+
+});
+
+
+
+// Initialize the app with the sample URL
+
+$button.trigger('click');
+
+
+});
+
+</script>
+
+
+
+<!-- Fixed Coordinate Panel at the bottom of the screen -->
+
+<div id="fixedCoordinatePanel"
+
+class="fixed bottom-0 left-0 right-0 bg-gray-900 text-white p-4 shadow-2xl z-50 transition-opacity duration-300 opacity-0">
+
+
+<div
+
+class="max-w-5xl mx-auto flex flex-col lg:flex-row justify-between items-center font-mono space-y-4 lg:space-y-0">
+
+
+<!-- Mini-map Container (Left Side) -->
+
+<div id="miniMapContainer"
+
+class="relative bg-gray-700 rounded-lg overflow-hidden shrink-0 cursor-pointer border-2 border-gray-600"
+
+style="width: 200px; height: 120px;">
+
+
+<!-- Scaled Image -->
+
+<img id="miniMapImage" src="" alt="Mini Map" class="w-full h-full object-cover opacity-50">
+
+
+<!-- Viewport Box (Draggable) -->
+
+<div id="miniMapViewport"
+
+class="absolute border-2 border-red-500 bg-red-500/40 shadow-xl rounded-sm transition-all duration-100 ease-linear hover:bg-red-500/60"
+
+style="left: 0; top: 0; width: 0; height: 0;"></div>
+
+
+</div>
+
+
+
+<!-- Scaling Controls (Center) -->
+
+<div class="flex flex-col space-y-3 w-full lg:w-1/3 px-4">
+
+
+<!-- Aspect Ratio Lock -->
+
+<div class="flex items-center justify-center pt-1">
+
+<input type="checkbox" id="aspectRatioLock"
+
+class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" checked>
+
+<label for="aspectRatioLock" class="text-sm font-medium text-gray-300 select-none">Lock Aspect
+
+Ratio</label>
+
+</div>
+
+
+
+<!-- Width Control (Slider + Input) -->
+
+<div class="flex items-center space-x-2">
+
+<label class="text-xs w-12 text-gray-400">Width:</label>
+
+<input type="range" id="widthSlider" min="100" max="1000" value="600"
+
+class="flex-grow h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+
+<input type="number" id="widthInput" value="600"
+
+class="w-16 bg-gray-700 text-yellow-300 text-sm font-semibold text-right p-1 rounded-md border border-gray-600 focus:border-blue-500 focus:outline-none"
+
+min="100">
+
+</div>
+
+
+
+<!-- Height Control (Slider + Input) -->
+
+<div class="flex items-center space-x-2">
+
+<label class="text-xs w-12 text-gray-400">Height:</label>
+
+<input type="range" id="heightSlider" min="100" max="1000" value="400"
+
+class="flex-grow h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+
+<input type="number" id="heightInput" value="400"
+
+class="w-16 bg-gray-700 text-yellow-300 text-sm font-semibold text-right p-1 rounded-md border border-gray-600 focus:border-blue-500 focus:outline-none"
+
+min="100">
+
+</div>
+
+
+</div>
+
+
+
+<!-- Coordinate and Dimension Display (Right Side) -->
+
+<div class="flex flex-col items-center lg:items-end space-y-1 ml-4 lg:space-y-2">
+
+
+<!-- Actual Image Size (Static) -->
+
+<div id="actualSizeDisplay" class="text-gray-400 text-xs sm:text-sm">
+
+Actual: -- x -- px
+
+</div>
+
+
+<!-- Displayed Image Size (Dynamic) -->
+
+<div id="displayedSizeDisplay" class="text-yellow-300 text-sm sm:text-base font-semibold">
+
+Display: -- x -- px
+
+</div>
+
+
+<!-- Current Coordinate Display -->
+
+<div id="fixedCoords" class="font-bold text-xl sm:text-2xl text-right">
+
+<span class="text-gray-400">Hover over the image...</span>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+</body>
+
+
+</html>
+
+

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Puter.js Image to Text</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://js.puter.com/v2/"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+#loadingIcon { display:none; }
+#resultBox { white-space: pre-wrap; background:#f8f9fa; padding:1rem; border-radius:0.5rem; margin-top:1rem; max-height:400px; overflow-y:auto; }
+.preview-img { max-width:200px; margin-top:10px; border:1px solid #ccc; border-radius:4px; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1 class="mb-3">Puter.js Image to Text</h1>
+
+<div class="mb-3">
+    <label class="form-label">Image URL:</label>
+    <input type="text" id="imageUrl" class="form-control" placeholder="Enter image URL">
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Or select a local image:</label>
+    <input type="file" id="imageFile" class="form-control" accept="image/*">
+</div>
+
+<div class="mb-3">
+    <button id="extractBtn" class="btn btn-primary">Extract Text</button>
+    <button id="downloadBtn" class="btn btn-success ms-2">Download Text</button>
+    <span id="loadingIcon" class="spinner-border spinner-border-sm text-primary ms-2" role="status"></span>
+</div>
+
+<img id="preview" class="preview-img" src="" alt="Image Preview" style="display:none;">
+
+<div id="resultBox">Text from image will appear here...</div>
+</div>
+
+<script>
+let extractedText = "";
+let imageSrc = "";
+
+$(function(){
+
+    // Handle file selection
+    $("#imageFile").on("change", function(e){
+        const file = e.target.files[0];
+        if(file){
+            imageSrc = URL.createObjectURL(file);
+            $("#preview").attr("src", imageSrc).show();
+            $("#imageUrl").val(''); // clear URL input
+        }
+    });
+
+    // Handle URL input
+    $("#imageUrl").on("input", function(){
+        const url = $(this).val().trim();
+        if(url){
+            imageSrc = url;
+            $("#preview").attr("src", url).show();
+            $("#imageFile").val(''); // clear file input
+        }
+    });
+
+    // Extract text
+    $("#extractBtn").on("click", async ()=>{
+        if(!imageSrc){ alert("Please provide an image URL or select a file."); return; }
+
+        $("#loadingIcon").show();
+        $("#resultBox").text("Extracting text...");
+
+        try{
+            const text = await puter.ai.img2txt(imageSrc);
+            extractedText = text;
+            $("#resultBox").text(text);
+        }catch(e){
+            console.error(e);
+            $("#resultBox").text("Error extracting text from image.");
+        }
+
+        $("#loadingIcon").hide();
+    });
+
+    // Download extracted text
+    $("#downloadBtn").on("click", ()=>{
+        if(!extractedText){
+            alert("No text to download.");
+            return;
+        }
+        const blob = new Blob([extractedText], {type: "text/plain"});
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "image_text.txt";
+        a.click();
+        URL.revokeObjectURL(a.href);
+    });
+});
+</script>
+</body>
+</html>
+

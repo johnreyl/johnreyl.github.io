@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Converter</title>
+    <!-- Load Tailwind CSS for modern, mobile-first styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for aesthetic enhancements */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+            color: #1e293b;
+        }
+        .tab-button {
+            transition: all 0.2s;
+        }
+        .active-tab {
+            border-bottom: 4px solid #10b981; /* Emerald green border */
+            color: #10b981;
+            font-weight: 600;
+        }
+        /* Mobile adjustment for input groups */
+        @media (max-width: 640px) {
+            .sm\:flex-row {
+                flex-direction: column;
+            }
+            .sm\:w-1\/3 {
+                width: 100%;
+                margin-bottom: 0.75rem;
+            }
+        }
+        /* Spinner styles */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #10b981;
+            animation: spin 1s ease infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 sm:p-8">
+
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl p-6 sm:p-10">
+
+        <!-- Header -->
+        <header class="mb-8 border-b pb-4">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-800 tracking-tight">
+                Universal Converter
+            </h1>
+            <p class="text-lg text-gray-500 mt-2">
+                Temperature, Currency, Metric Units, Time Zones, and Data Lookup.
+            </p>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="flex flex-wrap justify-start border-b border-gray-200 mb-8">
+            <button id="tab-temperature" class="tab-button px-4 py-3 text-sm sm:text-base text-gray-600 hover:text-emerald-500 active-tab" onclick="showTab('temperature')">
+                🌡️ Temperature
+            </button>
+            <button id="tab-units" class="tab-button px-4 py-3 text-sm sm:text-base text-gray-600 hover:text-emerald-500" onclick="showTab('units')">
+                📐 Units / Metric
+            </button>
+            <button id="tab-currency" class="tab-button px-4 py-3 text-sm sm:text-base text-gray-600 hover:text-emerald-500" onclick="showTab('currency')">
+                💰 Currency
+            </button>
+            <button id="tab-data" class="tab-button px-4 py-3 text-sm sm:text-base text-gray-600 hover:text-emerald-500" onclick="showTab('data')">
+                🔬 Periodic Table / Size
+            </button>
+        </div>
+
+        <!-- Conversion Modules -->
+
+        <!-- 1. Temperature Conversion -->
+        <div id="temperature" class="conversion-module">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-6">Temperature Conversion</h2>
+            <div class="space-y-4">
+                <input type="number" id="tempInput" placeholder="Enter value" oninput="convertTemperature()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition duration-150 shadow-sm">
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="p-4 bg-emerald-50 rounded-lg shadow-inner">
+                        <p class="text-xs font-medium text-emerald-600">Celsius ($^\circ\text{C}$)</p>
+                        <p id="resultC" class="text-2xl font-bold text-gray-800 mt-1">0.00</p>
+                    </div>
+                    <div class="p-4 bg-emerald-50 rounded-lg shadow-inner">
+                        <p class="text-xs font-medium text-emerald-600">Fahrenheit ($^\circ\text{F}$)</p>
+                        <p id="resultF" class="text-2xl font-bold text-gray-800 mt-1">0.00</p>
+                    </div>
+                    <div class="p-4 bg-emerald-50 rounded-lg shadow-inner">
+                        <p class="text-xs font-medium text-emerald-600">Kelvin (K)</p>
+                        <p id="resultK" class="text-2xl font-bold text-gray-800 mt-1">0.00</p>
+                    </div>
+                </div>
+                
+                <div class="pt-4">
+                    <label for="tempUnitSelect" class="block text-sm font-medium text-gray-700 mb-2">Input Unit:</label>
+                    <select id="tempUnitSelect" onchange="convertTemperature()" class="w-full sm:w-1/2 p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                        <option value="C">Celsius ($^\circ\text{C}$)</option>
+                        <option value="F">Fahrenheit ($^\circ\text{F}$)</option>
+                        <option value="K">Kelvin (K)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Unit Conversion (Length, Volume, Mass, Area, Time, Speed, Storage) -->
+        <div id="units" class="conversion-module hidden space-y-10">
+            <h2 class="text-2xl font-semibold text-gray-700">Universal Unit Conversion</h2>
+            
+            <!-- TIME ZONE CONVERSION (NEW SECTION) -->
+            <div class="p-6 border border-gray-200 rounded-lg shadow-lg bg-blue-50">
+                <h3 class="text-xl font-semibold text-blue-700 mb-4">🌍 Time Zone Converter (Current Time - 24hr)</h3>
+                <p class="text-sm text-gray-600 mb-4">The current time is based on your device's clock. Select two zones to compare.</p>
+                <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                    <div class="sm:w-1/2">
+                        <label for="fromTimeZone" class="block text-sm font-medium text-gray-700 mb-2">Zone 1 (From):</label>
+                        <select id="fromTimeZone" onchange="convertTimeZone()" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
+                            <option value="Asia/Manila">🇵🇭 Philippines Time (PHT)</option>
+                            <option value="America/Los_Angeles">🇺🇸 Los Angeles (PST/PDT)</option>
+                            <option value="America/New_York">🇺🇸 New York (EST/EDT)</option>
+                            <option value="Europe/London">🇬🇧 London (GMT/BST)</option>
+                            <option value="Australia/Sydney">🇦🇺 Sydney (AEST/AEDT)</option>
+                            <option value="Europe/Paris">🇫🇷 Paris (CET/CEST)</option>
+                            <option value="Asia/Shanghai">🇨🇳 Shanghai (CST)</option>
+                        </select>
+                    </div>
+                    <div class="sm:w-1/2">
+                        <label for="toTimeZone" class="block text-sm font-medium text-gray-700 mb-2">Zone 2 (To):</label>
+                        <select id="toTimeZone" onchange="convertTimeZone()" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
+                            <option value="America/New_York">🇺🇸 New York (EST/EDT)</option>
+                            <option value="Asia/Manila">🇵🇭 Philippines Time (PHT)</option>
+                            <option value="America/Los_Angeles">🇺🇸 Los Angeles (PST/PDT)</option>
+                            <option value="Europe/London">🇬🇧 London (GMT/BST)</option>
+                            <option value="Australia/Sydney">🇦🇺 Sydney (AEST/AEDT)</option>
+                            <option value="Europe/Paris">🇫🇷 Paris (CET/CEST)</option>
+                            <option value="Asia/Shanghai">🇨🇳 Shanghai (CST)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                    <div class="p-4 bg-white border border-blue-200 rounded-lg shadow-inner">
+                        <p class="text-xs font-medium text-blue-600">Time in Zone 1 (<span id="fromZoneCode">PHT</span>)</p>
+                        <p id="timeZoneResultFrom" class="text-xl font-bold text-gray-800 mt-1">--:-- --</p>
+                    </div>
+                    <div class="p-4 bg-white border border-blue-200 rounded-lg shadow-inner">
+                        <p class="text-xs font-medium text-blue-600">Time in Zone 2 (<span id="toZoneCode">EST</span>)</p>
+                        <p id="timeZoneResultTo" class="text-xl font-bold text-gray-800 mt-1">--:-- --</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- COLUMN 1: Length, Mass, Time -->
+                <div class="space-y-10">
+                    <!-- Length Conversion -->
+                    <div class="p-6 border border-gray-200 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-semibold text-emerald-700 mb-4">📏 Length Conversion (Distance)</h3>
+                        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-4">
+                            <div class="sm:w-1/3">
+                                <label for="lengthValue" class="block text-sm font-medium text-gray-700 mb-2">Value:</label>
+                                <input type="number" id="lengthValue" placeholder="Enter value" oninput="convertLength()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition duration-150 shadow-sm">
+                            </div>
+                            <div class="sm:w-1/3">
+                                <label for="fromLengthUnit" class="block text-sm font-medium text-gray-700 mb-2">From Unit:</label>
+                                <select id="fromLengthUnit" onchange="convertLength()" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                                    <option value="m">Meters (m)</option>
+                                    <option value="km">Kilometers (km)</option>
+                                    <option value="cm">Centimeters (cm)</option>
+                                    <option value="mm">Millimeters (mm)</option>
+                                    <option value="ft">Feet (ft)</option>
+                                    <option value="mi">Miles (mi)</option>
+                                </select>
+                            </div>
+                            <div class="sm:w-1/3">
+                                <label for="toLengthUnit" class="block text-sm font-medium text-gray-700 mb-2">To Unit:</label>
+                                <select id="toLengthUnit" onchange="convertLength()" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                                    <option value="cm">Centimeters (cm)</option>
+                                    <option value="m">Meters (m)</option>
+                                    <option value="km">Kilometers (km)</option>
+                                    <option value="mm">Millimeters (mm)</option>
+                                    <option value="ft">Feet (ft)</option>
+                                    <option value="mi">Miles (mi)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="lengthResultContainer" class="p-4 bg-emerald-50 rounded-lg shadow-inner">
+                            <p class="text-xs font-medium text-emerald-600">Converted Length</p>
+                            <p id="lengthResult" class="text-2xl font-bold text-gray-800 mt-1">0.00</p>
+                        </div>
+                    </div>
+
+                    <!-- Mass Conversion -->
+                    <div class="p-6 border border-gray-200 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-semibold text-emerald-700 mb-4">⚖️ Mass Conversion (Weight)</h3>
+                        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-4">
+                            <div class="sm:w-1/3">
+                                <label for="massValue" class="block text-sm font-medium text-gray-700 mb-2">Value:</label>
+                                <input type="number" id="massValue" placeholder="Enter value" oninput="convertMass()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition duration-150 shadow-sm">
+                            </div>
+                            <div class="sm:w-1/3">
+                                <label for="fromMassUnit" class="block text-sm font-medium text-gray-700 mb-2">From Unit:</label>
+                                <select id="fromMassUnit" onchange="convertMass()" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                                    <option value="kg">Kilograms (kg)</option>
+                                    <option value="g">Grams (g)</option>
+                                    <option value="lb">Pounds (lb)</option>
+                                    <option value="oz">Ounces (oz)</option>
+                                </select>
+                            </div>
+                            <div class="sm:w-1/3">
+                                <label for="toMassUnit" class="block text-sm font-medium text-gray-700 mb-2">To Unit:</label>
+                                <select id="toMassUnit" onchange="convertMass()" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                                    <option value="lb">Pounds (lb)</option>
+                                    <option value="kg">Kilograms (kg)</option>
+                                    <option value="g">Grams (g)</option>
+                                    <option value="oz">Ounces (oz)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="massResultContainer" class="p-4 bg-emerald-50 rounded-lg shadow-inner">
+                            <p class="text-xs font-medium text-emerald-600">Converted Mass</p>
+                            <p id="massResult" class="text-2xl font-bold text-gray-800 mt-1">0.00</p>
+                        </div>
+                    </div>
+
+                    <!-- Time (Duration) Conversion (NEW SECTION) -->
+                    <div class="p-6 border border-gray-200 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-semibold text-emerald-700 mb-4">⏱️ Time Conversion (Duration)</h3>
+                        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-4">
+                            <div class="sm:w-1/3">
+                                <label for="timeValue" class="block text-sm font-medium text-gray-700 mb-2">Value:</label>
+                                <input type="number" id="timeValue" placeholder="Enter value" oninput="convertTime()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition duration-150 shadow-sm">
+                            </div>
+                            <div class="sm:w-1/3">
+                                <label for="fromTimeUnit" class="block text-sm font-medium text-gray-700 mb-2">From Unit:</label>
+                                <select id="fromTimeUnit" onchange="convertTime()" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                                    <option value="s">Seconds (s)</option>
+                                    <option value="min">Minutes (min)</option>
+                                    <option value="hr">Hours (hr)</option>
+                                    <option value="day">Days</option>
+                                </select>
+                            </div>
+                            <div class="sm:w-1/3">
+                                <label for="toTimeUnit" class="block text-sm font-medium text-gray-700 mb-2">To Unit:</label>
+                                <select id="toTimeUnit" onchange="convertTime()" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                                    <option value="hr">Hours (hr)</option>
+                                    <option value="s">Seconds (s)</option>
+                                    <option value="min">Minutes (min)</option>
+                                    <option value="day">Days</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="timeResultContainer" class="p-4 bg-emerald-50 rounded-lg shadow-inner">
+                            <p class="text-xs font-medium text-emerald-600">Converted Duration</p>
+                            <p id="timeResult" class="text-2xl font-bold text-gray-800 mt-1">0.00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUMN 2: Volume, Area, Speed, Storage -->
+                <div class="space-y-10">
+                    <!-- Volume Conversion -->
+                    <div class="p-6 border border-gray-200 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-semibold text-emerald-700 mb-4">💧 Volume Conversion (Capacity)</h3>
+                        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-4">
+                            <div class="sm:w-1/3">
+                                <label for="volumeValue" class="block text-sm font-medium text-gray-700 mb-2">Value:</label>
+                                <input type="number" id="volumeValue" placeholder="Enter value" oninput="convertVolume()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition duration-150 shadow-sm">
+                            </div>
+                            <div class="sm:w-1/3">
+                                <label for="fromVolumeUnit" class="block text-sm font-medium text-gray-700 mb-2">From Unit:</label>
+                                <select id="fromVolumeUnit" onchange="convertVolume()" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                                    <option value="L">Liters (L)</option>
+                                    <option value="gal">US Gallons (gal)</option>
+                                    <option value="m3">Cubic Meters ($m^3$)</option>
+                                    <option value="mL">Milliliters (mL)</option>
+                                </select>
+                            </div>
+                            <div class="sm:w-1/3">
+                                <label for="toVolumeUnit" class="block text-sm font-medium text-gray-700 mb-2">To Unit:</label>
+                                <select id="toVolumeUnit" onchange="convertVolume()" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                                    <option value="gal">US Gallons (gal)</option>
+                                    <option value="L">Liters (L)</option>
+                                    <option value="m3">Cubic Meters ($m^3$)</option>
+                                    <option value="mL">Milliliters (mL)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="volumeResultContainer" class="p-4 bg-emerald-50 rounded-lg shadow-inner">
+                            <p class="text-xs font-medium text-emerald-600">Converted Volume</p>
+                            <p id="volumeResult" class="text-2xl font-bold text-gray-800 mt-1">0.00</p>
+                        </div>
+                    </div>
+
+                    <!-- Area Conversion -->
+                    <div class="p-6 border border-gray-200 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-semibold text-emerald-700 mb-4">🗺️ Area Conversion (Land & Surface)</h3>
+                        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-4">
+                            <div class="sm:w-1/3">
+                                <label for="areaValue" class="block text-sm font-medium text-gray-700 mb-2">Value:</label>
+                                <input type="number" id="areaValue" placeholder="Enter value" oninput="convertArea()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition duration-150 shadow-sm">
+                            </div>
+                            <div class="sm:w-1/3">
+                                <label for="fromAreaUnit" class="block text-sm font-medium text-gray-700 mb-2">From Unit:</label>
+                                <select id="fromAreaUnit" onchange="convertArea()" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                                    <option value="m2">Square Meters ($m^2$)</option>
+                                    <option value="km2">Square Kilometers ($km^2$)</option>
+                                    <option value="ha">Hectares (ha)</option>
+                                    <option value="ac">Acres (ac)</option>
+                                </select>
+                            </div>
+                            <div class="sm:w-1/3">
+                                <label for="toAreaUnit" class="block text-sm font-medium text-gray-700 mb-2">To Unit:</label>
+                                <select id="toAreaUnit" onchange="convertArea()" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                                    <option value="ha">Hectares (ha)</option>
+                                    <option value="ac">Acres (ac)</option>
+                                    <option value="m2">Square Meters ($m^2$)</option>
+                                    <option value="km2">Square Kilometers ($km^2$)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="areaResultContainer" class="p-4 bg-emerald-50 rounded-lg shadow-inner">
+                            <p class="text-xs font-medium text-emerald-600">Converted Area</p>
+                            <p id="areaResult" class="text-2xl font-bold text-gray-800 mt-1">0.00</p>
+                        </div>
+                    </div>
+
+                    <!-- Speed (Velocity) Conversion (NEW SECTION) -->
+                    <div class="p-6 border border-gray-200 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-semibold text-emerald-700 mb-4">🚀 Speed Conversion (Velocity)</h3>
+                        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-4">
+                            <div class="sm:w-1/3">
+                                <label for="speedValue" class="block text-sm font-medium text-gray-700 mb-2">Value:</label>
+                                <input type="number" id="speedValue" placeholder="Enter value" oninput="convertSpeed()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition duration-150 shadow-sm">
+                            </div>
+                            <div class="sm:w-1/3">
+                                <label for="fromSpeedUnit" class="block text-sm font-medium text-gray-700 mb-2">From Unit:</label>
+                                <select id="fromSpeedUnit" onchange="convertSpeed()" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                                    <option value="m/s">Meters/Second ($m/s$)</option>
+                                    <option value="km/h">Kilometers/Hour ($km/h$)</option>
+                                    <option value="mph">Miles/Hour (mph)</option>
+                                    <option value="knot">Knot (kn)</option>
+                                </select>
+                            </div>
+                            <div class="sm:w-1/3">
+                                <label for="toSpeedUnit" class="block text-sm font-medium text-gray-700 mb-2">To Unit:</label>
+                                <select id="toSpeedUnit" onchange="convertSpeed()" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                                    <option value="km/h">Kilometers/Hour ($km/h$)</option>
+                                    <option value="m/s">Meters/Second ($m/s$)</option>
+                                    <option value="mph">Miles/Hour (mph)</option>
+                                    <option value="knot">Knot (kn)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="speedResultContainer" class="p-4 bg-emerald-50 rounded-lg shadow-inner">
+                            <p class="text-xs font-medium text-emerald-600">Converted Speed</p>
+                            <p id="speedResult" class="text-2xl font-bold text-gray-800 mt-1">0.00</p>
+                        </div>
+                    </div>
+
+                    <!-- Digital Storage Conversion -->
+                    <div class="p-6 border border-gray-200 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-semibold text-emerald-700 mb-4">💾 Digital Storage (Data Size)</h3>
+                        <p class="text-sm text-gray-600 mb-4">Uses the standard $1 \text{KB} = 1024 \text{ Bytes}$ convention.</p>
+                        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-4">
+                            <div class="sm:w-1/3">
+                                <label for="storageValue" class="block text-sm font-medium text-gray-700 mb-2">Value:</label>
+                                <input type="number" id="storageValue" placeholder="Enter value" oninput="convertDigitalStorage()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition duration-150 shadow-sm">
+                            </div>
+                            <div class="sm:w-1/3">
+                                <label for="fromStorageUnit" class="block text-sm font-medium text-gray-700 mb-2">From Unit:</label>
+                                <select id="fromStorageUnit" onchange="convertDigitalStorage()" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                                    <option value="GB">Gigabytes (GB)</option>
+                                    <option value="MB">Megabytes (MB)</option>
+                                    <option value="KB">Kilobytes (KB)</option>
+                                    <option value="B">Bytes (B)</option>
+                                </select>
+                            </div>
+                            <div class="sm:w-1/3">
+                                <label for="toStorageUnit" class="block text-sm font-medium text-gray-700 mb-2">To Unit:</label>
+                                <select id="toStorageUnit" onchange="convertDigitalStorage()" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                                    <option value="B">Bytes (B)</option>
+                                    <option value="KB">Kilobytes (KB)</option>
+                                    <option value="MB">Megabytes (MB)</option>
+                                    <option value="GB">Gigabytes (GB)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="storageResultContainer" class="p-4 bg-emerald-50 rounded-lg shadow-inner">
+                            <p class="text-xs font-medium text-emerald-600">Converted Storage</p>
+                            <p id="storageResult" class="text-2xl font-bold text-gray-800 mt-1">0.00</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Currency Conversion -->
+        <div id="currency" class="conversion-module hidden">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-6">Currency Conversion (Real-time Rates)</h2>
+            <div id="rateStatus" class="mb-4 p-3 rounded-lg flex items-center space-x-3 bg-yellow-50 text-yellow-800">
+                <div id="rateLoader" class="spinner hidden"></div>
+                <p id="rateMessage" class="text-sm font-medium">Fetching the latest exchange rates...</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                <div class="sm:w-1/3">
+                    <label for="currencyValue" class="block text-sm font-medium text-gray-700 mb-2">Amount:</label>
+                    <input type="number" id="currencyValue" placeholder="Enter amount" oninput="convertCurrency()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition duration-150 shadow-sm">
+                </div>
+                <div class="sm:w-1/3">
+                    <label for="fromCurrency" class="block text-sm font-medium text-gray-700 mb-2">From:</label>
+                    <select id="fromCurrency" onchange="convertCurrency()" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                        <option value="USD">🇺🇸 USD - US Dollar</option>
+                        <option value="EUR">🇪🇺 EUR - Euro</option>
+                        <option value="JPY">🇯🇵 JPY - Japanese Yen</option>
+                        <option value="PHP">🇵🇭 PHP - Philippine Peso</option>
+                        <option value="GBP">🇬🇧 GBP - British Pound</option>
+                        <option value="AUD">🇦🇺 AUD - Australian Dollar</option>
+                        <option value="CNY">🇨🇳 CNY - Chinese Yuan</option>
+                        <option value="INR">🇮🇳 INR - Indian Rupee</option>
+                    </select>
+                </div>
+                <div class="sm:w-1/3">
+                    <label for="toCurrency" class="block text-sm font-medium text-gray-700 mb-2">To:</label>
+                    <select id="toCurrency" onchange="convertCurrency()" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500 bg-white">
+                        <option value="EUR">🇪🇺 EUR - Euro</option>
+                        <option value="USD">🇺🇸 USD - US Dollar</option>
+                        <option value="JPY">🇯🇵 JPY - Japanese Yen</option>
+                        <option value="PHP">🇵🇭 PHP - Philippine Peso</option>
+                        <option value="GBP">🇬🇧 GBP - British Pound</option>
+                        <option value="AUD">🇦🇺 AUD - Australian Dollar</option>
+                        <option value="CNY">🇨🇳 CNY - Chinese Yuan</option>
+                        <option value="INR">🇮🇳 INR - Indian Rupee</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="currencyResultContainer" class="p-4 bg-emerald-50 rounded-lg shadow-inner mt-4">
+                <p class="text-xs font-medium text-emerald-600">Converted Amount</p>
+                <p id="currencyResult" class="text-2xl font-bold text-gray-800 mt-1">0.00</p>
+            </div>
+        </div>
+
+        <!-- 4. Data Lookup & Other Conversions -->
+        <div id="data" class="conversion-module hidden">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-6">Periodic Table / Size / Advanced Conversions</h2>
+            <div class="space-y-6">
+                
+                <div class="p-6 bg-indigo-50 border-l-4 border-indigo-400 rounded-lg">
+                    <h3 class="text-xl font-semibold text-indigo-800 mb-3">Periodic Table Lookup</h3>
+                    <p class="text-gray-700 text-sm">
+                        Look up properties for key elements by name (e.g., Carbon, Oxygen) or atomic number (e.g., 6, 8).
+                    </p>
+                    <div class="mt-4">
+                        <input type="text" id="elementInput" placeholder="e.g., Oxygen or 8" onkeyup="if(event.key === 'Enter') lookupElement()" class="w-full sm:w-1/2 p-3 border border-gray-300 rounded-lg shadow-sm rounded-lg">
+                        <button onclick="lookupElement()" class="mt-2 sm:mt-0 sm:ml-3 p-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition duration-150 rounded-lg">Lookup</button>
+                        <div id="periodicResult" class="mt-4 p-4 bg-white border border-indigo-200 rounded-lg min-h-[50px] shadow-inner">
+                            <p class="text-sm text-gray-500">Enter element name or atomic number above.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <script>
+        // Store rates globally once fetched
+        let exchangeRates = null; 
+        const BASE_CURRENCY = 'USD';
+
+        // Simplified data set for the Periodic Table Lookup
+        const periodicTableData = {
+            "1": { name: "Hydrogen", symbol: "H", mass: 1.008, group: 1 },
+            "6": { name: "Carbon", symbol: "C", mass: 12.011, group: 14 },
+            "8": { name: "Oxygen", symbol: "O", mass: 15.999, group: 16 },
+            "17": { name: "Chlorine", symbol: "Cl", mass: 35.453, group: 17 },
+            "26": { name: "Iron", symbol: "Fe", mass: 55.845, group: 8 },
+            "79": { name: "Gold", symbol: "Au", mass: 196.967, group: 11 }
+        };
+
+        // --- Core Application Logic ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize with the first tab visible
+            convertTemperature(); 
+            // Set up Time Zone converter on load and update every minute
+            convertTimeZone();
+            setInterval(convertTimeZone, 60000); 
+        });
+
+        /**
+         * Switches the visible conversion module and updates the tab styling.
+         * @param {string} moduleId - The ID of the module to show.
+         */
+        function showTab(moduleId) {
+            // Hide all modules
+            document.querySelectorAll('.conversion-module').forEach(el => {
+                el.classList.add('hidden');
+            });
+            // Deactivate all tabs
+            document.querySelectorAll('.tab-button').forEach(el => {
+                el.classList.remove('active-tab');
+            });
+
+            // Show the selected module and activate its tab
+            const module = document.getElementById(moduleId);
+            const tab = document.getElementById(`tab-${moduleId}`);
+            
+            if (module) module.classList.remove('hidden');
+            if (tab) tab.classList.add('active-tab');
+
+            // Run conversion logic for the visible tab on switch
+            if (moduleId === 'temperature') convertTemperature();
+            if (moduleId === 'units') {
+                // Run all unit converters on tab switch
+                convertTimeZone(); // Update time zone display
+                convertLength(); 
+                convertVolume();
+                convertMass();
+                convertArea();
+                convertTime(); 
+                convertSpeed();
+                convertDigitalStorage();
+            }
+            if (moduleId === 'currency') {
+                if (!exchangeRates) {
+                    fetchExchangeRates(); // Fetch rates only if not already done
+                } else {
+                    convertCurrency();
+                }
+            }
+        }
+        
+        // ---------------------------------------------------------------------
+        // --- 4. Periodic Table Lookup Logic ---
+        // ---------------------------------------------------------------------
+        
+        function lookupElement() {
+            const input = document.getElementById('elementInput').value.trim();
+            const resultDiv = document.getElementById('periodicResult');
+            resultDiv.innerHTML = '';
+            
+            if (!input) {
+                resultDiv.innerHTML = '<p class="text-sm text-gray-500">Please enter an element name or atomic number.</p>';
+                resultDiv.classList.remove('bg-indigo-100');
+                resultDiv.classList.add('bg-white');
+                return;
+            }
+
+            // Normalize input for searching
+            const isNumber = !isNaN(input);
+            const normalizedInput = isNumber ? input : input.toLowerCase();
+            
+            let element = null;
+            let atomicNumber = null;
+
+            // Search Logic
+            for (const key in periodicTableData) {
+                const el = periodicTableData[key];
+                if (
+                    // Search by Atomic Number (key)
+                    (isNumber && key === normalizedInput) ||
+                    // Search by Name
+                    (el.name.toLowerCase() === normalizedInput) ||
+                    // Search by Symbol
+                    (el.symbol.toLowerCase() === normalizedInput.toUpperCase())
+                ) {
+                    element = el;
+                    atomicNumber = key;
+                    break;
+                }
+            }
+
+            if (element) {
+                const html = `
+                    <h4 class="text-xl font-bold text-indigo-700">${element.name} <span class="text-lg">(${element.symbol})</span></h4>
+                    <div class="mt-2 text-sm space-y-1">
+                        <p><span class="font-semibold">Atomic Number:</span> ${atomicNumber}</p>
+                        <p><span class="font-semibold">Atomic Mass:</span> ${element.mass.toFixed(4)} u</p>
+                        <p><span class="font-semibold">Group:</span> ${element.group}</p>
+                    </div>
+                `;
+                resultDiv.innerHTML = html;
+                resultDiv.classList.remove('bg-white');
+                resultDiv.classList.add('bg-indigo-100');
+            } else {
+                resultDiv.innerHTML = `<p class="text-red-600 font-semibold">Element "${input}" not found in our simplified table.</p>`;
+                resultDiv.classList.remove('bg-indigo-100');
+                resultDiv.classList.add('bg-white');
+            }
+        }
+
+
+        // ---------------------------------------------------------------------
+        // --- 3. Currency Conversion Logic (API INTEGRATION) ---
+        // ---------------------------------------------------------------------
+        
+        /**
+         * Fetches real-time exchange rates using the Gemini API with Google Search grounding.
+         */
+        async function fetchExchangeRates() {
+            const loader = document.getElementById('rateLoader');
+            const message = document.getElementById('rateMessage');
+            const rateStatus = document.getElementById('rateStatus');
+
+            // Set loading state
+            loader.classList.remove('hidden');
+            rateStatus.classList.remove('bg-red-50', 'bg-emerald-50', 'text-red-800', 'text-emerald-800');
+            rateStatus.classList.add('bg-yellow-50', 'text-yellow-800');
+            message.textContent = `Fetching latest rates for ${BASE_CURRENCY}, EUR, JPY, PHP, etc...`;
+            
+            const currencies = [BASE_CURRENCY, 'EUR', 'JPY', 'PHP', 'GBP', 'AUD', 'CNY', 'INR'].join(', ');
+            const userQuery = `Provide the latest foreign exchange rates for ${currencies} as of today, relative to ${BASE_CURRENCY}.`;
+            const systemPrompt = "Act as a financial data provider. Generate a clean JSON object. The structure must be { 'base': 'USD', 'rates': { 'EUR': rate, 'JPY': rate, ... } }. Use Google Search to ensure real-time accuracy. Do not include any text outside the JSON block.";
+
+            const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "base": { "type": "STRING", "description": "The base currency code, e.g., USD" },
+                            "rates": {
+                                "type": "OBJECT",
+                                "description": "Mapping of currency code to rate relative to the base.",
+                                "properties": {
+                                    "USD": { "type": "NUMBER" },
+                                    "EUR": { "type": "NUMBER" },
+                                    "JPY": { "type": "NUMBER" },
+                                    "PHP": { "type": "NUMBER" }, 
+                                    "GBP": { "type": "NUMBER" },
+                                    "AUD": { "type": "NUMBER" },
+                                    "CNY": { "type": "NUMBER" },
+                                    "INR": { "type": "NUMBER" }
+                                }
+                            }
+                        },
+                        required: ["base", "rates"]
+                    }
+                }
+            };
+            
+            const MAX_RETRIES = 5;
+            for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    const result = await response.json();
+                    const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    
+                    if (!jsonText) throw new Error("API response text missing in candidate.");
+
+                    const parsedData = JSON.parse(jsonText);
+                    
+                    if (parsedData.rates && parsedData.base) {
+                        parsedData.rates[parsedData.base] = 1.0;
+                        exchangeRates = parsedData.rates;
+                        
+                        loader.classList.add('hidden');
+                        rateStatus.classList.remove('bg-yellow-50', 'text-yellow-800');
+                        rateStatus.classList.add('bg-emerald-50', 'text-emerald-800');
+                        message.textContent = `✅ Rates updated using ${parsedData.base} as base.`;
+                        
+                        convertCurrency(); // Run conversion immediately after fetching
+                        return;
+                    }
+                    throw new Error("Invalid structure in API response. Received: " + jsonText);
+
+                } catch (error) {
+                    console.error(`Attempt ${attempt + 1} failed:`, error);
+                    if (attempt === MAX_RETRIES - 1) {
+                        // Final failure: Set static fallback rates and show error message
+                        exchangeRates = { "USD": 1.0, "EUR": 0.92, "JPY": 156.41, "PHP": 58.0, "GBP": 0.80, "AUD": 1.50, "CNY": 7.20, "INR": 83.5 };
+                        loader.classList.add('hidden');
+                        rateStatus.classList.remove('bg-yellow-50', 'text-yellow-800');
+                        rateStatus.classList.add('bg-red-50', 'text-red-800');
+                        message.textContent = '❌ Failed to fetch real-time rates. Using static fallback rates.';
+                        convertCurrency();
+                        return;
+                    }
+                    // Exponential backoff
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+                }
+            }
+        }
+
+
+        /**
+         * Performs currency conversion using the globally stored exchangeRates.
+         */
+        function convertCurrency() {
+            const amount = parseFloat(document.getElementById('currencyValue').value);
+            const from = document.getElementById('fromCurrency').value;
+            const to = document.getElementById('toCurrency').value;
+            const resultDisplay = document.getElementById('currencyResult');
+
+            if (exchangeRates === null) {
+                resultDisplay.textContent = 'Awaiting rates...';
+                return;
+            }
+
+            if (isNaN(amount)) {
+                resultDisplay.textContent = `${to} 0.00`;
+                return;
+            }
+
+            const rateFrom = exchangeRates[from] || 1;
+            const rateTo = exchangeRates[to] || 1;
+
+            // Convert 'from' currency to the base (USD)
+            const amountInBase = amount / rateFrom;
+            
+            // Convert from the base (USD) to the 'to' currency
+            const convertedAmount = amountInBase * rateTo;
+
+            resultDisplay.textContent = `${to} ${convertedAmount.toFixed(4)}`;
+        }
+
+
+        // ---------------------------------------------------------------------
+        // --- 1. Temperature Conversion Logic ---
+        // ---------------------------------------------------------------------
+
+        function convertTemperature() {
+            const input = parseFloat(document.getElementById('tempInput').value);
+            const unit = document.getElementById('tempUnitSelect').value;
+
+            const resultC = document.getElementById('resultC');
+            const resultF = document.getElementById('resultF');
+            const resultK = document.getElementById('resultK');
+
+            if (isNaN(input)) {
+                resultC.textContent = resultF.textContent = resultK.textContent = '0.00';
+                return;
+            }
+
+            let C, F, K;
+
+            switch (unit) {
+                case 'C':
+                    C = input;
+                    F = (C * 9/5) + 32;
+                    K = C + 273.15;
+                    break;
+                case 'F':
+                    F = input;
+                    C = (F - 32) * 5/9;
+                    K = C + 273.15;
+                    break;
+                case 'K':
+                    K = input;
+                    C = K - 273.15;
+                    F = (C * 9/5) + 32;
+                    break;
+            }
+
+            resultC.textContent = C.toFixed(2);
+            resultF.textContent = F.toFixed(2);
+            resultK.textContent = K.toFixed(2);
+        }
+
+        // ---------------------------------------------------------------------
+        // --- 2. Unit Conversion Logic (Length, Volume, Mass, Area, Time, Speed, Storage) ---
+        // ---------------------------------------------------------------------
+        
+        /**
+         * Generic conversion function based on a base unit and factor map.
+         * @param {number} value - The input value.
+         * @param {string} fromUnit - The starting unit key.
+         * @param {string} toUnit - The target unit key.
+         * @param {object} factors - Map of unit keys to their factor relative to the base unit (factor must be > 0).
+         * @returns {number} Converted value.
+         */
+        function genericConvert(value, fromUnit, toUnit, factors) {
+            if (isNaN(value) || !factors[fromUnit] || !factors[toUnit]) return NaN;
+            
+            // 1. Convert initial value to the base unit (where factor is 1)
+            const valueInBase = value * factors[fromUnit];
+
+            // 2. Convert from the base unit to the target unit
+            return valueInBase / factors[toUnit];
+        }
+
+        /* Time Zone Conversion (Uses Browser's built-in Intl API) */
+        function convertTimeZone() {
+            const fromZone = document.getElementById('fromTimeZone').value;
+            const toZone = document.getElementById('toTimeZone').value;
+            
+            const resultFrom = document.getElementById('timeZoneResultFrom');
+            const resultTo = document.getElementById('timeZoneResultTo');
+            
+            const zoneCodeFrom = document.getElementById('fromZoneCode');
+            const zoneCodeTo = document.getElementById('toZoneCode');
+
+            const now = new Date();
+
+            // Options for 24-hour format (HH:MM:SS)
+            const options = { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit', 
+                hourCycle: 'h23', // Forces 24-hour format (00-23)
+                timeZoneName: 'short'
+            };
+
+            try {
+                // 1. Zone 1
+                const formatterFrom = new Intl.DateTimeFormat('en-US', { ...options, timeZone: fromZone });
+                const timeFromParts = formatterFrom.formatToParts(now);
+                
+                // Extract TIME (filter out non-time components like dayPeriod, and join time/literal components)
+                const timeFrom = timeFromParts
+                    .filter(p => ['hour', 'minute', 'second', 'literal'].includes(p.type))
+                    .map(p => p.value).join('');
+                
+                // Extract the short zone name
+                const zoneNameFrom = timeFromParts.find(p => p.type === 'timeZoneName')?.value || fromZone.split('/').pop().replace('_', ' ');
+
+                resultFrom.textContent = timeFrom;
+                zoneCodeFrom.textContent = zoneNameFrom;
+                
+                // 2. Zone 2
+                const formatterTo = new Intl.DateTimeFormat('en-US', { ...options, timeZone: toZone });
+                const timeToParts = formatterTo.formatToParts(now);
+
+                // Extract TIME
+                const timeTo = timeToParts
+                    .filter(p => ['hour', 'minute', 'second', 'literal'].includes(p.type))
+                    .map(p => p.value).join('');
+                
+                // Extract the short zone name
+                const zoneNameTo = timeToParts.find(p => p.type === 'timeZoneName')?.value || toZone.split('/').pop().replace('_', ' ');
+
+                resultTo.textContent = timeTo;
+                zoneCodeTo.textContent = zoneNameTo;
+
+            } catch (e) {
+                console.error("Time zone conversion error:", e);
+                resultFrom.textContent = 'Error';
+                resultTo.textContent = 'Error';
+            }
+        }
+
+
+        /* Length Conversion (Base: Meter) */
+        const lengthFactors = {
+            'm': 1,           
+            'km': 1000,       
+            'cm': 0.01,       
+            'mm': 0.001,      
+            'ft': 0.3048,     
+            'mi': 1609.34     
+        };
+
+        function convertLength() {
+            const value = parseFloat(document.getElementById('lengthValue').value);
+            const fromUnit = document.getElementById('fromLengthUnit').value;
+            const toUnit = document.getElementById('toLengthUnit').value;
+            const resultDisplay = document.getElementById('lengthResult');
+
+            const converted = genericConvert(value, fromUnit, toUnit, lengthFactors);
+            resultDisplay.textContent = isNaN(converted) ? '0.00' : converted.toFixed(4);
+        }
+
+        /* Volume Conversion (Base: Liter) */
+        const volumeFactors = {
+            'L': 1,           
+            'gal': 3.78541,   
+            'm3': 1000,       
+            'mL': 0.001       
+        };
+
+        function convertVolume() {
+            const value = parseFloat(document.getElementById('volumeValue').value);
+            const fromUnit = document.getElementById('fromVolumeUnit').value;
+            const toUnit = document.getElementById('toVolumeUnit').value;
+            const resultDisplay = document.getElementById('volumeResult');
+
+            const converted = genericConvert(value, fromUnit, toUnit, volumeFactors);
+            resultDisplay.textContent = isNaN(converted) ? '0.00' : converted.toFixed(4);
+        }
+
+        /* Mass Conversion (Base: Kilogram) */
+        const massFactors = {
+            'kg': 1,          
+            'g': 0.001,       
+            'lb': 0.453592,   
+            'oz': 0.0283495   
+        };
+
+        function convertMass() {
+            const value = parseFloat(document.getElementById('massValue').value);
+            const fromUnit = document.getElementById('fromMassUnit').value;
+            const toUnit = document.getElementById('toMassUnit').value;
+            const resultDisplay = document.getElementById('massResult');
+
+            const converted = genericConvert(value, fromUnit, toUnit, massFactors);
+            resultDisplay.textContent = isNaN(converted) ? '0.00' : converted.toFixed(4);
+        }
+
+        /* Area Conversion (Base: Square Meter) */
+        const areaFactors = {
+            'm2': 1,           
+            'km2': 1000000,    
+            'ha': 10000,       
+            'ac': 4046.86      
+        };
+
+        function convertArea() {
+            const value = parseFloat(document.getElementById('areaValue').value);
+            const fromUnit = document.getElementById('fromAreaUnit').value;
+            const toUnit = document.getElementById('toAreaUnit').value;
+            const resultDisplay = document.getElementById('areaResult');
+
+            const converted = genericConvert(value, fromUnit, toUnit, areaFactors);
+            resultDisplay.textContent = isNaN(converted) ? '0.00' : converted.toFixed(4);
+        }
+
+        /* Time (Duration) Conversion (Base: Seconds) */
+        const timeFactors = {
+            's': 1,
+            'min': 60,
+            'hr': 3600,
+            'day': 86400
+        };
+
+        function convertTime() {
+            const value = parseFloat(document.getElementById('timeValue').value);
+            const fromUnit = document.getElementById('fromTimeUnit').value;
+            const toUnit = document.getElementById('toTimeUnit').value;
+            const resultDisplay = document.getElementById('timeResult');
+
+            const converted = genericConvert(value, fromUnit, toUnit, timeFactors);
+            resultDisplay.textContent = isNaN(converted) ? '0.00' : converted.toFixed(4);
+        }
+
+        /* Speed (Velocity) Conversion (Base: m/s) */
+        const speedFactors = {
+            'm/s': 1,
+            'km/h': (1000 / 3600), // 0.277778
+            'mph': 0.44704, // 1609.34 m / 3600 s
+            'knot': 0.514444 // 1852 m / 3600 s
+        };
+
+        function convertSpeed() {
+            const value = parseFloat(document.getElementById('speedValue').value);
+            const fromUnit = document.getElementById('fromSpeedUnit').value;
+            const toUnit = document.getElementById('toSpeedUnit').value;
+            const resultDisplay = document.getElementById('speedResult');
+
+            const converted = genericConvert(value, fromUnit, toUnit, speedFactors);
+            resultDisplay.textContent = isNaN(converted) ? '0.00' : converted.toFixed(4);
+        }
+
+
+        /* Digital Storage Conversion (Base: Byte) */
+        const STORAGE_BASE = 1024;
+        const storageFactors = {
+            'B': 1,                         
+            'KB': STORAGE_BASE,             
+            'MB': Math.pow(STORAGE_BASE, 2), 
+            'GB': Math.pow(STORAGE_BASE, 3), 
+        };
+
+        function convertDigitalStorage() {
+            const value = parseFloat(document.getElementById('storageValue').value);
+            const fromUnit = document.getElementById('fromStorageUnit').value;
+            const toUnit = document.getElementById('toStorageUnit').value;
+            const resultDisplay = document.getElementById('storageResult');
+
+            if (isNaN(value)) { resultDisplay.textContent = '0.00'; return; }
+            
+            // 1. Convert to Base Unit (Bytes)
+            const valueInBytes = value * storageFactors[fromUnit];
+
+            // 2. Convert from Bytes to Target Unit
+            const convertedValue = valueInBytes / storageFactors[toUnit];
+
+            // Use toPrecision for potentially very large or very small numbers
+            resultDisplay.textContent = convertedValue.toPrecision(8);
+        }
+
+        // Initialize fetching real-time currency rates (with fallback)
+        fetchExchangeRates(); 
+    </script>
+</body>
+</html>
