@@ -131,7 +131,7 @@ let marker;
 
 function fetchGeoDetails(ip) {
   const $tbl = $("#geoDetails"); $tbl.empty();
-  $.getJSON("http://ip-api.com/json/" + ip, function(data) {
+  $.getJSON("https://ip-api.com/json/" + ip, function(data) {
     function addRow(k,v){ $tbl.append(`<tr><th>${k}</th><td>${v}</td></tr>`); }
     addRow("IP", data.query);
     addRow("ISP", data.isp || 'N/A');
