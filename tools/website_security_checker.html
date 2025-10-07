@@ -375,9 +375,30 @@
         try {
             log(`Polling SSL Labs for analysis status...`);
             const response = await fetch(proxyUrl);
-            const proxyData = await response.json();
-            const data = JSON.parse(proxyData.contents);
             
+            // --- 1. Check HTTP Status (e.g., 408, 503 from the proxy) ---
+            if (!response.ok) {
+                // Get the raw text of the error response
+                const errorText = await response.text();
+                throw new Error(`Proxy failed with HTTP status ${response.status}: ${errorText.substring(0, 50)}...`);
+            }
+            
+            // Parse the proxy's wrapper JSON
+            const proxyData = await response.json(); 
+
+            // --- 2. Check the contents before parsing as JSON ---
+            const contents = proxyData.contents;
+            
+            // This is the key check: Does the content look like JSON?
+            if (!contents || contents.trim().charAt(0) !== '{') {
+                // If it doesn't start with '{', it's likely an HTML/Text error page
+                // The error text is likely "Oops... Rate limit exceeded" or similar.
+                throw new Error(`Non-JSON response received from proxy. Content starts with: "${contents.substring(0, 50)}"`);
+            }
+
+            // It looks like JSON, so now attempt the inner parse
+            const data = JSON.parse(contents);
+
             if (data.status === "READY") {
                 log(`Analysis complete! Processing results.`, 'success');
                 progressBar.style.width = '100%';
@@ -385,7 +406,6 @@
                 progressBar.classList.add('bg-green-600');
                 progressLabel.textContent = 'Progress: 100%';
                 statusDiv.textContent = 'Status: Analysis Ready';
-                
                 return data;
 
             } else if (data.status === "ERROR") {
