@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AD User Management - Addict API</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<style>
+th.sortable:hover { cursor: pointer; text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="mb-4">Active Directory User Management (Addict API)</h2>
+
+    <!-- Add/Edit User Form -->
+    <div class="card mb-4">
+        <div class="card-header" id="formHeader">Add New User</div>
+        <div class="card-body">
+            <form id="userForm">
+                <input type="hidden" id="originalUsername" value="">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" required>
+                </div>
+                <button type="submit" class="btn btn-primary" id="submitBtn">Add User</button>
+                <button type="button" class="btn btn-secondary" id="cancelEdit" style="display:none;">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <div class="mb-3">
+        <input type="text" class="form-control" id="searchInput" placeholder="Search by username or email">
+    </div>
+
+    <!-- Bulk & CSV Operations -->
+    <div class="mb-2">
+        <button class="btn btn-danger" id="bulkDeleteBtn" disabled>Delete Selected Users</button>
+        <button class="btn btn-success" id="exportCsvBtn">Export to CSV</button>
+        <input type="file" id="importCsvInput" accept=".csv" style="display:none;">
+        <button class="btn btn-info" id="importCsvBtn">Import from CSV</button>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card">
+        <div class="card-header">AD Users</div>
+        <div class="card-body">
+            <table class="table table-bordered" id="usersTable">
+                <thead>
+                <tr>
+                    <th><input type="checkbox" id="selectAll"></th>
+                    <th class="sortable" data-sort="username">Username &#x25B2;</th>
+                    <th class="sortable" data-sort="email">Email</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <!-- Pagination Controls -->
+            <nav>
+                <ul class="pagination" id="pagination"></ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<script>
+const API_BASE_URL = "http://YOUR_ADDICT_SERVER:PORT/api/users"; // Replace with your Addict API endpoint
+let allUsers = [];
+let currentPage = 1;
+const rowsPerPage = 10;
+let currentSort = { column: 'username', asc: true };
+let selectedUsers = new Set();
+
+// Fetch users
+function loadUsers() {
+    $.get(API_BASE_URL, function(users) {
+        allUsers = users;
+        renderTable();
+    }).fail(function(err) {
+        alert("Error fetching users. Is your Addict API running?");
+        console.error(err);
+    });
+}
+
+// Render table
+function renderTable() {
+    let filtered = allUsers.filter(u => {
+        const query = $("#searchInput").val().toLowerCase();
+        return u.username.toLowerCase().includes(query) || u.email.toLowerCase().includes(query);
+    });
+
+    // Sorting
+    filtered.sort((a, b) => {
+        const col = currentSort.column;
+        if(a[col] < b[col]) return currentSort.asc ? -1 : 1;
+        if(a[col] > b[col]) return currentSort.asc ? 1 : -1;
+        return 0;
+    });
+
+    const totalPages = Math.ceil(filtered.length / rowsPerPage);
+    if(currentPage > totalPages) currentPage = totalPages || 1;
+    const start = (currentPage - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    const pageData = filtered.slice(start, end);
+
+    const tbody = $("#usersTable tbody");
+    tbody.empty();
+    pageData.forEach(user => {
+        const checked = selectedUsers.has(user.username) ? 'checked' : '';
+        tbody.append(`
+            <tr>
+                <td><input type="checkbox" class="select-user" data-username="${user.username}" ${checked}></td>
+                <td>${user.username}</td>
+                <td>${user.email}</td>
+                <td>
+                    <button class="btn btn-sm btn-warning edit-user" data-username="${user.username}">Edit</button>
+                    <button class="btn btn-sm btn-danger delete-user" data-username="${user.username}">Delete</button>
+                </td>
+            </tr>
+        `);
+    });
+
+    renderPagination(totalPages);
+    updateBulkDeleteButton();
+}
+
+// Pagination
+function renderPagination(totalPages) {
+    const pagination = $("#pagination");
+    pagination.empty();
+    for(let i = 1; i <= totalPages; i++){
+        pagination.append(`<li class="page-item ${i===currentPage ? 'active' : ''}">
+            <a class="page-link" href="#">${i}</a></li>`);
+    }
+}
+
+// Page click
+$(document).on("click", "#pagination li a", function(e){
+    e.preventDefault();
+    currentPage = parseInt($(this).text());
+    renderTable();
+});
+
+// Add/Edit user
+$("#userForm").submit(function(e) {
+    e.preventDefault();
+    const username = $("#username").val();
+    const email = $("#email").val();
+    const originalUsername = $("#originalUsername").val();
+
+    if(originalUsername){ // Update
+        $.ajax({
+            url: `${API_BASE_URL}/${originalUsername}`,
+            method: "PUT",
+            contentType: "application/json",
+            data: JSON.stringify({ username, email }),
+            success: function() {
+                resetForm();
+                loadUsers();
+                alert("User updated successfully!");
+            },
+            error: function(err) {
+                alert("Error updating user: " + err.responseText);
+            }
+        });
+    } else { // Add
+        $.ajax({
+            url: API_BASE_URL,
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ username, email }),
+            success: function() {
+                resetForm();
+                loadUsers();
+                alert("User added successfully!");
+            },
+            error: function(err) {
+                alert("Error adding user: " + err.responseText);
+            }
+        });
+    }
+});
+
+// Edit user
+$(document).on("click", ".edit-user", function() {
+    const username = $(this).data("username");
+    const user = allUsers.find(u => u.username === username);
+    if(user){
+        $("#username").val(user.username);
+        $("#email").val(user.email);
+        $("#originalUsername").val(user.username);
+        $("#formHeader").text("Edit User");
+        $("#submitBtn").text("Update User");
+        $("#cancelEdit").show();
+    }
+});
+
+// Cancel edit
+$("#cancelEdit").click(function(){ resetForm(); });
+
+// Delete single user
+$(document).on("click", ".delete-user", function() {
+    const username = $(this).data("username");
+    if(confirm(`Are you sure you want to delete ${username}?`)) {
+        $.ajax({
+            url: `${API_BASE_URL}/${username}`,
+            method: "DELETE",
+            success: function() { loadUsers(); alert("User deleted successfully!"); },
+            error: function(err) { alert("Error deleting user: " + err.responseText); }
+        });
+    }
+});
+
+// Select/Deselect users
+$(document).on("change", ".select-user", function(){
+    const username = $(this).data("username");
+    if(this.checked) selectedUsers.add(username);
+    else selectedUsers.delete(username);
+    updateBulkDeleteButton();
+});
+
+// Select/Deselect all
+$("#selectAll").change(function(){
+    const checked = this.checked;
+    $(".select-user").each(function(){
+        $(this).prop('checked', checked).trigger('change');
+    });
+});
+
+// Bulk Delete
+$("#bulkDeleteBtn").click(function(){
+    if(selectedUsers.size === 0) return;
+    if(!confirm(`Are you sure you want to delete ${selectedUsers.size} users?`)) return;
+
+    const deleteRequests = Array.from(selectedUsers).map(u => 
+        $.ajax({ url: `${API_BASE_URL}/${u}`, method: "DELETE" })
+    );
+
+    $.when(...deleteRequests).done(function(){
+        alert("Selected users deleted successfully!");
+        selectedUsers.clear();
+        $("#selectAll").prop('checked', false);
+        loadUsers();
+    }).fail(function(err){
+        alert("Error deleting some users: " + err.responseText);
+    });
+});
+
+function updateBulkDeleteButton(){
+    $("#bulkDeleteBtn").prop('disabled', selectedUsers.size === 0);
+}
+
+// Search/filter
+$("#searchInput").on("input", function(){ renderTable(); });
+
+// Sorting
+$(document).on("click", "th.sortable", function(){
+    const col = $(this).data("sort");
+    if(currentSort.column === col) currentSort.asc = !currentSort.asc;
+    else { currentSort.column = col; currentSort.asc = true; }
+    $("th.sortable").each(function(){ $(this).html($(this).text().split(' ')[0]); });
+    $(this).html(`${col.charAt(0).toUpperCase()+col.slice(1)} ${currentSort.asc ? '&#x25B2;' : '&#x25BC;'}`);
+    renderTable();
+});
+
+// Reset form
+function resetForm(){
+    $("#userForm")[0].reset();
+    $("#originalUsername").val("");
+    $("#formHeader").text("Add New User");
+    $("#submitBtn").text("Add User");
+    $("#cancelEdit").hide();
+}
+
+// Export to CSV
+$("#exportCsvBtn").click(function(){
+    let csv = "Username,Email\n";
+    allUsers.forEach(u => { csv += `${u.username},${u.email}\n`; });
+    const blob = new Blob([csv], { type: "text/csv" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "ad_users.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+
+// Import from CSV
+$("#importCsvBtn").click(function(){ $("#importCsvInput").click(); });
+
+$("#importCsvInput").change(function(event){
+    const file = event.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+        const lines = e.target.result.split("\n").slice(1); // Skip header
+        lines.forEach(line => {
+            const [username, email] = line.trim().split(",");
+            if(username && email){
+                $.ajax({
+                    url: API_BASE_URL,
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ username, email }),
+                    success: function(){ loadUsers(); },
+                    error: function(err){ console.error("Error adding user:", username, err.responseText); }
+                });
+            }
+        });
+        alert("CSV import completed!");
+    };
+    reader.readAsText(file);
+    $(this).val(""); // Reset file input
+});
+
+// Initial load
+$(document).ready(function(){ loadUsers(); });
+</script>
+</body>
+</html>

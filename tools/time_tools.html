@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>World Map Clocks</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Load Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Load Inter Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <!-- Bootstrap Icons for UI buttons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+  
+  <style>
+    body { 
+      background: #f3f4f6; /* Light gray background */
+      font-family: 'Inter', sans-serif; 
+      padding: 0;
+      overflow-x: hidden;
+    }
+    #mapWrapper {
+      overflow: auto; /* Handles both x and y scrolling */
+      -webkit-overflow-scrolling: touch;
+      width: 100%;
+      padding: 1rem 0; /* Add vertical padding */
+      cursor: grab;
+    }
+    #mapContainer {
+      position: relative;
+      /* Fixed size for the map background */
+      width: 1599px;
+      height: 799px;
+      margin: auto;
+      
+      /* --- FALLBACK & IMAGE LOADING --- */
+      background-color: #1e40af; /* Ocean Blue Fallback (Tailwind blue-800) */
+      background-image: url('files/world-map.jpg'); /* Attempt to load the user's image over the color */
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: cover;
+      /* ------------------------------------- */
+
+      border: 3px solid #1e3a8a; /* Dark blue border */
+      border-radius: 1rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      /* Initial transformation for zoom */
+      transform-origin: 0 0;
+      transition: transform 0.2s ease-out;
+    }
+
+    .clock-card {
+      position: absolute;
+      /* Shifts the card up so the pin tip is at the exact coordinate (y) */
+      transform: translate(-50%, calc(-100% - 9px));
+      width: 110px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 0.75rem;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+      text-align: center;
+      padding: 0.5rem;
+      transition: all 0.2s ease-in-out;
+      cursor: pointer;
+      z-index: 10;
+      border: 1px solid #e5e7eb;
+    }
+    
+    /* --- ARROW/PIN STYLES --- */
+    .clock-card::after {
+      content: '';
+      position: absolute;
+      bottom: -9px; /* 8px triangle height + 1px spacing */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      /* Default arrow color */
+      border-top: 8px solid rgba(255, 255, 255, 0.8);
+      z-index: 5;
+    }
+
+    /* Style for the Local/Primary clock (Manila) (Scale 1.2) */
+    .clock-card.local {
+      width: 150px;
+      /* Shifts up based on 120% scale */
+      transform: translate(-50%, calc(-120% - 9px)) scale(1.2);
+      background: rgba(79, 70, 229, 0.9); /* Tailwind indigo-600 with 90% opacity */
+      color: #fff;
+      z-index: 50;
+      box-shadow: 0 8px 16px rgba(79, 70, 229, 0.5);
+      border-color: #a5b4fc;
+    }
+    
+    .clock-card.local::after {
+      /* Match local card background color */
+      border-top: 8px solid rgba(79, 70, 229, 0.9);
+    }
+
+    /* Hover effects (Scale 1.3) */
+    .clock-card:hover {
+      /* Shifts up based on 130% scale */
+      transform: translate(-50%, calc(-130% - 9px)) scale(1.3);
+      background: #10b981; /* Tailwind emerald-500 - Opaque for contrast */
+      color: #fff;
+      z-index: 100;
+    }
+    .clock-card:hover::after {
+      /* Match hover background color */
+      border-top: 8px solid #10b981;
+    }
+    
+    /* Local Hover Effect (Scale 1.3) */
+    .clock-card.local:hover {
+      /* Shifts up based on 130% scale */
+      transform: translate(-50%, calc(-130% - 9px)) scale(1.3);
+      background: #818cf8; /* Tailwind indigo-300 */
+      color: #111827; /* Dark gray text */
+    }
+    .clock-card.local:hover::after {
+      /* Match local hover background color */
+      border-top: 8px solid #818cf8;
+    }
+    /* --- END ARROW/PIN STYLES --- */
+
+    .clock-time { font-weight: 700; font-size: 1.25rem; line-height: 1; }
+    .clock-offset { font-size: 0.7rem; font-weight: 600; margin-top: 0.2rem; margin-bottom: 0.1rem; color: #374151; }
+    .clock-card.local .clock-offset { color: #d1d5db; }
+    .clock-card:hover .clock-offset { color: #fff; }
+    
+    .clock-city { 
+      font-size: 0.75rem; 
+      color: #6b7280;
+      line-height: 1;
+    }
+    .clock-card.local .clock-city { 
+      color: #eef2ff;
+    }
+  </style>
+</head>
+<body class="overflow-x-hidden">
+
+<div class="container mx-auto p-4 md:p-6">
+  <h1 class="text-3xl font-extrabold text-gray-900 mb-4 text-center">
+    <span class="text-indigo-600">🌍</span> Global Time Zones
+  </h1>
+
+  <!-- Controls Section: Now uses compact switches/checkboxes -->
+  <div class="flex flex-wrap justify-center gap-4 mb-6">
+    <!-- Zoom Controls -->
+    <button id="zoomOutBtn" class="flex items-center space-x-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg shadow hover:bg-gray-300 transition duration-150 text-sm">
+      <i class="bi bi-zoom-out"></i> <span>Zoom Out</span>
+    </button>
+    <button id="zoomInBtn" class="flex items-center space-x-1 px-4 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition duration-150 text-sm">
+      <i class="bi bi-zoom-in"></i> <span>Zoom In</span>
+    </button>
+
+    <!-- Time Format Toggle -->
+    <label class="relative inline-flex items-center cursor-pointer space-x-2 bg-white rounded-lg shadow">
+      <input type="checkbox" id="toggleTimeFormat" class="sr-only peer" checked>
+      <div class="w-11 h-6 bg-gray-300 rounded-full transition-colors duration-300 peer-checked:bg-blue-600"></div>
+      <div class="absolute left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5"></div>
+      <span class="ml-14 text-gray-700 font-medium whitespace-nowrap">24H / 12H&nbsp;&nbsp;</span>
+    </label>
+
+    <!-- Clock Visibility Toggle (Switch) -->
+    <label class="relative inline-flex items-center cursor-pointer space-x-2 bg-white rounded-lg shadow">
+      <input type="checkbox" id="toggleClockVisibility" class="sr-only peer" checked>
+      <div class="w-11 h-6 bg-gray-300 rounded-full transition-colors duration-300 peer-checked:bg-red-600"></div>
+      <div class="absolute left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5"></div>
+      <span class="ml-14 text-gray-700 font-medium whitespace-nowrap">Hide Clocks&nbsp;&nbsp;</span>
+    </label>
+
+  </div>
+</div>
+
+<div id="mapWrapper" class="cursor-grab">
+  <div id="mapContainer"></div>
+</div>
+
+<script>
+// Combined list: Original coordinates preserved + new regional clocks added. Berlin removed.
+const clocks = [
+  // --- ORIGINAL CLOCKS (Timezone updated for Local/Manila) ---
+  { city: "Manila (Local)", tz: "Asia/Manila", x: 1340, y: 325, local:true }, // Philippines Local
+  { city: "New York", tz: "America/New_York", x: 506, y: 165 },
+  { city: "Los Angeles", tz: "America/Los_Angeles", x: 321, y: 200 },
+  { city: "London", tz: "Europe/London", x: 790, y: 115 },
+  // Berlin removed as requested
+  { city: "Moscow", tz: "Europe/Moscow", x: 923, y: 97 },
+  { city: "Dubai", tz: "Asia/Dubai", x: 1031, y: 253 },
+  { city: "Beijing", tz: "Asia/Shanghai", x: 1261, y: 168 },
+  { city: "Tokyo", tz: "Asia/Tokyo", x: 1352, y: 190 },
+  { city: "Sydney", tz: "Australia/Sydney", x: 1417, y: 593 },
+  
+  // --- NEW REGIONAL CLOCKS (Computed coordinates) ---
+  { city: "Rio de Janeiro", tz: "America/Sao_Paulo", x: 600, y: 450 }, // South America (Brazil)
+  { city: "Lagos", tz: "Africa/Lagos", x: 820, y: 400 }, // Africa (Nigeria)
+  { city: "Antarctica (Troll)", tz: "Etc/GMT-1", x: 880, y: 750 }, // Antarctica
+  
+  // --- USER REQUESTED NEW CITIES ---
+  { city: "Jakarta", tz: "Asia/Jakarta", x: 1200, y: 390 }, // Indonesia
+  { city: "Bangkok", tz: "Asia/Bangkok", x: 1180, y: 280 }, // Thailand
+  { city: "Rome", tz: "Europe/Rome", x: 850, y: 150 } // Italy
+];
+
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 2.0;
+const ZOOM_STEP = 0.25;
+
+// State management (Initial state now reflects checkbox checked status)
+let currentZoom = parseFloat(localStorage.getItem('mapZoom')) || 1.0;
+let is24HourFormat = true; 
+let isClocksVisible = true; 
+
+// Helper function to get the timezone offset (e.g., GMT+8, UTC-5)
+function getTimeZoneOffset(tz) {
+    try {
+        const fixedDate = new Date(Date.UTC(2024, 0, 1, 12, 0, 0)); 
+        
+        const parts = new Intl.DateTimeFormat('en-US', {
+            timeZone: tz,
+            timeZoneName: 'longOffset',
+        }).formatToParts(fixedDate);
+
+        const offsetPart = parts.find(p => p.type === 'timeZoneName');
+        if (offsetPart) {
+            return offsetPart.value; 
+        }
+
+        return tz.split('/').pop().replace('_', ' '); 
+
+    } catch (e) {
+        return tz.split('/').pop().replace('_', ' ');
+    }
+}
+
+
+function handleZoom(factor) {
+    let newZoom = currentZoom + factor;
+    newZoom = Math.min(Math.max(MIN_ZOOM, newZoom), MAX_ZOOM);
+
+    if (newZoom !== currentZoom) {
+        currentZoom = newZoom;
+        $('#mapContainer').css('transform', `scale(${currentZoom})`);
+        localStorage.setItem('mapZoom', currentZoom.toFixed(2));
+        
+        setTimeout(centerMapOnLocalClock, 250); 
+    }
+}
+
+function renderClocks(){
+  const $container = $("#mapContainer").empty();
+  clocks.forEach(c=>{
+    // Calculate offset once and store it in the clock object
+    if (!c.offset) {
+        c.offset = getTimeZoneOffset(c.tz);
+    }
+
+    const id = c.city.replace(/[^a-zA-Z0-9]/g,'');
+    const isLocal = c.local;
+    const cityColor = isLocal ? 'text-white' : 'text-gray-500';
+
+    const $card = $(`
+      <div class="clock-card ${isLocal?'local':''}" id="clock-${id}">
+        <div class="clock-time">--:--:--</div>
+        <div class="clock-offset">${c.offset}</div>
+        <div class="clock-city ${cityColor}">${c.city}</div>
+      </div>
+    `).css({left: c.x+'px', top: c.y+'px'});
+    $container.append($card);
+  });
+  
+  // Apply initial/persisted zoom level
+  $('#mapContainer').css('transform', `scale(${currentZoom})`);
+  // Apply initial visibility state
+  $('#mapContainer .clock-card').toggleClass('hidden', !isClocksVisible);
+}
+
+function updateClocks(){
+  const now = new Date();
+  clocks.forEach(c=>{
+    const timeString = now.toLocaleTimeString('en-US',{
+      timeZone: c.tz,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: !is24HourFormat // Use 12-hour format if is24HourFormat is false
+    });
+    const id = c.city.replace(/[^a-zA-Z0-9]/g,'');
+    $(`#clock-${id} .clock-time`).text(timeString);
+  });
+}
+
+function centerMapOnLocalClock() {
+    const $wrapper = $('#mapWrapper');
+    const wrapperWidth = $wrapper.width();
+    
+    const mapScaledWidth = $wrapper[0].scrollWidth; 
+    const localClock = clocks.find(c => c.local);
+
+    if (localClock && mapScaledWidth > wrapperWidth) {
+        const targetX = localClock.x * currentZoom;
+        let scrollX = targetX - (wrapperWidth / 2);
+        
+        const maxScrollX = mapScaledWidth - wrapperWidth;
+        scrollX = Math.min(Math.max(0, scrollX), maxScrollX);
+
+        $wrapper.scrollLeft(scrollX);
+    }
+}
+
+$(function(){
+  renderClocks();
+  updateClocks();
+  setInterval(updateClocks, 1000);
+  
+  // Initial center map on local clock
+  centerMapOnLocalClock();
+  
+  // Re-center on window resize
+  $(window).on('resize', centerMapOnLocalClock);
+  
+  // Zoom Button Handlers
+  $('#zoomInBtn').on('click', () => handleZoom(ZOOM_STEP));
+  $('#zoomOutBtn').on('click', () => handleZoom(-ZOOM_STEP));
+
+  // Time Format Toggle Handler (using checkbox 'change' event)
+  $('#toggleTimeFormat').on('change', function() {
+      is24HourFormat = $(this).prop('checked');
+      updateClocks(); // Immediately update all times
+  });
+
+  // Clock Visibility Toggle Handler (using checkbox 'change' event)
+  $('#toggleClockVisibility').on('change', function() {
+      isClocksVisible = $(this).prop('checked');
+      
+      const $text = $('#visibilityLabel');
+      
+      // Update label based on the *state* (isClocksVisible)
+      if (isClocksVisible) {
+          // If clocks are visible, the label reflects the next action (Hide)
+          $text.text('Hide Clocks');
+          $('#mapContainer .clock-card').removeClass('hidden');
+      } else {
+          // If clocks are hidden, the label reflects the next action (Show)
+          $text.text('Show Clocks');
+          $('#mapContainer .clock-card').addClass('hidden');
+      }
+  }).trigger('change'); // Trigger once to set the correct initial label/state
+});
+</script>
+</body>
+</html>

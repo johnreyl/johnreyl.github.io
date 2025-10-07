@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Name Generator</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<style>
+  body { padding: 1.5rem; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial; background: #f7fafc; }
+  .name-box { font-family: "Courier New", Courier, monospace; font-size: 1.1rem; }
+  .result-item { padding: .3rem .5rem; margin-bottom: .2rem; background: #fff; border-radius: 4px; border:1px solid #e9ecef; display:flex; justify-content:space-between; align-items:center;}
+</style>
+</head>
+<body>
+<div class="container">
+  <h3 class="mb-3">Name Generator</h3>
+
+  <div class="row g-3">
+    <div class="col-lg-12">
+      <div class="card shadow-sm">
+        <div class="card-body">
+
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Generate</label>
+              <select id="genType" class="form-select">
+                <option value="full">Full Name</option>
+                <option value="first">First Name Only</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Number of names</label>
+              <input type="number" id="numNames" min="1" max="50" value="10" class="form-control">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Name type</label>
+              <select id="nameType" class="form-select">
+                <option value="fantasy">Fantasy</option>
+                <option value="realistic">Realistic</option>
+                <option value="scifi">Sci-fi</option>
+                <option value="random">Random</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row g-3 mt-2">
+            <div class="col-md-4" id="genderCol" style="display:none;">
+              <label class="form-label">Gender (realistic)</label>
+              <select id="gender" class="form-select">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="both" selected>Both</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Prefix (optional)</label>
+              <input type="text" id="prefix" class="form-control" placeholder="e.g. Sir, Dr, Neo">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Last Name (optional)</label>
+              <input type="text" id="lastName" class="form-control" placeholder="e.g. Stark, Smith">
+            </div>
+          </div>
+
+          <div class="row g-3 mt-2">
+            <div class="col-md-3">
+              <label class="form-label">Min length (random)</label>
+              <input type="number" id="minLen" class="form-control" value="3" min="2">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Max length (random)</label>
+              <input type="number" id="maxLen" class="form-control" value="8" min="2">
+            </div>
+            <div class="col-md-6 d-flex align-items-end gap-2">
+              <button id="generateBtn" class="btn btn-success w-100">Generate</button>
+              <button id="copyAll" class="btn btn-primary w-100">Copy All</button>
+              <button id="exportCsv" class="btn btn-outline-secondary w-100">Export CSV</button>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <strong>Generated Names</strong>
+            <div id="resultBox" style="max-height:300px; overflow:auto; margin-top:.5rem;"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function($){
+  const consonants = 'bcdfghjklmnpqrstvwxyz';
+  const vowels = 'aeiou';
+  const fantasySyllables = ['ar','el','an','or','ia','us','ly','ion','eth','ara','mir','den','thar','zor','lan','ryn'];
+  const sciFiSyllables = ['xen','zor','qir','tal','ven','kly','pha','tri','dex','neo','cy','zor','lyr'];
+  const realisticMale = ['James','John','Robert','Michael','William','David','Richard','Charles','Joseph','Thomas'];
+  const realisticFemale = ['Mary','Patricia','Linda','Elizabeth','Barbara','Jennifer','Maria','Susan','Margaret','Dorothy'];
+  const realisticLast = ['Smith','Johnson','Brown','Taylor','Anderson','Thomas','Jackson','White','Harris','Martin'];
+
+  function randomChoice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+  function generateSingleName(type,gender,minLen,maxLen){
+    let name='';
+    if(type==='fantasy'){
+      const syllables = 2 + Math.floor(Math.random()*2);
+      for(let i=0;i<syllables;i++) name+=randomChoice(fantasySyllables);
+      return name.charAt(0).toUpperCase()+name.slice(1);
+    }
+    else if(type==='scifi'){
+      const syllables = 2 + Math.floor(Math.random()*2);
+      for(let i=0;i<syllables;i++) name+=randomChoice(sciFiSyllables);
+      return name.charAt(0).toUpperCase()+name.slice(1);
+    }
+    else if(type==='realistic'){
+      let firstList = [];
+      if(gender==='male') firstList=realisticMale;
+      else if(gender==='female') firstList=realisticFemale;
+      else firstList = realisticMale.concat(realisticFemale);
+      return randomChoice(firstList);
+    }
+    else{ // random
+      const length = minLen + Math.floor(Math.random()*(maxLen-minLen+1));
+      for(let i=0;i<length;i++) name+=(i%2===0?randomChoice(consonants):randomChoice(vowels));
+      return name.charAt(0).toUpperCase()+name.slice(1);
+    }
+  }
+
+  // only allow names that "flow well" with last name
+  function goodCombo(first,last){
+    if(!last) return true;
+    const vowels = 'aeiou';
+    const lastFirst = last.charAt(0).toLowerCase();
+    const firstLast = first.slice(-1).toLowerCase();
+    // avoid last letter of first name same as first letter of last name
+    return firstLast !== lastFirst;
+  }
+
+  function generateNames(n,type,gender,prefix,lastName,minLen,maxLen,firstOnly){
+    const result=[];
+    let attempts=0;
+    while(result.length<n && attempts<200){
+      attempts++;
+      const first = generateSingleName(type,gender,minLen,maxLen);
+      if(firstOnly) {
+        if(goodCombo(first,lastName)) result.push(first);
+      } else {
+        let full = first;
+        if(lastName) full += ' '+lastName;
+        if(prefix) full = prefix+' '+full;
+        if(goodCombo(first,lastName)) result.push(full);
+      }
+    }
+    return result;
+  }
+
+  $(function(){
+    const $resultBox=$('#resultBox');
+    let history=[];
+
+    function refreshResults(names){
+      $resultBox.empty();
+      names.forEach((name,i)=>{
+        const $div=$('<div>').addClass('result-item').text(name);
+        const $copy=$('<button class="btn btn-sm btn-outline-secondary">Copy</button>').on('click',()=>navigator.clipboard.writeText(name));
+        $div.append($copy);
+        $resultBox.append($div);
+      });
+    }
+
+    $('#nameType').on('change',function(){
+      if($(this).val()==='realistic') $('#genderCol').show();
+      else $('#genderCol').hide();
+    });
+
+    $('#generateBtn').on('click',function(){
+      const n = parseInt($('#numNames').val())||10;
+      const type = $('#nameType').val();
+      const gender = $('#gender').val() || 'both';
+      const prefix = $('#prefix').val().trim();
+      const lastName = $('#lastName').val().trim();
+      const minLen = parseInt($('#minLen').val())||3;
+      const maxLen = parseInt($('#maxLen').val())||8;
+      const firstOnly = $('#genType').val()==='first';
+
+      const names = generateNames(n,type,gender,prefix,lastName,minLen,maxLen,firstOnly);
+      history=names.concat(history);
+      refreshResults(history);
+    });
+
+    $('#copyAll').on('click',function(){
+      const allNames=$resultBox.children().map((i,el)=>$(el).contents().get(0).nodeValue).get().join('\n');
+      if(allNames) navigator.clipboard.writeText(allNames).then(()=>alert('All names copied!'));
+    });
+
+    $('#exportCsv').on('click',function(){
+      if(history.length===0) return alert('No names to export.');
+      const csv=[['name']].concat(history.map(n=>[n]));
+      const csvStr = csv.map(r=>r.map(c=>`"${c.replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob=new Blob([csvStr],{type:'text/csv'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download='names.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+  });
+})(jQuery);
+</script>
+</body>
+</html>
+
