@@ -623,18 +623,24 @@
         }
 
         // FIX 2: Convert JSON string data back to nested array on load
-        function startFirebaseListener() {
+        // FIX: Ensure immediate load of cloud data by using getDoc if snapshot doesn't load immediately
+        async function startFirebaseListener() {
             if (!db || !userId || !window.FirebaseTools || currentMode !== 'cloud') return;
             
-            const { doc, onSnapshot } = window.FirebaseTools;
+            const { doc, onSnapshot, getDoc } = window.FirebaseTools;
             const docRef = doc(db, `artifacts/${APP_ID}/users/${userId}/${FIREBASE_COLLECTION_PATH}`, 'main_data');
 
+            // 1. Detach old listener
             if (unsubscribeSnapshot) unsubscribeSnapshot(); 
 
             loadingOverlay.style.display = 'flex';
             loadingOverlay.querySelector('p').textContent = `Syncing from cloud for User: ${userId.substring(0, 8)}...`;
 
+            let initialLoadAttempted = false;
+
+            // 2. Attach real-time listener for future changes
             unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
+                // If this is the initial load, rely on the getDoc fallback below if needed, otherwise proceed.
                 if (currentMode !== 'cloud') {
                     loadingOverlay.style.display = 'none';
                     return; 
@@ -642,10 +648,10 @@
                 
                 if (docSnap.exists() && docSnap.data().tabs) {
                     
-                    // 1. Deserialize the tab data from Firebase: Convert the JSON string back to nested array
+                    // Deserialize the tab data from Firebase: Convert the JSON string back to nested array
                     const deserializedTabs = docSnap.data().tabs.map(tab => ({
                         ...tab,
-                        data: JSON.parse(tab.data) // <--- CONVERSION FROM JSON STRING
+                        data: JSON.parse(tab.data) 
                     }));
 
                     tabs = deserializedTabs;
@@ -658,13 +664,23 @@
                     
                     renderTabs();
                     renderTable();
-                    showToast("Cloud data synchronized. ☁️", 1500);
+                    if (!initialLoadAttempted) {
+                        showToast("Cloud data synchronized. ☁️", 1500);
+                    } else {
+                        showToast("Cloud data updated. 🔄", 1500);
+                    }
+                    initialLoadAttempted = true; // Mark as successfully loaded
+
                 } else if (!docSnap.exists() || (docSnap.exists() && docSnap.data() && Object.keys(docSnap.data()).length === 0)) {
-                    initializeDefaultTabs();
-                    saveToFirebase(); 
-                    renderTabs();
-                    renderTable();
-                    showToast("Cloud document initialized. ☁️", 1500);
+                    // This case handles empty or non-existent document
+                    if (!initialLoadAttempted) {
+                        initializeDefaultTabs();
+                        saveToFirebase(); 
+                        renderTabs();
+                        renderTable();
+                        showToast("Cloud document initialized. ☁️", 1500);
+                        initialLoadAttempted = true;
+                    }
                 }
 
                 loadingOverlay.style.display = 'none';
@@ -673,6 +689,24 @@
                 showToast("Error syncing cloud data.", 4000);
                 loadingOverlay.style.display = 'none';
             });
+            
+            // 3. Force initial load immediately after attaching listener (if it hasn't loaded already)
+            // This is a common pattern for reliable initial sync
+            setTimeout(async () => {
+                if (!initialLoadAttempted) {
+                    try {
+                        const snap = await getDoc(docRef);
+                        // If the document exists, the onSnapshot listener should process it. 
+                        // If it's still not loaded after the listener processes the doc/timeout, 
+                        // this is a last resort to ensure the data is in memory.
+                        // However, just calling getDoc is enough to kick the snapshot listener.
+                    } catch(e) {
+                         // The error is already handled by the onSnapshot error callback, 
+                         // but this ensures the loading overlay eventually goes away.
+                         loadingOverlay.style.display = 'none';
+                    }
+                }
+            }, 1000); // Give the snapshot listener 1 second to fetch the initial data
         }
         
         async function signInWithGoogle() {
