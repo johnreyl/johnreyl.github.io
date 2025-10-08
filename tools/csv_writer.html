@@ -18,12 +18,12 @@
             GoogleAuthProvider,
             signInWithPopup 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // Expose Firebase tools globally
         window.FirebaseTools = { 
             initializeApp, getAuth, signInAnonymously, onAuthStateChanged, 
-            GoogleAuthProvider, signInWithPopup, 
+            GoogleAuthProvider, signInWithPopup, getDoc,
             getFirestore, collection, doc, setDoc, onSnapshot 
         };
     </script>
@@ -374,6 +374,8 @@
 
         // --- Deletion Context for Modal ---
         let deletionContext = { type: null, index: -1 }; 
+        // --- Modal Context for Sync/Mode Switch ---
+        let syncContext = { type: null, data: null }; // 'localToCloud' or 'cloudToLocal'
 
         // --- FIREBASE GLOBALS ---
         let db, auth, userId, unsubscribeSnapshot;
@@ -427,14 +429,23 @@
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalMessage').innerHTML = message;
             document.getElementById('modalConfirm').textContent = confirmText;
+            document.getElementById('modalConfirm').classList.add('bg-red-600', 'hover:bg-red-700');
+            document.getElementById('modalConfirm').classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            document.getElementById('modalCancel').classList.remove('bg-green-600', 'hover:bg-green-700', 'text-white');
+            document.getElementById('modalCancel').classList.add('bg-gray-200', 'hover:bg-gray-300');
+            
             document.getElementById('deletionModal').style.display = 'flex';
             // Index here is the data array index (0 for header, 1+ for data rows) or column index
             deletionContext = { type, index }; 
+            syncContext = { type: null, data: null }; // Ensure sync context is cleared
         }
 
         function hideModal() {
             document.getElementById('deletionModal').style.display = 'none';
             deletionContext = { type: null, index: -1 };
+            syncContext = { type: null, data: null };
+            // Restore default modal buttons in case a sync modal was dismissed
+            restoreModalForDeletion(); 
         }
         
         // --- Deletion Execution Logic ---
@@ -721,49 +732,255 @@
             }
         }
         
+        // --- Conflict Resolution Logic ---
+
+        function resolveConflictAndSwitch(keepDataMode) {
+            hideModal(); // Hide the confirmation modal
+
+            const toggleCheckbox = document.getElementById('modeToggleCheckbox');
+
+            if (keepDataMode === 'local') {
+                if (syncContext.type === 'localToCloud') {
+                    // User wants to keep the local data (which is in syncContext.data). 
+                    // Need to load it back into 'tabs' first.
+                    tabs = syncContext.data.tabs;
+                    activeTabId = syncContext.data.activeTabId;
+                    applyTabSpecificWidths(getActiveTab().colWidths);
+                    
+                    currentMode = 'cloud';
+                    localStorage.setItem("csvSyncMode", currentMode);
+                    updateModeDisplay();
+                    saveToFirebase(); // Overwrite Cloud with Local
+                    startFirebaseListener();
+                    showToast("Kept Local Data. Switched to Cloud. ☁️", 4000);
+                    
+                } else if (syncContext.type === 'cloudToLocal') {
+                    // User wants to keep the old local data.
+                    tabs = syncContext.data.tabs; // Use the temporarily stored local data
+                    activeTabId = syncContext.data.activeTabId;
+                    applyTabSpecificWidths(getActiveTab().colWidths);
+                    
+                    currentMode = 'local';
+                    localStorage.setItem("csvSyncMode", currentMode);
+                    updateModeDisplay();
+                    saveToLocalStorage(); // Save the old local data as the current local state
+                    
+                    renderTabs();
+                    renderTable();
+                    showToast("Kept Old Local Data. Switched to Local. 💾", 4000);
+                }
+
+            } else if (keepDataMode === 'cloud') {
+                
+                if (syncContext.type === 'localToCloud') {
+                    // User wants to keep the cloud data.
+                    // The main action is to switch mode and let the listener load the data.
+                    currentMode = 'cloud';
+                    localStorage.setItem("csvSyncMode", currentMode);
+                    updateModeDisplay();
+                    // Don't call saveToFirebase, let the listener load and overwrite local state
+                    startFirebaseListener();
+                    showToast("Kept Cloud Data. Switched to Cloud. ☁️", 4000);
+
+                } else if (syncContext.type === 'cloudToLocal') {
+                    // User wants to keep the cloud data (which is already in the `tabs` variable)
+                    // The main action is to save this data to Local Storage and switch.
+                    
+                    // Note: The `tabs` array in memory holds the latest Cloud data from the switch attempt.
+                    currentMode = 'local';
+                    localStorage.setItem("csvSyncMode", currentMode);
+                    updateModeDisplay();
+                    saveToLocalStorage(); // Overwrite Local with Cloud
+                    
+                    renderTabs();
+                    renderTable();
+                    showToast("Kept Cloud Data. Switched to Local. 💾", 4000);
+                }
+
+            }
+
+            // Clear context after use
+            syncContext = { type: null, data: null };
+            // Ensure the checkbox reflects the final mode
+            toggleCheckbox.checked = currentMode === 'cloud';
+        }
+        
+        function restoreModalForDeletion() {
+            const modalConfirm = document.getElementById('modalConfirm');
+            const modalCancel = document.getElementById('modalCancel');
+            
+            // Restore styles
+            modalConfirm.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            modalConfirm.classList.add('bg-red-600', 'hover:bg-red-700');
+            modalCancel.classList.remove('bg-green-600', 'hover:bg-green-700', 'text-white');
+            modalCancel.classList.add('bg-gray-200', 'hover:bg-gray-300');
+            
+            // Re-attach standard deletion handler to modalConfirm via delegation in the ready block
+        }
+
+        // Overload showModal to handle sync context
+        function showSyncModal(title, message, localText, cloudText, type, localTabs, localActiveId) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').innerHTML = message;
+            
+            const modalConfirm = document.getElementById('modalConfirm');
+            const modalCancel = document.getElementById('modalCancel');
+            
+            // Set up buttons for the new choice
+            modalConfirm.textContent = localText;
+            modalCancel.textContent = cloudText;
+            
+            // Use blue for "Keep Local" (modalConfirm) and green for "Keep Cloud" (modalCancel) for distinction
+            modalConfirm.classList.remove('bg-red-600', 'hover:bg-red-700');
+            modalConfirm.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            
+            modalCancel.classList.remove('bg-gray-200', 'hover:bg-gray-300');
+            modalCancel.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white');
+            
+            document.getElementById('deletionModal').style.display = 'flex';
+            
+            // Set sync context
+            syncContext = { 
+                type: type, 
+                data: { tabs: localTabs, activeTabId: localActiveId } // Store local/old data temporarily
+            };
+            
+            // Temporarily replace modalConfirm/Cancel listeners for this sync choice
+            // Clone and replace to easily remove old listeners
+            modalConfirm.replaceWith(modalConfirm.cloneNode(true));
+            modalCancel.replaceWith(modalCancel.cloneNode(true));
+            const newConfirm = document.getElementById('modalConfirm');
+            const newCancel = document.getElementById('modalCancel');
+
+            newConfirm.addEventListener('click', () => {
+                // Confirm button is 'Keep Local'
+                resolveConflictAndSwitch('local');
+            });
+            
+            newCancel.addEventListener('click', () => {
+                // Cancel button is 'Keep Cloud'
+                resolveConflictAndSwitch('cloud');
+            });
+            
+            // Add a temporary click outside listener to revert state if aborted
+             document.getElementById('deletionModal').addEventListener('click', function _tempListener(e) {
+                if (e.target.id === 'deletionModal' && syncContext.type) {
+                    hideModal();
+                    // Also, revert the toggle button's state since the switch was aborted
+                    const toggleCheckbox = document.getElementById('modeToggleCheckbox');
+                    toggleCheckbox.checked = currentMode === 'cloud';
+                    this.removeEventListener('click', _tempListener); // Remove self
+                }
+            });
+        }
+
+        
         async function switchMode() {
             const toggleCheckbox = document.getElementById('modeToggleCheckbox');
             const newMode = toggleCheckbox.checked ? 'cloud' : 'local';
 
             if (newMode === currentMode) return;
             
+            // Store the current local state for potential backup/switch
+            // Deep copy current state in memory (which is the current working copy)
+            const currentWorkingTabs = JSON.parse(JSON.stringify(tabs));
+            const currentWorkingActiveId = activeTabId;
+
+            // --------------------------------------------------------
+            // Case 1: Switching from LOCAL to CLOUD
+            // --------------------------------------------------------
             if (newMode === 'cloud') {
                 if (!isGoogleSignedIn) {
                     const success = await signInWithGoogle();
                     if (!success) {
                         toggleCheckbox.checked = false;
                         currentMode = 'local';
-                        loadFromLocalStorage(); 
+                        renderTabs();
+                        renderTable();
                         updateModeDisplay();
-                        return; 
+                        return;
                     }
                 }
                 
-                saveToLocalStorage(); // Save current local state to memory
-                currentMode = newMode;
-                localStorage.setItem("csvSyncMode", newMode);
-                updateModeDisplay();
-                startFirebaseListener();
+                // Save current local state to local storage before checking cloud data
+                saveToLocalStorage(); 
+                
+                const { doc, getDoc } = window.FirebaseTools;
+                const docRef = doc(db, `artifacts/${APP_ID}/users/${userId}/${FIREBASE_COLLECTION_PATH}`, 'main_data');
+                
+                loadingOverlay.style.display = 'flex';
+                loadingOverlay.querySelector('p').textContent = 'Checking for existing Cloud data...';
+                
+                const docSnap = await getDoc(docRef);
+                loadingOverlay.style.display = 'none';
+                
+                if (docSnap.exists() && docSnap.data().tabs && docSnap.data().tabs.length > 0) {
+                    
+                    // Conflict: Cloud data exists. Ask user to resolve.
+                    showSyncModal(
+                        "Data Sync Conflict",
+                        "Cloud data already exists. Which data set do you want to keep? **Keeping Cloud data will overwrite your current Local data (which is now backed up locally).**",
+                        "Keep Local Data (Overwrite Cloud)",
+                        "Keep Cloud Data (Discard Local)",
+                        'localToCloud',
+                        currentWorkingTabs, // Pass the local state
+                        currentWorkingActiveId
+                    );
+                    
+                } else {
+                    // No conflict: Cloud document is empty or doesn't exist. Save local data to cloud.
+                    currentMode = newMode;
+                    localStorage.setItem("csvSyncMode", newMode);
+                    updateModeDisplay();
+                    // Set 'tabs' to current local working copy (which it is already)
+                    saveToFirebase(); // Save the current 'tabs' state to cloud
+                    startFirebaseListener();
+                    showToast("Switched to Cloud Mode. Local data saved to Cloud. ☁️", 3000);
+                }
 
-            } else {
+            // --------------------------------------------------------
+            // Case 2: Switching from CLOUD to LOCAL
+            // --------------------------------------------------------
+            } else { // newMode === 'local'
+                
                 if (unsubscribeSnapshot) {
                     unsubscribeSnapshot();
                     unsubscribeSnapshot = null;
                 }
                 
-                // Save current cloud state to local before switching back
-                saveToLocalStorage(); 
+                // Attempt to load OLD local data to check for conflict
+                const oldLocalTabsString = localStorage.getItem(LOCAL_STORAGE_KEY_TABS);
                 
-                currentMode = newMode;
-                localStorage.setItem("csvSyncMode", newMode);
-                updateModeDisplay();
+                if (oldLocalTabsString) {
+                    // Conflict: Old local data exists. Ask user to resolve.
+                    // The current `tabs` array holds the latest Cloud data in memory.
+                    showSyncModal(
+                        "Data Sync Conflict",
+                        "Local data from a previous session exists. Which data set do you want to keep? **Keeping Old Local data will overwrite the current Cloud data in memory.**",
+                        "Keep Old Local Data (Discard Cloud)",
+                        "Keep Current Cloud Data (Overwrite Local)",
+                        'cloudToLocal',
+                        JSON.parse(oldLocalTabsString), // Pass the old local state
+                        localStorage.getItem(LOCAL_STORAGE_KEY_ACTIVE)
+                    );
 
-                if (!loadFromLocalStorage()) {
-                    initializeDefaultTabs();
+                } else {
+                    // No conflict: Save current cloud data to local storage before switching back
+                    saveToLocalStorage(); 
+                    
+                    currentMode = newMode;
+                    localStorage.setItem("csvSyncMode", newMode);
+                    updateModeDisplay();
+
+                    // Reload from local to ensure widths and state are correct after the save
+                    if (!loadFromLocalStorage()) {
+                        initializeDefaultTabs();
+                        saveToLocalStorage();
+                    }
+                    renderTabs();
+                    renderTable();
+                    showToast("Switched to Local Mode. Cloud data saved locally. 💾", 3000);
                 }
-                renderTabs();
-                renderTable();
-                showToast("Switched to Local Mode. 💾", 3000);
             }
         }
 
@@ -1041,38 +1258,46 @@
         // NEW: Add Tab Button
         $("#addTabBtn").on("click", addTab);
 
-        // Modal Confirmation Logic 
-        document.getElementById('modalCancel').addEventListener('click', hideModal);
+        // Modal Confirmation Logic (UPDATED to use delegation and check syncContext)
+        document.getElementById('modalCancel').addEventListener('click', () => {
+             // If not in a sync state, hide the modal (standard cancel button click)
+            if (!syncContext.type) {
+                hideModal();
+            }
+        });
 
-        document.getElementById('modalConfirm').addEventListener('click', () => {
-            const { type, index } = deletionContext;
-            hideModal();
-            
-            if (type === 'row' && index >= 0) {
-                executeDeleteRow(index);
-            } else if (type === 'col' && index >= 0) {
-                executeDeleteCol(index);
-            } else if (type === 'last-row') {
-                executeDeleteRow(getActiveTabData().length - 1);
-            } else if (type === 'last-col') {
-                executeDeleteCol(getActiveTabData()[0].length - 1);
-            } else if (type === 'tab') {
-                const tabIdToDelete = index;
-                const tabIndex = tabs.findIndex(t => t.id === tabIdToDelete);
+        document.getElementById('deletionModal').addEventListener('click', (e) => {
+            // Check if the click was on the button with the original deletion-confirm-purpose AND NOT a sync button
+            if (e.target.id === 'modalConfirm' && !syncContext.type) {
+                const { type, index } = deletionContext;
+                hideModal(); // Hide modal before executing action
                 
-                if (tabIndex > -1) {
-                    tabs.splice(tabIndex, 1);
-                    // Switch to the next available tab
-                    const newActiveTab = tabs[Math.max(0, tabIndex - 1)];
-                    if (newActiveTab) {
-                        switchTab(newActiveTab.id);
-                        showToast("Tab deleted.", 3000);
-                    } else {
-                        // Should not happen since we check tabs.length > 1
-                        initializeDefaultTabs();
-                        renderTabs();
-                        renderTable();
-                        saveData();
+                if (type === 'row' && index >= 0) {
+                    executeDeleteRow(index);
+                } else if (type === 'col' && index >= 0) {
+                    executeDeleteCol(index);
+                } else if (type === 'last-row') {
+                    executeDeleteRow(getActiveTabData().length - 1);
+                } else if (type === 'last-col') {
+                    executeDeleteCol(getActiveTabData()[0].length - 1);
+                } else if (type === 'tab') {
+                    const tabIdToDelete = index;
+                    const tabIndex = tabs.findIndex(t => t.id === tabIdToDelete);
+                    
+                    if (tabIndex > -1) {
+                        tabs.splice(tabIndex, 1);
+                        // Switch to the next available tab
+                        const newActiveTab = tabs[Math.max(0, tabIndex - 1)];
+                        if (newActiveTab) {
+                            switchTab(newActiveTab.id);
+                            showToast("Tab deleted.", 3000);
+                        } else {
+                            // Should not happen since we check tabs.length > 1
+                            initializeDefaultTabs();
+                            renderTabs();
+                            renderTable();
+                            saveData();
+                        }
                     }
                 }
             }
