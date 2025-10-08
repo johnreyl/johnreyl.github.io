@@ -1,0 +1,2040 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hybrid Checklist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            signInWithCustomToken, 
+            onAuthStateChanged,
+            GoogleAuthProvider,
+            signInWithPopup,
+            signInWithRedirect
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        window.FirebaseTools = { 
+            initializeApp, getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, 
+            GoogleAuthProvider, signInWithPopup, signInWithRedirect, 
+            getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot 
+        };
+    </script>
+    <style>
+        /* Custom styles for the checklist item appearance and behavior */
+        body, html { 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+            background: #f1f5f9; /* Slate 100 */
+            overflow: hidden; 
+            font-family: 'Inter', sans-serif;
+        }
+        
+        #notesContainer { 
+            position: relative; 
+            width: 100%; 
+            height: 100%;
+            overflow-y: auto; 
+            overflow-x: hidden;
+        }
+
+        /* Renamed .note to .checklist-card and adjusted default size */
+        .checklist-card {
+            position: absolute;
+            background: #fff8b3;
+            padding: 0.75rem;
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.15);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            cursor: grab;
+            transition: background 0.2s, transform 0.2s;
+            z-index: 10;
+            min-width: 500px; 
+            min-height: 150px; 
+            padding-bottom: 4rem; 
+        }
+        
+        /* Locking overlay only blocks input fields now, not movement */
+        .checklist-card.locked::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.4);
+            z-index: 50; 
+            cursor: not-allowed;
+            pointer-events: none; /* Pointer events are handled by the disabled attributes on inputs */
+            border-radius: 8px;
+        }
+
+        .checklist-body {
+            flex: 1;
+            overflow-y: auto; 
+            margin-top: 0.5rem;
+        }
+        
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 4px; 
+            padding: 4px 0;
+            border-bottom: 1px dashed rgba(0,0,0,0.1); 
+            margin-bottom: 4px; 
+            position: relative;
+        }
+        .checklist-item:last-child {
+            border-bottom: none; 
+            margin-bottom: 0;
+        }
+        
+        .checklist-item-text {
+            flex-grow: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 1rem;
+            line-height: 1.35;
+            padding: 2px 0;
+            transition: text-decoration 0.3s;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap; 
+        }
+
+        /* Styling for the Price/Qty Input */
+        .price-qty-input {
+            width: 70px; 
+            text-align: right;
+            border: 1px solid #d1d5db; 
+            border-radius: 4px;
+            padding: 2px 4px;
+            font-size: 0.9rem;
+            line-height: 1.25;
+            flex-shrink: 0;
+            background: #f9fafb; 
+            margin-left: 8px; /* Maintain spacing */
+            -moz-appearance: textfield; 
+        }
+        .price-qty-input::-webkit-outer-spin-button,
+        .price-qty-input::-webkit-inner-spin-button {
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+
+        /* Style for checked items */
+        .checklist-item.checked .checklist-item-text {
+            text-decoration: line-through;
+            color: #6b7280; 
+        }
+        
+        .item-delete-btn {
+            cursor: pointer;
+            color: #ef4444; 
+            opacity: 0.7;
+            transition: opacity 0.15s;
+            flex-shrink: 0;
+        }
+        .item-delete-btn:hover {
+            opacity: 1;
+        }
+
+        /* Checked At Timestamp */
+        .checked-at-timestamp {
+            font-size: 0.75rem; 
+            color: #6b7280;     
+            margin-left: auto; /* Push to the right */
+            margin-right: 4px; /* Space before the new price/qty input */
+            flex-shrink: 0;
+        }
+        
+        .add-item-btn {
+            align-self: flex-start;
+            margin-top: 0.5rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            background: rgba(0,0,0,0.05);
+            color: #4f46e5;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .add-item-btn:hover {
+            background: rgba(0,0,0,0.1);
+        }
+        
+        @media (max-width: 640px) {
+            .checklist-card {
+                position: relative !important; 
+                width: 95% !important; 
+                max-width: 400px;
+                margin: 10px auto; 
+                box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+                top: auto !important;
+                left: auto !important;
+                cursor: default;
+                min-width: 95%; 
+            }
+            .resize-handle { display: none !important; }
+        }
+        
+        .checklist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            gap: 8px; 
+        }
+
+        .checklist-title-input {
+            flex-grow: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 1.125rem; 
+            font-weight: 600;   
+            padding: 2px 0;
+            margin-right: 8px; 
+        }
+        
+        .note-header-actions {
+            display: flex;
+            flex-direction: row-reverse; 
+            gap: 8px;
+        }
+        
+        .icon-btn {
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: opacity 0.15s;
+        }
+        
+        .color-toggle-btn {
+            font-size: 1rem;
+            padding: 2px 4px;
+        }
+
+        .delete-btn {
+            font-size: 1.25rem;
+        }
+
+        .icon-btn:hover { opacity: 0.8; }
+        
+        .color-palette-container {
+            padding-bottom: 8px;
+            display: none; 
+        }
+        .color-palette {
+            display: flex;
+            gap: 8px;
+            padding: 4px 0;
+            border-radius: 4px;
+        }
+        .color-swatch {
+            width: 20px; 
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        .color-swatch:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 3px rgba(0,0,0,0.2), 0 0 0 1px #fff;
+        }
+
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 15px;
+            height: 15px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 8px 0;
+            cursor: se-resize;
+            z-index: 1;
+        }
+        
+        .mobile-resize-bar {
+            position: absolute;
+            bottom: 0; 
+            left: 0;
+            transform: none; 
+            width: 100%; 
+            height: 6px; 
+            background: rgba(0, 0, 0, 0.25); 
+            border-radius: 0 0 8px 8px; 
+            cursor: ns-resize; 
+            z-index: 5;
+            opacity: 1;
+        }
+        @media (min-width: 641px) {
+            .mobile-resize-bar { display: none !important; }
+        }
+
+        .card-footer-container {
+            position: absolute;
+            bottom: 0.75rem; 
+            left: 0.75rem;
+            right: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end; 
+            z-index: 55; 
+        }
+        
+        .card-total-value {
+             font-size: 1rem;
+             font-weight: 500;
+             margin-bottom: 2px;
+             line-height: 1.25;
+        }
+        .total-highlight {
+            font-weight: 700; 
+            color: #10b981; 
+            font-size: 1rem;
+            padding: 2px 4px;
+            border-radius: 4px;
+            background: #d1fae5; 
+        }
+
+        .last-update-text {
+            font-size: 0.75rem; 
+            color: #6b7280; 
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        #confirmationModal, #processedConfirmationModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            text-align: center;
+        }
+
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: none; 
+            justify-content: center;
+            align-items: center;
+            z-index: 1500;
+            flex-direction: column;
+            gap: 1rem;
+            font-weight: bold;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .switch-container {
+            display: flex;
+            align-items: center;
+            user-select: none;
+            gap: 8px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 38px; 
+            height: 22px; 
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 22px; 
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px; 
+            width: 16px; 
+            left: 3px; 
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        /* UPDATED: Change switch color to Indigo 700 for subtler look */
+        input:checked + .slider {
+            background-color: #4338ca; /* Indigo 700 */
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(16px); 
+        }
+        
+        .item-checkbox {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #9ca3af; 
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            position: relative;
+            flex-shrink: 0; 
+        }
+        /* UPDATED: Change checkbox color to Indigo 700 for subtler look */
+        .item-checkbox:checked {
+            background-color: #4338ca; /* Indigo 700 */
+            border-color: #4338ca;
+        }
+        .item-checkbox:checked:after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        /* Style for filter buttons (No explicit CSS needed, Tailwind classes are used now) */
+        .filter-btn {
+            /* Now defined by Tailwind classes for cleaner active/inactive look */
+        }
+
+        /* New Cabinet Modal Styling */
+        #cabinetModal {
+            z-index: 4000;
+        }
+        .cabinet-item:hover {
+            box-shadow: 0 0 0 2px #d1fae5;
+        }
+        .cabinet-item {
+            border: 1px solid #e5e7eb;
+            transition: all 0.15s;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="fixed top-0 left-0 right-0 p-2 sm:p-3 bg-white shadow-md flex flex-wrap justify-between items-center gap-2 z-50">
+    <div class="flex items-center space-x-3"> <button id="addNote" title="Add Checklist" class="text-indigo-600 hover:bg-indigo-50 rounded-full p-1 transition duration-150">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+        </button>
+        
+        <button id="clearNotesBtn" title="Clear All" class="text-red-500 hover:bg-red-50 rounded-full p-1 transition duration-150">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+        </button>
+        
+        <button id="openCabinetBtn" title="View Archived Checklists" class="flex items-center space-x-1 text-sky-700 hover:bg-sky-50 rounded-md p-1 transition duration-150 font-semibold">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
+                <path fill-rule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd" />
+            </svg>
+            <span>Cabinet</span>
+        </button>
+    </div>
+
+    <div class="flex items-center space-x-2 text-xs sm:text-sm font-medium">
+        <span class="text-gray-700 font-semibold">View:</span>
+        <button data-filter="all" class="filter-btn text-indigo-700 font-semibold bg-indigo-100 px-2 py-1 rounded-md transition duration-150">All</button>
+        <button data-filter="processed" class="filter-btn text-gray-600 hover:bg-gray-100 px-2 py-1 rounded-md transition duration-150">
+             
+             Processed
+        </button>
+        <button data-filter="unprocessed" class="filter-btn text-gray-600 hover:bg-gray-100 px-2 py-1 rounded-md transition duration-150">Active</button>
+    </div>
+    
+    <div id="overallProcessedTotal" class="text-sm sm:text-lg font-bold text-green-700 w-full text-center order-last sm:order-none sm:w-auto">
+        Total Processed: $0.00
+    </div>
+
+    <label class="switch-container sm:ml-4">
+        <span id="localModeLabel" class="text-xs sm:text-sm font-medium text-gray-700">Local</span>
+        <div class="switch">
+            <input type="checkbox" id="modeToggleCheckbox">
+            <span class="slider"></span>
+        </div>
+        <span id="firebaseModeLabel" class="text-xs sm:text-sm font-medium text-indigo-700">Cloud</span>
+    </label>
+</div>
+
+<div id="notesContainer" class="pt-[90px] sm:pt-16"></div>
+
+<div id="confirmationModal">
+    <div class="modal-content">
+        <h3 id="modalTitle" class="text-xl font-bold mb-4 text-gray-800">Confirm Deletion</h3>
+        <p id="modalMessage" class="mb-6">Are you sure you want to delete ALL checklists? This cannot be undone.</p>
+        <div class="flex justify-center space-x-4">
+            <button id="modalConfirm" class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-150">Delete All</button>
+            <button id="modalCancel" class="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition duration-150">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="processedConfirmationModal">
+    <div class="modal-content">
+        <h3 class="text-xl font-bold mb-4 text-gray-800">Confirm Processing</h3>
+        <p class="mb-6">Are you sure you want to mark this checklist as **Processed**? This will lock all items from editing.</p>
+        <div class="flex justify-center space-x-4">
+            <button id="processedModalConfirm" class="px-6 py-2 bg-indigo-700 text-white rounded-lg hover:bg-indigo-800 transition duration-150">Confirm & Lock</button>
+            <button id="processedModalCancel" class="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition duration-150">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="cabinetModal" class="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 hidden justify-center items-center z-[4000]">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-11/12 max-w-xl max-h-[90vh] overflow-y-auto">
+        <h3 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2">Archived Checklists (Cabinet)</h3>
+        <ul id="cabinetList" class="space-y-3">
+            </ul>
+        <button id="closeCabinetModal" class="mt-6 w-full py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition duration-150">Close</button>
+    </div>
+</div>
+
+
+<div id="cloudAuthPromptModal" class="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 hidden justify-center items-center z-[3000]">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-80 text-center">
+        <h3 class="text-xl font-bold mb-4 text-gray-800">Start Cloud Sync</h3>
+        <p class="mb-6 text-gray-700">Choose how you want to access your cloud notes. Permanent login is recommended for secure data saving.</p>
+        
+        <button id="authGoogleBtn" class="w-full py-2 bg-indigo-700 text-white rounded-md hover:bg-indigo-800 transition duration-150 flex items-center justify-center mb-3">
+            <svg class="w-5 h-5 mr-2" viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg"><path d="M533.5 244.5h-2.3c-.7-8.1-1.3-16.1-2.1-24.2H271.7v50.9h148.8c-6.7 30-24.6 55-49.8 72.3l-1.3-1.1-26.6 20.6 1.8 1.4c30.2 23.4 69.1 37.2 110.1 37.2 30.2 0 55.4-8 74.4-22.3l-1.4-1.1 27.2-21.1 1.7 1.3c28.3-21.9 44.8-54 44.8-90.4 0-11-1.1-21.9-3.2-32.3z" fill="#4285f4"/><path d="M271.7 544.3c74.6 0 138-24.6 184-66.8l-29-22.5c-20.1 13.9-45.7 22.2-76 22.2-58.4 0-108.6-38.6-126.1-90.6l-1.1-.3-29.3 22.8-1.5 1.1c25.4 50 78.4 83.2 138.8 83.2z" fill="#34a853"/><path d="M145.6 329c-3.1-9-5.4-18.3-5.4-27.9s2.3-18.9 5.4-27.9l-1.2-.9-29.4-22.8-1.3 1c-6.8 13.9-10.7 29.4-10.7 45.7s3.9 31.8 10.7 45.7l1.3 1-29.4 22.8 1.2.9c3.1-9 5.4-18.3 5.4-27.9z" fill="#fbbc05"/><path d="M271.7 108.2c33.3 0 63.1 11.5 86.8 33.7l2.8 2.5 44.2-43.1 3.5-3.4c-28.7-27.4-66.9-44.6-114-44.6-60.4 0-113.4 33.2-138.8 83.2l29.4 22.8 1.2.9c17.5-52 67.7-90.6 126.1-90.6z" fill="#ea4335"/></svg>
+            Sign in with Google
+        </button>
+        
+        <button id="authGuestBtn" class="w-full py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition duration-150 mb-4">
+            Continue as Guest (Temporary Cloud)
+        </button>
+
+        <button id="authPromptCancel" class="w-full py-1 text-sm text-gray-600 hover:text-gray-800">
+            Cancel
+        </button>
+        <p id="authPromptError" class="text-red-500 text-sm mt-3 hidden"></p>
+    </div>
+</div>
+
+<div id="loadingOverlay">
+    <div class="spinner"></div>
+    <p>Connecting to Cloud Sync...</p>
+</div>
+
+<script>
+  // PASTE YOUR FIREBASE CONFIG HERE
+  window.__firebase_config = JSON.stringify({
+    apiKey: "AIzaSyDHUMDVGfZY2dwF-uxeG17r9yW3f2gBr-A",
+    authDomain: "multitools-fbc73.firebaseapp.com",
+    projectId: "multitools-fbc73",
+    storageBucket: "multitools-fbc73.firebasestorage.app",
+    messagingSenderId: "277024201427",
+    appId: "1:277024201427:web:b1d23c088add4324cd1226",
+    measurementId: "G-1HJ0N30X1W"
+  });
+</script>
+<script>
+    // --- GLOBAL CONSTANTS ---
+    const STORAGE_KEY = 'hybridChecklist'; 
+    const MIN_WIDTH = 500; 
+    const MIN_HEIGHT = 150; 
+    const MOBILE_DEFAULT_WIDTH = 500; 
+    const MOBILE_DEFAULT_HEIGHT = 650; // Initial height 650px
+    const RESTORE_TOP = 50; // New position for restored cards
+    const RESTORE_LEFT = 50; // New position for restored cards
+
+
+    const COLOR_PALETTE = [
+        "#fff8b3", 
+        "#b3d8ff", 
+        "#ffb3e6", 
+        "#b3ffc8", 
+        "#e6b3ff", 
+    ];
+    
+    // --- APP STATE ---
+    let notes = []; 
+    let currentMode = 'local'; 
+    let deletionContext = { type: null, indexOrId: null };
+    let currentFilter = 'all'; // NEW: Default filter
+    
+    // --- FIREBASE GLOBALS ---
+    let db, auth, userId, unsubscribeSnapshot;
+    let isAuthPermanent = false; 
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-checklist-app-id'; 
+    
+    // --- FOCUS TRACKING (Fix for Firebase re-render issue) ---
+    let activeElementIdentifier = null; 
+    let activeItemIndex = null; 
+    let activeElementCursorPosition = 0;
+    let activeElementIsTitle = false; 
+
+    // --- UTILITY DOM ELEMENTS ---
+    const notesContainer = document.getElementById('notesContainer');
+    const modeToggleCheckbox = document.getElementById('modeToggleCheckbox');
+    const localModeLabel = document.getElementById('localModeLabel');
+    const firebaseModeLabel = document.getElementById('firebaseModeLabel');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    // NEW AUTH PROMPT MODAL ELEMENTS
+    const cloudAuthPromptModal = document.getElementById('cloudAuthPromptModal');
+    const authGoogleBtn = document.getElementById('authGoogleBtn');
+    const authGuestBtn = document.getElementById('authGuestBtn');
+    const authPromptCancel = document.getElementById('authPromptCancel');
+    const authPromptError = document.getElementById('authPromptError');
+
+    // NEW PROCESSED MODAL ELEMENTS
+    const processedModal = document.getElementById('processedConfirmationModal');
+    const processedModalConfirm = document.getElementById('processedModalConfirm');
+    const processedModalCancel = document.getElementById('processedModalCancel');
+    let processedToggleTarget = null; 
+
+    // NEW CABINET MODAL ELEMENTS
+    const cabinetModal = document.getElementById('cabinetModal');
+    const cabinetList = document.getElementById('cabinetList');
+    const openCabinetBtn = document.getElementById('openCabinetBtn');
+    const closeCabinetModal = document.getElementById('closeCabinetModal');
+    
+    // --- UTILITY FUNCTIONS ---
+
+    function formatTimestamp(timestamp) {
+        if (!timestamp) return '';
+        const date = new Date(timestamp);
+        return date.toLocaleString('en-US', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit', 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            hour12: true 
+        }).replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3/$1/$2'); 
+    }
+
+    function touchNote(identifier) {
+        const timestamp = Date.now();
+        if (currentMode === 'local') {
+            const cardIndex = parseInt(identifier, 10);
+            if (notes[cardIndex]) {
+                notes[cardIndex].lastUpdate = timestamp;
+                saveLocalNotes();
+                const updateEl = document.querySelector(`#note-${identifier} .last-update-timestamp`);
+                if (updateEl) updateEl.textContent = formatTimestamp(timestamp);
+                updateTotalDisplay(identifier, notes[cardIndex]);
+            }
+        } else {
+            updateFirebaseNote(identifier, { lastUpdate: timestamp });
+        }
+        updateOverallProcessedTotalDisplay(); // Update overall total on any change
+    }
+
+    // MODIFIED: Function to calculate card total - only includes checked items
+    function calculateTotal(note) {
+        if (!note || !note.items) return 0.00;
+        
+        const total = note.items.reduce((sum, item) => {
+            if (item.checked) { // <--- ONLY SUM IF CHECKED
+                const price = parseFloat(item.priceQty) || 0.00;
+                return sum + price;
+            }
+            return sum;
+        }, 0.00);
+        
+        return parseFloat(total.toFixed(2));
+    }
+
+    // NEW: Function to calculate overall total for all processed notes
+    function calculateOverallProcessedTotal() {
+        let overallTotal = 0.00;
+        
+        notes.forEach(note => {
+            // Only count notes that are processed AND NOT in the cabinet (visible processed)
+            if (note.processed && !note.cabinet) { 
+                // Use the card's total calculation (which includes item.checked check)
+                const cardTotal = calculateTotal(note);
+                overallTotal += cardTotal;
+            }
+        });
+        
+        return parseFloat(overallTotal.toFixed(2));
+    }
+    
+    function updateTotalDisplay(identifier, note) {
+        const cardEl = document.getElementById(`note-${identifier}`);
+        if (!cardEl) return;
+        
+        const total = calculateTotal(note);
+        const totalEl = cardEl.querySelector('.card-total-value');
+        if (totalEl) {
+            totalEl.textContent = `Total: $${total.toFixed(2)}`;
+            totalEl.classList.toggle('total-highlight', total > 0);
+        }
+    }
+
+    // NEW: Function to manually update the Overall Total display in the DOM
+    function updateOverallProcessedTotalDisplay() {
+        const total = calculateOverallProcessedTotal();
+        const totalEl = document.getElementById('overallProcessedTotal');
+        if (totalEl) {
+            totalEl.textContent = `Total Processed: $${total.toFixed(2)}`;
+        }
+    }
+    
+    function disableCardInputs(cardEl, isDisabled) {
+        // Disable title, items (text/price/checkbox), and add item button
+        cardEl.querySelector('.checklist-title-input').disabled = isDisabled;
+        
+        // Disable individual item controls
+        cardEl.querySelectorAll('.checklist-item-text, .item-checkbox, .price-qty-input, .item-delete-btn').forEach(el => {
+            if(el.classList.contains('item-delete-btn')) {
+                 el.style.pointerEvents = isDisabled ? 'none' : 'auto';
+                 el.style.opacity = isDisabled ? '0.3' : '1';
+            } else {
+                el.disabled = isDisabled;
+            }
+        });
+        
+        // Disable add item button
+        const addItemBtn = cardEl.querySelector('.add-item-btn');
+        addItemBtn.disabled = isDisabled;
+        addItemBtn.style.opacity = isDisabled ? '0.3' : '1';
+        addItemBtn.style.cursor = isDisabled ? 'not-allowed' : 'pointer';
+        
+        // The processed checkbox itself remains enabled for re-unlocking
+        const processedCheckbox = cardEl.querySelector('.processed-checkbox');
+        if(processedCheckbox) processedCheckbox.disabled = false;
+    }
+
+
+    // --- FIREBASE INITIALIZATION & AUTH (UNCHANGED) ---
+    async function initializeFirebase() {
+        if (!window.FirebaseTools) {
+             console.error("Firebase SDK not loaded.");
+             return;
+        }
+        try {
+            const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+            const { initializeApp, getAuth, signInWithCustomToken, signInAnonymously, getFirestore, onAuthStateChanged } = window.FirebaseTools;
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = user.uid;
+                    isAuthPermanent = !user.isAnonymous; 
+                    if (cloudAuthPromptModal.style.display === 'flex') {
+                        cloudAuthPromptModal.style.display = 'none';
+                        loadingOverlay.style.display = 'none';
+                    }
+                    if (currentMode === 'firebase' && !unsubscribeSnapshot) {
+                        startFirebaseListener();
+                    }
+                } else {
+                    userId = null;
+                    isAuthPermanent = false; 
+                }
+            });
+        } catch (e) {
+            console.error("Firebase Initialization Failed:", e);
+        }
+    }
+
+    async function signInWithGoogle() {
+        authPromptError.style.display = 'none';
+        const { GoogleAuthProvider, signInWithPopup } = window.FirebaseTools; 
+        const provider = new GoogleAuthProvider();
+        try {
+            await signInWithPopup(auth, provider);
+        } catch (error) {
+            let errorMessage = "An error occurred during Google Sign-In.";
+            if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                 errorMessage = "Sign-in cancelled.";
+            } else if (error.code === 'auth/unauthorized-domain') {
+                 errorMessage = "Authentication failed: Domain not authorized. Check Firebase console settings.";
+            } else {
+                console.error("Google Auth error:", error);
+                errorMessage = error.message;
+            }
+            authPromptError.textContent = errorMessage;
+            authPromptError.style.display = 'block';
+        }
+    }
+
+    async function signInAsGuest() {
+        authPromptError.style.display = 'none';
+        const { signInAnonymously } = window.FirebaseTools;
+        try {
+            await signInAnonymously(auth); 
+            cloudAuthPromptModal.style.display = 'none'; 
+            loadingOverlay.style.display = 'none';
+            loadNotes(); 
+        } catch (e) {
+            console.error("Guest Sign-in failed:", e);
+            authPromptError.textContent = "Failed to create temporary cloud account.";
+            authPromptError.style.display = 'block';
+        }
+    }
+
+    function cancelAuthPrompt() {
+        cloudAuthPromptModal.style.display = 'none';
+        modeToggleCheckbox.checked = false;
+        currentMode = 'local';
+        updateModeDisplay();
+        loadNotes(); 
+    }
+
+    // --- FOCUS TRACKING LOGIC (UNCHANGED) ---
+    function trackFocus(e) {
+        const input = e.target;
+        const cardEl = input.closest('.checklist-card');
+        if (!cardEl) return;
+
+        activeElementIdentifier = cardEl.dataset.identifier;
+        activeElementCursorPosition = input.selectionStart;
+
+        if (input.classList.contains('checklist-title-input')) {
+            activeElementIsTitle = true;
+            activeItemIndex = null; 
+        } else {
+            activeElementIsTitle = false;
+            const itemEl = input.closest('.checklist-item');
+            if (itemEl) {
+                activeItemIndex = parseInt(itemEl.dataset.index, 10);
+            }
+        }
+    }
+
+    function untrackFocus() {
+        activeElementIdentifier = null;
+        activeItemIndex = null;
+        activeElementCursorPosition = 0;
+        activeElementIsTitle = false;
+    }
+
+    function restoreFocus() {
+        if (activeElementIdentifier !== null) {
+            const cardEl = document.getElementById(`note-${activeElementIdentifier}`);
+            if (cardEl) {
+                let targetInput = null;
+                if (activeElementIsTitle) {
+                    targetInput = cardEl.querySelector('.checklist-title-input');
+                } else if (activeItemIndex !== null) {
+                    targetInput = cardEl.querySelector(`.checklist-item[data-index="${activeItemIndex}"] .checklist-item-text`);
+                    if (!targetInput || targetInput !== document.activeElement) {
+                         targetInput = cardEl.querySelector(`.checklist-item[data-index="${activeItemIndex}"] .price-qty-input`);
+                    }
+                }
+                
+                if (targetInput) {
+                    targetInput.focus();
+                    if (activeElementCursorPosition !== undefined && targetInput.type === 'text') {
+                        targetInput.setSelectionRange(activeElementCursorPosition, activeElementCursorPosition);
+                    }
+                }
+            }
+        }
+    }
+
+    // --- MODE MANAGEMENT (UNCHANGED) ---
+    
+    function updateModeDisplay() {
+        if (currentMode === 'local') {
+            modeToggleCheckbox.checked = false;
+            localModeLabel.classList.add('text-gray-700', 'font-semibold');
+            localModeLabel.classList.remove('text-indigo-700', 'font-normal'); /* UPDATED: text-indigo-700 */
+            firebaseModeLabel.classList.add('text-indigo-700', 'font-normal'); /* UPDATED: text-indigo-700 */
+            firebaseModeLabel.classList.remove('text-gray-700', 'font-semibold');
+        } else {
+            modeToggleCheckbox.checked = true;
+            localModeLabel.classList.add('text-indigo-700', 'font-normal'); /* UPDATED: text-indigo-700 */
+            localModeLabel.classList.remove('text-gray-700', 'font-semibold');
+            firebaseModeLabel.classList.add('text-gray-700', 'font-semibold');
+            firebaseModeLabel.classList.remove('text-indigo-700', 'font-normal'); /* UPDATED: text-indigo-700 */
+        }
+    }
+    
+    function switchMode() {
+        const newMode = modeToggleCheckbox.checked ? 'firebase' : 'local';
+
+        if (newMode === currentMode) return;
+        
+        if (unsubscribeSnapshot) {
+            unsubscribeSnapshot();
+            unsubscribeSnapshot = null;
+        }
+        
+        notesContainer.innerHTML = ''; 
+        notes = []; 
+        untrackFocus(); 
+        
+        if (newMode === 'firebase') {
+            if (userId && isAuthPermanent) {
+                currentMode = newMode;
+                loadNotes();
+            } else {
+                currentMode = newMode; 
+                updateModeDisplay(); 
+                cloudAuthPromptModal.style.display = 'flex';
+                loadingOverlay.style.display = 'none'; 
+            }
+        } else {
+            currentMode = newMode;
+            loadNotes();
+        }
+    }
+    
+    // --- FIREBASE CRUD IMPLEMENTATION (UNCHANGED) ---
+    
+    function getNotesCollectionRef() {
+        if (!db || !userId) return null;
+        const { collection } = window.FirebaseTools;
+        const path = `/artifacts/${appId}/users/${userId}/checklists`; 
+        return collection(db, path);
+    }
+    
+    function getNoteDocumentRef(id) {
+        if (!db || !userId) return null;
+        const { doc } = window.FirebaseTools;
+        const path = `/artifacts/${appId}/users/${userId}/checklists`; 
+        return doc(db, path, id);
+    }
+
+    function startFirebaseListener() {
+        const notesRef = getNotesCollectionRef();
+        if (!notesRef) {
+            loadingOverlay.style.display = 'flex';
+            console.warn("Firebase not ready or User not authenticated. Showing loading screen.");
+            return;
+        }
+
+        loadingOverlay.style.display = 'flex';
+        loadingOverlay.querySelector('p').textContent = `Syncing notes for User: ${userId.substring(0, 8)}...`;
+
+        const { onSnapshot } = window.FirebaseTools;
+        
+        if (unsubscribeSnapshot) unsubscribeSnapshot();
+        
+        unsubscribeSnapshot = onSnapshot(notesRef, (snapshot) => {
+            const newNotes = [];
+            snapshot.forEach(doc => {
+                newNotes.push({ 
+                    id: doc.id, 
+                    items: doc.data().items || [], 
+                    title: doc.data().title || 'Checklist', 
+                    lastUpdate: doc.data().lastUpdate,
+                    processed: doc.data().processed || false, 
+                    cabinet: doc.data().cabinet || false, // NEW: Include cabinet status
+                    ...doc.data() 
+                });
+            });
+            
+            if (currentMode === 'firebase') {
+                notes = newNotes;
+                updateNotesDOM(); 
+                loadingOverlay.style.display = 'none';
+            }
+        }, (error) => {
+            console.error("Firebase snapshot error:", error);
+            loadingOverlay.style.display = 'none';
+        });
+    }
+
+    async function addFirebaseNote(noteData) {
+        const notesRef = getNotesCollectionRef();
+        if (!notesRef) return console.error("Cannot add note: Firebase not ready.");
+        const { addDoc } = window.FirebaseTools;
+        await addDoc(notesRef, noteData);
+    }
+    
+    async function updateFirebaseNote(id, data) {
+        const noteRef = getNoteDocumentRef(id);
+        if (!noteRef) return console.error("Cannot update note: Firebase ref not found.");
+        const { updateDoc } = window.FirebaseTools;
+        await updateDoc(noteRef, data);
+    }
+
+    async function deleteFirebaseNote(id) {
+        const noteRef = getNoteDocumentRef(id);
+        if (!noteRef) return console.error("Cannot delete note: Firebase ref not found.");
+        const { deleteDoc } = window.FirebaseTools;
+        await deleteDoc(noteRef);
+    }
+    
+    // --- LOCAL STORAGE CRUD IMPLEMENTATION (MODIFIED: Added cabinet) ---
+    
+    function loadLocalNotes() {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                notes = JSON.parse(saved); 
+                notes.forEach(note => {
+                    if (note.title === undefined) note.title = 'Checklist';
+                    if (note.lastUpdate === undefined) note.lastUpdate = Date.now(); 
+                    if (note.processed === undefined) note.processed = false; 
+                    if (note.cabinet === undefined) note.cabinet = false; // NEW: Initialize cabinet
+                    note.items = note.items.map(item => ({
+                        ...item,
+                        checkedAt: item.checkedAt === undefined ? null : item.checkedAt,
+                        priceQty: item.priceQty === undefined ? 0.00 : parseFloat(item.priceQty) 
+                    }));
+                });
+            } else {
+                notes = [];
+            }
+        } catch (e) {
+            console.error("Error loading notes from local storage:", e);
+            notes = [];
+        }
+        updateNotesDOM(); 
+    }
+
+    function saveLocalNotes() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+        } catch (e) {
+            console.error("Error saving notes to local storage:", e);
+        }
+    }
+
+    function deleteLocalNote(index) {
+        notes.splice(index, 1);
+        notes = notes.map((note, idx) => ({ ...note, localIndex: idx })); 
+        saveLocalNotes();
+        updateNotesDOM(); 
+    }
+    
+    function clearAllLocalNotes() {
+        notes = [];
+        saveLocalNotes();
+        updateNotesDOM(); 
+    }
+    
+    // --- CHECKLIST-SPECIFIC UPDATES (MODIFIED: Added cabinet status check) ---
+
+    function updateNoteTitle(identifier, newTitle) {
+        if (currentMode === 'local') {
+            const cardIndex = parseInt(identifier, 10);
+            if (notes[cardIndex]) {
+                notes[cardIndex].title = newTitle;
+                touchNote(identifier); 
+            }
+        } else {
+            updateFirebaseNote(identifier, { title: newTitle, lastUpdate: Date.now() });
+        }
+    }
+
+    function toggleProcessed(identifier, isChecked) {
+        if (currentMode === 'local') {
+            const cardIndex = parseInt(identifier, 10);
+            if (notes[cardIndex]) {
+                notes[cardIndex].processed = isChecked;
+                // If un-processing, remove from cabinet
+                if (!isChecked) {
+                     notes[cardIndex].cabinet = false;
+                }
+                touchNote(identifier); 
+                
+                const cardEl = document.getElementById(`note-${identifier}`);
+                if (cardEl) {
+                    cardEl.classList.toggle('locked', isChecked);
+                    disableCardInputs(cardEl, isChecked);
+                }
+            }
+        } else {
+            const updateData = { processed: isChecked, lastUpdate: Date.now() };
+             // If un-processing, remove from cabinet
+            if (!isChecked) {
+                updateData.cabinet = false;
+            }
+            updateFirebaseNote(identifier, updateData);
+        }
+    }
+    
+    // NEW: Function to move a processed note to the cabinet
+    function moveToCabinet(identifier) {
+        if (currentMode === 'local') {
+            const index = parseInt(identifier, 10);
+            notes[index].cabinet = true;
+            saveLocalNotes();
+        } else {
+            updateFirebaseNote(identifier, { cabinet: true });
+        }
+        updateNotesDOM(); // Re-render to hide the note
+    }
+
+    // NEW: Function to restore a note from the cabinet
+    function restoreFromCabinet(identifier) {
+        const newProps = { 
+            cabinet: false,
+            // Restore to the top left of the board
+            top: RESTORE_TOP, 
+            left: RESTORE_LEFT,
+            lastUpdate: Date.now()
+        };
+        
+        if (currentMode === 'local') {
+            const index = parseInt(identifier, 10);
+            Object.assign(notes[index], newProps);
+            saveLocalNotes();
+            updateNotesDOM();
+        } else {
+            updateFirebaseNote(identifier, newProps);
+        }
+        
+        cabinetModal.style.display = 'none';
+        // The cabinet modal's list needs to be re-rendered by the caller
+    }
+    
+    function addItem(identifier) {
+        
+        const newItem = { text: '', checked: false, checkedAt: null, priceQty: 0.00 }; 
+
+        if (currentMode === 'local') {
+            const cardIndex = parseInt(identifier, 10);
+            if (cardIndex >= 0 && cardIndex < notes.length) {
+                notes[cardIndex].items.push(newItem);
+                touchNote(identifier); 
+                updateNotesDOM(); 
+            }
+        } else {
+            const card = notes.find(n => n.id === identifier);
+            if (card) {
+                const newItems = [...card.items, newItem]; 
+                updateFirebaseNote(identifier, { items: newItems, lastUpdate: Date.now() });
+            }
+        }
+        
+        setTimeout(() => {
+            const cardEl = document.getElementById(`note-${identifier}`);
+            if (cardEl) {
+                const itemInputs = cardEl.querySelectorAll('.checklist-item-text');
+                if (itemInputs.length > 0) {
+                    itemInputs[itemInputs.length - 1].focus();
+                }
+            }
+        }, 50); 
+    }
+    
+    function updateItemProperty(cardIdentifier, itemIndex, property, value) {
+        
+        if (property === 'priceQty') {
+            value = parseFloat(value) || 0.00; 
+        }
+
+        if (currentMode === 'local') {
+            const cardIndex = parseInt(cardIdentifier, 10);
+            const card = notes[cardIndex];
+            if (card && card.items[itemIndex]) {
+                
+                if (property === 'checked') {
+                    card.items[itemIndex].checkedAt = value ? Date.now() : null;
+                }
+
+                card.items[itemIndex][property] = value;
+                touchNote(cardIdentifier); 
+                
+                if (property === 'checked') {
+                    const itemEl = document.querySelector(`#note-${cardIdentifier} .checklist-item[data-index="${itemIndex}"]`);
+                    if (itemEl) {
+                        itemEl.classList.toggle('checked', value);
+                        const timestampEl = itemEl.querySelector('.checked-at-timestamp');
+                        if(timestampEl) timestampEl.textContent = formatTimestamp(card.items[itemIndex].checkedAt);
+                    }
+                }
+                
+                updateTotalDisplay(cardIdentifier, card);
+            }
+        } else {
+            const cardId = cardIdentifier;
+            const card = notes.find(n => n.id === cardId);
+            if (card && card.items[itemIndex]) {
+                const newItems = [...card.items];
+                
+                if (property === 'checked') {
+                    newItems[itemIndex].checkedAt = value ? Date.now() : null;
+                }
+                
+                newItems[itemIndex][property] = value;
+                
+                updateFirebaseNote(cardId, { items: newItems, lastUpdate: Date.now() });
+            }
+        }
+    }
+    
+    function deleteItem(cardIdentifier, itemIndex) {
+        if (currentMode === 'local') {
+            const cardIndex = parseInt(cardIdentifier, 10);
+            const card = notes[cardIndex];
+            if (card && card.items[itemIndex]) {
+                card.items.splice(itemIndex, 1);
+                touchNote(cardIdentifier); 
+                updateNotesDOM(); 
+            }
+        } else {
+            const cardId = cardIdentifier;
+            const card = notes.find(n => n.id === cardId);
+            if (card && card.items[itemIndex]) {
+                const newItems = [...card.items];
+                newItems.splice(itemIndex, 1);
+                updateFirebaseNote(cardId, { items: newItems, lastUpdate: Date.now() });
+            }
+        }
+    }
+
+
+    // --- GENERAL CRUD & HANDLERS ---
+    
+    function loadNotes() {
+        updateModeDisplay();
+        if (currentMode === 'local') {
+            loadLocalNotes();
+        } else {
+            if (userId) {
+                startFirebaseListener();
+            } else {
+                loadingOverlay.style.display = 'flex';
+                loadingOverlay.querySelector('p').textContent = 'Waiting for Authentication...';
+            }
+        }
+    }
+    
+    function addNote() {
+        const newNoteData = {
+            top: 50 + Math.random() * 50,
+            left: 50 + Math.random() * 50,
+            color: COLOR_PALETTE[0],
+            height: MOBILE_DEFAULT_HEIGHT, 
+            width: MOBILE_DEFAULT_WIDTH, 
+            title: 'New Checklist', 
+            lastUpdate: Date.now(), 
+            processed: false, 
+            cabinet: false, // NEW: Default to not in cabinet
+            items: [{ text: 'First item', checked: false, checkedAt: null, priceQty: 0.00 }]
+        };
+
+        if (currentMode === 'local') {
+            newNoteData.localIndex = notes.length;
+            notes.push(newNoteData);
+            updateNotesDOM();
+            saveLocalNotes();
+        } else {
+            addFirebaseNote(newNoteData); 
+        }
+    }
+
+    function updateNoteProperty(identifier, property, value) {
+        if (currentMode === 'local') {
+            const index = parseInt(identifier, 10); 
+            
+            if (isNaN(index) || index < 0 || index >= notes.length) {
+                console.error("Invalid local note index for update:", identifier);
+                return;
+            }
+            
+            notes[index][property] = value;
+            touchNote(identifier); 
+            
+            const noteEl = document.getElementById(`note-${identifier}`);
+            if (noteEl) {
+                if (property === 'top' || property === 'left') {
+                    noteEl.style[property] = `${value}px`;
+                } else if (property === 'width' || property === 'height') {
+                     noteEl.style[property] = `${value}px`;
+                }
+            }
+        } else {
+            const id = identifier;
+            updateFirebaseNote(id, { [property]: value, lastUpdate: Date.now() });
+        }
+    }
+
+    function changeColor(identifier, color) {
+        if (currentMode === 'local') {
+            const index = parseInt(identifier, 10); 
+            
+            if (isNaN(index) || index < 0 || index >= notes.length) {
+                console.error("Invalid local note index for color change:", identifier);
+                return;
+            }
+            
+            notes[index].color = color; 
+            const noteEl = document.getElementById(`note-${identifier}`);
+            if (noteEl) noteEl.style.background = color;
+            touchNote(identifier); 
+        } else {
+            const noteEl = document.getElementById(`note-${identifier}`);
+            if (noteEl) noteEl.style.background = color; 
+            updateFirebaseNote(identifier, { color: color, lastUpdate: Date.now() });
+        }
+    }
+
+    function clearAllNotes() {
+        untrackFocus(); 
+        if (currentMode === 'local') {
+            clearAllLocalNotes();
+        } else {
+            [...notes].forEach(note => deleteFirebaseNote(note.id));
+        }
+    }
+    
+    // --- INTELLIGENT DOM UPDATE (Includes new filtering and cabinet logic) ---
+    function updateNotesDOM() {
+        const existingIds = new Set();
+        const currentNotesInDom = new Set(Array.from(notesContainer.querySelectorAll('.checklist-card')).map(el => el.dataset.identifier));
+        
+        notes.forEach((note, index) => {
+            const identifier = currentMode === 'local' ? index.toString() : note.id;
+            existingIds.add(identifier);
+            
+            const isProcessed = note.processed;
+            const isCabinet = note.cabinet || false; // NEW: Get cabinet status
+            let shouldDisplay = true;
+
+            // Apply filter logic
+            if (currentFilter === 'processed' && !isProcessed) {
+                shouldDisplay = false;
+            } else if (currentFilter === 'unprocessed' && isProcessed) {
+                shouldDisplay = false;
+            }
+            
+            // NEW: Hide if in cabinet, regardless of filter
+            if (isCabinet) {
+                 shouldDisplay = false;
+            }
+
+            let cardEl = document.getElementById(`note-${identifier}`);
+            
+            if (cardEl) {
+                // Update card properties without destroying it
+                
+                if (cardEl.style.background !== note.color) { cardEl.style.background = note.color; }
+                if (cardEl.style.top !== `${note.top}px`) { cardEl.style.top = `${note.top}px`; }
+                if (cardEl.style.left !== `${note.left}px`) { cardEl.style.left = `${note.left}px`; }
+                if (cardEl.style.width !== `${note.width}px`) { cardEl.style.width = `${note.width}px`; }
+                if (cardEl.style.height !== `${note.height}px`) { cardEl.style.height = `${note.height}px`; }
+                
+                // Apply display based on filter and cabinet status
+                cardEl.style.display = shouldDisplay ? 'flex' : 'none'; 
+
+                if (currentMode === 'local' && cardEl.dataset.identifier !== identifier) {
+                    cardEl.id = `note-${identifier}`;
+                    cardEl.dataset.identifier = identifier;
+                }
+                
+                cardEl.classList.toggle('locked', note.processed);
+
+                const titleInput = cardEl.querySelector('.checklist-title-input');
+                if (titleInput && !(activeElementIdentifier === identifier && activeElementIsTitle)) {
+                    if (titleInput.value !== note.title) {
+                        titleInput.value = note.title;
+                    }
+                }
+                
+                const processedCheckbox = cardEl.querySelector('.processed-checkbox');
+                if (processedCheckbox) {
+                    if (processedCheckbox.checked !== note.processed) {
+                         processedCheckbox.checked = note.processed;
+                    }
+                    disableCardInputs(cardEl, note.processed);
+                }
+                
+                // NEW: Update cabinet button visibility (using sky-700/sky-100 now)
+                const cabinetBtn = cardEl.querySelector('.cabinet-btn');
+                if (cabinetBtn) {
+                     cabinetBtn.style.display = note.processed && !note.cabinet ? 'block' : 'none';
+                }
+
+                const lastUpdateEl = cardEl.querySelector('.last-update-timestamp');
+                if (lastUpdateEl) {
+                    const newText = formatTimestamp(note.lastUpdate);
+                    if (lastUpdateEl.textContent !== newText) {
+                        lastUpdateEl.textContent = newText;
+                    }
+                }
+
+                updateTotalDisplay(identifier, note);
+                
+                const listBody = cardEl.querySelector('.checklist-body');
+                const existingItemIds = new Set(Array.from(listBody.querySelectorAll('.checklist-item')).map(el => el.dataset.index));
+                const currentItemIds = new Set();
+                
+                note.items.forEach((item, itemIndex) => {
+                    currentItemIds.add(itemIndex.toString());
+                    let itemEl = listBody.querySelector(`.checklist-item[data-index="${itemIndex}"]`);
+                    
+                    if (itemEl) {
+                        const textarea = itemEl.querySelector('.checklist-item-text');
+                        const checkbox = itemEl.querySelector('.item-checkbox');
+                        const timestampEl = itemEl.querySelector('.checked-at-timestamp');
+                        const priceQtyInput = itemEl.querySelector('.price-qty-input'); 
+
+                        if (!(activeElementIdentifier === identifier && activeItemIndex === itemIndex)) {
+                            if (textarea.value !== item.text) {
+                                textarea.value = item.text;
+                            }
+                        }
+                        
+                        if (checkbox.checked !== item.checked) {
+                             checkbox.checked = item.checked;
+                        }
+                        
+                        itemEl.classList.toggle('checked', item.checked);
+
+                        if (timestampEl) {
+                            const newTimestamp = formatTimestamp(item.checkedAt);
+                            if (timestampEl.textContent !== newTimestamp) {
+                                timestampEl.textContent = newTimestamp;
+                            }
+                        }
+
+                        if (priceQtyInput && !(activeElementIdentifier === identifier && activeItemIndex === itemIndex)) {
+                            const newValue = parseFloat(item.priceQty || 0.00).toFixed(2);
+                            if (priceQtyInput.value !== newValue) {
+                                priceQtyInput.value = newValue;
+                            }
+                        }
+                        
+                    } else {
+                        // Render new item
+                        renderChecklistItem(item, itemIndex, identifier, listBody);
+                    }
+                });
+                
+                // Remove deleted items from DOM
+                existingItemIds.forEach(itemIndex => {
+                    if (!currentItemIds.has(itemIndex)) {
+                        const el = listBody.querySelector(`.checklist-item[data-index="${itemIndex}"]`);
+                        if (el) el.remove();
+                    }
+                });
+
+            } else if (shouldDisplay) { 
+                // New card element: RENDER it fully
+                renderNote(note, index);
+            }
+        });
+
+        // 2. Remove deleted cards from DOM
+        currentNotesInDom.forEach(domId => {
+            if (!existingIds.has(domId)) {
+                const el = document.getElementById(`note-${domId}`);
+                if (el) el.remove();
+            }
+        });
+        
+        // NEW: Update overall total
+        updateOverallProcessedTotalDisplay();
+        
+        // 3. Restore focus after all updates
+        restoreFocus();
+    }
+    
+    function renderChecklistItem(item, itemIndex, cardIdentifier, listBody) {
+         const itemEl = document.createElement('div');
+         const note = notes.find(n => (n.id === cardIdentifier) || (currentMode === 'local' && n.localIndex === parseInt(cardIdentifier)));
+         const isDisabled = note ? note.processed : false;
+
+         itemEl.className = `checklist-item ${item.checked ? 'checked' : ''}`;
+         itemEl.dataset.index = itemIndex;
+
+         // MODIFIED: Delete icon now uses fill="currentColor"
+         itemEl.innerHTML = `
+            <input type="checkbox" class="item-checkbox" ${item.checked ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
+            <input type="text" class="checklist-item-text" value="${item.text}" placeholder="Checklist item..." ${isDisabled ? 'disabled' : ''}>
+            <span class="checked-at-timestamp">${formatTimestamp(item.checkedAt)}</span> 
+            <input type="number" step="0.01" class="price-qty-input" value="${parseFloat(item.priceQty || 0.00).toFixed(2)}" placeholder="0.00" ${isDisabled ? 'disabled' : ''}>
+            <span class="item-delete-btn" title="Delete item" style="pointer-events: ${isDisabled ? 'none' : 'auto'}; opacity: ${isDisabled ? '0.3' : '1'};">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 10-2 0v6a1 1 0 102 0V8z" clip-rule="evenodd" />
+                </svg>
+            </span>
+         `;
+         
+         if (!listBody.querySelector(`.checklist-item[data-index="${itemIndex}"]`)) {
+            listBody.appendChild(itemEl);
+         }
+
+         const textarea = itemEl.querySelector('.checklist-item-text');
+         const checkbox = itemEl.querySelector('.item-checkbox');
+         const deleteBtn = itemEl.querySelector('.item-delete-btn');
+         const priceQtyInput = itemEl.querySelector('.price-qty-input');
+         
+         // 1. Focus Tracking
+         textarea.addEventListener('focus', trackFocus);
+         textarea.addEventListener('blur', untrackFocus);
+         priceQtyInput.addEventListener('focus', trackFocus); 
+         priceQtyInput.addEventListener('blur', untrackFocus); 
+         
+         // 2. Text Update
+         textarea.addEventListener('input', (e) => {
+             activeElementCursorPosition = e.target.selectionStart;
+             updateItemProperty(cardIdentifier, itemIndex, 'text', e.target.value);
+         });
+         
+         // 3. Checkbox Update
+         checkbox.addEventListener('change', (e) => {
+             updateItemProperty(cardIdentifier, itemIndex, 'checked', e.target.checked);
+         });
+
+         // 4. Price/Qty Update
+         priceQtyInput.addEventListener('input', (e) => {
+             updateItemProperty(cardIdentifier, itemIndex, 'priceQty', e.target.value);
+         });
+         priceQtyInput.addEventListener('change', (e) => {
+            const value = parseFloat(e.target.value) || 0.00;
+            e.target.value = value.toFixed(2);
+            updateItemProperty(cardIdentifier, itemIndex, 'priceQty', value);
+         });
+         
+         // 5. Item Delete
+         deleteBtn.addEventListener('click', () => {
+             deleteItem(cardIdentifier, itemIndex);
+         });
+    }
+
+    
+    // --- DOM RENDERING AND EVENT BINDING (MODIFIED: Added Cabinet Button) ---
+    
+    function renderNote(note, index) {
+        const identifier = currentMode === 'local' ? index.toString() : note.id;
+        const total = calculateTotal(note);
+        
+        const cardEl = document.createElement('div');
+        cardEl.id = `note-${identifier}`; 
+        cardEl.dataset.identifier = identifier; 
+        cardEl.className = `checklist-card transform hover:scale-[1.01] ${note.processed ? 'locked' : ''}`; 
+        
+        cardEl.style.cssText = `
+            top: ${note.top}px; 
+            left: ${note.left}px; 
+            background: ${note.color};
+            height: ${note.height}px;
+            width: ${note.width}px;
+            display: flex; /* Ensure it is visible initially */
+        `;
+
+        const paletteHtml = COLOR_PALETTE.map(color => 
+            `<div class="color-swatch" style="background-color: ${color};" data-color="${color}"></div>`
+        ).join('');
+
+
+        cardEl.innerHTML = `
+            <div class="checklist-header">
+                <input type="text" class="checklist-title-input" value="${note.title}" placeholder="Checklist Title" ${note.processed ? 'disabled' : ''}>
+                <div class="note-header-actions">
+                    
+                    <span class="icon-btn delete-btn text-red-500 hover:text-red-700" title="Delete checklist">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 10-2 0v6a1 1 0 102 0V8z" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    <span class="icon-btn color-toggle-btn text-gray-700 hover:text-indigo-600" title="Change color">🎨</span>
+                </div>
+            </div>
+            <div class="color-palette-container" data-state="hidden">
+                <div class="color-palette">
+                    ${paletteHtml}
+                </div>
+            </div>
+            <div class="checklist-body">
+                </div>
+            <button class="add-item-btn" ${note.processed ? 'disabled' : ''} style="opacity: ${note.processed ? '0.3' : '1'}; cursor: ${note.processed ? 'not-allowed' : 'pointer'};">
+                + Add Item
+            </button>
+            
+            <div class="card-footer-container">
+                <div class="flex items-center space-x-3">
+                    <label class="flex items-center space-x-2 text-sm text-gray-700 font-medium">
+                        <input type="checkbox" class="item-checkbox processed-checkbox" data-identifier="${identifier}" ${note.processed ? 'checked' : ''}>
+                        <span>Processed</span>
+                    </label>
+                    
+                    <button class="cabinet-btn px-2 py-1 text-xs bg-sky-100 text-sky-700 rounded-md hover:bg-sky-200 transition duration-150" 
+                        title="Move to Cabinet (Archived)" 
+                        style="display: ${note.processed && !note.cabinet ? 'block' : 'none'};">
+                        To Cabinet
+                    </button>
+                </div>
+
+                <div class="last-update-text">
+                    <div class="card-total-value ${total > 0 ? 'total-highlight' : ''}">
+                        Total: $${total.toFixed(2)}
+                    </div>
+                    <span class="last-update-timestamp">${formatTimestamp(note.lastUpdate)}</span>
+                </div>
+            </div>
+
+            <div class="resize-handle hidden sm:block"></div>
+            <div class="mobile-resize-bar sm:hidden"></div>
+        `;
+        
+        notesContainer.appendChild(cardEl);
+        
+        const colorPaletteContainer = cardEl.querySelector('.color-palette-container');
+        const colorToggleBtn = cardEl.querySelector('.color-toggle-btn');
+        const listBody = cardEl.querySelector('.checklist-body');
+        const titleInput = cardEl.querySelector('.checklist-title-input'); 
+        const processedCheckbox = cardEl.querySelector('.processed-checkbox');
+        const cabinetBtn = cardEl.querySelector('.cabinet-btn'); // New Cabinet Button element
+
+        if (note.items && Array.isArray(note.items)) {
+            note.items.forEach((item, itemIndex) => {
+                renderChecklistItem(item, itemIndex, identifier, listBody);
+            });
+        }
+        
+        if (note.processed) {
+            disableCardInputs(cardEl, true);
+        }
+
+        // --- Event Listeners ---
+        titleInput.addEventListener('focus', trackFocus);
+        titleInput.addEventListener('blur', untrackFocus);
+        titleInput.addEventListener('input', (e) => {
+            activeElementCursorPosition = e.target.selectionStart;
+            updateNoteTitle(identifier, e.target.value);
+        });
+        
+        // NEW: Cabinet Button Listener
+        cabinetBtn.addEventListener('click', () => moveToCabinet(identifier));
+
+        cardEl.querySelector('.add-item-btn').addEventListener('click', () => addItem(identifier));
+
+        cardEl.querySelector('.delete-btn').addEventListener('click', () => {
+            deletionContext.type = 'single';
+            deletionContext.indexOrId = identifier;
+            
+            document.getElementById('modalTitle').textContent = 'Confirm Checklist Deletion';
+            document.getElementById('modalMessage').textContent = 'Are you sure you want to delete this checklist? This cannot be undone.';
+            document.getElementById('modalConfirm').textContent = 'Delete Checklist';
+            
+            document.getElementById('confirmationModal').style.display = 'flex';
+        });
+
+        colorToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            if (colorPaletteContainer.style.display === 'flex') {
+                colorPaletteContainer.style.display = 'none';
+            } else {
+                document.querySelectorAll('.color-palette-container').forEach(p => {
+                    if (p !== colorPaletteContainer) p.style.display = 'none';
+                });
+                colorPaletteContainer.style.display = 'flex';
+            }
+        });
+
+        cardEl.querySelectorAll('.color-swatch').forEach(swatch => {
+            swatch.addEventListener('click', (e) => {
+                const color = e.target.dataset.color;
+                changeColor(identifier, color);
+                colorPaletteContainer.style.display = 'none';
+            });
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (colorPaletteContainer.style.display === 'flex') {
+                if (e.target !== colorToggleBtn && !colorPaletteContainer.contains(e.target)) {
+                    colorPaletteContainer.style.display = 'none';
+                }
+            }
+        });
+        
+        processedCheckbox.addEventListener('change', (e) => {
+            const isChecked = e.target.checked;
+            if (isChecked) {
+                processedToggleTarget = e.target;
+                processedModal.style.display = 'flex';
+            } else {
+                toggleProcessed(identifier, false); 
+            }
+        });
+
+
+        // Drag and Resize Logic 
+        const isDesktop = window.innerWidth >= 640;
+
+        if (isDesktop) {
+            cardEl.addEventListener('mousedown', startDrag);
+            const handle = cardEl.querySelector('.resize-handle');
+            if (handle) handle.addEventListener('mousedown', startResize);
+        } else {
+            const mobileBar = cardEl.querySelector('.mobile-resize-bar');
+            if (mobileBar) mobileBar.addEventListener('touchstart', startMobileResize, { passive: false });
+        }
+        
+        cardEl.addEventListener('touchstart', startDrag, { passive: false });
+        const desktopHandle = cardEl.querySelector('.resize-handle');
+        if (desktopHandle) desktopHandle.addEventListener('touchstart', startResize, { passive: false });
+    }
+    
+    // --- DRAG IMPLEMENTATION (UNCHANGED) ---
+    function startDrag(e) {
+        const noteEl = this;
+
+        const isTouch = e.type.startsWith('touch');
+        const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+        const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+        
+        const isInteractive = e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('.note-header-actions') || e.target.classList.contains('resize-handle') || e.target.classList.contains('mobile-resize-bar') || e.target.closest('.card-footer-container') || e.target.closest('.color-palette-container');
+        if (isInteractive) return;
+        
+        if (isTouch) e.preventDefault(); 
+        
+        const identifier = noteEl.dataset.identifier;
+        const offsetX = clientX - noteEl.getBoundingClientRect().left;
+        const offsetY = clientY - noteEl.getBoundingClientRect().top;
+
+        const isPositionalDrag = window.innerWidth >= 640; 
+        
+        if (isPositionalDrag) {
+            noteEl.style.zIndex = 1000; 
+            noteEl.style.cursor = 'grabbing';
+        }
+
+
+        function drag(moveEvent) {
+            if (!isPositionalDrag) return;
+
+            const isMoveTouch = moveEvent.type.startsWith('touch');
+            const moveClientX = isMoveTouch ? moveEvent.touches[0].clientX : moveEvent.clientX;
+            const moveClientY = isMoveTouch ? moveEvent.touches[0].clientY : moveEvent.clientY;
+
+            let newLeft = moveClientX - offsetX;
+            let newTop = moveClientY - offsetY;
+
+            const containerRect = notesContainer.getBoundingClientRect();
+            const noteRect = noteEl.getBoundingClientRect();
+            
+            newLeft = Math.max(0, Math.min(newLeft, containerRect.width - noteRect.width));
+            newTop = Math.max(50, Math.min(newTop, containerRect.height - noteRect.height)); 
+
+            noteEl.style.left = `${newLeft}px`;
+            noteEl.style.top = `${newTop}px`;
+        }
+
+        function stopDrag() {
+            document.removeEventListener(isTouch ? 'touchmove' : 'mousemove', drag);
+            document.removeEventListener(isTouch ? 'touchend' : 'mouseup', stopDrag);
+            
+            if (isPositionalDrag) {
+                noteEl.style.zIndex = 10;
+                noteEl.style.cursor = 'grab';
+
+                const finalTop = parseInt(noteEl.style.top, 10);
+                const finalLeft = parseInt(noteEl.style.left, 10);
+                
+                updateNoteProperty(identifier, 'top', finalTop);
+                updateNoteProperty(identifier, 'left', finalLeft);
+            }
+        }
+
+        document.addEventListener(isTouch ? 'touchmove' : 'mousemove', drag, { passive: false });
+        document.addEventListener(isTouch ? 'touchend' : 'mouseup', stopDrag);
+    }
+    
+    // --- RESIZE IMPLEMENTATION (UNCHANGED) ---
+    function startResize(e) {
+        const handle = this;
+        const noteEl = handle.closest('.checklist-card'); 
+
+        const isTouch = e.type.startsWith('touch');
+        if (isTouch) e.preventDefault(); 
+        e.stopPropagation();
+
+        const identifier = noteEl.dataset.identifier;
+        noteEl.style.zIndex = 1001; 
+
+        const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+        const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+
+        const startWidth = noteEl.offsetWidth;
+        const startHeight = noteEl.offsetHeight;
+        const startX = clientX;
+        const startY = clientY;
+
+        function doResize(moveEvent) {
+            const isMoveTouch = moveEvent.type.startsWith('touch');
+            const moveClientX = isMoveTouch ? moveEvent.touches[0].clientX : moveEvent.clientX;
+            const moveClientY = isMoveTouch ? moveEvent.touches[0].clientY : moveEvent.clientY;
+            
+            const dx = moveClientX - startX;
+            const dy = moveClientY - startY;
+
+            let newWidth = Math.max(startWidth + dx, MIN_WIDTH);
+            let newHeight = Math.max(startHeight + dy, MIN_HEIGHT);
+
+            noteEl.style.width = `${newWidth}px`;
+            noteEl.style.height = `${newHeight}px`;
+        }
+
+        function stopResize() {
+            document.removeEventListener(isTouch ? 'touchmove' : 'mousemove', doResize);
+            document.removeEventListener(isTouch ? 'touchend' : 'mouseup', stopResize);
+
+            noteEl.style.zIndex = 10; 
+
+            const finalWidth = parseInt(noteEl.style.width, 10);
+            const finalHeight = parseInt(noteEl.style.height, 10);
+            
+            updateNoteProperty(identifier, 'width', finalWidth);
+            updateNoteProperty(identifier, 'height', finalHeight);
+        }
+
+        document.addEventListener(isTouch ? 'touchmove' : 'mousemove', doResize, { passive: false });
+        document.addEventListener(isTouch ? 'touchend' : 'mouseup', stopResize);
+    }
+    
+    function startMobileResize(e) {
+        const handle = this;
+        const noteEl = handle.closest('.checklist-card'); 
+
+        const isTouch = e.type.startsWith('touch');
+        if (isTouch) e.preventDefault(); 
+        e.stopPropagation(); 
+
+        const identifier = noteEl.dataset.identifier;
+        noteEl.style.zIndex = 1001; 
+        
+        const startY = isTouch ? e.touches[0].clientY : e.clientY;
+        const startHeight = noteEl.offsetHeight;
+
+        function doMobileResize(moveEvent) {
+            const isMoveTouch = moveEvent.type.startsWith('touch');
+            const moveClientY = isMoveTouch ? moveEvent.touches[0].clientY : moveClientY;
+            
+            const dy = moveClientY - startY;
+            let newHeight = Math.max(startHeight + dy, MIN_HEIGHT);
+
+            noteEl.style.height = `${newHeight}px`;
+        }
+
+        function stopMobileResize() {
+            document.removeEventListener(isTouch ? 'touchmove' : 'mousemove', doMobileResize);
+            document.removeEventListener(isTouch ? 'touchend' : 'mouseup', stopMobileResize);
+
+            noteEl.style.zIndex = 10; 
+
+            const finalHeight = parseInt(noteEl.style.height, 10);
+            
+            updateNoteProperty(identifier, 'height', finalHeight);
+        }
+
+        document.addEventListener(isTouch ? 'touchmove' : 'mousemove', doMobileResize, { passive: false });
+        document.addEventListener(isTouch ? 'touchend' : 'mouseup', stopMobileResize);
+    }
+
+    // --- MODAL CONFIRMATION LOGIC (UNCHANGED) ---
+    const modal = document.getElementById('confirmationModal');
+    const modalConfirm = document.getElementById('modalConfirm');
+    const modalCancel = document.getElementById('modalCancel');
+
+    function resetModalContext() {
+        deletionContext.type = null;
+        deletionContext.indexOrId = null;
+    }
+
+    document.getElementById('clearNotesBtn').addEventListener('click', () => {
+        deletionContext.type = 'all';
+        deletionContext.indexOrId = null; 
+
+        document.getElementById('modalTitle').textContent = 'Confirm Deletion';
+        document.getElementById('modalMessage').textContent = 'Are you sure you want to delete ALL checklists? This cannot be undone.';
+        document.getElementById('modalConfirm').textContent = 'Delete All';
+        
+        modal.style.display = 'flex';
+    });
+
+    modalCancel.addEventListener('click', () => {
+        modal.style.display = 'none';
+        resetModalContext();
+    });
+
+    modalConfirm.addEventListener('click', () => {
+        modal.style.display = 'none';
+        
+        if (deletionContext.type === 'all') {
+            clearAllNotes();
+        } else if (deletionContext.type === 'single' && deletionContext.indexOrId !== null) {
+            if (currentMode === 'local') {
+                deleteLocalNote(parseInt(deletionContext.indexOrId, 10));
+            } else {
+                deleteFirebaseNote(deletionContext.indexOrId);
+            }
+        }
+        
+        resetModalContext();
+    });
+
+    // Processed Modal Listeners (UNCHANGED)
+    processedModalCancel.addEventListener('click', () => {
+        processedModal.style.display = 'none';
+        if (processedToggleTarget) {
+            processedToggleTarget.checked = false; 
+            processedToggleTarget = null;
+        }
+    });
+
+    processedModalConfirm.addEventListener('click', () => {
+        processedModal.style.display = 'none';
+        if (processedToggleTarget) {
+            const identifier = processedToggleTarget.dataset.identifier;
+            toggleProcessed(identifier, true); 
+            // After processing, automatically show the "To Cabinet" button in DOM
+            const cardEl = document.getElementById(`note-${identifier}`);
+            if (cardEl) {
+                 const cabinetBtn = cardEl.querySelector('.cabinet-btn');
+                 if (cabinetBtn) cabinetBtn.style.display = 'block';
+            }
+            processedToggleTarget = null;
+        }
+    });
+    
+    // NEW: Cabinet Modal Logic
+    
+    function renderCabinetModal() {
+        cabinetList.innerHTML = '';
+        const cabinetNotes = notes.filter(n => n.cabinet);
+        
+        if (cabinetNotes.length === 0) {
+            cabinetList.innerHTML = '<li class="text-center text-gray-500 py-4">Cabinet is empty.</li>';
+            return;
+        }
+
+        // Sort by last updated (newest first)
+        cabinetNotes.sort((a, b) => b.lastUpdate - a.lastUpdate);
+
+        cabinetNotes.forEach(note => {
+            const identifier = currentMode === 'local' ? note.localIndex.toString() : note.id;
+            const total = calculateTotal(note).toFixed(2);
+
+            const listItem = document.createElement('li');
+            listItem.className = 'cabinet-item p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer rounded-md transition duration-150';
+            listItem.dataset.identifier = identifier;
+            listItem.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <div class="flex-1 min-w-0 pr-4">
+                        <p class="text-base font-semibold text-gray-800 truncate" title="${note.title}">${note.title || 'Untitled Checklist'}</p>
+                        <p class="text-xs text-gray-500">Last Update: ${formatTimestamp(note.lastUpdate)}</p>
+                    </div>
+                    <div class="text-right ml-4 flex-shrink-0">
+                        <span class="text-sm font-bold text-green-700 bg-green-100 px-3 py-1 rounded-full">$${total}</span>
+                    </div>
+                </div>
+            `;
+            
+            listItem.addEventListener('click', () => {
+                restoreFromCabinet(identifier);
+                // After restoring, re-render the modal to remove the item
+                renderCabinetModal(); 
+            });
+
+            cabinetList.appendChild(listItem);
+        });
+    }
+
+    // UPDATED: Filter Button Event Listeners with new styling logic
+    document.addEventListener('DOMContentLoaded', () => {
+         document.querySelectorAll('.filter-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const newFilter = e.target.dataset.filter;
+                currentFilter = newFilter;
+                
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    // Remove active classes (Indigo 700 / Indigo 100)
+                    btn.classList.remove('text-indigo-700', 'font-semibold', 'bg-indigo-100');
+                    // Add default inactive classes (Gray 600 / Gray 100 hover)
+                    btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+                });
+                
+                // Set active classes
+                e.target.classList.add('text-indigo-700', 'font-semibold', 'bg-indigo-100');
+                e.target.classList.remove('text-gray-600', 'hover:bg-gray-100'); // Remove inactive classes
+                
+                updateNotesDOM();
+            });
+        });
+    });
+
+
+    // --- INITIALIZATION ---
+    
+    window.addEventListener('load', async () => {
+        await initializeFirebase();
+        loadNotes();
+
+        document.getElementById('addNote').addEventListener('click', addNote);
+        modeToggleCheckbox.addEventListener('change', switchMode);
+
+        authGoogleBtn.addEventListener('click', signInWithGoogle);
+        authGuestBtn.addEventListener('click', signInAsGuest);
+        authPromptCancel.addEventListener('click', cancelAuthPrompt);
+        
+        // NEW CABINET BUTTON LISTENERS
+        openCabinetBtn.addEventListener('click', () => {
+            renderCabinetModal();
+            cabinetModal.style.display = 'flex';
+        });
+        
+        closeCabinetModal.addEventListener('click', () => {
+            cabinetModal.style.display = 'none';
+        });
+    });
+
+</script>
+</body>
+</html>
