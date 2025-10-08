@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Tools Launcher</title>
+<title>GizmoBox.io</title>
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 
 <!-- Load Tailwind CSS -->
@@ -24,10 +24,40 @@ body {
   flex-direction: column;
 }
 
+/* Chrome, Safari, Edge - Custom scrollbar track */
+#toolFrame::-webkit-scrollbar-track,
+.sidebar::-webkit-scrollbar-track {
+    background: #f3f4f6; /* Tailwind gray-100 */
+    border-radius: 10px;
+}
+
+/* Chrome, Safari, Edge - Custom scrollbar thumb */
+#toolFrame::-webkit-scrollbar-thumb,
+.sidebar::-webkit-scrollbar-thumb {
+    background-color: #92A3AB; 
+    border-radius: 10px;
+    border: 3px solid #f3f4f6; /* Add a thin border the same color as the track for separation */
+}
+
+/* Remove scrollbar buttons for Chrome, Safari, and Edge */
+.sidebar::-webkit-scrollbar-button,
+#toolFrame::-webkit-scrollbar-button {
+    display: none;
+    height: 0;
+    width: 0;
+}
+
+#toolFrame, .sidebar {
+    scrollbar-width: thin; /* Firefox property for thin scrollbar */
+    scrollbar-color: #92A3AB #fff;
+}
+
 /* Sidebar Specific Styles */
 .sidebar {
-  width: 250px; 
+  width: 270px; 
+  transition: transform 0.3s ease, width 0.3s ease;
 }
+
 .sidebar.collapsed {
   width: 60px;
 }
@@ -89,8 +119,14 @@ body {
 <body class="bg-gray-100">
 
 <!-- Header -->
-<header class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white p-4 shadow-xl flex justify-between items-center">
-  <h3 class="text-xl font-bold">⚙️ MultiTools V2 Launcher</h3>
+<header class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white p-1 shadow-xl flex justify-between items-center">
+<h3 class="text-xl font-bold flex items-center">
+  <svg width="41px" height="41px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#bac2ca" stroke="#bac2ca" stroke-width="0.00024000000000000003" **class="mr-2"**>
+    <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.288"></g><g id="SVGRepo_iconCarrier"> <title>webhook</title> <rect width="24" height="24" fill="none"></rect> <path d="M10.46,19a4.59,4.59,0,0,1-6.37,1.15,4.63,4.63,0,0,1,2.49-8.38l0,1.43a3.17,3.17,0,0,0-2.36,1.36A3.13,3.13,0,0,0,5,18.91a3.11,3.11,0,0,0,4.31-.84,3.33,3.33,0,0,0,.56-1.44v-1l5.58,0,.07-.11a1.88,1.88,0,1,1,.67,2.59,1.77,1.77,0,0,1-.83-1l-4.07,0A5,5,0,0,1,10.46,19m7.28-7.14a4.55,4.55,0,1,1-1.12,9,4.63,4.63,0,0,1-3.43-2.21L14.43,18a3.22,3.22,0,0,0,2.32,1.45,3.05,3.05,0,1,0,.75-6.06,3.39,3.39,0,0,0-1.53.18l-.85.44L12.54,9.2h-.22a1.88,1.88,0,1,1,.13-3.76A1.93,1.93,0,0,1,14.3,7.39a1.88,1.88,0,0,1-.46,1.15l1.9,3.51a4.75,4.75,0,0,1,2-.19M8.25,9.14A4.54,4.54,0,1,1,16.62,5.6a4.61,4.61,0,0,1-.2,4.07L15.18,9a3.17,3.17,0,0,0,.09-2.73A3.05,3.05,0,1,0,9.65,8.6,3.21,3.21,0,0,0,11,10.11l.39.21-3.07,5a1.09,1.09,0,0,1,.1.19,1.88,1.88,0,1,1-2.56-.83,1.77,1.77,0,0,1,1.23-.17l2.31-3.77A4.41,4.41,0,0,1,8.25,9.14Z"></path>
+    </g>
+  </svg>
+  GizmoBox.io
+</h3>
   <!-- Mobile Toggle Button (Visible only on small screens) -->
   <button id="mobileToggleBtn" class="p-1 rounded-md text-white hover:bg-white hover:text-indigo-600 transition-colors duration-200">
     <i class="bi bi-list text-2xl"></i>
@@ -100,7 +136,7 @@ body {
 <div class="flex-1 flex overflow-hidden">
   
   <!-- Sidebar -->
-  <nav class="sidebar flex flex-col bg-white border-r border-gray-200 overflow-y-auto transition-transform duration-300" id="sidebar">
+  <nav class="sidebar flex flex-col bg-white border-r border-gray-200 overflow-y-auto" id="sidebar">
     
     <!-- Desktop Toggle Button (Visible only on desktop) -->
     <div class="hidden md:flex justify-end p-2 border-b border-gray-200 cursor-pointer sticky top-0 bg-white z-10" id="desktopToggleBtn">
@@ -119,10 +155,12 @@ body {
   </nav>
 
   <!-- Content Area (Iframe) -->
-  <div class="content flex-1 p-2 md:p-4 overflow-hidden" id="mainContent">
-    <iframe id="toolFrame" src="about:blank" class="w-full h-full border-none rounded-xl shadow-2xl bg-white"></iframe>
-    <footer class="text-right text-xs text-gray-500 mt-2 md:mt-4">
-      <a target="_blank" href="https://www.google.com" class="text-gray-500 hover:text-indigo-600 transition-colors duration-200">🌐 Sandbox Browser</a>
+  <div class="content flex-1 px-2 py-0 md:px-4 flex flex-col overflow-hidden" id="mainContent">
+    <iframe id="toolFrame" src="about:blank" class="w-full flex-grow border-none rounded-xl shadow-2xl bg-white"></iframe>
+    <footer class="text-right text-xs text-gray-500 py-2">
+        <a target="_blank" href="https://www.google.com" class="text-gray-500 hover:text-indigo-600 transition-colors duration-200">🌐 Sandbox Browser</a>
+        <span class="mx-2 text-gray-400">|</span>
+        <span id="copyright-year">&copy; GizmoBox.io</span>
     </footer>
   </div>
 </div>
@@ -214,6 +252,16 @@ function getToolIcon(file) {
 
 function savePinnedFiles(){ localStorage.setItem("pinnedTools", JSON.stringify(pinnedFiles)); }
 
+function setCopyrightYear() {
+    const currentYear = new Date().getFullYear();
+    const copyrightElement = document.getElementById('copyright-year');
+    if (copyrightElement) {
+        // Prepend the current year to the existing text (e.g., "© 2025 GizmoBox.io")
+        const originalText = copyrightElement.textContent;
+        copyrightElement.textContent = `© ${currentYear} ${originalText.replace('©', '').trim()}`;
+    }
+}
+
 // --- Main Logic ---
 
 $(function(){
@@ -274,7 +322,7 @@ $(function(){
           <a class="nav-link p-3 rounded-none flex items-center justify-between transition-colors duration-150 ${baseClasses}" id="${id}" href="#" title="${entry.title}">
             <span class="tool-left flex items-center gap-3 flex-1 overflow-hidden">
                 <i class="bi ${iconClass} text-xl"></i>
-                <span class="tool-label">${entry.title}</span>
+                <span class="tool-label text-xs">${entry.title}</span>
             </span>
             <i class="bi bi-star-fill favorite text-xl cursor-pointer ${starClasses}"></i>
           </a>
@@ -315,6 +363,8 @@ $(function(){
     if (entries.length > 0) {
         $(`#tab-${entries[0].file.replace(/[^a-z0-9]/gi,"")}-${entries[0].idSuffix}`).trigger('click');
     }
+
+    setCopyrightYear();
   });
 
   // --- Favorite/Pin Click Handler ---
