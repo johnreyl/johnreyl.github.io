@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel-Like CSV Editor with Hybrid Sync & Tabs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            onAuthStateChanged,
+            GoogleAuthProvider,
+            signInWithPopup 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // Expose Firebase tools globally
+        window.FirebaseTools = { 
+            initializeApp, getAuth, signInAnonymously, onAuthStateChanged, 
+            GoogleAuthProvider, signInWithPopup, getDoc,
+            getFirestore, collection, doc, setDoc, onSnapshot 
+        };
+    </script>
+    
+    <style>
+        /* Custom Styles for Excel-like appearance and behavior */
+        body { 
+            padding: 20px; 
+            background: #f1f5f9; /* Slate 100 */
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        
+        /* Table styles */
+        #tableContainer {
+            overflow: auto;
+            max-height: calc(100vh - 220px); /* Leave space for header/toolbar/tabs */
+            border-radius: 0.5rem;
+            border: 1px solid #cbd5e1; /* Slate 300 */
+            background-color: white;
+        }
+
+        table { 
+            border-collapse: collapse; 
+            table-layout: fixed; 
+            min-width: 100%;
+        }
+        
+        /* Cell and Header Styles */
+        th, td {
+            border: 1px solid #e2e8f0; /* Slate 200 */
+            padding: 8px 12px;
+            min-width: 100px;
+            height: 38px;
+            box-sizing: border-box;
+        }
+        
+        /* Column Header */
+        th {
+            background: #e0f7fa; /* Cyan 50 */
+            text-align: center;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        /* Row Header (Index Column) */
+        .row-index-th {
+            position: sticky;
+            left: 0;
+            top: 0; 
+            background: #f0f9ff; /* Sky 50 */
+            z-index: 11; 
+            font-weight: 700;
+            width: 50px !important;
+            min-width: 50px !important;
+            text-align: right !important;
+            padding-right: 25px !important; 
+            padding-left: 12px !important;
+        }
+
+        /* Column Text: takes full width and is centered */
+        th.resizable > .col-header-text {
+            display: block;
+            width: 100%;
+            padding-right: 12px; 
+            /* Added styles for editable header focus */
+            outline: none;
+            cursor: text;
+        }
+        
+        th.resizable > .col-header-text:focus {
+            background: #d1f7e0; /* A light green to indicate edit mode */
+            box-shadow: 0 0 0 1px #059669; /* Emerald 600 */
+        }
+        
+        /* --- Header Delete Icon Styles --- */
+
+        /* Hide delete icon until hover */
+        .delete-btn-container {
+            opacity: 0;
+            transition: opacity 0.2s;
+            cursor: pointer;
+            position: absolute; 
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1rem;
+        }
+
+        /* Column Header specific position */
+        th.resizable .delete-btn-container {
+            right: 5px; 
+        }
+
+        /* Row Header specific position */
+        .row-index-th .delete-btn-container {
+            right: 5px; 
+        }
+
+        /* Show delete icon on hover */
+        th.resizable:hover .delete-btn-container,
+        .row-index-th:hover .delete-btn-container {
+            opacity: 1;
+        }
+        
+        /* Content Editable Cell */
+        td[contenteditable="true"] { 
+            background: #fff; 
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        /* Active Focus */
+        td:focus { 
+            outline: 2px solid #4f46e5; /* Indigo 600 */
+            box-shadow: 0 0 0 1px #4f46e5;
+            z-index: 5;
+        }
+        
+        /* Resizer handle */
+        th.resizable {
+            /*position: relative;*/
+        }
+        th.resizable .resizer {
+            position: absolute;
+            top: 0; right: 0px; 
+            width: 5px; height: 100%;
+            cursor: col-resize;
+            user-select: none;
+            z-index: 12;
+            background: rgba(0, 0, 0, 0); 
+        }
+
+        /* Feedback Toast */
+        #feedbackToast {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+
+        /* Tab Styles */
+        .tab-item {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 15px;
+            margin-right: 4px;
+            cursor: pointer;
+            border: 1px solid #e2e8f0;
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
+            background-color: #f8fafc; /* Slate 50 */
+            transition: background-color 0.2s;
+            position: relative;
+            font-weight: 500;
+        }
+        .tab-item.active {
+            background-color: white;
+            border-color: #cbd5e1;
+            border-bottom: 1px solid white; /* Hide bottom border on active tab */
+            font-weight: 600;
+            z-index: 10;
+        }
+        #tabsContainer {
+            margin-bottom: -1px; /* Overlap the border */
+        }
+        .tab-item-name[contenteditable="true"] {
+            outline: none;
+            cursor: text;
+            padding: 0 2px;
+        }
+        .tab-item-name:focus {
+            background-color: #e0f7fa;
+            border-radius: 4px;
+        }
+        .tab-item-delete {
+            margin-left: 8px;
+            color: #ef4444; /* Red 500 */
+            font-size: 0.8rem;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+        .tab-item:hover .tab-item-delete {
+            opacity: 1;
+        }
+
+        /* --- Custom Toggle Switch Styles (Unchanged) --- */
+        .switch-container {
+            display: flex;
+            align-items: center;
+            user-select: none;
+            gap: 8px;
+            margin-left: 20px; 
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 38px; 
+            height: 22px; 
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 22px; 
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px; 
+            width: 16px; 
+            left: 3px; 
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #4f46e5; }
+        input:checked + .slider:before { transform: translateX(16px); }
+
+        /* Loader styles */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: none; 
+            justify-content: center;
+            align-items: center;
+            z-index: 1500;
+            flex-direction: column;
+            gap: 1rem;
+            font-weight: bold;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Modal Style */
+        #deletionModal {
+             z-index: 2000;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-6">
+
+    <h4 class="text-2xl font-bold text-gray-800 mb-4">🗂️ CSV Editor</h4>
+    <p class="text-sm text-gray-600 mb-3">Edit data directly, load/save CSV files, and use arrow keys to navigate cells. Data is automatically saved to your selected sync mode. **Click on column headers or tab names to edit.** Hover over row/column headers to delete. Deletion requires **confirmation**.</p>
+
+    
+
+    <div id="toolbar" class="flex flex-wrap gap-4 items-center mb-6 p-3 bg-white rounded-lg shadow-md border border-t-0 border-gray-300">
+        <input type="file" id="fileInput" accept=".csv" class="w-full sm:w-auto p-2 border border-gray-300 rounded-md text-sm text-gray-700 max-w-xs">
+        
+        <label class="switch-container order-first sm:order-none">
+            <span id="localModeLabel" class="text-sm font-medium text-gray-700">Local 💾</span>
+            <div class="switch">
+                <input type="checkbox" id="modeToggleCheckbox">
+                <span class="slider"></span>
+            </div>
+            <span id="cloudModeLabel" class="text-sm font-medium text-indigo-600">Cloud ☁️</span>
+        </label>
+        
+        <div class="flex items-center gap-1">
+            <span class="text-sm font-semibold text-gray-700">Rows:</span>
+            <div class="flex">
+                <button id="addRowBtn" class="w-9 h-9 flex items-center justify-center text-xl bg-indigo-600 text-white rounded-l-md hover:bg-indigo-700 transition" title="Add Row"><i class="bi bi-plus-square"></i></button>
+                <button id="delRowBtn" class="w-9 h-9 flex items-center justify-center text-xl bg-indigo-600 text-white rounded-r-md hover:bg-indigo-700 transition" title="Delete Last Row"><i class="bi bi-dash-square"></i></button>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-1">
+            <span class="text-sm font-semibold text-gray-700">Cols:</span>
+            <div class="flex">
+                <button id="addColBtn" class="w-9 h-9 flex items-center justify-center text-xl bg-emerald-600 text-white rounded-l-md hover:bg-emerald-700 transition" title="Add Column"><i class="bi bi-plus-square-fill"></i></button>
+                <button id="delColBtn" class="w-9 h-9 flex items-center justify-center text-xl bg-emerald-600 text-white rounded-r-md hover:bg-emerald-700 transition" title="Delete Last Column"><i class="bi bi-dash-square-fill"></i></button>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-1 ml-auto">
+            <button id="clearStorageBtn" class="w-9 h-9 flex items-center justify-center text-xl bg-red-500 text-white rounded-l-md hover:bg-red-600 transition" title="Clear Saved Local Data"><i class="bi bi-trash"></i></button>
+            <button id="saveBtn" class="w-9 h-9 flex items-center justify-center text-xl bg-green-500 text-white rounded-r-md hover:bg-green-600 transition" title="Download CSV"><i class="bi bi-download"></i></button>
+        </div>
+    </div>
+
+    <div id="tabsContainer" class="flex flex-row overflow-x-auto whitespace-nowrap border-b border-gray-300">
+        <button id="addTabBtn" class="flex items-center p-2 text-sm text-indigo-600 hover:text-indigo-800 hover:bg-gray-100 rounded-t-lg transition" title="Add New Tab"><i class="bi bi-plus-circle mr-1"></i> Add Tab</button>
+    </div>
+    <div id="tableContainer"></div>
+
+    <div id="feedbackToast" class="fixed bottom-4 right-4 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-xl opacity-0 transform translate-y-4 pointer-events-none z-50">
+        <span id="toastMessage"></span>
+    </div>
+
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <p>Connecting to Cloud Sync...</p>
+    </div>
+
+    <div id="deletionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-[2000]">
+        <div class="bg-white rounded-lg p-6 shadow-xl max-w-sm w-full">
+            <h3 id="modalTitle" class="text-xl font-bold text-gray-800 mb-4">Confirm Deletion</h3>
+            <p id="modalMessage" class="text-gray-600 mb-6"></p>
+            <div class="flex justify-end space-x-3">
+                <button id="modalCancel" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition">Cancel</button>
+                <button id="modalConfirm" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+      window.__firebase_config = JSON.stringify({
+        apiKey: "AIzaSyDHUMDVGfZY2dwF-uxeG17r9yW3f2gBr-A",
+        authDomain: "multitools-fbc73.firebaseapp.com",
+        projectId: "multitools-fbc73",
+        storageBucket: "multitools-fbc73.firebasestorage.app",
+        messagingSenderId: "277024201427",
+        appId: "1:277024201427:web:b1d23c088add4324cd1226",
+        measurementId: "G-1HJ0N30X1W"
+      });
+      window.__app_id = 'csv_editor_app'; // Unique ID for this application
+    </script>
+
+    <script>
+        // --- MULTI-TAB STATE MANAGEMENT ---
+        let tabs = []; 
+        let activeTabId = null;
+        const LOCAL_STORAGE_KEY_TABS = "csvEditorTabs";
+        const LOCAL_STORAGE_KEY_ACTIVE = "csvEditorActiveTabId";
+        const DEFAULT_TAB_NAME = "New Sheet";
+        
+        let saveCounter = localStorage.getItem("csvSaveCounter") ? parseInt(localStorage.getItem("csvSaveCounter"), 10) : 0;
+        const DEFAULT_COL_WIDTH = 120;
+        let currentMode = localStorage.getItem("csvSyncMode") || 'local'; 
+
+        // --- Deletion Context for Modal ---
+        let deletionContext = { type: null, index: -1 }; 
+        // --- Modal Context for Sync/Mode Switch ---
+        let syncContext = { type: null, data: null }; // 'localToCloud' or 'cloudToLocal'
+
+        // --- FIREBASE GLOBALS ---
+        let db, auth, userId, unsubscribeSnapshot;
+        let isGoogleSignedIn = false; 
+        const APP_ID = window.__app_id;
+        const FIREBASE_COLLECTION_PATH = 'csv_data';
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+
+        // --- Helper Functions for Tab State ---
+
+        function generateUniqueId() {
+            return 'csv_' + Date.now() + Math.random().toString(36).substring(2, 9);
+        }
+
+        function getActiveTabData() {
+            const activeTab = tabs.find(t => t.id === activeTabId);
+            // If no active tab or data, return a single cell for basic rendering/error handling
+            return activeTab ? activeTab.data : [["Col 1"]]; 
+        }
+        
+        function setActiveTabData(newData) {
+            const activeTab = tabs.find(t => t.id === activeTabId);
+            if (activeTab) {
+                activeTab.data = newData;
+            }
+        }
+        
+        function getActiveTab() {
+            return tabs.find(t => t.id === activeTabId);
+        }
+
+        // --- Core Functions ---
+
+        function showToast(message, duration = 2000) {
+            const toast = document.getElementById('feedbackToast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.classList.remove('opacity-0', 'translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-4');
+            }, duration);
+        }
+        
+        // --- Modal Functions (Unchanged) ---
+        function showModal(title, message, confirmText, type, index) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').innerHTML = message;
+            document.getElementById('modalConfirm').textContent = confirmText;
+            document.getElementById('modalConfirm').classList.add('bg-red-600', 'hover:bg-red-700');
+            document.getElementById('modalConfirm').classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            document.getElementById('modalCancel').classList.remove('bg-green-600', 'hover:bg-green-700', 'text-white');
+            document.getElementById('modalCancel').classList.add('bg-gray-200', 'hover:bg-gray-300');
+            
+            document.getElementById('deletionModal').style.display = 'flex';
+            // Index here is the data array index (0 for header, 1+ for data rows) or column index
+            deletionContext = { type, index }; 
+            syncContext = { type: null, data: null }; // Ensure sync context is cleared
+        }
+
+        function hideModal() {
+            document.getElementById('deletionModal').style.display = 'none';
+            deletionContext = { type: null, index: -1 };
+            syncContext = { type: null, data: null };
+            // Restore default modal buttons in case a sync modal was dismissed
+            restoreModalForDeletion(); 
+        }
+        
+        // --- Deletion Execution Logic ---
+        
+        function executeDeleteRow(rowIndex) {
+            const activeData = getActiveTabData();
+            
+            // Cannot delete the only data row (header row is index 0)
+            if (activeData.length <= 1) {
+                showToast("Cannot delete the last remaining row.", 2000);
+                return;
+            }
+            activeData.splice(rowIndex, 1);
+            setActiveTabData(activeData);
+            renderTable();
+            saveData();
+            showToast(`Row ${rowIndex} deleted. ✂️`, 3000); 
+        }
+
+        function executeDeleteCol(colIndex) {
+            const activeData = getActiveTabData();
+
+            if (activeData.length > 0 && activeData[0].length <= 1) {
+                showToast("Cannot delete the last remaining column.", 2000);
+                return;
+            }
+
+            // 1. Delete the column data
+            activeData.forEach(row => row.splice(colIndex, 1));
+            setActiveTabData(activeData);
+            
+            // 2. Remove its stored width (Note: width keys now include tab ID)
+            for (let j = colIndex + 1; j < activeData[0].length + 1; j++) {
+                const oldKey = `colWidth_${activeTabId}_${j}`;
+                const newKey = `colWidth_${activeTabId}_${j - 1}`;
+                const width = localStorage.getItem(oldKey);
+                if (width) {
+                    localStorage.setItem(newKey, width);
+                    localStorage.removeItem(oldKey);
+                }
+            }
+            localStorage.removeItem(`colWidth_${activeTabId}_${colIndex}`);
+
+
+            renderTable();
+            saveData();
+            showToast(`Column ${colIndex + 1} deleted. ✂️`, 3000);
+        }
+        
+        // --- TAB MANAGEMENT LOGIC ---
+
+        function switchTab(tabId) {
+            activeTabId = tabId;
+            renderTabs(); 
+            renderTable();
+            saveData(); // Saves activeTabId and all data
+            showToast(`Switched to tab: ${getActiveTab().name}`);
+        }
+        
+        function addTab() {
+            const newTabId = generateUniqueId();
+            const newTab = {
+                id: newTabId,
+                name: `${DEFAULT_TAB_NAME} ${tabs.length + 1}`,
+                data: [
+                    ["Col 1", "Col 2", "Col 3"],
+                    ["", "", ""],
+                    ["", "", ""]
+                ],
+                colWidths: {} 
+            };
+            tabs.push(newTab);
+            switchTab(newTabId); // Switches and renders
+        }
+
+        function renameTab(tabId, newName) {
+            const tab = tabs.find(t => t.id === tabId);
+            if (tab) {
+                tab.name = newName;
+                saveData();
+                showToast(`Tab renamed to: ${newName}`, 1500);
+            }
+        }
+        
+        // --- SYNCHRONIZATION LOGIC ---
+
+        function saveData() {
+            if (currentMode === 'local') {
+                saveToLocalStorage();
+            } else if (currentMode === 'cloud') {
+                saveToFirebase();
+            }
+        }
+        
+        function getColumnWidthsFromLocalStorage() {
+            const widths = {};
+            const numCols = getActiveTabData().length > 0 ? getActiveTabData()[0].length : 0;
+            for(let j = 0; j < numCols; j++) {
+                const colKey = `colWidth_${activeTabId}_${j}`; // KEY NOW INCLUDES TAB ID
+                const width = localStorage.getItem(colKey);
+                if (width) {
+                    widths[colKey] = parseInt(width, 10);
+                }
+            }
+            return widths;
+        }
+
+        function setColumnWidthsInLocalStorage(widthsObj) {
+            if (!widthsObj) return;
+            // Clear old widths for the active tab before setting new ones
+             Object.keys(localStorage).filter(key => key.startsWith(`colWidth_${activeTabId}_`)).forEach(key => localStorage.removeItem(key));
+
+            Object.keys(widthsObj).forEach(key => {
+                localStorage.setItem(key, widthsObj[key]);
+            });
+        }
+        
+        function extractTabSpecificWidths() {
+            const widths = {};
+            Object.keys(localStorage)
+                .filter(key => key.startsWith(`colWidth_${activeTabId}_`))
+                .forEach(key => {
+                    const width = localStorage.getItem(key);
+                    if (width) {
+                        // Store without the activeTabId prefix in the tab object for Firebase/Global state clarity
+                        const shortKey = key.replace(`colWidth_${activeTabId}_`, `colWidth_`); 
+                        widths[shortKey] = parseInt(width, 10);
+                    }
+                });
+            return widths;
+        }
+
+        function applyTabSpecificWidths(widthsObj) {
+            if (!widthsObj) return;
+             // Clear existing widths for the active tab in local storage
+            Object.keys(localStorage).filter(key => key.startsWith(`colWidth_${activeTabId}_`)).forEach(key => localStorage.removeItem(key));
+            
+            // Apply new widths to local storage using the full key format
+            Object.keys(widthsObj).forEach(shortKey => {
+                const colIndex = shortKey.split('_')[1];
+                const fullKey = `colWidth_${activeTabId}_${colIndex}`;
+                localStorage.setItem(fullKey, widthsObj[shortKey]);
+            });
+        }
+
+        async function saveToFirebase() {
+            if (!userId || !window.FirebaseTools) return; 
+
+            const { doc, setDoc } = window.FirebaseTools;
+            const docRef = doc(db, `artifacts/${APP_ID}/users/${userId}/${FIREBASE_COLLECTION_PATH}`, 'main_data');
+
+            // Find the active tab and update its width property before saving the whole tabs array
+            const activeTab = getActiveTab();
+            if (activeTab) {
+                 activeTab.colWidths = extractTabSpecificWidths();
+            }
+
+            try {
+                await setDoc(docRef, { 
+                    tabs: tabs,
+                    activeTabId: activeTabId,
+                    timestamp: Date.now()
+                }, { merge: true });
+            } catch (e) {
+                console.error("Could not save to Firebase:", e);
+                showToast("Error saving data to cloud.", 3000);
+            }
+        }
+
+        function startFirebaseListener() {
+            if (!db || !userId || !window.FirebaseTools || currentMode !== 'cloud') return;
+            
+            const { doc, onSnapshot } = window.FirebaseTools;
+            const docRef = doc(db, `artifacts/${APP_ID}/users/${userId}/${FIREBASE_COLLECTION_PATH}`, 'main_data');
+
+            if (unsubscribeSnapshot) unsubscribeSnapshot(); 
+
+            loadingOverlay.style.display = 'flex';
+            loadingOverlay.querySelector('p').textContent = `Syncing from cloud for User: ${userId.substring(0, 8)}...`;
+
+            unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
+                if (currentMode !== 'cloud') {
+                    loadingOverlay.style.display = 'none';
+                    return; 
+                }
+                
+                if (docSnap.exists() && docSnap.data().tabs) {
+                    tabs = docSnap.data().tabs;
+                    activeTabId = docSnap.data().activeTabId;
+
+                    const activeTab = getActiveTab();
+                    if (activeTab && activeTab.colWidths) {
+                        applyTabSpecificWidths(activeTab.colWidths);
+                    }
+                    
+                    renderTabs();
+                    renderTable();
+                    showToast("Cloud data synchronized. ☁️", 1500);
+                } else if (!docSnap.exists() || (docSnap.exists() && docSnap.data() && Object.keys(docSnap.data()).length === 0)) {
+                    initializeDefaultTabs();
+                    saveToFirebase(); 
+                    renderTabs();
+                    renderTable();
+                    showToast("Cloud document initialized. ☁️", 1500);
+                }
+
+                loadingOverlay.style.display = 'none';
+            }, (error) => {
+                console.error("Firebase Snapshot Error:", error);
+                showToast("Error syncing cloud data.", 4000);
+                loadingOverlay.style.display = 'none';
+            });
+        }
+        
+        async function signInWithGoogle() {
+            if (!window.FirebaseTools) {
+                showToast("Cloud connection is not available.", 3000);
+                return false;
+            }
+
+            const { GoogleAuthProvider, signInWithPopup } = window.FirebaseTools;
+            const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' }); 
+
+            loadingOverlay.style.display = 'flex';
+            loadingOverlay.querySelector('p').textContent = 'Waiting for Google Sign-In...';
+
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                userId = user.uid;
+                isGoogleSignedIn = true;
+                
+                loadingOverlay.style.display = 'none';
+                showToast(`Signed in as ${user.displayName || 'Google User'}! 🚀`, 4000);
+                return true;
+            } catch (error) {
+                loadingOverlay.style.display = 'none';
+                
+                if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                    showToast("Google Sign-In canceled.", 3000);
+                } else {
+                    console.error("Google Sign-In Error:", error);
+                    showToast(`Sign-In Failed: ${error.message.substring(0, 50)}...`, 5000);
+                }
+                return false;
+            }
+        }
+
+
+        async function initializeFirebase() {
+            if (!window.FirebaseTools) return;
+            try {
+                const firebaseConfig = JSON.parse(window.__firebase_config);
+                const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, getFirestore } = window.FirebaseTools;
+
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                if (auth.currentUser) {
+                    userId = auth.currentUser.uid;
+                    isGoogleSignedIn = !auth.currentUser.isAnonymous;
+                    return;
+                }
+
+                await signInAnonymously(auth);
+
+                return new Promise((resolve) => {
+                    onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            userId = user.uid;
+                            isGoogleSignedIn = !user.isAnonymous;
+                            resolve();
+                        } else {
+                            console.error("Firebase authentication failed.");
+                            resolve();
+                        }
+                    });
+                });
+
+            } catch (e) {
+                console.error("Firebase Initialization Failed:", e);
+            }
+        }
+        
+        // --- CONFLICT RESOLUTION LOGIC (MODIFIED FOR ROBUSTNESS) ---
+
+        function resolveConflictAndSwitch(keepDataMode) {
+            hideModal(); // Hide the confirmation modal
+
+            const toggleCheckbox = document.getElementById('modeToggleCheckbox');
+
+            if (keepDataMode === 'local') {
+                if (syncContext.type === 'localToCloud') {
+                    // User wants to keep the local data (which is in syncContext.data). 
+                    // Load the backed-up local state (which includes widths)
+                    tabs = syncContext.data.tabs;
+                    activeTabId = syncContext.data.activeTabId;
+                    applyTabSpecificWidths(getActiveTab().colWidths);
+                    
+                    currentMode = 'cloud';
+                    localStorage.setItem("csvSyncMode", currentMode);
+                    updateModeDisplay();
+                    saveToFirebase(); // Overwrite Cloud with Local
+                    startFirebaseListener();
+                    showToast("Kept Local Data. Switched to Cloud. ☁️", 4000);
+                    
+                } else if (syncContext.type === 'cloudToLocal') {
+                    // User wants to keep the old local data.
+                    tabs = syncContext.data.tabs; // Use the temporarily stored local data
+                    activeTabId = syncContext.data.activeTabId;
+                    applyTabSpecificWidths(getActiveTab().colWidths);
+                    
+                    currentMode = 'local';
+                    localStorage.setItem("csvSyncMode", currentMode);
+                    updateModeDisplay();
+                    saveToLocalStorage(); // Save the old local data as the current local state
+                    
+                    renderTabs();
+                    renderTable();
+                    showToast("Kept Old Local Data. Switched to Local. 💾", 4000);
+                }
+
+            } else if (keepDataMode === 'cloud') {
+                
+                if (syncContext.type === 'localToCloud') {
+                    // User wants to keep the cloud data.
+                    // The main action is to switch mode and let the listener load the data.
+                    currentMode = 'cloud';
+                    localStorage.setItem("csvSyncMode", currentMode);
+                    updateModeDisplay();
+                    // Don't call saveToFirebase, let the listener load and overwrite local state
+                    startFirebaseListener();
+                    showToast("Kept Cloud Data. Switched to Cloud. ☁️", 4000);
+
+                } else if (syncContext.type === 'cloudToLocal') {
+                    // User wants to keep the cloud data (which is already in the `tabs` variable)
+                    // The main action is to save this data to Local Storage and switch.
+                    
+                    currentMode = 'local';
+                    localStorage.setItem("csvSyncMode", currentMode);
+                    updateModeDisplay();
+                    saveToLocalStorage(); // Overwrite Local with Cloud
+                    
+                    renderTabs();
+                    renderTable();
+                    showToast("Kept Cloud Data. Switched to Local. 💾", 4000);
+                }
+
+            }
+
+            // Clear context after use
+            syncContext = { type: null, data: null };
+            // Ensure the checkbox reflects the final mode
+            toggleCheckbox.checked = currentMode === 'cloud';
+            
+            // Crucial: Re-attach standard deletion handler logic by restoring the buttons' original state/listeners
+            restoreModalForDeletion();
+        }
+        
+        function restoreModalForDeletion() {
+            const modalConfirm = document.getElementById('modalConfirm');
+            const modalCancel = document.getElementById('modalCancel');
+            
+            // Restore styles
+            modalConfirm.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            modalConfirm.classList.add('bg-red-600', 'hover:bg-red-700');
+            modalConfirm.replaceWith(modalConfirm.cloneNode(true)); // Replaces with clone to ensure listeners are clean
+            
+            modalCancel.classList.remove('bg-green-600', 'hover:bg-green-700', 'text-white');
+            modalCancel.classList.add('bg-gray-200', 'hover:bg-gray-300');
+            modalCancel.replaceWith(modalCancel.cloneNode(true)); // Replaces with clone to ensure listeners are clean
+            
+            // Re-get the new, cloned elements and re-attach the basic hide listener
+             document.getElementById('modalCancel').addEventListener('click', hideModal);
+
+            // The main deletion logic is handled by delegation on 'deletionModal' and relies on syncContext being cleared.
+        }
+
+        // Overload showModal to handle sync context
+        function showSyncModal(title, message, localText, cloudText, type, localTabs, localActiveId) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').innerHTML = message;
+            
+            let modalConfirm = document.getElementById('modalConfirm');
+            let modalCancel = document.getElementById('modalCancel');
+            
+            // Use clone and replace to remove any existing listeners (including old sync or deletion)
+            modalConfirm.replaceWith(modalConfirm.cloneNode(true));
+            modalCancel.replaceWith(modalCancel.cloneNode(true));
+            
+            // Get references to the new, clean buttons
+            modalConfirm = document.getElementById('modalConfirm');
+            modalCancel = document.getElementById('modalCancel');
+
+            // Set up buttons for the new choice
+            modalConfirm.textContent = localText;
+            modalCancel.textContent = cloudText;
+            
+            // Use blue for "Keep Local" (modalConfirm) and green for "Keep Cloud" (modalCancel)
+            modalConfirm.classList.remove('bg-red-600', 'hover:bg-red-700');
+            modalConfirm.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            
+            modalCancel.classList.remove('bg-gray-200', 'hover:bg-gray-300');
+            modalCancel.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white');
+            
+            document.getElementById('deletionModal').style.display = 'flex';
+            
+            // Set sync context
+            syncContext = { 
+                type: type, 
+                data: { tabs: localTabs, activeTabId: localActiveId } // Store local/old data temporarily
+            };
+            
+            // Attach temporary sync listeners
+            modalConfirm.addEventListener('click', () => { resolveConflictAndSwitch('local'); });
+            modalCancel.addEventListener('click', () => { resolveConflictAndSwitch('cloud'); });
+        }
+        
+        // --- MODE SWITCH LOGIC (MODIFIED TO INCLUDE COLUMN WIDTHS IN BACKUP) ---
+
+        async function switchMode() {
+            const toggleCheckbox = document.getElementById('modeToggleCheckbox');
+            const newMode = toggleCheckbox.checked ? 'cloud' : 'local';
+
+            if (newMode === currentMode) return;
+            
+            // 1. Prepare a copy of the current WORKING state (Local or Cloud in memory)
+            // CRITICAL FIX: Ensure column widths are saved into the tabs object *before* deep copying the state
+            const activeTab = getActiveTab();
+            if (activeTab) {
+                activeTab.colWidths = extractTabSpecificWidths();
+            }
+            
+            const currentWorkingTabs = JSON.parse(JSON.stringify(tabs));
+            const currentWorkingActiveId = activeTabId;
+
+
+            // --------------------------------------------------------
+            // Case 1: Switching from LOCAL to CLOUD
+            // --------------------------------------------------------
+            if (newMode === 'cloud') {
+                if (!isGoogleSignedIn) {
+                    const success = await signInWithGoogle();
+                    if (!success) {
+                        toggleCheckbox.checked = false;
+                        currentMode = 'local';
+                        renderTabs();
+                        renderTable();
+                        updateModeDisplay();
+                        return;
+                    }
+                }
+                
+                saveToLocalStorage(); // Backup the current working (local) state to local storage
+                
+                const { doc, getDoc } = window.FirebaseTools;
+                const docRef = doc(db, `artifacts/${APP_ID}/users/${userId}/${FIREBASE_COLLECTION_PATH}`, 'main_data');
+                
+                loadingOverlay.style.display = 'flex';
+                loadingOverlay.querySelector('p').textContent = 'Checking for existing Cloud data...';
+                
+                const docSnap = await getDoc(docRef);
+                loadingOverlay.style.display = 'none';
+                
+                if (docSnap.exists() && docSnap.data().tabs && docSnap.data().tabs.length > 0) {
+                    
+                    // CONFLICT: Cloud data exists. Prompt user.
+                    showSyncModal(
+                        "Data Sync Conflict",
+                        "Cloud data already exists. Which data set do you want to keep? **Keeping Cloud data will overwrite your current Local data.**",
+                        "Keep Local Data (Overwrite Cloud)",
+                        "Keep Cloud Data (Discard Local)",
+                        'localToCloud',
+                        currentWorkingTabs, 
+                        currentWorkingActiveId
+                    );
+                    
+                } else {
+                    // NO CONFLICT: Save local data to cloud.
+                    currentMode = newMode;
+                    localStorage.setItem("csvSyncMode", newMode);
+                    updateModeDisplay();
+                    saveToFirebase(); // Save the current 'tabs' state to cloud
+                    startFirebaseListener();
+                    showToast("Switched to Cloud Mode. Local data saved to Cloud. ☁️", 3000);
+                }
+
+            // --------------------------------------------------------
+            // Case 2: Switching from CLOUD to LOCAL
+            // --------------------------------------------------------
+            } else { // newMode === 'local'
+                
+                if (unsubscribeSnapshot) {
+                    unsubscribeSnapshot();
+                    unsubscribeSnapshot = null;
+                }
+                
+                // Attempt to load OLD local data to check for conflict
+                const oldLocalTabsString = localStorage.getItem(LOCAL_STORAGE_KEY_TABS);
+                
+                if (oldLocalTabsString) {
+                    
+                    // CONFLICT: Old local data exists. Prompt user.
+                    showSyncModal(
+                        "Data Sync Conflict",
+                        "Local data from a previous session exists. Which data set do you want to keep? **Keeping Old Local data will overwrite the current Cloud data in memory.**",
+                        "Keep Old Local Data (Discard Cloud)",
+                        "Keep Current Cloud Data (Overwrite Local)",
+                        'cloudToLocal',
+                        JSON.parse(oldLocalTabsString), // Pass the old local state
+                        localStorage.getItem(LOCAL_STORAGE_KEY_ACTIVE)
+                    );
+
+                } else {
+                    // NO CONFLICT: Save current cloud data to local storage before switching back
+                    saveToLocalStorage(); 
+                    
+                    currentMode = newMode;
+                    localStorage.setItem("csvSyncMode", newMode);
+                    updateModeDisplay();
+
+                    if (!loadFromLocalStorage()) {
+                        initializeDefaultTabs();
+                        saveToLocalStorage();
+                    }
+                    renderTabs();
+                    renderTable();
+                    showToast("Switched to Local Mode. Cloud data saved locally. 💾", 3000);
+                }
+            }
+        }
+
+        function updateModeDisplay() {
+            const toggle = document.getElementById('modeToggleCheckbox');
+            const localLabel = document.getElementById('localModeLabel');
+            const cloudLabel = document.getElementById('cloudModeLabel');
+
+            if (currentMode === 'local') {
+                toggle.checked = false;
+                localLabel.classList.add('font-semibold', 'text-gray-700');
+                localLabel.classList.remove('font-normal', 'text-indigo-600');
+                cloudLabel.classList.add('font-normal', 'text-indigo-600');
+                cloudLabel.classList.remove('font-semibold', 'text-gray-700');
+            } else {
+                toggle.checked = true;
+                localLabel.classList.add('font-normal', 'text-indigo-600');
+                localLabel.classList.remove('font-semibold', 'text-gray-700');
+                cloudLabel.classList.add('font-semibold', 'text-gray-700');
+                cloudLabel.classList.remove('font-normal', 'text-indigo-600');
+            }
+        }
+
+
+        function saveToLocalStorage() {
+             // Extract active tab's widths and save them into the active tab object
+            const activeTab = getActiveTab();
+            if (activeTab) {
+                 activeTab.colWidths = extractTabSpecificWidths();
+            }
+
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEY_TABS, JSON.stringify(tabs));
+                localStorage.setItem(LOCAL_STORAGE_KEY_ACTIVE, activeTabId);
+            } catch (e) {
+                console.error("Could not save to local storage:", e);
+                showToast("Error saving data locally.", 3000);
+            }
+        }
+        
+        function loadFromLocalStorage() {
+            try {
+                const tabsString = localStorage.getItem(LOCAL_STORAGE_KEY_TABS);
+                const activeId = localStorage.getItem(LOCAL_STORAGE_KEY_ACTIVE);
+                
+                if (tabsString) {
+                    tabs = JSON.parse(tabsString);
+                    activeTabId = activeId;
+                    
+                    if (!activeTabId || !tabs.some(t => t.id === activeTabId)) {
+                         activeTabId = tabs[0].id;
+                    }
+                    
+                    // Apply column widths for the loaded active tab
+                    const activeTab = getActiveTab();
+                    if (activeTab && activeTab.colWidths) {
+                         applyTabSpecificWidths(activeTab.colWidths);
+                    }
+
+                    return true;
+                }
+            } catch (e) {
+                console.error("Could not load from local storage:", e);
+                localStorage.removeItem(LOCAL_STORAGE_KEY_TABS); 
+                localStorage.removeItem(LOCAL_STORAGE_KEY_ACTIVE);
+                showToast("Corrupt local data cleared.", 3000);
+            }
+            return false;
+        }
+        
+        function initializeDefaultTabs() {
+            const defaultId = generateUniqueId();
+            tabs = [
+                {
+                    id: defaultId,
+                    name: "CSV 1",
+                    data: [
+                        ["", "", "", "", "", "", ""],
+                        ["", "", "", "", "", "", ""],
+                        ["", "", "", "", "", "", ""],
+                        ["", "", "", "", "", "", ""],
+                        ["", "", "", "", "", "", ""],
+                        ["", "", "", "", "", "", ""],
+                        ["", "", "", "", "", "", ""],
+                        ["", "", "", "", "", "", ""]
+                    ],
+                    colWidths: {} // Widths saved here for cloud sync
+                }
+            ];
+            activeTabId = defaultId;
+        }
+
+
+        async function initializeData() {
+            await initializeFirebase(); 
+            
+            if (currentMode === 'cloud' && isGoogleSignedIn) {
+                startFirebaseListener();
+            } else {
+                currentMode = 'local';
+                if (!loadFromLocalStorage()) {
+                    initializeDefaultTabs();
+                    showToast("Initialized with default grid. No saved state found.");
+                }
+                renderTabs();
+                renderTable();
+            }
+            updateModeDisplay();
+        }
+
+        function loadCSVFromFile(file) {
+            Papa.parse(file, {
+                skipEmptyLines: false,
+                complete: function(results) {
+                    if (results.data && results.data.length > 0) {
+                        let cleanData = results.data.filter(row => row.some(cell => cell && cell.trim() !== ''));
+                        if (cleanData.length === 0) {
+                            showToast("File loaded but contained no data.", 3000);
+                            return;
+                        }
+
+                        // Ensure all rows have the same number of columns as the header row
+                        const numCols = cleanData[0].length;
+                        cleanData = cleanData.map(row => {
+                            while (row.length < numCols) {
+                                row.push("");
+                            }
+                            return row.slice(0, numCols);
+                        });
+
+                        // Set the loaded data to the active tab
+                        setActiveTabData(cleanData);
+                        renderTable();
+                        saveData(); 
+                        showToast(`Successfully loaded ${cleanData.length} rows into current tab.`, 3000);
+                    } else {
+                        showToast("Error parsing file or file is empty.", 3000);
+                    }
+                },
+                error: function(err, file) {
+                    showToast(`Parsing error: ${err.message}`, 4000);
+                }
+            });
+        }
+        
+        // --- UI Rendering ---
+
+        function renderTabs() {
+            const tabsContainer = document.getElementById('tabsContainer');
+            let tabsHtml = '';
+
+            tabs.forEach(tab => {
+                const activeClass = tab.id === activeTabId ? 'active' : '';
+                tabsHtml += `<div class="tab-item ${activeClass}" data-tab-id="${tab.id}">
+                                <span class="tab-item-name" contenteditable="true" data-tab-id="${tab.id}">${tab.name}</span>
+                                ${tabs.length > 1 ? 
+                                    `<span class="tab-item-delete" data-tab-id="${tab.id}" title="Delete Tab"><i class="bi bi-x-circle-fill"></i></span>` 
+                                    : ''}
+                            </div>`;
+            });
+
+            // Keep the "Add Tab" button after the generated tabs
+            const addTabBtn = document.getElementById('addTabBtn');
+            tabsContainer.innerHTML = tabsHtml;
+            tabsContainer.appendChild(addTabBtn);
+        }
+
+        // Render editable Excel-like table
+        function renderTable() {
+            const activeData = getActiveTabData();
+            const numCols = activeData.length > 0 ? activeData[0].length : 0;
+            
+            if (numCols === 0) {
+                 // Should not happen if getActiveTabData returns default, but as a safeguard
+                setActiveTabData([["Col 1"]]); 
+                renderTable();
+                return;
+            }
+
+            let html = '<table class="w-full"><thead><tr>';
+            
+            // Fixed cell for the corner
+            html += '<th class="row-index-th bg-gray-200" style="width: 50px; min-width: 50px; max-width: 50px;">#</th>'; 
+            
+            // Column Headers (Uses activeData[0])
+            activeData[0].forEach((header, j) => {
+                const colKey = `colWidth_${activeTabId}_${j}`; // Use tab-specific key
+                const colWidth = localStorage.getItem(colKey) || DEFAULT_COL_WIDTH; 
+                
+                html += `<th class="resizable" data-col="${j}" style="width:${colWidth}px;">
+                            <span class="col-header-text" contenteditable="true" data-header-col="${j}">${header}</span>
+                            <span class="delete-btn-container delete-col-btn text-red-600 hover:text-red-800" data-col-index="${j}" title="Delete Column ${j+1}">
+                                <i class="bi bi-x-circle-fill"></i>
+                            </span>
+                            <div class="resizer"></div>
+                        </th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            // Data Rows (Uses activeData.slice(1) for rows i=1 onwards)
+            activeData.slice(1).forEach((row, i) => {
+                const dataIndex = i + 1; // Actual index in activeData array (1, 2, 3...)
+                const displayIndex = i + 1; // Displayed row number (1, 2, 3...)
+                
+                html += "<tr>";
+                // Row Index Cell
+                html += `<th class="row-index-th" data-row-index="${dataIndex}">
+                            <span class="row-index-number">${displayIndex}</span>
+                            <span class="delete-btn-container delete-row-btn text-red-600 hover:text-red-800" data-row-index="${dataIndex}" title="Delete Row ${displayIndex}">
+                                <i class="bi bi-x-circle-fill"></i>
+                            </span>
+                        </th>`; 
+                row.forEach((cell, j) => {
+                    const safe = cell || "";
+                    // data-row maps to the actual activeData index: dataIndex
+                    html += `<td contenteditable="true" title="${safe}" data-row="${dataIndex}" data-col="${j}">${safe}</td>`;
+                });
+                html += "</tr>";
+            });
+            html += "</tbody></table>";
+            $("#tableContainer").html(html);
+            makeResizable();
+            updateModeDisplay();
+        }
+
+        // --- Event Handlers ---
+
+        // NEW: Tab Click Handler
+        $(document).on("click", ".tab-item", function(e) {
+            // Prevent switching if the click originated from the rename span or delete icon
+            if (e.target.closest('.tab-item-name') || e.target.closest('.tab-item-delete')) return;
+
+            const tabId = $(this).data("tab-id");
+            if (tabId !== activeTabId) {
+                switchTab(tabId);
+            }
+        });
+        
+        // NEW: Tab Rename Handler (on blur)
+        $(document).on("blur", ".tab-item-name[contenteditable='true']", function() {
+            const tabId = $(this).data("tab-id");
+            let newName = $(this).text().trim();
+            
+            if (newName === "") {
+                const tab = tabs.find(t => t.id === tabId);
+                newName = tab.name; // Revert to current name
+                $(this).text(newName); 
+                showToast("Tab name cannot be empty.", 1500);
+            } else {
+                 renameTab(tabId, newName);
+            }
+        });
+
+        // NEW: Tab Delete Handler (using modal)
+        $(document).on("click", ".tab-item-delete", function(e) {
+            e.stopPropagation();
+            const tabIdToDelete = $(this).data("tab-id");
+
+            if (tabs.length <= 1) {
+                showToast("Cannot delete the last remaining tab.", 2000);
+                return;
+            }
+            
+            const tab = tabs.find(t => t.id === tabIdToDelete);
+
+            showModal(
+                "Confirm Tab Deletion",
+                `Are you sure you want to delete the sheet: **${tab.name}**? This action cannot be undone.`,
+                "Delete Tab",
+                'tab',
+                tabIdToDelete // Pass ID instead of index
+            );
+        });
+        
+        // NEW: Add Tab Button
+        $("#addTabBtn").on("click", addTab);
+
+        // Modal Confirmation Logic (UPDATED to use delegation and check syncContext)
+        document.getElementById('modalCancel').addEventListener('click', () => {
+             // If not in a sync state, hide the modal (standard cancel button click)
+            if (!syncContext.type) {
+                hideModal();
+            }
+        });
+
+        document.getElementById('deletionModal').addEventListener('click', (e) => {
+            // Check if the click was on the button with the original deletion-confirm-purpose AND NOT a sync button
+            if (e.target.id === 'modalConfirm' && !syncContext.type) {
+                const { type, index } = deletionContext;
+                hideModal(); // Hide modal before executing action
+                
+                if (type === 'row' && index >= 0) {
+                    executeDeleteRow(index);
+                } else if (type === 'col' && index >= 0) {
+                    executeDeleteCol(index);
+                } else if (type === 'last-row') {
+                    executeDeleteRow(getActiveTabData().length - 1);
+                } else if (type === 'last-col') {
+                    executeDeleteCol(getActiveTabData()[0].length - 1);
+                } else if (type === 'tab') {
+                    const tabIdToDelete = index;
+                    const tabIndex = tabs.findIndex(t => t.id === tabIdToDelete);
+                    
+                    if (tabIndex > -1) {
+                        tabs.splice(tabIndex, 1);
+                        // Switch to the next available tab
+                        const newActiveTab = tabs[Math.max(0, tabIndex - 1)];
+                        if (newActiveTab) {
+                            switchTab(newActiveTab.id);
+                            showToast("Tab deleted.", 3000);
+                        } else {
+                            // Should not happen since we check tabs.length > 1
+                            initializeDefaultTabs();
+                            renderTabs();
+                            renderTable();
+                            saveData();
+                        }
+                    }
+                }
+            }
+             // Ensure to clear sync context if the user clicks outside the modal
+            if (e.target.id === 'deletionModal' && syncContext.type) {
+                // User clicked outside the modal during a sync conflict prompt. Treat as a cancel.
+                hideModal();
+                syncContext = { type: null, data: null };
+                // Also, revert the toggle button's state since the switch was aborted
+                const toggleCheckbox = document.getElementById('modeToggleCheckbox');
+                toggleCheckbox.checked = currentMode === 'cloud';
+            }
+        });
+        
+        // Header Edit Handler
+        $(document).on("blur", "span.col-header-text[contenteditable='true']", function() {
+            const col = $(this).data("header-col");
+            let newHeader = $(this).text().trim();
+            const activeData = getActiveTabData();
+
+            if (newHeader === "") {
+                newHeader = `Col ${col + 1}`;
+                $(this).text(newHeader); 
+            }
+            
+            if (activeData.length > 0 && activeData[0].length > col) {
+                activeData[0][col] = newHeader;
+                setActiveTabData(activeData);
+                saveData(); 
+                showToast(`Updated header for Column ${col + 1} to: ${newHeader}`, 1500);
+            }
+        });
+
+
+        // Cell Data Edit Handler
+        $(document).on("input", "td[contenteditable='true']", function() {
+            const row = $(this).data("row");
+            const col = $(this).data("col");
+            const activeData = getActiveTabData();
+            
+            activeData[row][col] = $(this).text(); 
+            setActiveTabData(activeData);
+            $(this).attr("title", $(this).text());
+            saveData(); 
+        });
+
+        // Cell Navigation 
+        $(document).on("keydown", "td[contenteditable='true']", function(e) {
+            const $this = $(this);
+            const row = $this.data("row");
+            const col = $this.data("col");
+            const activeData = getActiveTabData();
+            const numRows = activeData.length;
+            const numCols = activeData[0].length;
+            let $nextCell = null;
+
+            if (e.key === "Enter" || e.key === "ArrowDown") {
+                e.preventDefault();
+                if (row + 1 < numRows) {
+                    $nextCell = $(`td[data-row="${row + 1}"][data-col="${col}"]`);
+                } else if (e.key === "Enter") {
+                    $("#addRowBtn").trigger('click'); 
+                    setTimeout(() => {
+                        $(`td[data-row="${row + 1}"][data-col="${col}"]`).focus();
+                    }, 50); 
+                    return;
+                }
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                if (row - 1 >= 1) { // Stop at the first data row (index 1)
+                    $nextCell = $(`td[data-row="${row - 1}"][data-col="${col}"]`);
+                }
+            } else if (e.key === "ArrowRight" || (e.key === "Tab" && !e.shiftKey)) {
+                if (col + 1 < numCols) {
+                    $nextCell = $(`td[data-row="${row}"][data-col="${col + 1}"]`);
+                } else if (row + 1 < numRows) {
+                    $nextCell = $(`td[data-row="${row + 1}"][data-col="0"]`);
+                    e.preventDefault(); 
+                }
+            } else if (e.key === "ArrowLeft" || (e.key === "Tab" && e.shiftKey)) {
+                if (col - 1 >= 0) {
+                    $nextCell = $(`td[data-row="${row}"][data-col="${col - 1}"]`);
+                } else if (row - 1 >= 1) { // Stop at the first data row (index 1)
+                     $nextCell = $(`td[data-row="${row - 1}"][data-col="${numCols - 1}"]`);
+                    e.preventDefault();
+                }
+            }
+
+            if ($nextCell && $nextCell.length) {
+                $nextCell.focus();
+                document.execCommand('selectAll', false, null);
+            }
+        });
+
+        // File Input Handler (Unchanged)
+        $("#fileInput").on("change", function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                loadCSVFromFile(file);
+            }
+        });
+
+        // Add Row
+        $("#addRowBtn").on("click", function() {
+            const activeData = getActiveTabData();
+            let numCols = activeData.length > 0 ? activeData[0].length : 1;
+            let newRow = new Array(numCols).fill("");
+            activeData.push(newRow);
+            setActiveTabData(activeData);
+            renderTable();
+            saveData(); 
+            showToast(`Added row ${activeData.length - 1}.`);
+        });
+
+        // Delete LAST Row (Calls modal)
+        $("#delRowBtn").on("click", function() {
+            if (getActiveTabData().length > 1) {
+                 showModal(
+                    "Confirm Last Row Deletion",
+                    `Are you sure you want to delete the **last data row (${getActiveTabData().length - 1})**?`,
+                    "Delete Last Row",
+                    'last-row',
+                    -1
+                );
+            } else {
+                showToast("Cannot delete the last row.", 2000);
+            }
+        });
+        
+        // Delete Row via Header Icon (Calls modal)
+        $(document).on("click", ".delete-row-btn", function(e) {
+            e.stopPropagation(); 
+            const rowIndex = $(this).data("row-index");
+
+            if (getActiveTabData().length <= 1) {
+                showToast("Cannot delete the last remaining row.", 2000);
+                return;
+            }
+
+            // rowIndex is the array index (1, 2, 3...)
+            showModal(
+                "Confirm Row Deletion",
+                `Are you sure you want to delete **Data Row ${rowIndex}**? This action cannot be undone.`,
+                "Delete Row",
+                'row',
+                rowIndex
+            );
+        });
+
+
+        // Add Column
+        $("#addColBtn").on("click", function() {
+            const activeData = getActiveTabData();
+            activeData.forEach(row => row.push(""));
+            setActiveTabData(activeData);
+            renderTable();
+            saveData(); 
+            showToast(`Added column ${activeData[0].length}.`);
+        });
+
+        // Delete LAST Column (Calls modal)
+        $("#delColBtn").on("click", function() {
+            if (getActiveTabData()[0].length > 1) {
+                 showModal(
+                    "Confirm Last Column Deletion",
+                    `Are you sure you want to delete the **last column (${getActiveTabData()[0].length})**?`,
+                    "Delete Last Column",
+                    'last-col',
+                    -1
+                );
+            } else {
+                showToast("Cannot delete the last column.", 2000);
+            }
+        });
+        
+        // Delete Column via Header Icon (Calls modal)
+        $(document).on("click", ".delete-col-btn", function(e) {
+            e.stopPropagation(); 
+            const colIndex = $(this).data("col-index");
+            const activeData = getActiveTabData();
+
+            if (activeData.length > 0 && activeData[0].length <= 1) {
+                showToast("Cannot delete the last remaining column.", 2000);
+                return;
+            }
+
+            showModal(
+                "Confirm Column Deletion",
+                `Are you sure you want to delete **Column ${colIndex + 1}**? This action cannot be undone.`,
+                "Delete Column",
+                'col',
+                colIndex
+            );
+        });
+        
+        // Clear Local Storage Button Handler 
+        $("#clearStorageBtn").on("click", function() {
+            if (confirm("Are you sure you want to clear ALL locally saved data? (Cloud data is not affected)")) {
+                localStorage.removeItem(LOCAL_STORAGE_KEY_TABS);
+                localStorage.removeItem(LOCAL_STORAGE_KEY_ACTIVE);
+                Object.keys(localStorage).filter(key => key.startsWith('colWidth_')).forEach(key => localStorage.removeItem(key));
+                currentMode = 'local';
+                initializeData(); 
+                showToast("Local storage cleared! Default grid loaded.", 4000);
+            }
+        });
+
+        // Download CSV (Unchanged - downloads active tab)
+        $("#saveBtn").on("click", function() {
+            const activeTabName = getActiveTab()?.name || "data";
+            // Papa.unparse automatically handles the array of arrays (activeData)
+            const csv = Papa.unparse(getActiveTabData()); 
+            saveCounter++;
+            localStorage.setItem("csvSaveCounter", saveCounter);
+            const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${activeTabName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${saveCounter}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("CSV file downloaded. ⬇️", 3000);
+        });
+
+        // Column Resize Logic 
+        function makeResizable() {
+            const ths = document.querySelectorAll("th.resizable");
+            ths.forEach(th => {
+                const resizer = th.querySelector(".resizer");
+                if (!resizer) return;
+                
+                let startX, startWidth;
+                const colIndex = th.dataset.col;
+
+                const startResize = (e) => {
+                    e.preventDefault();
+                    startX = e.pageX;
+                    startWidth = th.offsetWidth;
+                    document.addEventListener("mousemove", resize);
+                    document.addEventListener("mouseup", stopResize);
+                    th.style.cursor = 'col-resize';
+                };
+
+                const resize = (e) => {
+                    const newWidth = Math.max(startWidth + (e.pageX - startX), 50); 
+                    th.style.width = newWidth + "px";
+                    document.querySelectorAll(`td[data-col="${colIndex}"]`).forEach(td => {
+                        td.style.width = newWidth + "px";
+                    });
+                };
+
+                const stopResize = () => {
+                    document.removeEventListener("mousemove", resize);
+                    document.removeEventListener("mouseup", stopResize);
+                    th.style.cursor = '';
+
+                    const finalWidth = th.offsetWidth;
+                    // KEY NOW INCLUDES TAB ID
+                    localStorage.setItem(`colWidth_${activeTabId}_${colIndex}`, finalWidth);
+                    saveData(); 
+                };
+
+                resizer.addEventListener("mousedown", startResize);
+                resizer.addEventListener("touchstart", (e) => {
+                    e.preventDefault();
+                    startResize(e.touches[0]);
+                }, { passive: false });
+            });
+        }
+
+
+        // --- Initialization ---
+
+        $(document).ready(function() {
+            initializeData();
+            document.getElementById('modeToggleCheckbox').addEventListener('change', switchMode);
+        });
+    </script>
+
+</body>
+</html>
