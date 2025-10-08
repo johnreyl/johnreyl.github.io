@@ -424,7 +424,7 @@
             }, duration);
         }
         
-        // --- Modal Functions (Unchanged) ---
+        // --- Modal Functions ---
         function showModal(title, message, confirmText, type, index) {
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalMessage').innerHTML = message;
@@ -591,21 +591,28 @@
             });
         }
 
+        // FIX 1: Convert nested array data to JSON string for Firebase compatibility
         async function saveToFirebase() {
             if (!userId || !window.FirebaseTools) return; 
 
             const { doc, setDoc } = window.FirebaseTools;
             const docRef = doc(db, `artifacts/${APP_ID}/users/${userId}/${FIREBASE_COLLECTION_PATH}`, 'main_data');
 
-            // Find the active tab and update its width property before saving the whole tabs array
+            // 1. Find the active tab and update its width property before saving
             const activeTab = getActiveTab();
             if (activeTab) {
                  activeTab.colWidths = extractTabSpecificWidths();
             }
+            
+            // 2. Prepare data for Firebase: Convert the nested array (tab.data) to a JSON string
+            const serializableTabs = tabs.map(tab => ({
+                ...tab,
+                data: JSON.stringify(tab.data) // <--- CONVERSION TO JSON STRING
+            }));
 
             try {
                 await setDoc(docRef, { 
-                    tabs: tabs,
+                    tabs: serializableTabs, // Use the serializable version
                     activeTabId: activeTabId,
                     timestamp: Date.now()
                 }, { merge: true });
@@ -615,6 +622,7 @@
             }
         }
 
+        // FIX 2: Convert JSON string data back to nested array on load
         function startFirebaseListener() {
             if (!db || !userId || !window.FirebaseTools || currentMode !== 'cloud') return;
             
@@ -633,7 +641,14 @@
                 }
                 
                 if (docSnap.exists() && docSnap.data().tabs) {
-                    tabs = docSnap.data().tabs;
+                    
+                    // 1. Deserialize the tab data from Firebase: Convert the JSON string back to nested array
+                    const deserializedTabs = docSnap.data().tabs.map(tab => ({
+                        ...tab,
+                        data: JSON.parse(tab.data) // <--- CONVERSION FROM JSON STRING
+                    }));
+
+                    tabs = deserializedTabs;
                     activeTabId = docSnap.data().activeTabId;
 
                     const activeTab = getActiveTab();
@@ -700,7 +715,7 @@
             if (!window.FirebaseTools) return;
             try {
                 const firebaseConfig = JSON.parse(window.__firebase_config);
-                const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, getFirestore } = window.FirebaseTools;
+                const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, getFirestore, getDoc } = window.FirebaseTools;
 
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
@@ -732,7 +747,7 @@
             }
         }
         
-        // --- CONFLICT RESOLUTION LOGIC (MODIFIED FOR ROBUSTNESS) ---
+        // --- CONFLICT RESOLUTION LOGIC ---
 
         function resolveConflictAndSwitch(keepDataMode) {
             hideModal(); // Hide the confirmation modal
@@ -866,7 +881,7 @@
             modalCancel.addEventListener('click', () => { resolveConflictAndSwitch('cloud'); });
         }
         
-        // --- MODE SWITCH LOGIC (MODIFIED TO INCLUDE COLUMN WIDTHS IN BACKUP) ---
+        // --- MODE SWITCH LOGIC ---
 
         async function switchMode() {
             const toggleCheckbox = document.getElementById('modeToggleCheckbox');
@@ -875,7 +890,7 @@
             if (newMode === currentMode) return;
             
             // 1. Prepare a copy of the current WORKING state (Local or Cloud in memory)
-            // CRITICAL FIX: Ensure column widths are saved into the tabs object *before* deep copying the state
+            // CRITICAL: Ensure column widths are saved into the tabs object *before* deep copying the state
             const activeTab = getActiveTab();
             if (activeTab) {
                 activeTab.colWidths = extractTabSpecificWidths();
@@ -951,13 +966,29 @@
                 if (oldLocalTabsString) {
                     
                     // CONFLICT: Old local data exists. Prompt user.
+                    // IMPORTANT: The data stored in local storage is NOT yet deserialized from the last cloud session, so we need to pass the raw string and let the conflict handler load/parse it
+                    
+                    // Note: The previous logic assumed the stored local data was already deserialized.
+                    // To handle the conflict, we need to deserialize the stored local data here,
+                    // as the in-memory 'tabs' array already contains the active Cloud data.
+                    const rawLocalTabs = JSON.parse(oldLocalTabsString);
+                    
+                    // Before passing to conflict modal, we need to re-parse the data strings in the local backup
+                    const deserializedLocalTabs = rawLocalTabs.map(tab => {
+                        // Check if data is stored as string (cloud style) or array (old local style)
+                        if (typeof tab.data === 'string') {
+                            return { ...tab, data: JSON.parse(tab.data) };
+                        }
+                        return tab; // Already an array, likely from an earlier local-only save
+                    });
+
                     showSyncModal(
                         "Data Sync Conflict",
                         "Local data from a previous session exists. Which data set do you want to keep? **Keeping Old Local data will overwrite the current Cloud data in memory.**",
                         "Keep Old Local Data (Discard Cloud)",
                         "Keep Current Cloud Data (Overwrite Local)",
                         'cloudToLocal',
-                        JSON.parse(oldLocalTabsString), // Pass the old local state
+                        deserializedLocalTabs, // Pass the deserialized local state
                         localStorage.getItem(LOCAL_STORAGE_KEY_ACTIVE)
                     );
 
@@ -1009,6 +1040,13 @@
             }
 
             try {
+                // IMPORTANT: When saving to local storage, we MUST ensure the data is saved in a format
+                // that is compatible with the loading logic. Since the cloud sync logic now stringifies data,
+                // if we are currently in 'cloud' mode, the in-memory 'tabs' array contains data that is
+                // an *array of arrays*. Local storage can handle this directly. 
+                // However, for consistency and robustness against different states, we'll save the in-memory
+                // structure directly. The `loadFromLocalStorage` will then handle if the tab.data is an array or a string.
+
                 localStorage.setItem(LOCAL_STORAGE_KEY_TABS, JSON.stringify(tabs));
                 localStorage.setItem(LOCAL_STORAGE_KEY_ACTIVE, activeTabId);
             } catch (e) {
@@ -1023,7 +1061,20 @@
                 const activeId = localStorage.getItem(LOCAL_STORAGE_KEY_ACTIVE);
                 
                 if (tabsString) {
-                    tabs = JSON.parse(tabsString);
+                    let loadedTabs = JSON.parse(tabsString);
+                    
+                    // Crucial: Ensure 'data' field is an array of arrays, not a JSON string, 
+                    // in case it was saved to local storage directly after a cloud load 
+                    // where it was already converted back to array-of-arrays.
+                    loadedTabs = loadedTabs.map(tab => {
+                        if (typeof tab.data === 'string') {
+                            // This scenario should only happen if the conflict resolver passed raw cloud data
+                            return { ...tab, data: JSON.parse(tab.data) };
+                        }
+                        return tab;
+                    });
+                    
+                    tabs = loadedTabs;
                     activeTabId = activeId;
                     
                     if (!activeTabId || !tabs.some(t => t.id === activeTabId)) {
@@ -1388,7 +1439,7 @@
             }
         });
 
-        // File Input Handler (Unchanged)
+        // File Input Handler
         $("#fileInput").on("change", function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -1501,7 +1552,7 @@
             }
         });
 
-        // Download CSV (Unchanged - downloads active tab)
+        // Download CSV
         $("#saveBtn").on("click", function() {
             const activeTabName = getActiveTab()?.name || "data";
             // Papa.unparse automatically handles the array of arrays (activeData)
