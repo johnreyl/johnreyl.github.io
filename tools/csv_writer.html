@@ -753,8 +753,6 @@
             hideModal(); // Hide the confirmation modal
 
             const toggleCheckbox = document.getElementById('modeToggleCheckbox');
-            const toggleToCloud = (keepDataMode === 'local' && syncContext.type === 'localToCloud') || (keepDataMode === 'cloud' && syncContext.type === 'localToCloud');
-            const toggleToLocal = (keepDataMode === 'local' && syncContext.type === 'cloudToLocal') || (keepDataMode === 'cloud' && syncContext.type === 'cloudToLocal');
             
             // --- Determine and Load Final Data State ---
             if (syncContext.type === 'localToCloud') {
@@ -762,7 +760,18 @@
                     // User chose to keep the Local (backed-up) data.
                     tabs = syncContext.data.tabs;
                     activeTabId = syncContext.data.activeTabId;
-                    applyTabSpecificWidths(getActiveTab().colWidths);
+                    
+                    // --- CRITICAL FIX: Validate activeTabId before safely applying widths ---
+                    if (tabs.length > 0 && (!activeTabId || !tabs.some(t => t.id === activeTabId))) {
+                        activeTabId = tabs[0].id; // Fallback to the first tab if the active ID is invalid
+                    }
+                    const activeTab = getActiveTab();
+
+                    if (activeTab && activeTab.colWidths) {
+                         applyTabSpecificWidths(activeTab.colWidths);
+                    }
+                    // ----------------------------------------------------------------------
+
                     // The target mode is 'cloud', so we proceed to overwrite Firebase.
                     currentMode = 'cloud'; 
                     localStorage.setItem("csvSyncMode", currentMode);
@@ -771,13 +780,10 @@
                     startFirebaseListener();
                     showToast("Kept Local Data. Switched to Cloud. ☁️", 4000);
                 } else if (keepDataMode === 'cloud') {
-                    // User chose to keep the Cloud (in-memory, loaded by getDoc) data.
-                    // The active data in 'tabs' is currently the local backup, so we must
-                    // rely on the listener to load the Cloud data, and simply switch mode.
+                    // User chose to keep Cloud data. We rely on the listener to load it.
                     currentMode = 'cloud';
                     localStorage.setItem("csvSyncMode", currentMode);
                     updateModeDisplay();
-                    // Listener loads the Cloud data and overwrites local state
                     startFirebaseListener(); 
                     showToast("Kept Cloud Data. Switched to Cloud. ☁️", 4000);
                 }
@@ -787,7 +793,17 @@
                     // User chose to keep the Old Local (backed-up) data.
                     tabs = syncContext.data.tabs; // Use the temporarily stored local data
                     activeTabId = syncContext.data.activeTabId;
-                    applyTabSpecificWidths(getActiveTab().colWidths);
+                    
+                    // --- CRITICAL FIX: Validate activeTabId before safely applying widths ---
+                    if (tabs.length > 0 && (!activeTabId || !tabs.some(t => t.id === activeTabId))) {
+                        activeTabId = tabs[0].id; // Fallback to the first tab if the active ID is invalid
+                    }
+                    const activeTab = getActiveTab();
+
+                    if (activeTab && activeTab.colWidths) {
+                        applyTabSpecificWidths(activeTab.colWidths);
+                    }
+                    // ----------------------------------------------------------------------
                     
                     currentMode = 'local';
                     localStorage.setItem("csvSyncMode", currentMode);
@@ -798,8 +814,7 @@
                     renderTable();
                     showToast("Kept Old Local Data. Switched to Local. 💾", 4000);
                 } else if (keepDataMode === 'cloud') {
-                    // User chose to keep the Cloud data (which is currently in the 'tabs' variable).
-                    // The target mode is 'local', so we overwrite local storage.
+                    // User chose to keep the Cloud data (currently in memory) and save it locally.
                     currentMode = 'local';
                     localStorage.setItem("csvSyncMode", currentMode);
                     updateModeDisplay();
@@ -812,7 +827,6 @@
             }
 
             // --- Finalize UI Toggle State ---
-            // This is the critical missing step to ensure the toggle looks right immediately
             if (currentMode === 'cloud') {
                 toggleCheckbox.checked = true;
             } else {
