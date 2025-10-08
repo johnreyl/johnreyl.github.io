@@ -883,11 +883,15 @@
         
         // --- MODE SWITCH LOGIC ---
 
+        // --- MODE SWITCH LOGIC ---
+
         async function switchMode() {
             const toggleCheckbox = document.getElementById('modeToggleCheckbox');
-            const newMode = toggleCheckbox.checked ? 'cloud' : 'local';
+            // Determine the mode the user is trying to switch TO
+            const targetMode = toggleCheckbox.checked ? 'cloud' : 'local';
 
-            if (newMode === currentMode) return;
+            // If the UI state (toggle) already matches the current programmatic mode, do nothing.
+            if (targetMode === currentMode) return;
             
             // 1. Prepare a copy of the current WORKING state (Local or Cloud in memory)
             // CRITICAL: Ensure column widths are saved into the tabs object *before* deep copying the state
@@ -898,25 +902,22 @@
             
             const currentWorkingTabs = JSON.parse(JSON.stringify(tabs));
             const currentWorkingActiveId = activeTabId;
-
+            
+            // Revert the UI toggle immediately, as we may abort the switch or wait for user input
+            toggleCheckbox.checked = currentMode === 'cloud'; 
 
             // --------------------------------------------------------
-            // Case 1: Switching from LOCAL to CLOUD
+            // Case 1: Switching from LOCAL to CLOUD (currentMode is 'local')
             // --------------------------------------------------------
-            if (newMode === 'cloud') {
+            if (targetMode === 'cloud') {
                 if (!isGoogleSignedIn) {
                     const success = await signInWithGoogle();
                     if (!success) {
-                        toggleCheckbox.checked = false;
-                        currentMode = 'local';
-                        renderTabs();
-                        renderTable();
-                        updateModeDisplay();
-                        return;
+                        return; // Sign-in failed, toggle remains local, function exits.
                     }
                 }
                 
-                saveToLocalStorage(); // Backup the current working (local) state to local storage
+                saveToLocalStorage(); // Backup the current local state
                 
                 const { doc, getDoc } = window.FirebaseTools;
                 const docRef = doc(db, `artifacts/${APP_ID}/users/${userId}/${FIREBASE_COLLECTION_PATH}`, 'main_data');
@@ -924,11 +925,18 @@
                 loadingOverlay.style.display = 'flex';
                 loadingOverlay.querySelector('p').textContent = 'Checking for existing Cloud data...';
                 
-                const docSnap = await getDoc(docRef);
-                loadingOverlay.style.display = 'none';
+                let docSnap;
+                try {
+                    docSnap = await getDoc(docRef);
+                    loadingOverlay.style.display = 'none';
+                } catch (e) {
+                    console.error("Firebase getDoc failed during switch mode:", e);
+                    loadingOverlay.style.display = 'none';
+                    showToast("Error checking cloud data. Aborting switch.", 5000);
+                    return; // Abort and keep state as 'local'
+                }
                 
                 if (docSnap.exists() && docSnap.data().tabs && docSnap.data().tabs.length > 0) {
-                    
                     // CONFLICT: Cloud data exists. Prompt user.
                     showSyncModal(
                         "Data Sync Conflict",
@@ -939,11 +947,11 @@
                         currentWorkingTabs, 
                         currentWorkingActiveId
                     );
-                    
                 } else {
-                    // NO CONFLICT: Save local data to cloud.
-                    currentMode = newMode;
-                    localStorage.setItem("csvSyncMode", newMode);
+                    // NO CONFLICT: Save local data to cloud and finalize switch
+                    currentMode = targetMode;
+                    localStorage.setItem("csvSyncMode", targetMode);
+                    toggleCheckbox.checked = true; // Finalize UI
                     updateModeDisplay();
                     saveToFirebase(); // Save the current 'tabs' state to cloud
                     startFirebaseListener();
@@ -951,35 +959,29 @@
                 }
 
             // --------------------------------------------------------
-            // Case 2: Switching from CLOUD to LOCAL
+            // Case 2: Switching from CLOUD to LOCAL (currentMode is 'cloud')
             // --------------------------------------------------------
-            } else { // newMode === 'local'
+            } else { // targetMode === 'local'
                 
                 if (unsubscribeSnapshot) {
                     unsubscribeSnapshot();
                     unsubscribeSnapshot = null;
                 }
                 
-                // Attempt to load OLD local data to check for conflict
+                // Load existing local storage state to check for conflict (the data *before* the last cloud sync)
                 const oldLocalTabsString = localStorage.getItem(LOCAL_STORAGE_KEY_TABS);
                 
                 if (oldLocalTabsString) {
-                    
                     // CONFLICT: Old local data exists. Prompt user.
-                    // IMPORTANT: The data stored in local storage is NOT yet deserialized from the last cloud session, so we need to pass the raw string and let the conflict handler load/parse it
                     
-                    // Note: The previous logic assumed the stored local data was already deserialized.
-                    // To handle the conflict, we need to deserialize the stored local data here,
-                    // as the in-memory 'tabs' array already contains the active Cloud data.
                     const rawLocalTabs = JSON.parse(oldLocalTabsString);
                     
-                    // Before passing to conflict modal, we need to re-parse the data strings in the local backup
                     const deserializedLocalTabs = rawLocalTabs.map(tab => {
-                        // Check if data is stored as string (cloud style) or array (old local style)
+                        // Ensure the stored local backup is deserialized if it was stored with stringified data 
                         if (typeof tab.data === 'string') {
                             return { ...tab, data: JSON.parse(tab.data) };
                         }
-                        return tab; // Already an array, likely from an earlier local-only save
+                        return tab; 
                     });
 
                     showSyncModal(
@@ -988,16 +990,17 @@
                         "Keep Old Local Data (Discard Cloud)",
                         "Keep Current Cloud Data (Overwrite Local)",
                         'cloudToLocal',
-                        deserializedLocalTabs, // Pass the deserialized local state
+                        deserializedLocalTabs, 
                         localStorage.getItem(LOCAL_STORAGE_KEY_ACTIVE)
                     );
 
                 } else {
                     // NO CONFLICT: Save current cloud data to local storage before switching back
-                    saveToLocalStorage(); 
+                    saveToLocalStorage(); // The current in-memory data (which came from cloud) is saved locally
                     
-                    currentMode = newMode;
-                    localStorage.setItem("csvSyncMode", newMode);
+                    currentMode = targetMode;
+                    localStorage.setItem("csvSyncMode", targetMode);
+                    toggleCheckbox.checked = false; // Finalize UI
                     updateModeDisplay();
 
                     if (!loadFromLocalStorage()) {
