@@ -117,6 +117,37 @@
         .filter-input-group input { height: 32px; font-size: 0.9rem; padding: 0.25rem 0.5rem; }
         .filter-card { background-color: #f1f3f4; border-bottom: 1px solid #dee2e6; padding: 10px; border-radius: 8px 8px 0 0; }
         .filter-card h6 { font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem; color: #5f6368; }
+
+        /* Reports Tab Custom Styles for Alignment and Mobile */
+        .summary-box {
+            border-left: 3px solid transparent;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center; /* Center align for titles */
+        }
+        .summary-box h6 {
+            white-space: nowrap;
+            text-align: center;
+        }
+        .summary-box p {
+            width: 100%;
+            text-align: center;
+            font-variant-numeric: tabular-nums; /* Helps align digits */
+            font-size: 1.5rem !important;
+        }
+
+        /* Specific left-border colors using utility classes */
+        .border-left-info { border-left-color: var(--color-info) !important; }
+        .border-left-success { border-left-color: var(--color-success) !important; }
+        .border-left-primary { border-left-color: var(--color-primary) !important; }
+        .border-left-warning { border-left-color: var(--color-warning) !important; }
+
+        /* NEW: Custom style for Cancelled list item */
+        .list-group-item.list-group-item-danger {
+            background-color: #f8d7da !important; /* Bootstrap's alert-danger light color */
+        }
     </style>
 </head>
 <body>
@@ -177,7 +208,7 @@
                 <div class="row g-4">
                     <div class="col-md-7">
                         <div class="card p-4">
-                            <h5 class="text-primary mb-3"><i class="fas fa-chart-pie me-2"></i>Accumulated Estimates</h5>
+                            <h5 class="text-primary mb-3"><i class="fas fa-chart-pie me-2"></i>Accumulated Estimates (Total Cost)</h5>
                             <div class="row g-3">
                                 <div class="col-md-4 summary-metric">
                                     <h6 class="text-muted-subtle">This Week's Tasks</h6>
@@ -228,13 +259,13 @@
 
             <div class="tab-pane fade" id="todo-list" role="tabpanel" aria-labelledby="todo-list-tab">
     
-                <div class="filter-card mb-0 d-flex justify-content-between align-items-center">
-                    <button id="toggle-filters-btn" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#todo-filter-inputs" aria-expanded="false" aria-controls="todo-filter-inputs">
+                <div class="filter-card mb-0 d-flex justify-content-between align-items-center flex-wrap">
+                    <button id="toggle-filters-btn" class="btn btn-outline-primary btn-sm mb-2 mb-sm-0" data-bs-toggle="collapse" data-bs-target="#todo-filter-inputs" aria-expanded="false" aria-controls="todo-filter-inputs">
                         <i class="fas fa-filter me-1"></i> Show Filters
                     </button>
-                    <h6 class="mb-0 text-info">Current Task List (<span id="task-count">0</span>)</h6>
-                    <div class="d-flex">
-                        <button id="clear-filters-btn" class="btn btn-outline-secondary btn-sm me-2"><i class="fas fa-times me-1"></i> Clear</button>
+                    <h6 class="mb-2 mb-sm-0 text-info order-md-2">Current Task List (<span id="task-count">0</span>)</h6>
+                    <div class="d-flex flex-wrap order-md-3">
+                        <button id="clear-filters-btn" class="btn btn-outline-secondary btn-sm me-2 mb-1 mb-sm-0"><i class="fas fa-times me-1"></i> Clear</button>
                         <button id="apply-filters-btn" class="btn btn-primary btn-sm"><i class="fas fa-check me-1"></i> Apply Filters</button>
                     </div>
                 </div>
@@ -271,15 +302,33 @@
                     </div>
                 </div>
 
+                <div id="filtered-summary" class="card p-3 mb-3 d-none">
+                    <h6 class="text-primary mb-2"><i class="fas fa-calculator me-1"></i>Cost Summary for Filtered Tasks</h6>
+                    <div class="row g-2 text-center">
+                        <div class="col-6 col-md-3">
+                            <h6 class="text-muted-subtle mb-0" style="font-size: 0.8rem;">Total Est. Budget</h6>
+                            <p class="fw-bold text-success mb-0">$<span id="filtered-est-cost">0.00</span></p>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <h6 class="text-muted-subtle mb-0" style="font-size: 0.8rem;">Total Additional Cost</h6>
+                            <p class="fw-bold text-danger mb-0">$<span id="filtered-additional-cost">0.00</span></p>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <h6 class="text-muted-subtle mb-0" style="font-size: 0.8rem;">GRAND TOTAL COST</h6>
+                            <p class="fw-bold text-primary mb-0" style="font-size: 1.1rem;">$<span id="filtered-grand-total">0.00</span></p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card rounded-top-0">
                     <ul id="task-list" class="list-group list-group-flush">
                         <li class="list-group-item text-center text-muted-subtle">Tasks will load after successful setup.</li>
                     </ul>
                 </div>
                 
-                <div id="task-pagination-controls" class="d-flex justify-content-between align-items-center p-3 border-top bg-light rounded-bottom">
-                    <button id="prev-page-btn" class="btn btn-outline-primary btn-sm" disabled><i class="fas fa-chevron-left me-1"></i> Previous</button>
-                    <span id="page-info" class="text-muted-subtle" style="font-size: 0.9rem;">Page 0 of 0</span>
+                <div id="task-pagination-controls" class="d-flex justify-content-between align-items-center p-3 border-top bg-light rounded-bottom flex-wrap">
+                    <button id="prev-page-btn" class="btn btn-outline-primary btn-sm mb-2 mb-sm-0" disabled><i class="fas fa-chevron-left me-1"></i> Previous</button>
+                    <span id="page-info" class="text-muted-subtle mx-auto mb-2 mb-sm-0" style="font-size: 0.9rem;">Page 0 of 0</span>
                     <button id="next-page-btn" class="btn btn-outline-primary btn-sm" disabled>Next <i class="fas fa-chevron-right ms-1"></i></button>
                 </div>
             </div>
@@ -290,10 +339,12 @@
                          <div class="card p-4">
                             <h5 class="text-primary mb-3"><i class="fas fa-chart-area me-2"></i>Summary Overview (All Time)</h5>
                             <div class="row text-center g-3">
-                                <div class="col-md-3"><div class="summary-box p-2" style="border-left-color: var(--color-info);"><h6 class="text-muted-subtle">Total Tasks</h6><p class="h4 text-info" id="total-tasks">0</p></div></div>
-                                <div class="col-md-3"><div class="summary-box p-2" style="border-left-color: var(--color-success);"><h6 class="text-muted-subtle">Total Est. Budget</h6><p class="h4 text-success">$<span id="total-cost-est">0.00</span></p></div></div>
-                                <div class="col-md-3"><div class="summary-box p-2" style="border-left-color: var(--color-warning);"><h6 class="text-muted-subtle">Total Est. Effort (Hrs)</h6><p class="h4 text-warning"><span id="total-time-est">0</span> hrs</p></div></div>
-                                <div class="col-md-3"><div class="summary-box p-2" style="border-left-color: var(--color-danger);"><h6 class="text-muted-subtle">Remaining Tasks</h6><p class="h4 text-danger" id="remaining-tasks">0</p></div></div>
+                                <div class="col-6 col-lg-2"><div class="summary-box p-2 border-left-info"><h6 class="text-muted-subtle">Total Tasks</h6><p class="h4 text-info" id="total-tasks">0</p></div></div>
+                                <div class="col-6 col-lg-2"><div class="summary-box p-2 border-left-success"><h6 class="text-muted-subtle">Total Est. Budget</h6><p class="h4 text-success">$<span id="total-cost-est">0.00</span></p></div></div>
+                                <div class="col-6 col-lg-2"><div class="summary-box p-2 border-left-success"><h6 class="text-muted-subtle">Total Additional</h6><p class="h4 text-success">$<span id="total-additional-cost">0.00</span></p></div></div>
+                                <div class="col-6 col-lg-3"><div class="summary-box p-2 border-left-primary"><h6 class="text-muted-subtle">GRAND TOTAL COST</h6><p class="h4 text-primary">$<span id="grand-total-cost">0.00</span></p></div></div>
+                                <div class="col-12 col-lg-3"><div class="summary-box p-2 border-left-warning"><h6 class="text-muted-subtle">Total Effort (Hrs)</h6><p class="h4 text-warning"><span id="total-time-est">0</span> hrs</p></div></div>
+                                <div class="col-12 text-center mt-3"><h6 class="text-muted-subtle">Remaining Tasks: <span class="text-danger fw-bold" id="remaining-tasks">0</span></h6></div>
                             </div>
                          </div>
                     </div>
@@ -449,6 +500,7 @@
         const TASKS_PER_PAGE = 25; 
         let currentPage = 1;       
         
+        // UPDATED: Replaced 'completed' with 'status'
         const defaultTask = {
             companyName: '', 
             eventName: 'New Event Project',
@@ -460,7 +512,7 @@
             estimatedTime: '1.0',
             additionalCost: '0.00',
             organizerNotes: '',
-            completed: false,
+            status: 'Pending', // <-- NEW: Status field
             createdAt: new Date().toISOString()
         };
         
@@ -554,7 +606,8 @@
                 tasks[index] = { ...tasks[index], ...updatedFields };
             } else if (!taskId) {
                 // If no ID is provided, assume this is a brand new task
-                tasks.push({ ...defaultTask, ...updatedFields, id: `firebase-${Date.now()}` });
+                // Ensure new tasks default to 'Pending' status
+                tasks.push({ ...defaultTask, ...updatedFields, id: `firebase-${Date.now()}`, status: updatedFields.status || 'Pending' }); 
             }
             
             // Sort tasks before saving
@@ -572,7 +625,9 @@
                 const normalizedTasks = tasks.map((task, index) => ({
                     ...defaultTask, 
                     ...task,
-                    id: task.id || `local-${index}` 
+                    id: task.id || `local-${index}`,
+                    // Ensure status is present, fall back from old 'completed' to 'Pending'/'Completed'
+                    status: task.status || (task.completed ? 'Completed' : 'Pending') 
                 }));
                 normalizedTasks.sort((a, b) => DateUtils.parseDate(a.eventDate) - DateUtils.parseDate(b.eventDate));
                 setTimeout(hideLoading, 300); 
@@ -591,6 +646,8 @@
                 const index = findTaskIndex(taskId, tasks);
                 if (index > -1) {
                     tasks[index] = { ...tasks[index], ...updatedFields };
+                    // Remove legacy 'completed' field if 'status' is being used
+                    delete tasks[index].completed; 
                     LocalStorageImpl.save(tasks);
                     TaskManager.loadAndRender(); 
                 }
@@ -617,6 +674,13 @@
                         tasks = docSnapshot.data().tasks || [];
                     }
                     
+                    // Normalize tasks for status field migration
+                    tasks = tasks.map(task => ({
+                        ...defaultTask,
+                        ...task,
+                        status: task.status || (task.completed ? 'Completed' : 'Pending') // Handle migration from old completed field
+                    }));
+
                     tasks.sort((a, b) => DateUtils.parseDate(a.eventDate) - DateUtils.parseDate(b.eventDate));
                     
                     // Update allCurrentTasks and trigger filtering
@@ -639,14 +703,20 @@
                 if (!tasksDocRef) return;
                 try {
                     // Overwrite the single document with the new array
-                    await setDoc(tasksDocRef, { tasks: tasksArray || [] }); 
+                    // Ensure the tasks saved do not contain the legacy 'completed' field if 'status' is present
+                    const tasksToSave = tasksArray.map(task => {
+                        const { completed, ...rest } = task; // Destructure to remove completed
+                        return rest;
+                    });
+
+                    await setDoc(tasksDocRef, { tasks: tasksToSave || [] }); 
                 } catch(e) {
                     console.error("Error saving tasks array to Firebase:", e);
                     showToast("Failed to save tasks to cloud: " + e.message, 5000);
                 }
             },
             add: async (newTask) => {
-                // Add a temporary ID for tracking before saving
+                // Add a temporary ID for tracking before saving. Ensure status is set.
                 const taskWithId = { ...defaultTask, ...newTask, id: `firebase-${Date.now()}` }; 
                 const updatedTasks = getUpdatedTasks(null, taskWithId);
                 await FirebaseImpl._saveTasksArray(updatedTasks);
@@ -690,11 +760,7 @@
                 if (storageMode === 'firebase') return FirebaseImpl.delete(taskId);
                 if (storageMode === 'local') return LocalStorageImpl.delete(taskId);
             },
-            toggleComplete: (taskId) => {
-                const task = allCurrentTasks.find(t => t.id === taskId);
-                if (!task) return;
-                TaskManager.update(taskId, { completed: !task.completed });
-            }
+            // Removed toggleComplete, status logic is now implemented directly in event handlers using TaskManager.update
         };
 
         // --- Auth Functions ---
@@ -772,7 +838,15 @@
             const filters = getFilterValues();
             
             const filtered = tasksToFilter.filter(task => {
-                const totalCost = parseFloat(task.estimatedCost) + parseFloat(task.additionalCost || 0);
+                // Total cost now depends on the status
+                const estCost = parseFloat(task.estimatedCost) || 0;
+                const addCost = parseFloat(task.additionalCost || 0);
+                
+                let totalCost = addCost; // Always include additional cost
+                if (task.status !== 'Cancelled') { // Only include estimated cost if NOT cancelled
+                    totalCost += estCost;
+                }
+                
                 const totalTime = parseFloat(task.estimatedTime);
                 const taskDate = DateUtils.parseDate(task.eventDate);
 
@@ -780,7 +854,7 @@
                 if (filters.dateStart && taskDate < DateUtils.parseDate(filters.dateStart)) return false;
                 if (filters.dateEnd && taskDate > DateUtils.parseDate(filters.dateEnd)) return false;
 
-                // Cost Filter
+                // Cost Filter (Filter checks against calculated TOTAL cost)
                 if (totalCost < filters.costMin) return false;
                 if (totalCost > filters.costMax) return false;
 
@@ -792,6 +866,34 @@
             });
 
             currentTasks = filtered;
+            
+            // --- Calculate and Display Filtered Totals for To-Do List ---
+            let totalEstCost = 0;
+            let totalAddCost = 0;
+            
+            filtered.forEach(task => {
+                // Estimated cost logic
+                if (task.status !== 'Cancelled') {
+                    totalEstCost += parseFloat(task.estimatedCost) || 0;
+                }
+                
+                // Additional cost logic
+                totalAddCost += parseFloat(task.additionalCost) || 0;
+            });
+            
+            const grandTotal = totalEstCost + totalAddCost;
+            
+            // Display totals
+            if (filtered.length > 0) {
+                $('#filtered-est-cost').text(totalEstCost.toFixed(2));
+                $('#filtered-additional-cost').text(totalAddCost.toFixed(2));
+                $('#filtered-grand-total').text(grandTotal.toFixed(2));
+                $('#filtered-summary').removeClass('d-none');
+            } else {
+                $('#filtered-summary').addClass('d-none');
+            }
+            // ---------------------------------------------------
+
             _renderFilteredList(currentTasks);
         }
 
@@ -836,32 +938,54 @@
             }
 
             tasksToRender.forEach(task => {
-                const costDisplay = (parseFloat(task.estimatedCost) + parseFloat(task.additionalCost || 0)).toFixed(2);
+                // Calculate total cost based on the new logic for display purposes
+                const estCost = parseFloat(task.estimatedCost) || 0;
+                const addCost = parseFloat(task.additionalCost || 0);
+                let totalCost = addCost;
+                if (task.status !== 'Cancelled') {
+                    totalCost += estCost;
+                }
+                
+                const costDisplay = totalCost.toFixed(2);
                 const timeDisplay = parseFloat(task.estimatedTime);
                 const timeBadge = task.eventStartTime ? `<span class="badge bg-secondary ms-1" title="Start Time">${task.eventStartTime}</span>` : '';
                 const companyDisplay = task.companyName ? `<span class="text-muted-subtle ms-1">(${task.companyName})</span>` : '';
 
+                let listItemClass = '';
+                let statusBadgeClass = 'bg-info text-white'; // Default for Pending
+                let textDecoration = 'fw-bold'; // Default for Pending
+
+                if (task.status === 'Completed') {
+                    listItemClass = 'list-group-item-success';
+                    statusBadgeClass = 'bg-success';
+                    textDecoration = 'text-decoration-line-through text-success';
+                } else if (task.status === 'Cancelled') {
+                    listItemClass = 'list-group-item-danger'; // Light red background
+                    statusBadgeClass = 'bg-danger'; // Red badge
+                    textDecoration = 'text-decoration-line-through text-danger'; // Red strike-through
+                }
+
                 const $li = $('<li>')
-                    .addClass(`list-group-item d-flex justify-content-between align-items-center ${task.completed ? 'list-group-item-success' : ''}`)
+                    .addClass(`list-group-item d-flex justify-content-between align-items-center flex-column flex-md-row ${listItemClass}`)
                     .attr('data-task-id', task.id); 
 
                 const taskContent = `
-                    <div>
+                    <div class="text-center text-md-start mb-2 mb-md-0">
                         <strong>${task.eventName}</strong> ${companyDisplay}: 
-                        <span class="${task.completed ? 'text-decoration-line-through text-success' : 'fw-bold'}">${task.eventTask}</span> 
+                        <span class="${textDecoration}">${task.eventTask}</span> 
                         <span class="badge bg-secondary ms-2">${task.eventDate}</span>
                         ${timeBadge}
                         
-                        <span class="badge bg-success ms-2" title="Total Estimated Cost">$${costDisplay}</span>
+                        <span class="badge bg-success ms-2" title="Total Calculated Cost">$${costDisplay}</span>
                         <span class="badge bg-warning text-dark" title="Estimated Time">${timeDisplay}h</span>
                     </div>
                 `;
 
                 const actionButtons = `
-                    <div>
-                        <span class="badge ${task.completed ? 'bg-success' : 'bg-info'} text-white complete-toggle me-2" 
-                            style="cursor: pointer;" title="Toggle Status">
-                            ${task.completed ? 'DONE' : 'PENDING'}
+                    <div class="d-flex justify-content-center justify-content-md-end">
+                        <span class="badge ${statusBadgeClass} complete-toggle me-2" 
+                            style="cursor: pointer;" title="Click to cycle status: Pending -> Completed -> Cancelled">
+                            ${task.status.toUpperCase()}
                         </span>
                         <button class="btn btn-sm btn-outline-primary details-btn" title="Show/Edit Details">
                             <i class="fas fa-edit"></i>
@@ -896,19 +1020,38 @@
 
         function updateReportingSummary(tasks) {
             let totalCostEst = 0;
+            let totalAdditionalCost = 0;
             let totalTimeEst = 0;
             let completedCount = 0;
+            let cancelledCount = 0; // NEW: Track cancelled tasks
 
             tasks.forEach(task => {
-                totalCostEst += parseFloat(task.estimatedCost) || 0;
+                const estCost = parseFloat(task.estimatedCost) || 0;
+                const addCost = parseFloat(task.additionalCost) || 0;
+
+                // NEW LOGIC: Estimated Cost is only included if NOT Cancelled
+                if (task.status !== 'Cancelled') {
+                    totalCostEst += estCost;
+                }
+                
+                // NEW LOGIC: Additional Cost is ALWAYS included
+                totalAdditionalCost += addCost; 
+                
                 totalTimeEst += parseFloat(task.estimatedTime) || 0;
-                if (task.completed) { completedCount++; }
+                
+                if (task.status === 'Completed') { completedCount++; }
+                if (task.status === 'Cancelled') { cancelledCount++; }
             });
+            
+            const grandTotalCost = totalCostEst + totalAdditionalCost;
 
             $('#total-tasks').text(tasks.length);
             $('#total-cost-est').text(totalCostEst.toFixed(2));
+            $('#total-additional-cost').text(totalAdditionalCost.toFixed(2)); 
+            $('#grand-total-cost').text(grandTotalCost.toFixed(2));           
             $('#total-time-est').text(totalTimeEst.toFixed(1));
-            $('#remaining-tasks').text(tasks.length - completedCount);
+            // Remaining tasks are now those that are PENDING
+            $('#remaining-tasks').text(tasks.length - completedCount - cancelledCount);
         }
 
         function renderHomeTab(tasks) {
@@ -925,7 +1068,15 @@
                 });
 
                 filteredTasks.forEach(task => {
-                    costTotal += parseFloat(task.estimatedCost) || 0;
+                    const estCost = parseFloat(task.estimatedCost) || 0;
+                    const addCost = parseFloat(task.additionalCost) || 0;
+                    
+                    // NEW LOGIC: Apply new business logic
+                    if (task.status !== 'Cancelled') {
+                        costTotal += estCost;
+                    }
+                    costTotal += addCost; // Additional cost is ALWAYS included
+                    
                     timeTotal += parseFloat(task.estimatedTime) || 0;
                 });
 
@@ -934,7 +1085,8 @@
             });
 
             const upcomingTasks = tasks
-                .filter(task => !task.completed && DateUtils.parseDate(task.eventDate) >= today)
+                // Filter only tasks that are 'Pending' and in the future
+                .filter(task => task.status === 'Pending' && DateUtils.parseDate(task.eventDate) >= today)
                 .sort((a, b) => DateUtils.parseDate(a.eventDate) - DateUtils.parseDate(b.eventDate))
                 .slice(0, 3);
 
@@ -978,9 +1130,15 @@
             $('#modal-organizer-notes-input').val(task.organizerNotes);
             
             const $statusBadge = $('#modal-task-status');
-            $statusBadge.text(task.completed ? 'Completed' : 'Pending');
-            $statusBadge.removeClass().addClass('badge');
-            $statusBadge.addClass(task.completed ? 'bg-success' : 'bg-info text-white');
+            let badgeClass = 'bg-info text-white';
+            if (task.status === 'Completed') {
+                badgeClass = 'bg-success';
+            } else if (task.status === 'Cancelled') {
+                badgeClass = 'bg-danger';
+            }
+
+            $statusBadge.text(task.status);
+            $statusBadge.removeClass().addClass('badge').addClass(badgeClass);
             
             const taskModal = new bootstrap.Modal(document.getElementById('taskDetailModal'));
             taskModal.show();
@@ -1143,7 +1301,7 @@
                     taskDescription: $('#task-description').val().trim(),
                     estimatedCost: parseFloat($('#estimated-cost').val() || 0).toFixed(2),
                     estimatedTime: parseFloat($('#estimated-time').val() || 0).toFixed(1),
-                    completed: false
+                    status: 'Pending' // Set new task status to Pending
                 };
 
                 if (!newTask.eventName || !newTask.eventDate || !newTask.eventTask) {
@@ -1175,10 +1333,13 @@
                     estimatedTime: parseFloat($('#modal-estimated-time-input').val() || 0).toFixed(1),
                     additionalCost: parseFloat($('#modal-additional-cost-input').val() || 0).toFixed(2), 
                     organizerNotes: $('#modal-organizer-notes-input').val().trim(), 
+                    // Status is updated via the badge click handler, not the form submission fields.
+                    // We explicitly fetch the current status from the badge's text for redundancy, 
+                    // but rely on the click handler to update the model.
                 };
                 
                 const currentTask = allCurrentTasks.find(t => t.id === taskId);
-                updatedFields.completed = currentTask?.completed || false; 
+                updatedFields.status = currentTask?.status || 'Pending'; // Preserve status
 
                 if (!updatedFields.eventName || !updatedFields.eventDate || !updatedFields.eventTask) {
                     alert('Required fields must be filled.');
@@ -1192,19 +1353,35 @@
                 if (taskModal) taskModal.hide();
             });
 
-            // 3. Modal: Toggle Complete by clicking STATUS badge
+            // 3. Modal: Toggle Status by clicking STATUS badge
             $('#taskDetailModal').on('click', '#modal-task-status', function() {
                 const taskId = $('#modal-task-id').val();
-                TaskManager.toggleComplete(taskId);
+                const task = allCurrentTasks.find(t => t.id === taskId);
+                if (!task) return;
+                
+                let newStatus = 'Pending';
+                if (task.status === 'Pending') {
+                    newStatus = 'Completed';
+                } else if (task.status === 'Completed') {
+                    newStatus = 'Cancelled';
+                } else if (task.status === 'Cancelled') {
+                    newStatus = 'Pending';
+                }
 
-                // Note: The modal state will automatically update when TaskManager.toggleComplete triggers Firebase/Local update 
-                // and the resulting data re-renders the list (and the modal's closed state forces a re-open if needed)
-                // For immediate visual feedback on the modal, we manually toggle the badge here:
+                // Update the model
+                TaskManager.update(taskId, { status: newStatus });
+
+                // Manual badge update for immediate visual feedback
                 const $statusBadge = $(this);
-                const isCompleted = $statusBadge.hasClass('bg-info');
-                $statusBadge.text(isCompleted ? 'Completed' : 'Pending');
-                $statusBadge.removeClass('bg-success bg-info text-white').addClass(isCompleted ? 'bg-success' : 'bg-info text-white');
+                let badgeClass = 'bg-info text-white';
+                if (newStatus === 'Completed') {
+                    badgeClass = 'bg-success';
+                } else if (newStatus === 'Cancelled') {
+                    badgeClass = 'bg-danger';
+                }
 
+                $statusBadge.text(newStatus);
+                $statusBadge.removeClass().addClass('badge').addClass(badgeClass);
             });
             
             // 4. Modal: Handle Delete Task button click
@@ -1237,11 +1414,24 @@
                 if (task) { showTaskDetailsModal(task); }
             });
 
-            // 7. Task list actions (Toggle Complete)
+            // 7. Task list actions (Toggle Status)
             $('#task-list').on('click', '.complete-toggle', function(e) {
                 e.stopPropagation(); 
                 const taskId = $(this).closest('li').data('task-id');
-                TaskManager.toggleComplete(taskId);
+                const task = allCurrentTasks.find(t => t.id === taskId);
+                if (!task) return;
+                
+                // Cycle logic: Pending -> Completed -> Cancelled -> Pending
+                let newStatus = 'Pending';
+                if (task.status === 'Pending') {
+                    newStatus = 'Completed';
+                } else if (task.status === 'Completed') {
+                    newStatus = 'Cancelled';
+                } else if (task.status === 'Cancelled') {
+                    newStatus = 'Pending';
+                }
+                
+                TaskManager.update(taskId, { status: newStatus });
             });
             
             // 8. Reporting and Utility Buttons (CSV download)
@@ -1279,7 +1469,15 @@
                 ];
                 
                 const csvRows = tasksToDownload.map(task => {
-                    const totalCost = (parseFloat(task.estimatedCost) + parseFloat(task.additionalCost || 0)).toFixed(2);
+                    // Apply new business logic for Total Cost in CSV
+                    const estCost = parseFloat(task.estimatedCost) || 0;
+                    const addCost = parseFloat(task.additionalCost) || 0;
+                    
+                    let totalCost = addCost; // Always include additional cost
+                    if (task.status !== 'Cancelled') {
+                        totalCost += estCost; // Only include estimated cost if NOT cancelled
+                    }
+                    
                     return [
                         `"${task.companyName.replace(/"/g, '""')}"`,
                         `"${task.eventName.replace(/"/g, '""')}"`,
@@ -1290,9 +1488,9 @@
                         task.estimatedCost,
                         task.additionalCost, 
                         `"${task.organizerNotes.replace(/"/g, '""')}"`, 
-                        totalCost, // New Total Cost Column
+                        totalCost.toFixed(2), // Total Cost
                         task.estimatedTime,
-                        task.completed ? "Completed" : "Pending"
+                        task.status // Use the new status field directly
                     ].join(',');
                 });
 
