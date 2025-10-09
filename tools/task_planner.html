@@ -212,17 +212,17 @@
                             <div class="row g-3">
                                 <div class="col-md-4 summary-metric">
                                     <h6 class="text-muted-subtle">This Week's Tasks</h6>
-                                    <p class="text-success fw-bold mb-1">Cost: <span id="home-week-cost">$0.00</span></p>
+                                    <p class="text-success fw-bold mb-1">Cost: <span id="home-week-cost">₱0.00</span></p>
                                     <p class="text-warning fw-bold mb-0">Time: <span id="home-week-time">0.0 hrs</span></p>
                                 </div>
                                 <div class="col-md-4 summary-metric">
                                     <h6 class="text-muted-subtle">This Month's Tasks</h6>
-                                    <p class="text-success fw-bold mb-1">Cost: <span id="home-month-cost">$0.00</span></p>
+                                    <p class="text-success fw-bold mb-1">Cost: <span id="home-month-cost">₱0.00</span></p>
                                     <p class="text-warning fw-bold mb-0">Time: <span id="home-month-time">0.0 hrs</span></p>
                                 </div>
                                 <div class="col-md-4 summary-metric">
                                     <h6 class="text-muted-subtle">This Year's Tasks</h6>
-                                    <p class="text-success fw-bold mb-1">Cost: <span id="home-year-cost">$0.00</span></p>
+                                    <p class="text-success fw-bold mb-1">Cost: <span id="home-year-cost">₱0.00</span></p>
                                     <p class="text-warning fw-bold mb-0">Time: <span id="home-year-time">0.0 hrs</span></p>
                                 </div>
                             </div>
@@ -249,7 +249,7 @@
                         <div class="col-md-4"><label for="event-task" class="form-label text-muted-subtle">Event Title</label><input type="text" class="form-control" id="event-task" required placeholder="e.g., Finalize venue contract"></div>
                         <div class="col-md-3"><label for="event-date" class="form-label text-muted-subtle">Date</label><input type="date" class="form-control" id="event-date" required></div>
                         <div class="col-md-3"><label for="event-start-time" class="form-label text-muted-subtle">Start Time</label><input type="time" class="form-control" id="event-start-time" value=""></div>
-                        <div class="col-md-3"><label for="estimated-cost" class="form-label text-muted-subtle">Est. Cost ($)</label><input type="number" step="0.01" min="0" class="form-control" id="estimated-cost" value="0.00"></div>
+                        <div class="col-md-3"><label for="estimated-cost" class="form-label text-muted-subtle">Est. Cost (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="estimated-cost" value="0.00"></div>
                         <div class="col-md-3"><label for="estimated-time" class="form-label text-muted-subtle">Est. Time (Hrs)</label><input type="number" step="0.5" min="0" class="form-control" id="estimated-time" value="1"></div>
                         <div class="col-12"><label for="task-description" class="form-label text-muted-subtle">Description / Notes</label><textarea class="form-control" id="task-description" rows="2" placeholder="Detailed notes for execution and follow-up."></textarea></div>
                         <div class="col-12 text-end"><button type="submit" class="btn btn-primary mt-3"><i class="fas fa-save me-2"></i>Save Task</button></div>
@@ -283,7 +283,7 @@
                     
                     <div class="row g-2 px-2 pb-2">
                          <div class="col-12 filter-input-group">
-                             <h6><i class="fas fa-dollar-sign me-1"></i>Cost Range ($)</h6>
+                             <h6><i class="fas fa-dollar-sign me-1"></i>Cost Range (₱)</h6>
                             <div class="d-flex">
                                 <input type="number" step="0.01" min="0" id="filter-cost-min" class="form-control form-control-sm me-1" placeholder="Min">
                                 <input type="number" step="0.01" min="0" id="filter-cost-max" class="form-control form-control-sm" placeholder="Max">
@@ -307,15 +307,15 @@
                     <div class="row g-2 text-center">
                         <div class="col-6 col-md-3">
                             <h6 class="text-muted-subtle mb-0" style="font-size: 0.8rem;">Total Est. Budget</h6>
-                            <p class="fw-bold text-success mb-0">$<span id="filtered-est-cost">0.00</span></p>
+                            <p class="fw-bold text-success mb-0">₱<span id="filtered-est-cost">0.00</span></p>
                         </div>
                         <div class="col-6 col-md-3">
                             <h6 class="text-muted-subtle mb-0" style="font-size: 0.8rem;">Total Additional Cost</h6>
-                            <p class="fw-bold text-danger mb-0">$<span id="filtered-additional-cost">0.00</span></p>
+                            <p class="fw-bold text-danger mb-0">₱<span id="filtered-additional-cost">0.00</span></p>
                         </div>
                         <div class="col-12 col-md-6">
                             <h6 class="text-muted-subtle mb-0" style="font-size: 0.8rem;">GRAND TOTAL COST</h6>
-                            <p class="fw-bold text-primary mb-0" style="font-size: 1.1rem;">$<span id="filtered-grand-total">0.00</span></p>
+                            <p class="fw-bold text-primary mb-0" style="font-size: 1.1rem;">₱<span id="filtered-grand-total">0.00</span></p>
                         </div>
                     </div>
                 </div>
@@ -340,9 +340,9 @@
                             <h5 class="text-primary mb-3"><i class="fas fa-chart-area me-2"></i>Summary Overview (All Time)</h5>
                             <div class="row text-center g-3">
                                 <div class="col-6 col-lg-2"><div class="summary-box p-2 border-left-info"><h6 class="text-muted-subtle">Total Tasks</h6><p class="h4 text-info" id="total-tasks">0</p></div></div>
-                                <div class="col-6 col-lg-2"><div class="summary-box p-2 border-left-success"><h6 class="text-muted-subtle">Total Est. Budget</h6><p class="h4 text-success">$<span id="total-cost-est">0.00</span></p></div></div>
-                                <div class="col-6 col-lg-2"><div class="summary-box p-2 border-left-success"><h6 class="text-muted-subtle">Total Additional</h6><p class="h4 text-success">$<span id="total-additional-cost">0.00</span></p></div></div>
-                                <div class="col-6 col-lg-3"><div class="summary-box p-2 border-left-primary"><h6 class="text-muted-subtle">GRAND TOTAL COST</h6><p class="h4 text-primary">$<span id="grand-total-cost">0.00</span></p></div></div>
+                                <div class="col-6 col-lg-2"><div class="summary-box p-2 border-left-success"><h6 class="text-muted-subtle">Total Est. Budget</h6><p class="h4 text-success">₱<span id="total-cost-est">0.00</span></p></div></div>
+                                <div class="col-6 col-lg-2"><div class="summary-box p-2 border-left-success"><h6 class="text-muted-subtle">Total Additional</h6><p class="h4 text-success">₱<span id="total-additional-cost">0.00</span></p></div></div>
+                                <div class="col-6 col-lg-3"><div class="summary-box p-2 border-left-primary"><h6 class="text-muted-subtle">GRAND TOTAL COST</h6><p class="h4 text-primary">₱<span id="grand-total-cost">0.00</span></p></div></div>
                                 <div class="col-12 col-lg-3"><div class="summary-box p-2 border-left-warning"><h6 class="text-muted-subtle">Total Effort (Hrs)</h6><p class="h4 text-warning"><span id="total-time-est">0</span> hrs</p></div></div>
                                 <div class="col-12 text-center mt-3"><h6 class="text-muted-subtle">Remaining Tasks: <span class="text-danger fw-bold" id="remaining-tasks">0</span></h6></div>
                             </div>
@@ -406,8 +406,8 @@
                 <div class="col-md-6 ps-3">
                     <h6 class="text-info mb-3"><i class="fas fa-user-gear me-2"></i>Organizer Inputs</h6>
                     <div class="row g-3">
-                        <div class="col-md-6"><label for="modal-estimated-cost-input" class="form-label text-muted-subtle">Est. Budget ($)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-estimated-cost-input"></div>
-                        <div class="col-md-6"><label for="modal-additional-cost-input" class="form-label text-muted-subtle">Additional Cost ($)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-additional-cost-input" value="0.00"></div>
+                        <div class="col-md-6"><label for="modal-estimated-cost-input" class="form-label text-muted-subtle">Est. Budget (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-estimated-cost-input"></div>
+                        <div class="col-md-6"><label for="modal-additional-cost-input" class="form-label text-muted-subtle">Additional Cost (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-additional-cost-input" value="0.00"></div>
                         <div class="col-12"><label for="modal-estimated-time-input" class="form-label text-muted-subtle">Est. Effort (Hrs)</label><input type="number" step="0.5" min="0" class="form-control" id="modal-estimated-time-input"></div>
                         <div class="col-12"><label for="modal-organizer-notes-input" class="form-label text-muted-subtle">Organizer Notes</label><textarea class="form-control" id="modal-organizer-notes-input" rows="3"></textarea></div>
                         <div class="col-12 mt-4"><strong>Status:</strong> <span id="modal-task-status" class="badge" title="Click to toggle status"></span></div>
@@ -976,7 +976,7 @@
                         <span class="badge bg-secondary ms-2">${task.eventDate}</span>
                         ${timeBadge}
                         
-                        <span class="badge bg-success ms-2" title="Total Calculated Cost">$${costDisplay}</span>
+                        <span class="badge bg-success ms-2" title="Total Calculated Cost">₱${costDisplay}</span>
                         <span class="badge bg-warning text-dark" title="Estimated Time">${timeDisplay}h</span>
                     </div>
                 `;
@@ -1080,7 +1080,7 @@
                     timeTotal += parseFloat(task.estimatedTime) || 0;
                 });
 
-                $(`#home-${period}-cost`).text(`$${costTotal.toFixed(2)}`);
+                $(`#home-${period}-cost`).text(`₱${costTotal.toFixed(2)}`);
                 $(`#home-${period}-time`).text(`${timeTotal.toFixed(1)} hrs`);
             });
 
