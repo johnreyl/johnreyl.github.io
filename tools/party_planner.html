@@ -164,6 +164,61 @@
         /* Style for revenue display */
         .text-revenue { color: #008000 !important; } /* A bright green for revenue */
         .border-left-revenue { border-left-color: #008000 !important; }
+        /* Template 6: Refund Issued (e.g., a light taupe/gray) */
+        .btn-template-6 {
+            background-color: #f7f7f7; /* Very light gray */
+            color: #6c757d; /* Bootstrap secondary gray */
+            border-color: #f7f7f7;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-template-6:hover {
+            background-color: #e6e6e6; /* Slightly darker on hover */
+            border-color: #e6e6e6;
+            color: #5a6268;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        .btn-template-6:active,
+        .btn-template-6:focus {
+            background-color: #d8d8d8 !important;
+            border-color: #d8d8d8 !important;
+            color: #495057 !important;
+            box-shadow: 0 0 0 0.25rem rgba(108, 117, 125, 0.25) !important;
+        }
+        /* Template 7: Down Payment Received (e.g., a light yellow/gold) */
+        .btn-template-7 {
+            background-color: #fffde7; /* Very light yellow/cream */
+            color: #e3bc00; /* Darker gold/yellow for text */
+            border-color: #fffde7;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-template-7:hover {
+            background-color: #fffac7; /* Slightly darker on hover */
+            border-color: #fffac7;
+            color: #b39200;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+        .btn-template-7:active,
+        .btn-template-7:focus {
+            background-color: #fff4a3 !important;
+            border-color: #fff4a3 !important;
+            color: #8c7300 !important;
+            box-shadow: 0 0 0 0.25rem rgba(227, 188, 0, 0.25) !important;
+        }
+
+        /* Ensure all button styles are included in your final CSS file */
+        .btn-template-1,
+        .btn-template-2,
+        .btn-template-3,
+        .btn-template-4,
+        .btn-template-5,
+        .btn-template-6,
+        .btn-template-7 {
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -270,6 +325,9 @@
                 <div class="card p-4">
                     <h5 class="card-title text-primary mb-3"><i class="fas fa-edit me-2"></i>Add Task Details</h5>
                     <form id="party-form" class="row g-3">
+                        
+                        <div class="col-12 mt-1 mb-0"><h6 class="text-info"><i class="fas fa-file-invoice me-2"></i>Primary Event Details</h6><hr class="mt-1 mb-2"></div>
+
                         <div class="col-md-3"><label for="client-host-name" class="form-label text-muted-subtle">Client/Host Name</label><input type="text" class="form-control" id="client-host-name" placeholder="e.g., Mikaela's Parents"></div>
                         <div class="col-md-3"><label for="party-event-title" class="form-label text-muted-subtle">Party/Event Title</label><input type="text" class="form-control" id="party-event-title" required value="New Party Event"></div>
                         <div class="col-md-3"><label for="task-item-description" class="form-label text-muted-subtle">Task/Item Description</label><input type="text" class="form-control" id="task-item-description" required placeholder="e.g., Book Catering Vendor"></div>
@@ -285,20 +343,36 @@
                                 <option value="Other" selected>Other</option>
                             </select>
                         </div>
+
+                        <div class="col-md-6">
+                            <label for="client-phone-number" class="form-label text-muted-subtle">Client Phone Number</label>
+                            <input type="tel" class="form-control" id="client-phone-number" placeholder="e.g., +1 (555) 123-4567">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="client-email" class="form-label text-muted-subtle">Client Email</label>
+                            <input type="email" class="form-control" id="client-email" placeholder="e.g., client@example.com">
+                        </div>
                         
+                        <div class="col-12 mt-3 mb-0"><h6 class="text-info"><i class="fas fa-calendar-check me-2"></i>Scheduling & Estimated Effort</h6><hr class="mt-1 mb-2"></div>
+
                         <div class="col-md-3"><label for="event-date" class="form-label text-muted-subtle">Date</label><input type="date" class="form-control" id="event-date" required></div>
                         <div class="col-md-3"><label for="event-start-time" class="form-label text-muted-subtle">Start Time</label><input type="time" class="form-control" id="event-start-time" value=""></div>
                         
                         <div class="col-md-3"><label for="estimated-vendor-cost" class="form-label text-muted-subtle">Processing Cost (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="estimated-vendor-cost" value="0.00"></div>
                         <div class="col-md-3"><label for="estimated-planning-time" class="form-label text-muted-subtle">Est. Planning Effort (Hrs)</label><input type="number" step="0.5" min="0" class="form-control" id="estimated-planning-time" value="1"></div>
                         
+                        <div class="col-12 mt-3 mb-0"><h6 class="text-info"><i class="fas fa-hand-holding-dollar me-2"></i>Financial & Personnel</h6><hr class="mt-1 mb-2"></div>
+                        
                         <div class="col-md-3"><label for="responsible-person" class="form-label text-muted-subtle">Responsible Person</label><input type="text" class="form-control" id="responsible-person" placeholder="e.g., Jane Organizer"></div>
                         
-                        <div class="col-md-3"><label for="client-payment" class="form-label text-muted-subtle">Client Payment (Final) (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="client-payment" value="0.00"></div>
+                        <div class="col-md-3"><label for="client-payment" class="form-label text-muted-subtle">Client Payment (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="client-payment" value="0.00"></div>
                         <div class="col-md-3"><label for="down-payment" class="form-label text-muted-subtle">Down Payment (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="down-payment" value="0.00"></div>
                         
                         <div class="col-md-3"><label for="guest-count" class="form-label text-muted-subtle">Guest Count (Est.)</label><input type="number" min="0" class="form-control" id="guest-count" value="0"></div>
-                        <div class="col-md-3"><label for="vendor-supplier-details" class="form-label text-muted-subtle">Vendor/Supplier Details</label><textarea class="form-control" id="vendor-supplier-details" rows="4" placeholder="Vendor contact, agreement details, or payment terms."></textarea></div>
+                        
+                        <div class="col-12 mt-3 mb-0"><h6 class="text-info"><i class="fas fa-truck-fast me-2"></i>Vendor/Supplier Notes</h6><hr class="mt-1 mb-2"></div>
+
+                        <div class="col-12"><label for="vendor-supplier-details" class="form-label text-muted-subtle">Vendor/Supplier Details</label><textarea class="form-control" id="vendor-supplier-details" rows="4" placeholder="Vendor contact, agreement details, or payment terms."></textarea></div>
                         
                         <div class="col-12 text-end"><button type="submit" class="btn btn-primary mt-3"><i class="fas fa-save me-2"></i>Save Task</button></div>
                     </form>
@@ -485,75 +559,131 @@
         </div> </div>
 
     <div class="modal fade" id="taskDetailModal" tabindex="-1" aria-labelledby="taskDetailModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header bg-primary text-white">
-            <h5 class="modal-title" id="taskDetailModalLabel">Task Details</h5>
-            <button type="button" class="btn-close btn-close-white close-modal-btn" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <input type="hidden" id="modal-task-id">
-            <form id="task-update-form" class="row g-3">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="taskDetailModalLabel">Task Details</h5>
+                    <button type="button" class="btn-close btn-close-white close-modal-btn" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
                 
-                <div class="col-md-6 border-end pe-3">
-                    <h6 class="text-primary mb-3"><i class="fas fa-calendar-alt me-2"></i>Event Details</h6>
-                    <div class="row g-3">
-                        <div class="col-12"><label for="modal-client-host-name-input" class="form-label text-muted-subtle">Client/Host Name</label><input type="text" class="form-control" id="modal-client-host-name-input"></div>
-                        <div class="col-12"><label for="modal-party-event-title-input" class="form-label text-muted-subtle">Party/Event Title</label><input type="text" class="form-control" id="modal-party-event-title-input" required></div>
-                        <div class="col-12"><label for="modal-task-item-description-input" class="form-label text-muted-subtle">Task/Item Description</label><input type="text" class="form-control" id="modal-task-item-description-input" required></div>
-                        
-                        <div class="col-12">
-                            <label for="modal-category-service-input" class="form-label text-muted-subtle">Category/Service</label>
-                            <select class="form-select" id="modal-category-service-input">
-                                <option value="Catering">Catering</option>
-                                <option value="Venue">Venue</option>
-                                <option value="Entertainment">Entertainment</option>
-                                <option value="Decorations">Decorations</option>
-                                <option value="Guest Management">Guest Management</option>
-                                <option value="Marketing">Marketing</option>
-                                <option value="Other" selected>Other</option>
-                            </select>
+                <div class="modal-body">
+                    <input type="hidden" id="modal-task-id">
+                    
+                    <ul class="nav nav-tabs mb-3" id="taskDetailTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="event-details-tab" data-bs-toggle="tab" data-bs-target="#tab-event-details" type="button" role="tab" aria-controls="tab-event-details" aria-selected="true"><i class="fas fa-calendar-alt me-2"></i>Event Details</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="organizer-inputs-tab" data-bs-toggle="tab" data-bs-target="#tab-organizer-inputs" type="button" role="tab" aria-controls="tab-organizer-inputs" aria-selected="false"><i class="fas fa-user-gear me-2"></i>Organizer Inputs</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="generate-text-tab" data-bs-toggle="tab" data-bs-target="#tab-generate-text" type="button" role="tab" aria-controls="tab-generate-text" aria-selected="false"><i class="fas fa-mobile-alt me-2"></i>Generate Text Message</button>
+                        </li>
+                    </ul>
+
+                    <form id="task-update-form"> 
+                        <div class="tab-content" id="taskDetailTabContent">
+                            
+                            <div class="tab-pane fade show active" id="tab-event-details" role="tabpanel" aria-labelledby="event-details-tab">
+                                <div class="row g-3">
+                                    <div class="col-12"><label for="modal-client-host-name-input" class="form-label text-muted-subtle">Client/Host Name</label><input type="text" class="form-control" id="modal-client-host-name-input"></div>
+                                    
+                                    <div class="col-md-6"><label for="modal-client-phone-input" class="form-label text-muted-subtle">Client Phone Number</label><input type="tel" class="form-control" id="modal-client-phone-input" placeholder="e.g., +1 (555) 123-4567"></div>
+                                    <div class="col-md-6"><label for="modal-client-email-input" class="form-label text-muted-subtle">Client Email</label><input type="email" class="form-control" id="modal-client-email-input" placeholder="e.g., client@example.com"></div>
+                                    <div class="col-12"><label for="modal-party-event-title-input" class="form-label text-muted-subtle">Party/Event Title</label><input type="text" class="form-control" id="modal-party-event-title-input" required></div>
+                                    <div class="col-12"><label for="modal-task-item-description-input" class="form-label text-muted-subtle">Task/Item Description</label><input type="text" class="form-control" id="modal-task-item-description-input" required></div>
+                                    
+                                    <div class="col-12">
+                                        <label for="modal-category-service-input" class="form-label text-muted-subtle">Category/Service</label>
+                                        <select class="form-select" id="modal-category-service-input">
+                                            <option value="Catering">Catering</option>
+                                            <option value="Venue">Venue</option>
+                                            <option value="Entertainment">Entertainment</option>
+                                            <option value="Decorations">Decorations</option>
+                                            <option value="Guest Management">Guest Management</option>
+                                            <option value="Marketing">Marketing</option>
+                                            <option value="Other" selected>Other</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6"><label for="modal-event-date-input" class="form-label text-muted-subtle">Date</label><input type="date" class="form-control" id="modal-event-date-input" required></div>
+                                    <div class="col-md-6"><label for="modal-event-time-input" class="form-label text-muted-subtle">Start Time</label><input type="time" class="form-control" id="modal-event-time-input"></div>
+                                    
+                                    <div class="col-12"><label for="modal-vendor-supplier-details-input" class="form-label text-muted-subtle">Vendor/Supplier Details</label><textarea class="form-control" id="modal-vendor-supplier-details-input" rows="4"></textarea></div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="tab-organizer-inputs" role="tabpanel" aria-labelledby="organizer-inputs-tab">
+                                <div class="row g-3">
+                                    <div class="col-md-6"><label for="modal-estimated-vendor-cost-input" class="form-label text-muted-subtle">Processing Cost (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-estimated-vendor-cost-input"></div>
+                                    <div class="col-md-6"><label for="modal-actual-cost-variance-input" class="form-label text-muted-subtle">Additional Cost (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-actual-cost-variance-input" value="0.00"></div>
+                                    
+                                    <div class="col-md-6"><label for="modal-client-payment-input" class="form-label text-muted-subtle">Client Payment (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-client-payment-input" value="0.00"></div>
+                                    <div class="col-md-6"><label for="modal-down-payment-input" class="form-label text-muted-subtle">Down Payment (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-down-payment-input" value="0.00"></div>
+
+                                    <div class="col-12"><label for="modal-estimated-planning-time-input" class="form-label text-muted-subtle">Est. Planning Effort (Hrs)</label><input type="number" step="0.5" min="0" class="form-control" id="modal-estimated-planning-time-input"></div>
+                                    
+                                    <div class="col-md-6"><label for="modal-responsible-person-input" class="form-label text-muted-subtle">Responsible Person</label><input type="text" class="form-control" id="modal-responsible-person-input"></div>
+                                    <div class="col-md-6"><label for="modal-guest-count-input" class="form-label text-muted-subtle">Guest Count (Est.)</label><input type="number" min="0" class="form-control" id="modal-guest-count-input" value="0"></div>
+
+                                    <div class="col-12"><label for="modal-internal-notes-input" class="form-label text-muted-subtle">Internal Notes</label><textarea class="form-control" id="modal-internal-notes-input" rows="3"></textarea></div>
+                                    
+                                    <div class="col-12 mt-4"><strong>Status:</strong> <span id="modal-task-status" class="badge" title="Click to cycle status: Pending -> Inquiry Sent -> Confirmed/Paid -> Cancelled"></span></div>
+                                </div>
+                            </div>
+                            
+                            <div class="tab-pane fade" id="tab-generate-text" role="tabpanel" aria-labelledby="generate-text-tab">
+                                
+                                <div class="mb-3">
+                                    <label for="modal-generated-text-message" class="form-label text-muted-subtle">Generated Message Preview</label>
+                                    <textarea class="form-control" id="modal-generated-text-message" rows="6" readonly placeholder="Click a 'Generate Message' button to create a client inquiry text based on the Event Details."></textarea>
+                                </div>
+                                
+                                <div class="d-flex flex-wrap gap-2 mb-3"> 
+                                    <button type="button" class="btn btn-template-1 flex-grow-1" id="modal-generate-template-1-btn">
+                                        <i class="fas fa-wand-magic-sparkles me-2"></i>Generate **Follow-up**
+                                    </button>
+                                    <button type="button" class="btn btn-template-2 flex-grow-1" id="modal-generate-template-2-btn">
+                                        <i class="fas fa-file-signature me-2"></i>Generate **Confirmation**
+                                    </button>
+                                    <button type="button" class="btn btn-template-3 flex-grow-1" id="modal-generate-template-3-btn">
+                                        <i class="fas fa-money-bill-wave me-2"></i>Generate **Payment**
+                                    </button>
+                                    <button type="button" class="btn btn-template-4 flex-grow-1" id="modal-generate-template-4-btn">
+                                        <i class="fas fa-receipt me-2"></i>Generate **Payment Received**
+                                    </button>
+                                    
+                                    <button type="button" class="btn btn-template-5 flex-grow-1" id="modal-generate-template-5-btn">
+                                        <i class="fas fa-ban me-2"></i>Generate **Cancelled**
+                                    </button>
+                                    <button type="button" class="btn btn-template-6 flex-grow-1" id="modal-generate-template-6-btn">
+                                        <i class="fas fa-undo me-2"></i>Generate **Refund**
+                                    </button>
+                                    <button type="button" class="btn btn-template-7 flex-grow-1" id="modal-generate-template-7-btn">
+                                        <i class="fas fa-money-check-alt me-2"></i>Generate **Down Payment**
+                                    </button>
+                                </div>
+
+                                <button type="button" class="btn btn-outline-success w-100 mb-3" id="modal-copy-text-btn" disabled>
+                                    <i class="fas fa-copy me-2"></i>Copy Message to Clipboard
+                                </button>
+
+                                <p class="mt-3 text-muted-subtle" style="font-size: 0.8rem;">Note: Messages are automatically generated using data from the Event Details tab.</p>
+                            </div>
                         </div>
-
-                        <div class="col-md-6"><label for="modal-event-date-input" class="form-label text-muted-subtle">Date</label><input type="date" class="form-control" id="modal-event-date-input" required></div>
-                        <div class="col-md-6"><label for="modal-event-time-input" class="form-label text-muted-subtle">Start Time</label><input type="time" class="form-control" id="modal-event-time-input"></div>
-                        
-                        <div class="col-12"><label for="modal-vendor-supplier-details-input" class="form-label text-muted-subtle">Vendor/Supplier Details</label><textarea class="form-control" id="modal-vendor-supplier-details-input" rows="4"></textarea></div>
-                    </div>
+                    </form>
                 </div>
-
-                <div class="col-md-6 ps-3">
-                    <h6 class="text-info mb-3"><i class="fas fa-user-gear me-2"></i>Organizer Inputs</h6>
-                    <div class="row g-3">
-                        <div class="col-md-6"><label for="modal-estimated-vendor-cost-input" class="form-label text-muted-subtle">Processing Cost (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-estimated-vendor-cost-input"></div>
-                        <div class="col-md-6"><label for="modal-actual-cost-variance-input" class="form-label text-muted-subtle">Additional Cost (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-actual-cost-variance-input" value="0.00"></div>
-                        
-                        <div class="col-md-6"><label for="modal-client-payment-input" class="form-label text-muted-subtle">Client Payment (Final) (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-client-payment-input" value="0.00"></div>
-                        <div class="col-md-6"><label for="modal-down-payment-input" class="form-label text-muted-subtle">Down Payment (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-down-payment-input" value="0.00"></div>
-
-                        <div class="col-12"><label for="modal-estimated-planning-time-input" class="form-label text-muted-subtle">Est. Planning Effort (Hrs)</label><input type="number" step="0.5" min="0" class="form-control" id="modal-estimated-planning-time-input"></div>
-                        
-                        <div class="col-md-6"><label for="modal-responsible-person-input" class="form-label text-muted-subtle">Responsible Person</label><input type="text" class="form-control" id="modal-responsible-person-input"></div>
-                        <div class="col-md-6"><label for="modal-guest-count-input" class="form-label text-muted-subtle">Guest Count (Est.)</label><input type="number" min="0" class="form-control" id="modal-guest-count-input" value="0"></div>
-
-                        <div class="col-12"><label for="modal-internal-notes-input" class="form-label text-muted-subtle">Internal Notes</label><textarea class="form-control" id="modal-internal-notes-input" rows="3"></textarea></div>
-                        
-                        <div class="col-12 mt-4"><strong>Status:</strong> <span id="modal-task-status" class="badge" title="Click to cycle status: Pending -> Inquiry Sent -> Confirmed/Paid -> Cancelled"></span></div>
-                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger me-auto" id="modal-delete-task-btn">
+                        <i class="fas fa-trash-alt me-2"></i>Delete Task
+                    </button>
+                    <button type="submit" form="task-update-form" class="btn btn-primary">
+                        <i class="fas fa-sync-alt me-2"></i>Update Task
+                    </button>
+                    <button type="button" class="btn btn-secondary close-modal-btn" data-bs-dismiss="modal">Close</button>
                 </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-outline-danger me-auto" id="modal-delete-task-btn">
-                <i class="fas fa-trash-alt me-2"></i>Delete Task
-            </button>
-            <button type="submit" form="task-update-form" class="btn btn-primary">
-                <i class="fas fa-sync-alt me-2"></i>Update Task
-            </button>
-            <button type="button" class="btn btn-secondary close-modal-btn" data-bs-dismiss="modal">Close</button>
-          </div>
+            </div>
         </div>
-      </div>
     </div>
 
     <div class="modal fade" id="StartCloudSyncModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="StartCloudSyncModalLabel" aria-hidden="true">
@@ -617,1312 +747,1298 @@
         let allCurrentTasks = []; 
         let currentTasks = [];    
         let firebaseUnsubscribe = null; 
-        
-        let storageMode = ''; 
-        let userId = null;
+        let storageMode = ''; // '', 'local', or 'firebase'
+        let userId = null; 
         let isGoogleSignedIn = false;
         
-        // Pagination State - Set to 25 items per page
-        const TASKS_PER_PAGE = 25; 
-        let currentPage = 1;       
-        
-        // UPDATED: Party Planner Field Structure
-        const defaultTask = {
-            // Renamed fields from original code for new party planner structure
-            clientHostName: '', 
-            partyEventTitle: 'New Party Event', 
-            taskItemDescription: '', 
-            vendorSupplierDetails: '', 
-            estimatedVendorCost: '0.00', 
-            estimatedPlanningTime: '1.0', 
-            actualCostVariance: '0.00', 
-            clientPayment: '0.00',
-            downPayment: '0.00', // <-- NEW FIELD
-            internalNotes: '', 
-            // New fields for party planning
-            category: 'Other', 
-            responsiblePerson: '',
-            guestCount: '0',
-            // Existing fields
-            eventDate: '',
-            eventStartTime: '',
-            status: 'Pending',
-            createdAt: new Date().toISOString()
+        // Pagination state
+        const TASKS_PER_PAGE = 10;
+        let currentPage = 1;
+        let totalPages = 1;
+
+        // Filtering state
+        let currentFilters = {
+            dateStart: '', dateEnd: '',
+            costMin: '', costMax: '',
+            timeMin: '', timeMax: '',
+            category: 'All', status: 'All',
+            client: 'All', responsiblePerson: 'All'
         };
-        
-        // --- 2. Custom UI Overlays/Toasts ---
-        
-        const loadingOverlay = document.getElementById('auth-loading-overlay');
-        
-        function showToast(message, duration = 3000) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'custom-toast';
-            toast.textContent = message;
-            container.appendChild(toast);
+
+
+        // --- Utility Functions ---
+
+        /**
+         * Generates a unique, time-based ID.
+         * @returns {string} Unique ID.
+         */
+        const generateId = () => {
+            return APP_ID + '_' + Date.now().toString(36) + Math.random().toString(36).substring(2);
+        };
+
+        /**
+         * Shows a temporary toast notification.
+         * @param {string} message - The message to display.
+         * @param {string} type - 'success', 'danger', 'info', or 'warning'.
+         */
+        const showToast = (message, type = 'info') => {
+            const toastContainer = $('#toast-container');
+            const toast = $(`<div class="custom-toast bg-${type}">${message}</div>`);
             
-            // Show
-            setTimeout(() => toast.classList.add('show'), 10);
-            
-            // Hide
+            toastContainer.append(toast);
             setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 500); // Wait for transition
-            }, duration);
-        }
+                toast.addClass('show');
+            }, 10); // Short delay to trigger transition
+            
+            setTimeout(() => {
+                toast.removeClass('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 500);
+            }, 3000);
+        };
 
-        // --- UI & Utility Functions ---
-
-        function showLoading(text) {
+        /**
+         * Toggles the loading indicator.
+         * @param {boolean} show - Whether to show or hide.
+         * @param {string} text - The loading text.
+         */
+        const toggleLoading = (show, text = 'Connecting...') => {
+            $('#loading-indicator').toggleClass('d-none', !show);
             $('#loading-text').text(text);
-            $('#loading-indicator').removeClass('d-none');
-        }
+        };
 
-        function hideLoading() {
-            $('#loading-indicator').addClass('d-none');
-        }
+        /**
+         * Shows the full-screen authentication loading overlay.
+         * @param {string} text - The text to display.
+         */
+        const showAuthLoadingOverlay = (text) => {
+             $('#auth-loading-overlay').css('display', 'flex').find('p').text(text);
+        };
+        
+        /**
+         * Hides the full-screen authentication loading overlay.
+         */
+        const hideAuthLoadingOverlay = () => {
+             $('#auth-loading-overlay').css('display', 'none');
+        };
 
-        function showCloudSyncModal() {
-            const modalElement = document.getElementById('StartCloudSyncModal');
-            const syncModal = new bootstrap.Modal(modalElement, {
-                backdrop: 'static',
-                keyboard: false
+
+        /**
+         * Shows the Cloud Sync modal.
+         */
+        const showCloudSyncModal = () => {
+            const modal = new bootstrap.Modal(document.getElementById('StartCloudSyncModal'), {});
+            modal.show();
+        };
+
+        /**
+         * Hides the Cloud Sync modal.
+         */
+        const hideCloudSyncModal = () => {
+             const modalEl = document.getElementById('StartCloudSyncModal');
+             const modal = bootstrap.Modal.getInstance(modalEl);
+             if (modal) {
+                 modal.hide();
+             }
+        };
+
+        /**
+         * Converts array of tasks to a CSV string.
+         * @param {Array<Object>} tasks - The list of task objects.
+         * @returns {string} The CSV formatted data.
+         */
+        const convertToCSV = (tasks) => {
+            if (tasks.length === 0) return '';
+            
+            // Define headers explicitly to ensure order
+            const headers = [
+                "ID", "Client/Host Name", "Party/Event Title", "Task/Item Description", 
+                "Date", "Time", "Category/Service", "Status", "Responsible Person",
+                "Est. Planning Effort (Hrs)", "Processing Cost (₱)", "Additional Cost (₱)", 
+                "Client Payment (₱)", "Down Payment (₱)", "Guest Count (Est.)",
+                "Vendor/Supplier Details", "Internal Notes", "Net Revenue (Calculated)", "Total Expense (Calculated)",
+                //"Last Updated", 
+                "Client Phone Number", "Client Email"
+            ];
+            
+            // Map the data to the correct header order
+            const data = tasks.map(task => {
+                // CALCULATE TOTAL REVENUE for Net Revenue column
+                const totalRevenue = (parseFloat(task.clientPayment) || 0) + (parseFloat(task.downPayment) || 0);
+                const totalExpense = (parseFloat(task.estimatedVendorCost) || 0) + (parseFloat(task.actualCostVariance) || 0);
+
+                return [
+                    task.id,
+                    task.clientHostName,
+                    task.partyEventTitle,
+                    task.taskItemDescription,
+                    task.eventDate,
+                    task.eventStartTime,
+                    task.categoryService,
+                    task.status,
+                    task.responsiblePerson,
+                    task.estimatedPlanningTime,
+                    task.estimatedVendorCost,
+                    task.actualCostVariance || 0,
+                    task.clientPayment,
+                    task.downPayment, // Added downPayment to data
+                    task.guestCount,
+                    `"${(task.vendorSupplierDetails || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`, // Escape quotes and newlines
+                    `"${(task.internalNotes || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
+                    totalRevenue - totalExpense, // Updated Net Revenue calculation
+                    totalExpense,
+                    //task.lastUpdated ? new Date(task.lastUpdated).toLocaleString() : '',
+                    task.clientPhoneNumber,
+                    task.clientEmail
+                ];
             });
-            syncModal.show();
-        }
 
-        function hideCloudSyncModal() {
-            const modalElement = document.getElementById('StartCloudSyncModal');
-            const syncModal = bootstrap.Modal.getInstance(modalElement);
-            if (syncModal) syncModal.hide();
-        }
-
-        function updateUIOnModeChange() {
-            if (storageMode === 'firebase') {
-                const userEmail = auth.currentUser?.email || 'Authenticated User';
-                const modeText = isGoogleSignedIn ? `Permanent Cloud (User: ${userEmail})` : 'Temporary Cloud (Guest)';
-                $('#banner-storage-mode').text(modeText);
-                $('#auth-action-btn').removeClass('d-none').text('Sign Out').off('click').on('click', async () => {
-                    if (confirm("Are you sure you want to sign out?")) {
-                        await signOut(auth);
-                    }
-                });
-            } else if (storageMode === 'local') {
-                $('#banner-storage-mode').text('Local Storage (Guest Mode - Browser Only)');
-                $('#auth-action-btn').removeClass('d-none').text('Exit Guest Mode').off('click').on('click', () => {
-                    if (confirm("Are you sure you want to exit Guest Mode?")) {
-                        storageMode = '';
-                        allCurrentTasks = [];
-                        currentTasks = [];
-                        renderTasks(allCurrentTasks);
-                        updateUIOnModeChange();
-                        showCloudSyncModal();
-                    }
-                });
-            } else {
-                $('#banner-storage-mode').text('None (Please sign in)');
-                $('#auth-action-btn').addClass('d-none');
-                renderTasks([]);
-            }
-        }
-        
-        // Helper to find the index of a task
-        function findTaskIndex(taskId, tasks) {
-            return tasks.findIndex(t => t.id === taskId);
-        }
-        
-        // Helper to update tasks in the global array (used by Firebase functions)
-        function getUpdatedTasks(taskId, updatedFields) {
-            const tasks = [...allCurrentTasks];
-            const index = findTaskIndex(taskId, tasks);
-            if (index > -1) {
-                tasks[index] = { ...tasks[index], ...updatedFields };
-            } else if (!taskId) {
-                // If no ID is provided, assume this is a brand new task
-                tasks.push({ ...defaultTask, ...updatedFields, id: `firebase-${Date.now()}`, status: updatedFields.status || 'Pending' });
-            }
-            // Sort tasks before saving
-            tasks.sort((a, b) => DateUtils.parseDate(a.eventDate) - DateUtils.parseDate(b.eventDate));
-            return tasks;
-        }
-
-        // --- CORE LOGIC: Storage Implementation ---
-        
-        const LocalStorageImpl = {
-            load: () => {
-                showLoading("Loading from Local Storage...");
-                const tasks = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
-
-                // MAPPING logic to handle old and new field names for backward compatibility
-                const normalizedTasks = tasks.map((task, index) => ({
-                    // MAPPING for loading old/new tasks
-                    clientHostName: task.companyName || task.clientHostName || '', // Handle old name (companyName)
-                    partyEventTitle: task.eventName || task.partyEventTitle || 'New Party Event', // Handle old name (eventName)
-                    taskItemDescription: task.eventTask || task.taskItemDescription || '', // Handle old name (eventTask)
-                    vendorSupplierDetails: task.taskDescription || task.vendorSupplierDetails || '', // Handle old name (taskDescription)
-                    estimatedVendorCost: task.estimatedCost || task.estimatedVendorCost || '0.00', // Handle old name (estimatedCost)
-                    estimatedPlanningTime: task.estimatedTime || task.estimatedPlanningTime || '1.0', // Handle old name (estimatedTime)
-                    actualCostVariance: task.additionalCost || task.actualCostVariance || '0.00', // Handle old name (additionalCost)
-                    clientPayment: task.clientPayment || '0.00',
-                    downPayment: task.downPayment || '0.00', // <-- NEW MAPPING
-                    internalNotes: task.organizerNotes || task.internalNotes || '', // Handle old name (organizerNotes)
-                    
-                    // New fields for party planning structure
-                    category: task.category || 'Other',
-                    responsiblePerson: task.responsiblePerson || '',
-                    guestCount: task.guestCount || '0',
-
-                    // Existing fields
-                    eventDate: task.eventDate || '',
-                    eventStartTime: task.eventStartTime || '',
-                    status: task.status || 'Pending',
-                    createdAt: task.createdAt || new Date().toISOString(),
-                    id: task.id || `local-${index}-${Date.now()}` // Ensure every task has an ID
-                }));
-
-                // Sort and save normalized back to local storage before returning
-                normalizedTasks.sort((a, b) => DateUtils.parseDate(a.eventDate) - DateUtils.parseDate(b.eventDate));
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(normalizedTasks));
-
-                hideLoading();
-                showToast(`Loaded ${normalizedTasks.length} tasks from Local Storage.`);
-                return normalizedTasks;
-            },
-            save: (tasks) => {
-                showLoading("Saving to Local Storage...");
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tasks));
-                setTimeout(() => { // Use a small delay for a better UX feeling
-                    hideLoading();
-                    showToast("Tasks saved locally.");
-                }, 100);
-            },
-            delete: (taskId, tasks) => {
-                const updatedTasks = tasks.filter(t => t.id !== taskId);
-                LocalStorageImpl.save(updatedTasks);
-                return updatedTasks;
-            },
-            updateStatus: (taskId, newStatus, tasks) => {
-                const index = findTaskIndex(taskId, tasks);
-                if (index > -1) {
-                    tasks[index].status = newStatus;
-                    LocalStorageImpl.save(tasks);
-                }
-                return tasks;
-            }
-        };
-
-        const FirebaseImpl = {
-            // Function to handle the initial sign-in for the user
-            signInWithGoogle: async () => {
-                loadingOverlay.style.display = 'flex';
-                try {
-                    const provider = new window.FirebaseTools.GoogleAuthProvider();
-                    // Optional: Request a refresh token (for long-lived sessions)
-                    provider.setCustomParameters({ prompt: 'select_account' });
-                    const result = await window.FirebaseTools.signInWithPopup(auth, provider);
-                    // This gives you a Google Access Token. You can use it to access the Google API.
-                    const credential = window.FirebaseTools.GoogleAuthProvider.credentialFromResult(result);
-                    // The signed-in user info.
-                    const user = result.user;
-                    showToast(`Signed in as ${user.displayName || user.email}`);
-                    loadingOverlay.style.display = 'none';
-                    return true;
-                } catch (error) {
-                    showToast(`Google Sign-In failed: ${error.message}`, 5000);
-                    loadingOverlay.style.display = 'none';
-                    return false;
-                }
-            },
-
-            // Function to sign in anonymously (Guest mode on Firebase)
-            signInAnonymously: async () => {
-                try {
-                    const result = await window.FirebaseTools.signInAnonymously(auth);
-                    showToast("Signed in as temporary guest user on Cloud.");
-                    return true;
-                } catch (error) {
-                    showToast(`Guest Sign-In failed: ${error.message}`, 5000);
-                    return false;
-                }
-            },
-
-            // Firebase data synchronization listener
-            setupDataListener: (userId) => {
-                // If a listener already exists, unsubscribe it first
-                if (firebaseUnsubscribe) {
-                    firebaseUnsubscribe();
-                }
-
-                // Create a reference to the user's document
-                tasksDocRef = doc(db, FIREBASE_COLLECTION_PATH, userId);
-
-                // Set up the real-time listener
-                firebaseUnsubscribe = onSnapshot(tasksDocRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        const tasks = data.tasks || [];
-                        
-                        // Apply the same normalization logic as local storage on load
-                        const normalizedTasks = tasks.map(task => ({
-                            // MAPPING for loading old/new tasks
-                            clientHostName: task.companyName || task.clientHostName || '', 
-                            partyEventTitle: task.eventName || task.partyEventTitle || 'New Party Event', 
-                            taskItemDescription: task.eventTask || task.taskItemDescription || '', 
-                            vendorSupplierDetails: task.taskDescription || task.vendorSupplierDetails || '', 
-                            estimatedVendorCost: task.estimatedCost || task.estimatedVendorCost || '0.00', 
-                            estimatedPlanningTime: task.estimatedTime || task.estimatedPlanningTime || '1.0', 
-                            actualCostVariance: task.additionalCost || task.actualCostVariance || '0.00', 
-                            clientPayment: task.clientPayment || '0.00',
-                            downPayment: task.downPayment || '0.00', // <-- NEW MAPPING
-                            internalNotes: task.organizerNotes || task.internalNotes || '', 
-                            
-                            // New fields for party planning structure
-                            category: task.category || 'Other',
-                            responsiblePerson: task.responsiblePerson || '',
-                            guestCount: task.guestCount || '0',
-
-                            // Existing fields
-                            eventDate: task.eventDate || '',
-                            eventStartTime: task.eventStartTime || '',
-                            status: task.status || 'Pending',
-                            createdAt: task.createdAt || new Date().toISOString(),
-                            id: task.id || `firebase-${Date.now()}`
-                        }));
-
-                        // Sort tasks
-                        normalizedTasks.sort((a, b) => DateUtils.parseDate(a.eventDate) - DateUtils.parseDate(b.eventDate));
-
-                        allCurrentTasks = normalizedTasks;
-                        renderTasks(allCurrentTasks);
-                        updateSummaryMetrics(allCurrentTasks);
-                        updateReportsMetrics(allCurrentTasks); // Update reporting metrics
-                        showToast(`Cloud sync complete. ${allCurrentTasks.length} tasks loaded.`);
-                        hideLoading();
-                    } else {
-                        // Document doesn't exist, initialize it
-                        showToast("New user: Initializing cloud database...");
-                        FirebaseImpl.save([]);
-                    }
-                }, (error) => {
-                    console.error("Firebase data listener failed: ", error);
-                    showToast(`Cloud sync error: ${error.message}`, 5000);
-                    hideLoading();
-                });
-            },
-
-            // Function to save all tasks to Firebase
-            save: async (tasks) => {
-                if (!tasksDocRef) return;
-                showLoading("Saving to Cloud...");
-                
-                // Use the simplified tasks array (no need for complex mapping on save)
-                const simplifiedTasks = tasks.map(task => {
-                    // Filter out any computed properties if necessary, but keep all data properties
-                    const {id, ...rest} = task;
-                    return { id, ...rest };
-                });
-                
-                try {
-                    await setDoc(tasksDocRef, { tasks: simplifiedTasks, lastUpdated: new Date().toISOString() });
-                    // showToast("Tasks saved to Cloud."); // Listener will confirm save
-                } catch (error) {
-                    console.error("Error saving to Firebase: ", error);
-                    showToast(`Cloud save failed: ${error.message}`, 5000);
-                } finally {
-                    hideLoading();
-                }
-            },
+            // Combine headers and data
+            const csvContent = [
+                headers.join(","),
+                ...data.map(row => row.join(","))
+            ].join("\n");
             
-            // Function to delete a task in Firebase
-            delete: async (taskId, tasks) => {
-                const updatedTasks = tasks.filter(t => t.id !== taskId);
-                await FirebaseImpl.save(updatedTasks);
-                return updatedTasks;
-            },
-            
-            // Function to update task status in Firebase (handled by save)
-            updateStatus: async (taskId, newStatus, tasks) => {
-                const index = findTaskIndex(taskId, tasks);
-                if (index > -1) {
-                    tasks[index].status = newStatus;
-                    await FirebaseImpl.save(tasks);
-                }
-                return tasks;
-            }
+            return csvContent;
         };
 
-        // --- Data Access Layer ---
-        const DataService = {
-            getTasks: () => {
-                if (storageMode === 'local') return LocalStorageImpl.load();
-                if (storageMode === 'firebase') return allCurrentTasks; 
-                return [];
-            },
-            saveTasks: (tasks) => {
-                if (storageMode === 'local') LocalStorageImpl.save(tasks);
-                if (storageMode === 'firebase') FirebaseImpl.save(tasks);
-            },
-            deleteTask: (taskId) => {
-                if (storageMode === 'local') {
-                    allCurrentTasks = LocalStorageImpl.delete(taskId, allCurrentTasks);
-                } else if (storageMode === 'firebase') {
-                    FirebaseImpl.delete(taskId, allCurrentTasks);
-                }
-                // Refresh list on local delete
-                renderTasks(allCurrentTasks);
-                updateSummaryMetrics(allCurrentTasks);
-                updateReportsMetrics(allCurrentTasks);
-            },
-            updateTask: (taskId, updatedFields) => {
-                 let updatedTasks = getUpdatedTasks(taskId, updatedFields);
-                 allCurrentTasks = updatedTasks;
-                 DataService.saveTasks(updatedTasks);
-                 
-                 // Re-render task list in case of date/field change
-                 renderTasks(allCurrentTasks);
-                 
-                 // Recalculate summaries
-                 updateSummaryMetrics(allCurrentTasks);
-                 updateReportsMetrics(allCurrentTasks);
-            },
-            updateTaskStatus: (taskId, newStatus) => {
-                if (storageMode === 'local') {
-                    allCurrentTasks = LocalStorageImpl.updateStatus(taskId, newStatus, allCurrentTasks);
-                } else if (storageMode === 'firebase') {
-                    FirebaseImpl.updateStatus(taskId, newStatus, allCurrentTasks);
-                }
-                // Update UI regardless of mode (Firebase listener will re-render, but local needs immediate update)
-                renderTasks(allCurrentTasks);
-                updateSummaryMetrics(allCurrentTasks);
-                updateReportsMetrics(allCurrentTasks);
-            }
-        };
+        // --- New Modal Functionality: Text Message Generator ---
+        const setupTextGenerator = () => {
+            // Select all the new buttons and the message/copy field
+            const generateBtn1 = $('#modal-generate-template-1-btn');
+            const generateBtn2 = $('#modal-generate-template-2-btn');
+            const generateBtn3 = $('#modal-generate-template-3-btn');
+            const generateBtn4 = $('#modal-generate-template-4-btn');
+            const generateBtn5 = $('#modal-generate-template-5-btn');
+            const generateBtn6 = $('#modal-generate-template-6-btn');
+            const generateBtn7 = $('#modal-generate-template-7-btn');
+            const copyBtn = $('#modal-copy-text-btn'); // Re-introduced Copy button
+            const messageField = $('#modal-generated-text-message');
 
-        // --- Helper Classes (Date/Currency) ---
-        
-        const DateUtils = {
-            parseDate: (dateString) => {
-                if (!dateString) return new Date(0);
-                const [year, month, day] = dateString.split('-').map(Number);
-                // JS months are 0-indexed, so we subtract 1 from month
-                return new Date(year, month - 1, day);
-            },
-            formatDate: (dateString) => {
-                 if (!dateString) return 'N/A';
-                 const date = DateUtils.parseDate(dateString);
-                 if (isNaN(date)) return 'Invalid Date';
-                 // Format as MM/DD/YYYY
-                 return date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
-            },
-            formatTime: (timeString) => {
-                if (!timeString) return '';
-                const [hours, minutes] = timeString.split(':').map(Number);
-                const date = new Date(0, 0, 0, hours, minutes);
-                // Format as HH:MM AM/PM
-                return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-            },
-            isCurrentWeek: (date) => {
-                const now = new Date();
-                const startOfWeek = new Date(now.setDate(now.getDate() - (now.getDay() || 7) + 1)); // Monday
-                startOfWeek.setHours(0, 0, 0, 0);
-                const endOfWeek = new Date(startOfWeek);
-                endOfWeek.setDate(startOfWeek.getDate() + 6);
-                endOfWeek.setHours(23, 59, 59, 999);
-                
-                const eventDate = DateUtils.parseDate(date);
-                return eventDate >= startOfWeek && eventDate <= endOfWeek;
-            },
-            isCurrentMonth: (date) => {
-                const now = new Date();
-                const eventDate = DateUtils.parseDate(date);
-                return eventDate.getFullYear() === now.getFullYear() && eventDate.getMonth() === now.getMonth();
-            },
-            isCurrentYear: (date) => {
-                const now = new Date();
-                const eventDate = DateUtils.parseDate(date);
-                return eventDate.getFullYear() === now.getFullYear();
-            }
-        };
-
-        function formatCurrency(amount) {
-            const number = parseFloat(amount);
-            if (isNaN(number)) return '₱0.00';
-            // Use Intl.NumberFormat for Philippine Peso (PHP) formatting.
-            // The replace ensures that the output is only the symbol and the number,
-            // which prevents duplicates if the ₱ symbol is also hardcoded in the HTML.
-            // We ensure it includes the symbol here.
-            return new Intl.NumberFormat('en-PH', {
-                style: 'currency',
-                currency: 'PHP',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(number).replace('PHP', '');
-        }
-        
-        function getStatusBadgeClass(status) {
-            switch (status) {
-                case 'Pending': return 'badge bg-warning text-dark';
-                case 'Inquiry Sent': return 'badge bg-info';
-                case 'Confirmed/Paid': return 'badge bg-success';
-                case 'Cancelled': return 'badge bg-danger';
-                default: return 'badge bg-secondary';
-            }
-        }
-        
-        function getBorderClass(status) {
-            switch (status) {
-                case 'Pending': return 'border-left-warning';
-                case 'Inquiry Sent': return 'border-left-info';
-                case 'Confirmed/Paid': return 'border-left-success';
-                case 'Cancelled': return 'border-left-danger';
-                default: return 'border-left-primary';
-            }
-        }
-
-        // --- Summary & Reports Logic ---
-
-        function calculateMetrics(tasks) {
-            let totalEstimatedCost = 0;
-            let totalAdditionalCost = 0;
-            let totalAccumulatedClientIncome = 0;
-            let totalAccumulatedNetRevenue = 0;
-            let totalPlanningTime = 0;
-            let totalGuestCount = 0;
-            let totalTasks = 0;
-            let remainingTasks = 0; // Tasks not Confirmed/Paid or Cancelled
-            
-            let metrics = {
-                week: { cost: 0, revenue: 0, time: 0, tasks: 0 },
-                month: { cost: 0, revenue: 0, time: 0, tasks: 0 },
-                year: { cost: 0, revenue: 0, time: 0, tasks: 0 }
+            // Helper function to format the date
+            const formatDate = (dateValue) => {
+                return dateValue ? 
+                    new Date(dateValue + 'T00:00:00').toLocaleDateString('en-US', { 
+                        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' 
+                    }) : 
+                    'a future date';
             };
 
-            for (const task of tasks) {
-                const estCost = parseFloat(task.estimatedVendorCost || 0);
-                const addCost = parseFloat(task.actualCostVariance || 0);
-                const payment = parseFloat(task.clientPayment || 0);
-                const downPayment = parseFloat(task.downPayment || 0); // <-- NEW FIELD
-                const time = parseFloat(task.estimatedPlanningTime || 0);
-                const guests = parseInt(task.guestCount || 0);
+            /**
+             * Generates and displays a message based on the selected template.
+             * @param {number} templateType - 1, 2, or 3 corresponding to the message template.
+             */
+            const generateMessage = (templateType) => {
+                const clientName = $('#modal-client-host-name-input').val() || 'Client';
+                const eventTitle = $('#modal-party-event-title-input').val() || 'their event';
+                const downPayment = $('#modal-down-payment-input').val() || '0.00';
+                const clientPayment = $('#modal-client-payment-input').val() || '0.00';
+                const eventDate = $('#modal-event-date-input').val();
+                const taskDesc = $('#modal-task-item-description-input').val() || 'the task details';
+                const dateString = formatDate(eventDate);
                 
-                const totalCost = estCost + addCost;
-                const totalClientIncome = payment + downPayment; // Total Income
-                const netRevenue = totalClientIncome - totalCost; // Net Revenue Calculation
+                let message = '';
 
-                totalEstimatedCost += estCost;
-                totalAdditionalCost += addCost;
-                totalAccumulatedClientIncome += totalClientIncome;
-                totalAccumulatedNetRevenue += netRevenue;
-                totalPlanningTime += time;
-                totalGuestCount += guests;
+                switch (templateType) {
+                    case 1:
+                        // Template 1: Follow-up/Initial Inquiry (Based on your original template)
+                        message = `Hi ${clientName},\n\nThis is the party organizer following up on your event, "${eventTitle}" on ${dateString}. We are currently working on your task: "${taskDesc}". Can you please confirm the next steps are okay? You can reply to this message or call us back.\n\nThanks!`;
+                        break;
+                    case 2:
+                        // Template 2: Confirmation Message
+                        message = `Hi ${clientName}!\n\nGreat news! Your booking for the "${eventTitle}" on ${dateString} has been confirmed. We've locked in the details for "${taskDesc}". Let us know if you have any questions.\n\nSee you then!`;
+                        break;
+                    case 3:
+                        // Template 3: Payment Reminder
+                        message = `Hi ${clientName},\n\nJust a friendly reminder about the payment for your upcoming event, "${eventTitle}" on ${dateString}. Please complete the payment to finalize the task: "${taskDesc}".\n\nCall us if you need assistance!`;
+                        break;
+                    case 4:
+                        // NEW Template 4: Payment Received
+                        message = `Payment Received! 🎉\n\nThank you, ${clientName}. We have successfully received your payment(₱"${clientPayment}") for the task: "${taskDesc}" related to the "${eventTitle}" event on ${dateString}.\n\nEverything is now finalized!`;
+                        break;
+                    case 5:
+                        // NEW Template 5: Cancelled
+                        message = `Hello ${clientName},\n\nWe regret to inform you that your task: "${taskDesc}" for the event "${eventTitle}" on ${dateString} has been cancelled.\n\nPlease contact us immediately to discuss this further. Thank you.`;
+                        break;
+                    case 6:
+                        // Template 6: Refund Issued
+                        message = `Hi ${clientName},\n\nWe've processed the refund(₱"${clientPayment}") for the task: "${taskDesc}" related to the event "${eventTitle}" on ${dateString}. Please allow 3-5 business days for the funds to reflect in your account.\n\nThank you.`;
+                        break;
+                    case 7:
+                        // NEW Template 7: Down Payment Received
+                        message = `Hi ${clientName}!\n\nThank you for your ₱"${downPayment}" down payment for the "${eventTitle}" event on ${dateString}. This secures the task: "${taskDesc}".\n\nWe'll be in touch soon with the next steps!`;
+                        break;
+                    default:
+                        message = 'Error: Invalid template selected.';
+                }
+                
+                messageField.val(message);
+                copyBtn.prop('disabled', false); // Enable copy button after message is generated
+            };
+
+            // --- Modern Copy Function (using Clipboard API) ---
+            const copyMessage = () => {
+                const message = messageField.val();
+                if (!message) {
+                    showToast('No message to copy.', 'warning');
+                    return;
+                }
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    // Use modern Clipboard API (requires secure context/HTTPS)
+                    navigator.clipboard.writeText(message)
+                        .then(() => {
+                            // Assuming showToast is a function for notifications
+                            showToast('Message copied to clipboard! (Modern API)', 'success');
+                        })
+                        .catch(err => {
+                            console.error('Could not copy text using modern API. Falling back.', err);
+                            // Fallback to execCommand if modern API fails (unlikely on modern browsers)
+                            fallbackCopyMessage(message); 
+                        });
+                } else {
+                    // Fallback for non-secure contexts or older browsers
+                    fallbackCopyMessage(message);
+                }
+            };
+            
+            // --- Fallback function for document.execCommand('copy') ---
+            const fallbackCopyMessage = (message) => {
+                const tempInput = document.createElement('textarea');
+                tempInput.value = message;
+                tempInput.setAttribute('readonly', '');
+                tempInput.style.position = 'absolute';
+                tempInput.style.left = '-9999px'; 
+
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                
+                try {
+                    document.execCommand('copy');
+                    showToast('Message copied to clipboard! (Fallback)', 'success');
+                } catch (err) {
+                    console.error('Fallback copy failed', err);
+                    showToast('Failed to copy message. Please copy manually.', 'danger');
+                } finally {
+                    document.body.removeChild(tempInput);
+                }
+            };
+
+
+            // --- Event Listeners ---
+            generateBtn1.on('click', () => generateMessage(1));
+            generateBtn2.on('click', () => generateMessage(2));
+            generateBtn3.on('click', () => generateMessage(3));
+            generateBtn4.on('click', () => generateMessage(4));
+            generateBtn5.on('click', () => generateMessage(5));
+            generateBtn6.on('click', () => generateMessage(6));
+            generateBtn7.on('click', () => generateMessage(7));
+            copyBtn.on('click', copyMessage); // Hook up the new copy function
+            
+            // Clear message and disable copy button when modal is hidden
+            $('#taskDetailModal').on('hidden.bs.modal', () => {
+                messageField.val('');
+                copyBtn.prop('disabled', true);
+            });
+        };
+        
+        // --- Core Application Logic ---
+
+        /**
+         * Object to handle all data persistence logic (Local Storage or Firebase).
+         */
+        const DataService = {
+            /**
+             * Initializes the data store (Firebase or Local Storage).
+             */
+            init: () => {
+                const config = JSON.parse(window.__firebase_config);
+                app = FirebaseTools.initializeApp(config);
+                auth = FirebaseTools.getAuth(app);
+                db = FirebaseTools.getFirestore(app);
+            },
+
+            /**
+             * Gets all tasks from the current storage medium.
+             * @returns {Array<Object>} The array of tasks.
+             */
+            getTasks: () => {
+                if (storageMode === 'local') {
+                    const tasksJson = localStorage.getItem(LOCAL_STORAGE_KEY);
+                    return tasksJson ? JSON.parse(tasksJson) : [];
+                }
+                // If storageMode is 'firebase', the data is handled by the real-time listener (allCurrentTasks)
+                return allCurrentTasks; 
+            },
+
+            /**
+             * Saves the current task list to the determined storage medium.
+             * @param {Array<Object>} tasks - The list of tasks to save.
+             */
+            saveTasks: (tasks) => {
+                allCurrentTasks = tasks; // Update local memory immediately
+
+                if (storageMode === 'local') {
+                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tasks));
+                    showToast('Saved to Local Storage', 'success');
+                } else if (storageMode === 'firebase') {
+                    // This function is only called when tasks are updated (added/edited/deleted)
+                    if (tasksDocRef) {
+                        FirebaseImpl.writeTasksToDB(tasks);
+                    } else {
+                        console.warn("Attempted to save tasks to Firebase before docRef was ready.");
+                        showToast('Cloud Sync Not Ready. Data saved locally.', 'warning');
+                    }
+                }
+                
+                // Re-filter and re-render the list after saving
+                filterTasks();
+                updateAllReports();
+            },
+
+            /**
+             * Clears the current list of tasks and memory.
+             */
+            clearTasks: () => {
+                allCurrentTasks = [];
+                currentTasks = [];
+                // Only clear local storage if explicitly needed, e.g., if the user manually cleared it,
+                // otherwise, for a true Firebase sign out, we let the auth listener handle the UI change.
+                if (storageMode === 'local') {
+                    // This path is technically not used for the 'End Guest Session' button anymore,
+                    // but it's safe to keep for scenarios where a deep clear is needed.
+                    localStorage.removeItem(LOCAL_STORAGE_KEY); 
+                }
+            },
+            
+            /**
+             * Sets the storage mode to 'local' (Guest Mode).
+             */
+            resetToLocalMode: () => {
+                storageMode = 'local';
+                userId = generateId(); // Unique ID for local storage keying/data tracking
+                isGoogleSignedIn = false;
+                // FIX: Removed the empty array argument to force loadTasks to check local storage
+                DataService.loadTasks(); 
+            },
+
+            /**
+             * Loads tasks from the new storage mode and updates global state.
+             * @param {Array<Object>} fetchedTasks - Tasks fetched directly (e.g., from Firebase listener).
+             */
+            loadTasks: (fetchedTasks = null) => {
+                toggleLoading(true, `Loading from ${storageMode === 'firebase' ? 'Cloud' : 'Local Storage'}...`);
+                
+                if (fetchedTasks) {
+                    allCurrentTasks = fetchedTasks;
+                } else {
+                    // This is where getTasks() is called, which reads from localStorage in 'local' mode
+                    allCurrentTasks = DataService.getTasks();
+                }
+
+                // Initial processing and rendering
+                allCurrentTasks.sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate));
+                filterTasks(); // Filters to update currentTasks and render list
+                updateAllReports();
+                updateClientFilterOptions();
+                updateResponsiblePersonFilterOptions();
+                toggleLoading(false);
+            },
+            
+            /**
+             * Adds a new task.
+             * @param {Object} taskData - The new task object.
+             */
+            addTask: (taskData) => {
+                const newTask = {
+                    id: generateId(),
+                    status: 'Pending',
+                    lastUpdated: Date.now(),
+                    ...taskData
+                };
+                allCurrentTasks.push(newTask);
+                DataService.saveTasks(allCurrentTasks);
+                showToast('New Task Added!', 'success');
+            },
+
+            /**
+             * Updates an existing task by ID.
+             * @param {string} taskId - The ID of the task to update.
+             * @param {Object} updatedData - The new data for the task.
+             */
+            updateTask: (taskId, updatedData) => {
+                const index = allCurrentTasks.findIndex(t => t.id === taskId);
+                if (index > -1) {
+                    allCurrentTasks[index] = {
+                        ...allCurrentTasks[index],
+                        ...updatedData,
+                        lastUpdated: Date.now()
+                    };
+                    DataService.saveTasks(allCurrentTasks);
+                    showToast('Task Updated!', 'success');
+                }
+            },
+            
+            /**
+             * Deletes a task by ID.
+             * @param {string} taskId - The ID of the task to delete.
+             */
+            deleteTask: (taskId) => {
+                allCurrentTasks = allCurrentTasks.filter(t => t.id !== taskId);
+                DataService.saveTasks(allCurrentTasks);
+                showToast('Task Deleted!', 'danger');
+            }
+        };
+
+
+        /**
+         * Object to handle all Firebase-specific operations.
+         */
+        const FirebaseImpl = {
+            /**
+             * Writes the entire task array to Firestore.
+             * @param {Array<Object>} tasks - The task list to save.
+             */
+            writeTasksToDB: (tasks) => {
+                // Firebase writes are batched and handled in the DataService.saveTasks
+                // This function is only responsible for the actual Firebase write operation
+                toggleLoading(true, 'Syncing to Cloud...');
+                
+                // Set the entire array under a single document
+                setDoc(tasksDocRef, {
+                    tasks: tasks,
+                    lastUpdated: Date.now()
+                })
+                .then(() => {
+                    // Success is handled by the real-time listener
+                })
+                .catch((error) => {
+                    console.error("Error writing document: ", error);
+                    showToast('Cloud sync failed. Check connection.', 'danger');
+                })
+                .finally(() => {
+                    toggleLoading(false);
+                });
+            },
+
+            /**
+             * Sets up a real-time listener for the user's task data.
+             * @param {string} uid - The Firebase User ID.
+             */
+            setupDataListener: (uid) => {
+                if (firebaseUnsubscribe) {
+                    firebaseUnsubscribe(); // Unsubscribe previous listener
+                }
+
+                // Document path: 'events' collection -> user's UID document
+                tasksDocRef = FirebaseTools.doc(db, FIREBASE_COLLECTION_PATH, uid);
+                
+                toggleLoading(true, 'Waiting for Cloud Data...');
+
+                firebaseUnsubscribe = FirebaseTools.onSnapshot(tasksDocRef, (doc) => {
+                    if (doc.exists()) {
+                        const fetchedData = doc.data().tasks || [];
+                        DataService.loadTasks(fetchedData);
+                    } else {
+                        // Document doesn't exist, this is likely a brand new user
+                        console.log("No initial task data found, creating an empty document.");
+                        FirebaseImpl.writeTasksToDB([]); // Create the initial document
+                    }
+                }, (error) => {
+                    console.error("Firestore listener failed:", error);
+                    showToast("Failed to load data from cloud. Switching to local mode.", 'danger');
+                    // We don't force sign out here, we let the user continue in local mode if possible
+                });
+            },
+
+            /**
+             * Attempts to sign the user in using the Google provider popup.
+             */
+            signInWithGoogle: async () => {
+                showAuthLoadingOverlay("Waiting for Google Sign-In...");
+                try {
+                    const provider = new FirebaseTools.GoogleAuthProvider();
+                    await FirebaseTools.signInWithPopup(auth, provider);
+                } catch (error) {
+                    console.error("Google Sign-In Error:", error);
+                    const errorMessage = (error.code === 'auth/popup-closed-by-user') ? 
+                                         "Sign-in popup closed." : 
+                                         "Sign-in failed. Please try again.";
+                    showToast(errorMessage, 'danger');
+                } finally {
+                    hideAuthLoadingOverlay();
+                }
+            },
+            
+            /**
+             * Signs the current user in anonymously (Guest Mode).
+             */
+            signInAnonymously: async () => {
+                try {
+                    await FirebaseTools.signInAnonymously(auth);
+                } catch (error) {
+                    console.error("Guest Sign-In Error:", error);
+                    showToast("Guest sign-in failed. Please try again.", 'danger');
+                }
+            },
+
+            /**
+             * Signs the current user out (Firebase and Google).
+             */
+            signOutUser: async () => {
+                if (firebaseUnsubscribe) {
+                    firebaseUnsubscribe();
+                    firebaseUnsubscribe = null;
+                }
+                // Firebase sign out: This clears the Firebase session and triggers onAuthStateChanged,
+                // which then handles the UI and modal.
+                await FirebaseTools.signOut(auth); 
+                // We keep clearTasks here just in case, but onAuthStateChanged will handle the rest.
+                DataService.clearTasks(); 
+                DataService.loadTasks(allCurrentTasks);
+                updateClientFilterOptions();
+                updateResponsiblePersonFilterOptions();
+            },
+
+            /**
+             * Sets up the main listener for Firebase Authentication state changes.
+             */
+            setupAuthListeners: () => {
+                FirebaseTools.onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        // User is signed in (Google or Anonymous)
+                        userId = user.uid;
+                        isGoogleSignedIn = !user.isAnonymous;
+                        storageMode = 'firebase';
+                        
+                        hideCloudSyncModal();
+                        updateUIOnModeChange();
+                        
+                        // Start the real-time listener for task data
+                        FirebaseImpl.setupDataListener(userId);
+
+                    } else {
+                        // User is signed out or has not chosen a mode yet (Firebase sign-out path)
+                        userId = null;
+                        isGoogleSignedIn = false;
+                        
+                        // Only show the sync modal if the storageMode is not already set to local
+                        if (storageMode !== 'local') {
+                            storageMode = ''; // Clear state if user signed out
+                            updateUIOnModeChange(); // Update banner to 'None'
+                            showCloudSyncModal();
+                        }
+                    }
+                });
+            }
+        };
+        
+        // --- NEW FUNCTION: Ends Local Guest Session Without Deleting LocalStorage ---
+        /**
+         * Handles ending a local storage (Guest) session without deleting local data.
+         */
+        const endLocalSession = () => {
+            // Clear in-memory state, but do NOT touch localStorage
+            allCurrentTasks = [];
+            currentTasks = [];
+            
+            // Reset mode flags
+            storageMode = ''; // This causes updateUIOnModeChange to show 'None'
+            userId = null; 
+            isGoogleSignedIn = false;
+
+            // Update UI and re-render the now empty in-memory list
+            updateUIOnModeChange();
+            filterTasks(); 
+            updateAllReports();
+            
+            // Show the modal to prompt for the next mode
+            showCloudSyncModal();
+            showToast('Local Guest Session Ended. Data remains in your browser and will load if you return to Guest Mode.', 'info');
+        };
+        // --- END NEW FUNCTION ---
+
+
+        // --- UI Update & Report Logic ---
+
+        /**
+         * Updates the UI elements based on the current storage mode.
+         */
+        const updateUIOnModeChange = () => {
+            let bannerText = '';
+            let authBtnText = '';
+            let authBtnClass = 'btn-outline-danger';
+            let showSignOut = false;
+            
+            if (storageMode === 'firebase') {
+                bannerText = isGoogleSignedIn ? 'Cloud (Google Account)' : 'Cloud (Guest Session)';
+                authBtnText = isGoogleSignedIn ? 'Sign Out' : 'End Guest Session';
+                showSignOut = true;
+            } else if (storageMode === 'local') {
+                bannerText = 'Local Storage (Guest Mode)';
+                authBtnText = 'End Guest Session';
+                showSignOut = true;
+            } else {
+                bannerText = 'None. Please choose a mode.';
+            }
+
+            $('#banner-storage-mode').text(bannerText);
+            $('#auth-action-btn').html(`<i class="fas fa-sign-out-alt me-1"></i> ${authBtnText}`).toggleClass('d-none', !showSignOut);
+        };
+        
+        // ... (updateAllReports, updateClientFilterOptions, updateResponsiblePersonFilterOptions, filterTasks, renderTaskList, createTaskListItem functions remain the same) ...
+        
+        /**
+         * Calculates and updates all metrics on the Home and Reports tabs.
+         */
+        const updateAllReports = () => {
+            const now = new Date();
+            const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const startOfYear = new Date(now.getFullYear(), 0, 1);
+            
+            let totalTasks = 0;
+            let remainingTasks = 0;
+            let grandTotalCost = 0;
+            let totalClientPayment = 0;
+            let totalTimeEst = 0;
+            let totalGuestCount = 0;
+            let totalAdditionalCost = 0;
+            
+            let weekCost = 0;
+            let weekRevenue = 0;
+            let weekTime = 0;
+            
+            let monthCost = 0;
+            let monthRevenue = 0;
+            let monthTime = 0;
+            
+            let yearCost = 0;
+            let yearRevenue = 0;
+            let yearTime = 0;
+            
+            // Map to track client activity (clientName: latestDate)
+            const clientActivity = new Map();
+
+            allCurrentTasks.forEach(task => {
                 totalTasks++;
+                
+                const taskDate = new Date(task.eventDate);
+                const cost = parseFloat(task.estimatedVendorCost) || 0;
+                // FIX: Include downPayment in total client income/payment
+                const payment = (parseFloat(task.clientPayment) || 0) + (parseFloat(task.downPayment) || 0); 
+                const time = parseFloat(task.estimatedPlanningTime) || 0;
+                const additionalCost = parseFloat(task.actualCostVariance) || 0;
+                const guestCount = parseInt(task.guestCount) || 0;
+                
+                const netRevenue = payment - cost - additionalCost;
+
+                grandTotalCost += cost + additionalCost;
+                totalClientPayment += payment; // Updated to include downPayment
+                totalTimeEst += time;
+                totalGuestCount += guestCount;
+                totalAdditionalCost += additionalCost;
                 
                 if (task.status !== 'Confirmed/Paid' && task.status !== 'Cancelled') {
                     remainingTasks++;
                 }
-                
-                if (task.eventDate) {
-                    if (DateUtils.isCurrentWeek(task.eventDate)) {
-                        metrics.week.cost += totalCost;
-                        metrics.week.revenue += netRevenue;
-                        metrics.week.time += time;
-                        metrics.week.tasks++;
-                    }
-                    if (DateUtils.isCurrentMonth(task.eventDate)) {
-                        metrics.month.cost += totalCost;
-                        metrics.month.revenue += netRevenue;
-                        metrics.month.time += time;
-                        metrics.month.tasks++;
-                    }
-                    if (DateUtils.isCurrentYear(task.eventDate)) {
-                        metrics.year.cost += totalCost;
-                        metrics.year.revenue += netRevenue;
-                        metrics.year.time += time;
-                        metrics.year.tasks++;
-                    }
+
+                // Update client activity
+                const clientName = task.clientHostName || 'N/A';
+                if (!clientActivity.has(clientName) || taskDate > clientActivity.get(clientName)) {
+                    clientActivity.set(clientName, taskDate);
                 }
+
+                // Home Tab Metrics
+                if (taskDate >= startOfWeek) {
+                    weekCost += cost + additionalCost;
+                    weekRevenue += netRevenue;
+                    weekTime += time;
+                }
+                
+                if (taskDate >= startOfMonth) {
+                    monthCost += cost + additionalCost;
+                    monthRevenue += netRevenue;
+                    monthTime += time;
+                }
+                
+                if (taskDate >= startOfYear) {
+                    yearCost += cost + additionalCost;
+                    yearRevenue += netRevenue;
+                    yearTime += time;
+                }
+            });
+            
+            const totalNetRevenue = totalClientPayment - grandTotalCost;
+            const costPerGuest = totalGuestCount > 0 ? (grandTotalCost / totalGuestCount) : 0;
+            
+            // --- Update Home Tab ---
+            $('#home-week-cost').text(weekCost.toFixed(2));
+            $('#home-week-revenue').text(weekRevenue.toFixed(2));
+            $('#home-week-time').text(weekTime.toFixed(1));
+            
+            $('#home-month-cost').text(monthCost.toFixed(2));
+            $('#home-month-revenue').text(monthRevenue.toFixed(2));
+            $('#home-month-time').text(monthTime.toFixed(1));
+            
+            $('#home-year-cost').text(yearCost.toFixed(2));
+            $('#home-year-revenue').text(yearRevenue.toFixed(2));
+            $('#home-year-time').text(yearTime.toFixed(1));
+
+            // Populate Recent Clients
+            const sortedClients = Array.from(clientActivity.entries())
+                .sort(([, dateA], [, dateB]) => dateB - dateA) // Sort by most recent date
+                .slice(0, 5); // Take top 5
+
+            const clientList = $('#recent-clients-list').empty();
+            if (sortedClients.length === 0) {
+                clientList.append('<li class="list-group-item text-center text-muted-subtle">No active clients yet.</li>');
+            } else {
+                sortedClients.forEach(([name, date]) => {
+                    clientList.append(`<li class="list-group-item d-flex justify-content-between align-items-center">
+                        ${name}
+                        <span class="badge bg-secondary rounded-pill">${date.toLocaleDateString()}</span>
+                    </li>`);
+                });
             }
-            
-            const grandTotalCost = totalEstimatedCost + totalAdditionalCost;
-            const costPerGuest = totalGuestCount > 0 ? grandTotalCost / totalGuestCount : 0;
 
-            return {
-                totalEstimatedCost,
-                totalAdditionalCost,
-                grandTotalCost,
-                totalClientPayment: totalAccumulatedClientIncome,
-                totalNetRevenue: totalAccumulatedNetRevenue,
-                totalPlanningTime,
-                totalGuestCount,
-                totalTasks,
-                remainingTasks,
-                costPerGuest,
-                metrics
-            };
-        }
+            // Populate Upcoming Events (Top 10)
+            const upcomingEvents = allCurrentTasks
+                .filter(task => new Date(task.eventDate) >= new Date(new Date().setHours(0,0,0,0)))
+                .sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate))
+                .slice(0, 10);
+                
+            const eventList = $('#upcoming-events-list').empty();
+            if (upcomingEvents.length === 0) {
+                eventList.append('<li class="list-group-item text-center text-muted-subtle">No upcoming events scheduled.</li>');
+            } else {
+                 upcomingEvents.forEach(task => {
+                    const date = new Date(task.eventDate).toLocaleDateString();
+                    eventList.append(`<li class="list-group-item d-flex justify-content-between align-items-center py-1">
+                        <small class="text-truncate">${task.partyEventTitle}: ${task.taskItemDescription}</small>
+                        <span class="badge bg-primary rounded-pill ms-2">${date}</span>
+                    </li>`);
+                });
+            }
 
-        function updateSummaryMetrics(tasks) {
-            const { grandTotalCost, totalClientPayment, totalNetRevenue, totalPlanningTime, costPerGuest, totalTasks, remainingTasks, metrics } = calculateMetrics(tasks);
-            
-            $('#home-week-cost').text(formatCurrency(metrics.week.cost));
-            $('#home-week-revenue').text(formatCurrency(metrics.week.revenue));
-            $('#home-week-time').text(metrics.week.time.toFixed(1) + ' hrs');
-            
-            $('#home-month-cost').text(formatCurrency(metrics.month.cost));
-            $('#home-month-revenue').text(formatCurrency(metrics.month.revenue));
-            $('#home-month-time').text(metrics.month.time.toFixed(1) + ' hrs');
-            
-            $('#home-year-cost').text(formatCurrency(metrics.year.cost));
-            $('#home-year-revenue').text(formatCurrency(metrics.year.revenue));
-            $('#home-year-time').text(metrics.year.time.toFixed(1) + ' hrs');
-            
-            // Update client/event lists on home tab
-            updateRecentClients(tasks);
-            updateUpcomingEvents(tasks);
-        }
 
-        function updateReportsMetrics(tasks) {
-            const { 
-                totalEstimatedCost, totalAdditionalCost, grandTotalCost, 
-                totalClientPayment, totalNetRevenue, totalPlanningTime, 
-                costPerGuest, totalTasks, remainingTasks 
-            } = calculateMetrics(tasks);
-            
+            // --- Update Reports Tab ---
             $('#total-tasks').text(totalTasks);
             $('#remaining-tasks').text(remainingTasks);
-            $('#total-cost-est').text(formatCurrency(totalEstimatedCost));
-            $('#total-additional-cost').text(formatCurrency(totalAdditionalCost));
-            $('#grand-total-cost').text(formatCurrency(grandTotalCost));
-            $('#total-client-payment').text(formatCurrency(totalClientPayment));
-            $('#total-net-revenue').text(formatCurrency(totalNetRevenue));
-            $('#total-time-est').text(totalPlanningTime.toFixed(1));
-            $('#cost-per-guest').text(formatCurrency(costPerGuest));
+            $('#total-cost-est').text((grandTotalCost - totalAdditionalCost).toFixed(2));
+            $('#total-additional-cost').text(totalAdditionalCost.toFixed(2));
+            $('#grand-total-cost').text(grandTotalCost.toFixed(2));
+            $('#total-client-payment').text(totalClientPayment.toFixed(2)); // Updated to include downPayment
+            $('#total-net-revenue').text(totalNetRevenue.toFixed(2));
+            $('#total-time-est').text(totalTimeEst.toFixed(1));
+            $('#cost-per-guest').text(costPerGuest.toFixed(2));
             
-            // Update filtered summary panel
-            if ($('#todo-filter-inputs').hasClass('show')) {
-                $('#filtered-summary').removeClass('d-none');
-                $('#filtered-est-cost').text(formatCurrency(totalEstimatedCost));
-                $('#filtered-additional-cost').text(formatCurrency(totalAdditionalCost));
-                $('#filtered-client-payment').text(formatCurrency(totalClientPayment));
-                $('#filtered-net-revenue').text(formatCurrency(totalNetRevenue));
+            // Update CSV download button filter status
+            const reportStart = $('#report-date-start').val();
+            const reportEnd = $('#report-date-end').val();
+            if (reportStart || reportEnd) {
+                 $('#download-filter-status').text(`(Filtered: ${reportStart || 'Any'} to ${reportEnd || 'Any'})`);
             } else {
-                $('#filtered-summary').addClass('d-none');
+                 $('#download-filter-status').text('(All Time)');
             }
-        }
-        
-        function updateRecentClients(tasks) {
-            const clientCounts = tasks.reduce((acc, task) => {
-                if (task.clientHostName) {
-                    acc[task.clientHostName] = (acc[task.clientHostName] || 0) + 1;
-                }
-                return acc;
-            }, {});
+        };
 
-            const sortedClients = Object.entries(clientCounts)
-                .sort(([, countA], [, countB]) => countB - countA)
-                .slice(0, 5);
 
-            const listHtml = sortedClients.length > 0 ? sortedClients.map(([name, count]) => 
-                `<li class="list-group-item d-flex justify-content-between align-items-center">
-                    ${name}
-                    <span class="badge bg-primary rounded-pill">${count}</span>
-                </li>`
-            ).join('') : '<li class="list-group-item text-center text-muted-subtle">No clients yet.</li>';
-
-            $('#recent-clients-list').html(listHtml);
-        }
-        
-        function updateUpcomingEvents(tasks) {
-             const today = new Date();
-             today.setHours(0, 0, 0, 0);
-             
-             const upcomingEvents = tasks
-                 .filter(task => task.eventDate && DateUtils.parseDate(task.eventDate) >= today && task.status !== 'Cancelled')
-                 .sort((a, b) => DateUtils.parseDate(a.eventDate) - DateUtils.parseDate(b.eventDate))
-                 .slice(0, 10);
-                 
-            const listHtml = upcomingEvents.length > 0 ? upcomingEvents.map(task => 
-                `<li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>${task.partyEventTitle}</strong>
-                        <small class="d-block text-muted-subtle">${DateUtils.formatDate(task.eventDate)}</small>
-                    </div>
-                    <span class="badge ${getStatusBadgeClass(task.status).replace('badge ', '')}">${task.status}</span>
-                </li>`
-            ).join('') : '<li class="list-group-item text-center text-muted-subtle">No upcoming events.</li>';
-            
-            $('#upcoming-events-list').html(listHtml);
-        }
-
-        // --- Task Rendering Functions ---
-        
-        // Function to render a single task item
-        function renderTask(task) {
-            const formattedDate = DateUtils.formatDate(task.eventDate);
-            const formattedTime = task.eventStartTime ? DateUtils.formatTime(task.eventStartTime) : 'N/A';
-
-            // Determine border color based on status
-            const borderClass = getBorderClass(task.status);
-            const statusBadgeClass = getStatusBadgeClass(task.status);
-            const isCancelled = task.status === 'Cancelled';
-            const itemClasses = `list-group-item d-flex justify-content-between align-items-center ${isCancelled ? 'list-group-item-danger' : ''} border-start ${borderClass}`;
-
-            // Calculate costs and income
-            const estimatedCost = parseFloat(task.estimatedVendorCost || 0);
-            const additionalCost = parseFloat(task.actualCostVariance || 0);
-            const totalCost = estimatedCost + additionalCost;
-            
-            const clientPayment = parseFloat(task.clientPayment || 0);
-            const downPayment = parseFloat(task.downPayment || 0); // <-- NEW FIELD
-            const totalClientIncome = clientPayment + downPayment; // <-- UPDATED CALCULATION
-            const netRevenue = totalClientIncome - totalCost; // Net Revenue
-
-            return `
-                <li class="${itemClasses}" data-id="${task.id}" data-event-date="${task.eventDate}">
-                    <div class="d-flex flex-column flex-md-row justify-content-between w-100">
-                        
-                        <div class="me-3 mb-2 mb-md-0" style="min-width: 250px;">
-                            <strong class="d-block text-primary">${task.partyEventTitle}</strong>
-                            <span class="text-muted-subtle" style="font-size: 0.9rem;">${task.clientHostName}</span>
-                            <span class="badge bg-secondary ms-2">${task.category}</span>
-                            <span class="badge bg-success ms-2" title="Total Client Income (Final + Down Payment)">+${formatCurrency(totalClientIncome)}</span>
-                            <small class="d-block mt-1 text-muted-subtle">
-                                <i class="fas fa-tasks me-1"></i> ${task.taskItemDescription}
-                            </small>
-                        </div>
-
-                        <div class="text-start text-md-center me-3 mb-2 mb-md-0" style="min-width: 150px;">
-                            <span class="d-block text-muted-subtle" style="font-size: 0.8rem;">Date/Time</span>
-                            <strong class="d-block">${formattedDate}</strong>
-                            <span class="text-muted-subtle" style="font-size: 0.8rem;">${formattedTime}</span>
-                        </div>
-
-                        <div class="text-start text-md-center me-3 mb-2 mb-md-0" style="min-width: 100px;">
-                            <span class="d-block text-muted-subtle" style="font-size: 0.8rem;">Cost (Total)</span>
-                            <strong class="d-block text-danger">${formatCurrency(totalCost)}</strong>
-                            <span class="text-muted-subtle" style="font-size: 0.8rem;">${task.estimatedPlanningTime} hrs</span>
-                        </div>
-
-                        <div class="ms-md-auto d-flex flex-row align-items-center">
-                            <button class="btn btn-sm btn-outline-info status-btn me-2" data-id="${task.id}" title="Toggle status">${task.status}</button>
-                            <button class="btn btn-sm btn-primary edit-task-btn" data-id="${task.id}">
-                                <i class="fas fa-edit me-1"></i> Edit
-                            </button>
-                        </div>
-                    </div>
-                </li>
-            `;
-        }
-
-        function renderTasks(tasks) {
-            // Update filter dropdowns with the complete, current task list
-            updateFilterSelects(tasks); // <-- FIX: Ensures dropdowns are populated
-
-            // Apply current filters
-            const filteredTasks = getFilteredTasks(tasks);
-            
-            // Apply pagination
-            const startIndex = (currentPage - 1) * TASKS_PER_PAGE;
-            const endIndex = startIndex + TASKS_PER_PAGE;
-            currentTasks = filteredTasks.slice(startIndex, endIndex);
-
-            // Update UI
-            $('#task-count').text(filteredTasks.length);
-            updatePaginationControls(filteredTasks.length);
-
-            const taskListElement = $('#task-list');
-            taskListElement.empty();
-
-            if (currentTasks.length === 0) {
-                 const message = tasks.length === 0 
-                    ? 'No tasks saved yet. Add one in the "New Task" tab!'
-                    : 'No tasks found matching current filters.';
-                taskListElement.append(`<li class="list-group-item text-center text-muted-subtle">${message}</li>`);
-                return;
-            }
-            
-            // Render visible tasks
-            currentTasks.forEach(task => {
-                taskListElement.append(renderTask(task));
-            });
-            
-            // Re-attach listeners for dynamically rendered elements
-            $('.edit-task-btn').off('click').on('click', function() {
-                const taskId = $(this).data('id');
-                const task = tasks.find(t => t.id === taskId);
-                if (task) setupModals.openEditModal(task);
-            });
-            
-            $('.status-btn').off('click').on('click', function() {
-                const taskId = $(this).data('id');
-                const task = tasks.find(t => t.id === taskId);
-                if (task) {
-                    let newStatus;
-                    switch (task.status) {
-                        case 'Pending': newStatus = 'Inquiry Sent'; break;
-                        case 'Inquiry Sent': newStatus = 'Confirmed/Paid'; break;
-                        case 'Confirmed/Paid': newStatus = 'Cancelled'; break;
-                        case 'Cancelled': newStatus = 'Pending'; break;
-                        default: newStatus = 'Pending';
-                    }
-                    DataService.updateTaskStatus(taskId, newStatus);
-                }
-            });
-            
-            // Listener for status change inside the modal (it's a text span, not a button)
-             $('#modal-task-status').off('click').on('click', function() {
-                const taskId = $('#modal-task-id').val();
-                const task = tasks.find(t => t.id === taskId);
-                if (task) {
-                    let newStatus;
-                    switch (task.status) {
-                        case 'Pending': newStatus = 'Inquiry Sent'; break;
-                        case 'Inquiry Sent': newStatus = 'Confirmed/Paid'; break;
-                        case 'Confirmed/Paid': newStatus = 'Cancelled'; break;
-                        case 'Cancelled': newStatus = 'Pending'; break;
-                        default: newStatus = 'Pending';
-                    }
-                    // Update in modal immediately for visual feedback
-                    $(this).text(newStatus).removeClass().addClass(getStatusBadgeClass(newStatus).replace('badge ', ''));
-                    // Update task object for form submission
-                    // Note: The task object here is a reference to the global task list item. 
-                    // This change is temporary for modal form. The actual update happens on form submit.
-                }
-            });
-            
-        }
-        
         // --- Filtering Logic ---
         
-        // Global object to store filter values
-        const filters = {
-            dateStart: null,
-            dateEnd: null,
-            costMin: null,
-            costMax: null,
-            timeMin: null,
-            timeMax: null,
-            category: 'All',
-            status: 'All',
-            client: 'All',
-            responsiblePerson: 'All'
+        /**
+         * Updates the list of available Client/Host names in the filter dropdown.
+         */
+        const updateClientFilterOptions = () => {
+            // FIX: Use robust trimming and length check to ensure only valid names populate
+            const clientNames = new Set(allCurrentTasks
+                .map(t => (t.clientHostName || '').trim())
+                .filter(name => name.length > 0)
+            );
+            const select = $('#filter-client').empty().append('<option value="All">All Clients/Hosts</option>');
+            Array.from(clientNames).sort().forEach(name => {
+                select.append($('<option>', { value: name, text: name }));
+            });
+            select.val(currentFilters.client); // Restore selected value
         };
         
-        function getFilteredTasks(tasks) {
-            let filtered = tasks;
-            let isFiltered = false;
+        /**
+         * Updates the list of available Responsible Persons in the filter dropdown.
+         */
+        const updateResponsiblePersonFilterOptions = () => {
+             // FIX: Use robust trimming and length check to ensure only valid names populate
+             const persons = new Set(allCurrentTasks
+                .map(t => (t.responsiblePerson || '').trim())
+                .filter(name => name.length > 0)
+             );
+             const select = $('#filter-responsible-person').empty().append('<option value="All">All Persons</option>');
+             Array.from(persons).sort().forEach(name => {
+                 select.append($('<option>', { value: name, text: name }));
+             });
+             select.val(currentFilters.responsiblePerson); // Restore selected value
+        };
 
-            // 1. Date Range Filter
-            const dateStart = filters.dateStart ? DateUtils.parseDate(filters.dateStart) : null;
-            const dateEnd = filters.dateEnd ? DateUtils.parseDate(filters.dateEnd) : null;
-            if (dateStart || dateEnd) {
-                isFiltered = true;
-                filtered = filtered.filter(task => {
-                    const eventDate = DateUtils.parseDate(task.eventDate);
-                    if (dateStart && eventDate < dateStart) return false;
-                    if (dateEnd) {
-                        // Check if eventDate is on or before dateEnd
-                        const endOfDay = new Date(dateEnd);
-                        endOfDay.setHours(23, 59, 59, 999);
-                        if (eventDate > endOfDay) return false;
-                    }
-                    return true;
-                });
-            }
-            
-            // 2. Cost Range Filter
-            const costMin = parseFloat(filters.costMin);
-            const costMax = parseFloat(filters.costMax);
-            if (!isNaN(costMin) || !isNaN(costMax)) {
-                isFiltered = true;
-                filtered = filtered.filter(task => {
-                    const totalCost = parseFloat(task.estimatedVendorCost || 0) + parseFloat(task.actualCostVariance || 0);
-                    if (!isNaN(costMin) && totalCost < costMin) return false;
-                    if (!isNaN(costMax) && totalCost > costMax) return false;
-                    return true;
-                });
-            }
-            
-            // 3. Time Range Filter
-            const timeMin = parseFloat(filters.timeMin);
-            const timeMax = parseFloat(filters.timeMax);
-            if (!isNaN(timeMin) || !isNaN(timeMax)) {
-                isFiltered = true;
-                filtered = filtered.filter(task => {
-                    const time = parseFloat(task.estimatedPlanningTime || 0);
-                    if (!isNaN(timeMin) && time < timeMin) return false;
-                    if (!isNaN(timeMax) && time > timeMax) return false;
-                    return true;
-                });
-            }
-            
-            // 4. Category Filter
-            if (filters.category !== 'All') {
-                isFiltered = true;
-                filtered = filtered.filter(task => task.category === filters.category);
-            }
 
-            // 5. Status Filter
-            if (filters.status !== 'All') {
-                isFiltered = true;
-                filtered = filtered.filter(task => task.status === filters.status);
-            }
+        /**
+         * Applies the current filters to allCurrentTasks and updates the rendered list.
+         */
+        const filterTasks = () => {
+            const filters = currentFilters;
+
+            currentTasks = allCurrentTasks.filter(task => {
+                const taskDate = new Date(task.eventDate);
+                const cost = parseFloat(task.estimatedVendorCost) || 0;
+                const time = parseFloat(task.estimatedPlanningTime) || 0;
+                
+                // Date Range Filter
+                if (filters.dateStart && taskDate < new Date(filters.dateStart)) return false;
+                if (filters.dateEnd && taskDate > new Date(filters.dateEnd)) return false;
+                
+                // Cost Range Filter
+                if (filters.costMin && cost < parseFloat(filters.costMin)) return false;
+                if (filters.costMax && cost > parseFloat(filters.costMax)) return false;
+                
+                // Time Range Filter
+                if (filters.timeMin && time < parseFloat(filters.timeMin)) return false;
+                if (filters.timeMax && time > parseFloat(filters.timeMax)) return false; // Corrected: changed cost to time
+                
+                // Category Filter
+                if (filters.category !== 'All' && task.categoryService !== filters.category) return false;
+
+                // Status Filter
+                if (filters.status !== 'All' && task.status !== filters.status) return false;
+
+                // Client Filter
+                if (filters.client !== 'All' && task.clientHostName !== filters.client) return false;
+                
+                // Responsible Person Filter
+                if (filters.responsiblePerson !== 'All' && task.responsiblePerson !== filters.responsiblePerson) return false;
+
+                return true;
+            });
+
+            // Calculate filtered summary
+            const summary = {
+                estCost: 0,
+                additionalCost: 0,
+                clientPayment: 0,
+                netRevenue: 0
+            };
+
+            currentTasks.forEach(task => {
+                const estCost = parseFloat(task.estimatedVendorCost) || 0;
+                const additionalCost = parseFloat(task.actualCostVariance) || 0;
+                // FIX: Include downPayment in clientPayment for summary
+                const clientPayment = (parseFloat(task.clientPayment) || 0) + (parseFloat(task.downPayment) || 0); 
+                
+                summary.estCost += estCost;
+                summary.additionalCost += additionalCost;
+                summary.clientPayment += clientPayment;
+                summary.netRevenue += clientPayment - estCost - additionalCost;
+            });
             
-            // 6. Client Filter
-            if (filters.client !== 'All') {
-                isFiltered = true;
-                filtered = filtered.filter(task => task.clientHostName === filters.client);
-            }
-            
-            // 7. Responsible Person Filter
-            if (filters.responsiblePerson !== 'All') {
-                isFiltered = true;
-                filtered = filtered.filter(task => task.responsiblePerson === filters.responsiblePerson);
-            }
-            
-            // Show/hide the filtered summary
-            if (isFiltered) {
+            // FIX: Always show the summary if there are tasks in the list, filtered or not.
+            if (currentTasks.length > 0) {
                 $('#filtered-summary').removeClass('d-none');
-                updateReportsMetrics(filtered);
             } else {
                 $('#filtered-summary').addClass('d-none');
             }
 
-            return filtered;
-        }
-        
-        function updateFilterSelects(tasks) {
-            // Only consider tasks with defined client names/responsible persons, and filter unique names
-            const clients = [...new Set(tasks.map(t => t.clientHostName).filter(name => name && name.trim()))].sort();
-            const responsiblePersons = [...new Set(tasks.map(t => t.responsiblePerson).filter(name => name && name.trim()))].sort();
-            
-            // Clients
-            const clientSelect = $('#filter-client').empty();
-            clientSelect.append('<option value="All">All Clients/Hosts</option>');
-            clients.forEach(client => {
-                const option = `<option value="${client}">${client}</option>`;
-                clientSelect.append(option);
-            });
-            clientSelect.val(filters.client); // Restore selected filter
-            
-            // Responsible Persons
-            const responsibleSelect = $('#filter-responsible-person').empty();
-            responsibleSelect.append('<option value="All">All Persons</option>');
-            responsiblePersons.forEach(person => {
-                const option = `<option value="${person}">${person}</option>`;
-                responsibleSelect.append(option);
-            });
-            responsibleSelect.val(filters.responsiblePerson); // Restore selected filter
-        }
+            $('#filtered-est-cost').text(summary.estCost.toFixed(2));
+            $('#filtered-additional-cost').text(summary.additionalCost.toFixed(2));
+            $('#filtered-client-payment').text(summary.clientPayment.toFixed(2));
+            $('#filtered-net-revenue').text(summary.netRevenue.toFixed(2));
 
-        // --- Pagination Logic ---
-        
-        function updatePaginationControls(totalTasks) {
-            const totalPages = Math.ceil(totalTasks / TASKS_PER_PAGE);
-            
-            // Ensure current page is valid after filtering
-            if (currentPage > totalPages && totalPages > 0) {
-                currentPage = totalPages;
-            } else if (totalPages === 0) {
-                 currentPage = 0;
-            } else if (currentPage === 0 && totalPages > 0) {
-                 currentPage = 1;
+
+            // Reset pagination and render
+            currentPage = 1;
+            totalPages = Math.ceil(currentTasks.length / TASKS_PER_PAGE);
+            renderTaskList();
+        };
+
+        /**
+         * Renders the task list for the current page.
+         */
+        const renderTaskList = () => {
+            const list = $('#task-list').empty();
+            const startIndex = (currentPage - 1) * TASKS_PER_PAGE;
+            const endIndex = startIndex + TASKS_PER_PAGE;
+            const tasksToRender = currentTasks.slice(startIndex, endIndex);
+
+            if (tasksToRender.length === 0) {
+                list.append('<li class="list-group-item text-center text-muted-subtle">No tasks match the current filters.</li>');
+            } else {
+                tasksToRender.forEach(task => {
+                    const listItem = createTaskListItem(task);
+                    list.append(listItem);
+                });
             }
 
-            $('#page-info').text(`Page ${currentPage} of ${totalPages}`);
+            // Update pagination controls
+            $('#task-count').text(currentTasks.length);
+            $('#page-info').text(`Page ${totalPages > 0 ? currentPage : 0} of ${totalPages}`);
+            $('#prev-page-btn').prop('disabled', currentPage === 1 || totalPages === 0);
+            $('#next-page-btn').prop('disabled', currentPage === totalPages || totalPages === 0);
             
-            $('#prev-page-btn').prop('disabled', currentPage <= 1);
-            $('#next-page-btn').prop('disabled', currentPage >= totalPages);
-        }
+            // Hide pagination if only one page
+            $('#task-pagination-controls').toggleClass('d-none', totalPages <= 1);
+        };
+
+        /**
+         * Creates a single list item element for a task.
+         * @param {Object} task - The task object.
+         * @returns {JQuery} The list item element.
+         */
+        const createTaskListItem = (task) => {
+            let statusClass = 'bg-secondary';
+            if (task.status === 'Confirmed/Paid') statusClass = 'bg-success';
+            else if (task.status === 'Inquiry Sent') statusClass = 'bg-info';
+            else if (task.status === 'Cancelled') statusClass = 'bg-danger';
+
+            let listItemClass = '';
+            if (task.status === 'Cancelled') listItemClass = 'list-group-item-danger';
+
+            const cost = (parseFloat(task.estimatedVendorCost) || 0) + (parseFloat(task.actualCostVariance) || 0);
+            // FIX: Include downPayment in revenue display
+            const revenue = (parseFloat(task.clientPayment) || 0) + (parseFloat(task.downPayment) || 0);
+            const net = revenue - cost;
+            const netClass = net >= 0 ? 'text-revenue' : 'text-danger';
+
+            const listItem = $(`
+                <li class="list-group-item ${listItemClass} d-flex justify-content-between align-items-center task-item" data-id="${task.id}" data-bs-toggle="modal" data-bs-target="#taskDetailModal">
+                    <div class="d-flex flex-column flex-grow-1 me-2">
+                        <div class="d-flex align-items-baseline mb-1">
+                            <h6 class="mb-0 me-2 text-primary text-truncate">${task.partyEventTitle}</h6>
+                            <small class="text-muted-subtle">${task.clientHostName || 'N/A'}</small>
+                        </div>
+                        <small class="text-secondary mb-1">
+                            <i class="fas fa-list-check me-1"></i> ${task.taskItemDescription} 
+                            <span class="ms-2 badge bg-light text-dark">${task.categoryService}</span>
+                        </small>
+                        <small class="d-flex flex-wrap">
+                             <span class="text-danger me-3"><i class="fas fa-dollar-sign me-1"></i> Cost: ${cost.toFixed(2)}</span>
+                             <span class="text-info me-3"><i class="fas fa-hand-holding-dollar me-1"></i> Income: ${revenue.toFixed(2)}</span>
+                             <span class="${netClass} fw-bold"><i class="fas fa-wallet me-1"></i> Net: ${net.toFixed(2)}</span>
+                        </small>
+                    </div>
+                    <div class="text-end d-flex flex-column align-items-end flex-shrink-0">
+                         <span class="badge ${statusClass} mb-1">${task.status}</span>
+                         <small class="text-muted-subtle">${task.eventDate}</small>
+                    </div>
+                </li>
+            `);
+            return listItem;
+        };
 
 
-        // --- Setup Functions for Events & Forms ---
+        // --- Setup Functions ---
 
-        function setupForm() {
-            // Set today's date as default for new task
-            const today = new Date().toISOString().split('T')[0];
-            $('#event-date').val(today);
-            
+        /**
+         * Sets up event handlers for the New Task form.
+         */
+        const setupForm = () => {
             $('#party-form').on('submit', function(e) {
                 e.preventDefault();
                 
-                const task = {
+                const taskData = {
                     clientHostName: $('#client-host-name').val().trim(),
                     partyEventTitle: $('#party-event-title').val().trim(),
                     taskItemDescription: $('#task-item-description').val().trim(),
-                    category: $('#category-service').val(),
+                    categoryService: $('#category-service').val(),
                     eventDate: $('#event-date').val(),
-                    eventStartTime: $('#event-start-time').val().trim(),
-                    estimatedVendorCost: $('#estimated-vendor-cost').val() || '0.00',
-                    estimatedPlanningTime: $('#estimated-planning-time').val() || '0.0',
+                    eventStartTime: $('#event-start-time').val(),
+                    estimatedVendorCost: $('#estimated-vendor-cost').val(),
+                    estimatedPlanningTime: $('#estimated-planning-time').val(),
                     responsiblePerson: $('#responsible-person').val().trim(),
-                    clientPayment: $('#client-payment').val() || '0.00',
-                    downPayment: $('#down-payment').val() || '0.00', // <-- NEW FIELD
-                    guestCount: $('#guest-count').val() || '0',
+                    clientPayment: $('#client-payment').val(),
+                    downPayment: $('#down-payment').val(),
+                    guestCount: $('#guest-count').val(),
                     vendorSupplierDetails: $('#vendor-supplier-details').val().trim(),
-                    // other default values are handled by getUpdatedTasks
+                    internalNotes: "", // Default empty
+                    actualCostVariance: 0, // Default 0 for new tasks
+                    clientPhoneNumber: $('#client-phone-number').val(),
+                    clientEmail: $('#client-email').val()
                 };
+
+                DataService.addTask(taskData);
                 
-                DataService.updateTask(null, task); // Pass null as ID to create a new task
-                
-                // Reset form (except for party title and time)
-                $('#party-form')[0].reset();
-                $('#party-event-title').val('New Party Event');
+                // Reset only the dynamic parts of the form, keeping the title as a placeholder for the next task
+                $('#party-form')[0].reset(); 
+                $('#category-service').val('Other');
                 $('#estimated-vendor-cost').val('0.00');
                 $('#estimated-planning-time').val('1');
                 $('#client-payment').val('0.00');
-                $('#down-payment').val('0.00'); // <-- NEW FIELD
+                $('#down-payment').val('0.00');
                 $('#guest-count').val('0');
-                
-                // Re-set today's date
-                $('#event-date').val(today);
-                
-                // Switch to to-do list tab
-                $('#todo-list-tab').tab('show');
-                
-                showToast("New task saved!");
+                $('#party-event-title').val(taskData.partyEventTitle);
             });
-        }
-        
+        };
+
+        /**
+         * Sets up event handlers for the Task Detail Modal.
+         */
         const setupModals = {
-            taskModal: new bootstrap.Modal(document.getElementById('taskDetailModal')),
-            
-            openEditModal: (task) => {
-                // Populate the modal fields
+            /**
+             * Populates the modal fields when a task is clicked.
+             */
+            populateModal: (task) => {
                 $('#modal-task-id').val(task.id);
                 $('#modal-client-host-name-input').val(task.clientHostName);
                 $('#modal-party-event-title-input').val(task.partyEventTitle);
                 $('#modal-task-item-description-input').val(task.taskItemDescription);
-                $('#modal-category-service-input').val(task.category);
+                $('#modal-category-service-input').val(task.categoryService);
                 $('#modal-event-date-input').val(task.eventDate);
                 $('#modal-event-time-input').val(task.eventStartTime);
-                $('#modal-vendor-supplier-details-input').val(task.vendorSupplierDetails);
                 $('#modal-estimated-vendor-cost-input').val(task.estimatedVendorCost);
-                $('#modal-actual-cost-variance-input').val(task.actualCostVariance);
+                $('#modal-actual-cost-variance-input').val(task.actualCostVariance || 0.00);
                 $('#modal-client-payment-input').val(task.clientPayment);
-                $('#modal-down-payment-input').val(task.downPayment); // <-- NEW FIELD
-                $('#modal-estimated-planning-time-input').val(task.estimatedPlanningTime);
+                $('#modal-down-payment-input').val(task.downPayment);
                 $('#modal-responsible-person-input').val(task.responsiblePerson);
                 $('#modal-guest-count-input').val(task.guestCount);
+                $('#modal-estimated-planning-time-input').val(task.estimatedPlanningTime);
+                $('#modal-vendor-supplier-details-input').val(task.vendorSupplierDetails);
                 $('#modal-internal-notes-input').val(task.internalNotes);
-                
-                // Set status badge
-                $('#modal-task-status').text(task.status).removeClass().addClass(getStatusBadgeClass(task.status).replace('badge ', ''));
-                
-                setupModals.taskModal.show();
+                $('#modal-client-phone-input').val(task.clientPhoneNumber);
+                $('#modal-client-email-input').val(task.clientEmail);
+
+                // Status Badge
+                const statusBadge = $('#modal-task-status');
+                statusBadge.text(task.status);
+                statusBadge.removeClass().addClass('badge');
+                if (task.status === 'Confirmed/Paid') statusBadge.addClass('bg-success');
+                else if (task.status === 'Inquiry Sent') statusBadge.addClass('bg-info');
+                else if (task.status === 'Cancelled') statusBadge.addClass('bg-danger');
+                else statusBadge.addClass('bg-secondary');
             },
-            
+
+            /**
+             * Cycles the task status on badge click.
+             */
+            cycleStatus: (e) => {
+                const badge = $(e.currentTarget);
+                const currentStatus = badge.text();
+                let newStatus = '';
+                
+                switch (currentStatus) {
+                    case 'Pending': newStatus = 'Inquiry Sent'; break;
+                    case 'Inquiry Sent': newStatus = 'Confirmed/Paid'; break;
+                    case 'Confirmed/Paid': newStatus = 'Cancelled'; break;
+                    case 'Cancelled': newStatus = 'Pending'; break;
+                    default: newStatus = 'Pending';
+                }
+                
+                badge.text(newStatus);
+                // Update styling instantly
+                badge.removeClass().addClass('badge');
+                if (newStatus === 'Confirmed/Paid') badge.addClass('bg-success');
+                else if (newStatus === 'Inquiry Sent') badge.addClass('bg-info');
+                else if (newStatus === 'Cancelled') badge.addClass('bg-danger');
+                else badge.addClass('bg-secondary');
+            },
+
+            /**
+             * Sets up the main event listeners for the modal.
+             */
             setupEditForm: () => {
+                // Event listener to populate the modal
+                $('#taskDetailModal').on('show.bs.modal', function(e) {
+                    const taskId = $(e.relatedTarget).data('id');
+                    const task = allCurrentTasks.find(t => t.id === taskId);
+                    if (task) {
+                        setupModals.populateModal(task);
+                    }
+                });
+
+                // Status Cycling
+                $('#modal-task-status').on('click', setupModals.cycleStatus);
+
+                // Update Form Submission
                 $('#task-update-form').on('submit', function(e) {
                     e.preventDefault();
                     
                     const taskId = $('#modal-task-id').val();
-                    
-                    const updatedFields = {
+                    const updatedData = {
                         clientHostName: $('#modal-client-host-name-input').val().trim(),
                         partyEventTitle: $('#modal-party-event-title-input').val().trim(),
                         taskItemDescription: $('#modal-task-item-description-input').val().trim(),
-                        category: $('#modal-category-service-input').val(),
+                        categoryService: $('#modal-category-service-input').val(),
                         eventDate: $('#modal-event-date-input').val(),
-                        eventStartTime: $('#modal-event-time-input').val().trim(),
-                        vendorSupplierDetails: $('#modal-vendor-supplier-details-input').val().trim(),
-                        estimatedVendorCost: $('#modal-estimated-vendor-cost-input').val() || '0.00',
-                        actualCostVariance: $('#modal-actual-cost-variance-input').val() || '0.00',
-                        clientPayment: $('#modal-client-payment-input').val() || '0.00',
-                        downPayment: $('#modal-down-payment-input').val() || '0.00', // <-- NEW FIELD
-                        estimatedPlanningTime: $('#modal-estimated-planning-time-input').val() || '0.0',
+                        eventStartTime: $('#modal-event-time-input').val(),
+                        estimatedVendorCost: $('#modal-estimated-vendor-cost-input').val(),
+                        actualCostVariance: $('#modal-actual-cost-variance-input').val(),
+                        clientPayment: $('#modal-client-payment-input').val(),
+                        downPayment: $('#modal-down-payment-input').val(),
                         responsiblePerson: $('#modal-responsible-person-input').val().trim(),
-                        guestCount: $('#modal-guest-count-input').val() || '0',
+                        guestCount: $('#modal-guest-count-input').val(),
+                        estimatedPlanningTime: $('#modal-estimated-planning-time-input').val(),
+                        vendorSupplierDetails: $('#modal-vendor-supplier-details-input').val().trim(),
                         internalNotes: $('#modal-internal-notes-input').val().trim(),
-                        status: $('#modal-task-status').text() // Get status from the badge which is clickable
-                    };
-                    
-                    DataService.updateTask(taskId, updatedFields);
-                    setupModals.taskModal.hide();
-                    showToast("Task updated!");
+                        status: $('#modal-task-status').text(),
+                        clientPhoneNumber: $('#modal-client-phone-input').val(),
+                        clientEmail: $('#modal-client-email-input').val()
+                    }; 
+
+                    DataService.updateTask(taskId, updatedData);
+                    bootstrap.Modal.getInstance(document.getElementById('taskDetailModal')).hide();
                 });
-                
+                // Delete Task Button
                 $('#modal-delete-task-btn').on('click', function() {
-                    if (confirm("Are you sure you want to delete this task? This action cannot be undone.")) {
+                    if (confirm("Are you sure you want to permanently delete this task?")) {
                         const taskId = $('#modal-task-id').val();
                         DataService.deleteTask(taskId);
-                        setupModals.taskModal.hide();
-                        showToast("Task deleted.");
+                        bootstrap.Modal.getInstance(document.getElementById('taskDetailModal')).hide();
                     }
                 });
             }
         };
-        
-        function setupFiltering() {
-            // Restore filter values on setup
-            $('#filter-date-start').val(filters.dateStart);
-            $('#filter-date-end').val(filters.dateEnd);
-            $('#filter-cost-min').val(filters.costMin);
-            $('#filter-cost-max').val(filters.costMax);
-            $('#filter-time-min').val(filters.timeMin);
-            $('#filter-time-max').val(filters.timeMax);
-            $('#filter-category').val(filters.category);
-            $('#filter-status').val(filters.status);
-            $('#filter-client').val(filters.client);
-            $('#filter-responsible-person').val(filters.responsiblePerson);
 
+        /**
+         * Sets up event handlers for filtering and pagination.
+         */
+        const setupFiltering = () => {
             // Apply Filters Button
-            $('#apply-filters-btn').on('click', function() {
-                // Read all filter values into the global filters object
-                filters.dateStart = $('#filter-date-start').val() || null;
-                filters.dateEnd = $('#filter-date-end').val() || null;
-                filters.costMin = $('#filter-cost-min').val() || null;
-                filters.costMax = $('#filter-cost-max').val() || null;
-                filters.timeMin = $('#filter-time-min').val() || null;
-                filters.timeMax = $('#filter-time-max').val() || null;
-                filters.category = $('#filter-category').val();
-                filters.status = $('#filter-status').val();
-                filters.client = $('#filter-client').val();
-                filters.responsiblePerson = $('#filter-responsible-person').val();
+            $('#apply-filters-btn').on('click', () => {
+                currentFilters.dateStart = $('#filter-date-start').val();
+                currentFilters.dateEnd = $('#filter-date-end').val();
+                currentFilters.costMin = $('#filter-cost-min').val();
+                currentFilters.costMax = $('#filter-cost-max').val();
+                currentFilters.timeMin = $('#filter-time-min').val();
+                currentFilters.timeMax = $('#filter-time-max').val();
+                currentFilters.category = $('#filter-category').val();
+                currentFilters.status = $('#filter-status').val();
+                currentFilters.client = $('#filter-client').val();
+                currentFilters.responsiblePerson = $('#filter-responsible-person').val();
                 
-                // Reset to page 1 and re-render the list
-                currentPage = 1;
-                renderTasks(allCurrentTasks);
-                showToast("Filters applied.");
+                filterTasks();
             });
-            
+
             // Clear Filters Button
-            $('#clear-filters-btn').on('click', function() {
-                // Reset global filters object
-                filters.dateStart = null;
-                filters.dateEnd = null;
-                filters.costMin = null;
-                filters.costMax = null;
-                filters.timeMin = null;
-                filters.timeMax = null;
-                filters.category = 'All';
-                filters.status = 'All';
-                filters.client = 'All';
-                filters.responsiblePerson = 'All';
-                
-                // Reset input fields
-                $('#filter-date-start').val('');
-                $('#filter-date-end').val('');
-                $('#filter-cost-min').val('');
-                $('#filter-cost-max').val('');
-                $('#filter-time-min').val('');
-                $('#filter-time-max').val('');
+            $('#clear-filters-btn').on('click', () => {
+                $('#todo-filter-inputs input, #todo-filter-inputs select').val('');
                 $('#filter-category').val('All');
                 $('#filter-status').val('All');
                 $('#filter-client').val('All');
                 $('#filter-responsible-person').val('All');
-                
-                // Reset to page 1 and re-render the list
-                currentPage = 1;
-                renderTasks(allCurrentTasks);
-                showToast("Filters cleared.");
+
+                currentFilters = {
+                    dateStart: '', dateEnd: '',
+                    costMin: '', costMax: '',
+                    timeMin: '', timeMax: '',
+                    category: 'All', status: 'All',
+                    client: 'All', responsiblePerson: 'All'
+                };
+                filterTasks();
             });
-            
-            // Pagination controls
-            $('#prev-page-btn').on('click', function() {
+
+            // Pagination Controls
+            $('#prev-page-btn').on('click', () => {
                 if (currentPage > 1) {
                     currentPage--;
-                    renderTasks(allCurrentTasks);
+                    renderTaskList();
                 }
             });
-            
-            $('#next-page-btn').on('click', function() {
-                const totalFilteredTasks = getFilteredTasks(allCurrentTasks).length;
-                const totalPages = Math.ceil(totalFilteredTasks / TASKS_PER_PAGE);
-                
+
+            $('#next-page-btn').on('click', () => {
                 if (currentPage < totalPages) {
                     currentPage++;
-                    renderTasks(allCurrentTasks);
+                    renderTaskList();
                 }
             });
-        }
+        };
         
-        function setupReports() {
-            // Report filtering logic
-            $('#clear-report-filters-btn').on('click', function() {
-                 $('#report-date-start').val('');
-                 $('#report-date-end').val('');
-                 $('#download-filter-status').text('(All Time)');
+        /**
+         * Sets up event handlers for the Reports tab.
+         */
+        const setupReports = () => {
+            // Clear Report Date Filters Button
+            $('#clear-report-filters-btn').on('click', () => {
+                $('#report-date-start').val('');
+                $('#report-date-end').val('');
+                updateAllReports(); // This call only updates the download filter status
             });
             
-            // CSV Download button functionality
-            $('#download-csv-btn').on('click', function() {
+            // Download CSV Button
+            $('#download-csv-btn').on('click', () => {
+                const reportStart = $('#report-date-start').val();
+                const reportEnd = $('#report-date-end').val();
                 
-                const reportStart = $('#report-date-start').val() || null;
-                const reportEnd = $('#report-date-end').val() || null;
-
                 let tasksToReport = allCurrentTasks;
                 
-                // Apply date filtering for report generation
                 if (reportStart || reportEnd) {
-                    
-                    const dateStart = reportStart ? DateUtils.parseDate(reportStart) : null;
-                    const dateEnd = reportEnd ? DateUtils.parseDate(reportEnd) : null;
-                    
-                    tasksToReport = tasksToReport.filter(task => {
-                        const eventDate = DateUtils.parseDate(task.eventDate);
-                        if (dateStart && eventDate < dateStart) return false;
-                        if (dateEnd) {
-                            const endOfDay = new Date(dateEnd);
-                            endOfDay.setHours(23, 59, 59, 999);
-                            if (eventDate > endOfDay) return false;
-                        }
+                    tasksToReport = allCurrentTasks.filter(task => {
+                        const taskDate = new Date(task.eventDate);
+                        if (reportStart && taskDate < new Date(reportStart)) return false;
+                        if (reportEnd && taskDate > new Date(reportEnd)) return false;
                         return true;
                     });
-                    
-                    let statusText = '';
-                    if (reportStart && reportEnd) {
-                        statusText = `(${DateUtils.formatDate(reportStart)} to ${DateUtils.formatDate(reportEnd)})`;
-                    } else if (reportStart) {
-                        statusText = `(Since ${DateUtils.formatDate(reportStart)})`;
-                    } else if (reportEnd) {
-                        statusText = `(Until ${DateUtils.formatDate(reportEnd)})`;
-                    }
-                    $('#download-filter-status').text(statusText);
-                } else {
-                    $('#download-filter-status').text('(All Time)');
                 }
                 
                 if (tasksToReport.length === 0) {
-                    showToast("No tasks to report for the selected filter.", 4000);
+                    showToast('No tasks to report for the selected filter.', 'warning');
                     return;
                 }
+
+                const csv = convertToCSV(tasksToReport);
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
                 
-                // Define CSV columns and headers
-                const headers = [
-                    'ID', 'Event Date (MM/DD/YYYY)', 'Event Time', 'Client/Host Name', 'Party/Event Title', 'Task Description',
-                    'Category', 'Guest Count', 'Responsible Person', 
-                    'Estimated Cost (₱)', 'Additional Cost (₱)', 'Total Cost (₱)', 
-                    'Down Payment (₱)', // <-- NEW FIELD
-                    'Client Payment (Final) (₱)', // <-- UPDATED LABEL
-                    'Total Client Income (₱)', // <-- NEW CALCULATION
-                    'Net Revenue (₱)', 
-                    'Est. Planning Effort (Hrs)',
-                    'Status', 'Vendor/Supplier Details', 'Internal Notes'
-                ];
+                let fileName = 'party_planner_report';
+                if (reportStart || reportEnd) {
+                    fileName += `_${reportStart || 'start'}_to_${reportEnd || 'end'}`;
+                }
+                fileName += '.csv';
+
+                if (navigator.msSaveBlob) { // IE 10+
+                    navigator.msSaveBlob(blob, fileName);
+                } else {
+                    link.href = URL.createObjectURL(blob);
+                    link.setAttribute('download', fileName);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
                 
-                const csvRows = tasksToReport.map(task => {
-                    // Recalculate cost metrics for the report row
-                    const estCost = parseFloat(task.estimatedVendorCost || 0);
-                    const addCost = parseFloat(task.actualCostVariance || 0);
-                    const totalCost = estCost + addCost;
-                    const clientPayment = parseFloat(task.clientPayment || 0);
-                    const downPayment = parseFloat(task.downPayment || 0); // <-- NEW FIELD
-                    const totalIncome = clientPayment + downPayment; // <-- NEW CALCULATION
-                    const netRevenue = totalIncome - totalCost;
-
-                    return [
-                        task.id, 
-                        DateUtils.formatDate(task.eventDate),
-                        task.eventStartTime,
-                        `\"${task.clientHostName.replace(/\"/g, '\"\"')}\"`,
-                        `\"${task.partyEventTitle.replace(/\"/g, '\"\"')}\"`,
-                        `\"${task.taskItemDescription.replace(/\"/g, '\"\"')}\"`,
-                        task.category,
-                        task.guestCount,
-                        `\"${task.responsiblePerson.replace(/\"/g, '\"\"')}\"`,
-                        
-                        estCost.toFixed(2), // Estimated Cost
-                        addCost.toFixed(2), // Additional Cost
-                        totalCost.toFixed(2), // Calculated field
-                        downPayment.toFixed(2), // <-- NEW FIELD
-                        clientPayment.toFixed(2), // Client Payment (Final)
-                        totalIncome.toFixed(2), // Total Client Income
-                        netRevenue.toFixed(2), // Calculated field
-                        
-                        task.estimatedPlanningTime,
-                        task.status,
-                        `\"${task.vendorSupplierDetails.replace(/\"/g, '\"\"')}\"`,
-                        `\"${task.internalNotes.replace(/\"/g, '\"\"')}\"`
-                    ].join(',');
-                });
-
-                const csvContent = [headers.join(','), ...csvRows].join('\n');
-
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement("a");
-                const url = URL.createObjectURL(blob);
-
-                link.setAttribute("href", url);
-                link.setAttribute("download", `party_planner_report_${new Date().toISOString().slice(0, 10)}.csv`);
-                
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                showToast('Report Downloaded!', 'success');
             });
             
-            // 9. Modal close cleanup
-            $('.close-modal-btn').on('click', function() {
-                const modalElement = document.getElementById('taskDetailModal');
-                const taskModal = bootstrap.Modal.getInstance(modalElement);
-                if (taskModal) taskModal.hide();
-            });
+            // Re-update status text when report filter inputs change
+            $('#report-date-start, #report-date-end').on('change', updateAllReports);
+        };
 
-            $('#taskDetailModal').on('hidden.bs.modal', function () {
-                $('body').removeClass('modal-open').css('padding-right', '');
-                $('.modal-backdrop').remove();
-            });
-        }
 
-        // --- Auth Setup and Initial Run ---
-
-        function setupAuthListeners() {
-            // Check if Firebase is initialized and if not, initialize it
-            if (!app) {
-                const firebaseConfig = JSON.parse(window.__firebase_config);
-                app = window.FirebaseTools.initializeApp(firebaseConfig);
-                auth = window.FirebaseTools.getAuth(app);
-                db = window.FirebaseTools.getFirestore(app);
-            }
+        /**
+         * Sets up event handlers for the Authentication Modal and buttons.
+         */
+        const setupAuthListeners = () => {
+            DataService.init(); // Initialize Firebase app
             
-            // Show the modal to choose storage mode if not already set
-            showCloudSyncModal();
-
-            // Set up Google Sign-in button listener
+            // Primary Sign-In button handlers
             $('#google-sign-in-btn').on('click', FirebaseImpl.signInWithGoogle);
             
-            // Set up Guest Sign-in button listener
-            $('#guest-sign-in-btn').on('click', async () => {
-                // Try to sign in anonymously for cloud sync (preferred over local storage for guests)
-                //const success = await FirebaseImpl.signInAnonymously();
-                //if (!success) {
-                    // Fallback to local storage if anonymous sign-in fails
-                    storageMode = 'local';
-                    allCurrentTasks = DataService.getTasks();
-                    updateUIOnModeChange();
-                    renderTasks(allCurrentTasks);
-                    hideCloudSyncModal();
-                //}
+            // Guest Sign-In button handler
+            $('#guest-sign-in-btn').on('click', () => {
+                hideCloudSyncModal();
+                DataService.resetToLocalMode(); 
+                updateUIOnModeChange();
+                showToast('Continuing in Guest Mode. Data is only saved locally.', 'info');
             });
-
-            // Set up the Firebase Auth State Observer
-            window.FirebaseTools.onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    // User is signed in.
-                    userId = user.uid;
-                    isGoogleSignedIn = !user.isAnonymous;
-                    storageMode = 'firebase';
-                    
-                    hideCloudSyncModal();
-                    updateUIOnModeChange();
-                    
-                    // Start the real-time listener for task data
-                    FirebaseImpl.setupDataListener(userId);
-
+            
+            // MODIFIED: Check storageMode to determine if a Firebase sign-out is needed or just a local session reset.
+            $('#auth-action-btn').on('click', () => {
+                if (storageMode === 'local') {
+                    endLocalSession();
                 } else {
-                    // User is signed out or has not chosen a mode yet
-                    userId = null;
-                    isGoogleSignedIn = false;
-                    
-                    // Only show the sync modal if the storageMode is not already set to local
-                    if (storageMode !== 'local') {
-                        storageMode = ''; // Clear state if user signed out
-                        updateUIOnModeChange(); // Update banner to 'None'
-                        showCloudSyncModal();
-                    }
+                    // This handles Google sign out and Firebase anonymous sign out.
+                    // The onAuthStateChanged listener will handle the final UI update and modal show.
+                    FirebaseImpl.signOutUser(); 
                 }
             });
-        }
+
+            // Firebase Auth State Listener (main app controller)
+            FirebaseImpl.setupAuthListeners();
+        };
+
         
         // --- Document Ready ---
         $(function() {
@@ -1932,7 +2048,7 @@
             setupFiltering();
             setupReports();
             setupAuthListeners();
-            
+            setupTextGenerator();
             // The initial render will be handled by the data loading process (local or firebase)
             // Initial task load handled inside setupAuthListeners via DataService.getTasks() or Firebase listener
         });
