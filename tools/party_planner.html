@@ -729,7 +729,8 @@
             signInAnonymously, 
             onAuthStateChanged,
             GoogleAuthProvider,
-            signInWithPopup 
+            signInWithPopup,
+            signOut              
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
@@ -737,7 +738,7 @@
         // Expose Firebase tools globally
         window.FirebaseTools = { 
             initializeApp, getAuth, signInAnonymously, onAuthStateChanged, 
-            GoogleAuthProvider, signInWithPopup, getDoc,
+            GoogleAuthProvider, signInWithPopup, signOut, getDoc,
             getFirestore, collection, doc, setDoc, onSnapshot 
         };
 
@@ -745,7 +746,7 @@
         
         const LOCAL_STORAGE_KEY = 'taskPlannerTasks_v11_local'; 
         const APP_ID = window.__app_id || 'default_app'; 
-        const FIREBASE_COLLECTION_PATH = `artifacts/${APP_ID}`;
+        const FIREBASE_COLLECTION_PATH = 'event_data';
         const FIREBASE_DOC_ID = 'main_data'; 
         
         let app; 
@@ -1240,7 +1241,13 @@
                 }
 
                 // Document path: 'events' collection -> user's UID document
-                tasksDocRef = FirebaseTools.doc(db, FIREBASE_COLLECTION_PATH, uid);
+                //tasksDocRef = FirebaseTools.doc(db, FIREBASE_COLLECTION_PATH, uid);
+
+                tasksDocRef = FirebaseTools.doc(
+                    db,
+                    `artifacts/${APP_ID}/users/${uid}/${FIREBASE_COLLECTION_PATH}`,
+                    FIREBASE_DOC_ID
+                );
                 
                 toggleLoading(true, 'Waiting for Cloud Data...');
 
