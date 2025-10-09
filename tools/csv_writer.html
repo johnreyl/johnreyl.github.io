@@ -638,7 +638,6 @@
         }
 
         // FIX 2: Convert JSON string data back to nested array on load
-        // FIX: Ensure immediate load of cloud data by using getDoc if snapshot doesn't load immediately
         async function startFirebaseListener() {
             if (!db || !userId || !window.FirebaseTools || currentMode !== 'cloud') return;
             
@@ -655,7 +654,7 @@
 
             // 2. Attach real-time listener for future changes
             unsubscribeSnapshot = onSnapshot(docRef, (docSnap) => {
-                // If this is the initial load, rely on the getDoc fallback below if needed, otherwise proceed.
+                // If this is no longer in cloud mode, exit.
                 if (currentMode !== 'cloud') {
                     loadingOverlay.style.display = 'none';
                     return; 
@@ -706,22 +705,16 @@
             });
             
             // 3. Force initial load immediately after attaching listener (if it hasn't loaded already)
-            // This is a common pattern for reliable initial sync
             setTimeout(async () => {
                 if (!initialLoadAttempted) {
                     try {
                         const snap = await getDoc(docRef);
-                        // If the document exists, the onSnapshot listener should process it. 
-                        // If it's still not loaded after the listener processes the doc/timeout, 
-                        // this is a last resort to ensure the data is in memory.
-                        // However, just calling getDoc is enough to kick the snapshot listener.
+                        // The snapshot listener handles the load, this is just a kick.
                     } catch(e) {
-                         // The error is already handled by the onSnapshot error callback, 
-                         // but this ensures the loading overlay eventually goes away.
                          loadingOverlay.style.display = 'none';
                     }
                 }
-            }, 1000); // Give the snapshot listener 1 second to fetch the initial data
+            }, 1000); 
         }
         
         async function signInWithGoogle() {
@@ -764,7 +757,7 @@
             if (!window.FirebaseTools) return;
             try {
                 const firebaseConfig = JSON.parse(window.__firebase_config);
-                const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, getFirestore, getDoc } = window.FirebaseTools;
+                const { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, getFirestore } = window.FirebaseTools;
 
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
@@ -796,113 +789,14 @@
             }
         }
         
-        // --- CONFLICT RESOLUTION LOGIC ---
+        // --- CONFLICT RESOLUTION LOGIC (REMOVED/CLEANED) ---
 
-        function resolveConflictAndSwitch(keepDataMode) {
-            hideModal(); // Hide the confirmation modal
-
-            const toggleCheckbox = document.getElementById('modeToggleCheckbox');
-            
-            // --- Determine and Load Final Data State ---
-            if (syncContext.type === 'localToCloud') {
-                if (keepDataMode === 'local') {
-                    // User chose to keep the Local (backed-up) data.
-                    tabs = syncContext.data.tabs;
-                    activeTabId = syncContext.data.activeTabId;
-                    
-                    // CRITICAL FIX: Validate activeTabId before safely applying widths
-                    if (tabs.length > 0 && (!activeTabId || !tabs.some(t => t.id === activeTabId))) {
-                        activeTabId = tabs[0].id; // Fallback to the first tab
-                    }
-                    const activeTab = getActiveTab();
-
-                    if (activeTab && activeTab.colWidths) {
-                         applyTabSpecificWidths(activeTab.colWidths);
-                    }
-                    
-                    // Finalize switch and save
-                    currentMode = 'cloud'; 
-                    localStorage.setItem("csvSyncMode", currentMode);
-                    updateModeDisplay();
-                    saveToFirebase(); // Overwrite Cloud with Local
-                    startFirebaseListener();
-                    
-                    // ADDED: RENDER CALLS TO FORCE UI UPDATE
-                    renderTabs();
-                    renderTable();
-                    showToast("Kept Local Data. Switched to Cloud. ☁️", 4000);
-                } else if (keepDataMode === 'cloud') {
-                    // User chose to keep Cloud data. We rely on the listener to load it.
-                    currentMode = 'cloud';
-                    localStorage.setItem("csvSyncMode", currentMode);
-                    updateModeDisplay();
-                    startFirebaseListener(); 
-                    
-                    // ADDED: RENDER CALLS TO FORCE UI UPDATE (In case listener is slow)
-                    renderTabs();
-                    renderTable();
-                    showToast("Kept Cloud Data. Switched to Cloud. ☁️", 4000);
-                }
-
-            } else if (syncContext.type === 'cloudToLocal') {
-                if (keepDataMode === 'local') {
-                    // User chose to keep the Old Local (backed-up) data.
-                    tabs = syncContext.data.tabs; // Use the temporarily stored local data
-                    activeTabId = syncContext.data.activeTabId;
-                    
-                    // CRITICAL FIX: Validate activeTabId before safely applying widths
-                    if (tabs.length > 0 && (!activeTabId || !tabs.some(t => t.id === activeTabId))) {
-                        activeTabId = tabs[0].id; // Fallback to the first tab
-                    }
-                    const activeTab = getActiveTab();
-
-                    if (activeTab && activeTab.colWidths) {
-                        applyTabSpecificWidths(activeTab.colWidths);
-                    }
-                    
-                    // Finalize switch and save
-                    currentMode = 'local';
-                    localStorage.setItem("csvSyncMode", currentMode);
-                    updateModeDisplay();
-                    saveToLocalStorage(); // Save the old local data as the current local state
-                    
-                    // ADDED: RENDER CALLS
-                    renderTabs();
-                    renderTable();
-                    showToast("Kept Old Local Data. Switched to Local. 💾", 4000);
-                } else if (keepDataMode === 'cloud') {
-                    // User chose to keep the Cloud data (currently in memory) and save it locally.
-                    currentMode = 'local';
-                    localStorage.setItem("csvSyncMode", currentMode);
-                    updateModeDisplay();
-                    saveToLocalStorage(); // Overwrite Local with current Cloud data
-                    
-                    // ADDED: RENDER CALLS
-                    renderTabs();
-                    renderTable();
-                    showToast("Kept Cloud Data. Switched to Local. 💾", 4000);
-                }
-            }
-
-            // --- Finalize UI Toggle State ---
-            if (currentMode === 'cloud') {
-                toggleCheckbox.checked = true;
-            } else {
-                toggleCheckbox.checked = false;
-            }
-
-            // Clear context after use
-            syncContext = { type: null, data: null };
-            
-            // Crucial: Re-attach standard deletion handler logic
-            restoreModalForDeletion();
-        }
-        
         function restoreModalForDeletion() {
+            // This function is kept to clean up button listeners after any modal use
             const modalConfirm = document.getElementById('modalConfirm');
             const modalCancel = document.getElementById('modalCancel');
             
-            // Use clone and replace to remove any existing listeners from sync modals
+            // Use clone and replace to remove any existing listeners
             modalConfirm.replaceWith(modalConfirm.cloneNode(true));
             modalCancel.replaceWith(modalCancel.cloneNode(true));
             
@@ -920,49 +814,7 @@
              newModalCancel.addEventListener('click', hideModal);
         }
 
-        // Overload showModal to handle sync context
-        function showSyncModal(title, message, localText, cloudText, type, localTabs, localActiveId) {
-            document.getElementById('modalTitle').textContent = title;
-            document.getElementById('modalMessage').innerHTML = message;
-            
-            let modalConfirm = document.getElementById('modalConfirm');
-            let modalCancel = document.getElementById('modalCancel');
-            
-            // Use clone and replace to remove any existing listeners (including old sync or deletion)
-            modalConfirm.replaceWith(modalConfirm.cloneNode(true));
-            modalCancel.replaceWith(modalCancel.cloneNode(true));
-            
-            // Get references to the new, clean buttons
-            modalConfirm = document.getElementById('modalConfirm');
-            modalCancel = document.getElementById('modalCancel');
-
-            // Set up buttons for the new choice
-            modalConfirm.textContent = localText;
-            modalCancel.textContent = cloudText;
-            
-            // Use blue for "Keep Local" (modalConfirm) and green for "Keep Cloud" (modalCancel)
-            modalConfirm.classList.remove('bg-red-600', 'hover:bg-red-700');
-            modalConfirm.classList.add('bg-blue-600', 'hover:bg-blue-700');
-            
-            modalCancel.classList.remove('bg-gray-200', 'hover:bg-gray-300');
-            modalCancel.classList.add('bg-green-600', 'hover:bg-green-700', 'text-white');
-            
-            document.getElementById('deletionModal').style.display = 'flex';
-            
-            // Set sync context
-            syncContext = { 
-                type: type, 
-                data: { tabs: localTabs, activeTabId: localActiveId } // Store local/old data temporarily
-            };
-            
-            // Attach temporary sync listeners
-            modalConfirm.addEventListener('click', () => { resolveConflictAndSwitch('local'); });
-            modalCancel.addEventListener('click', () => { resolveConflictAndSwitch('cloud'); });
-        }
-        
-        // --- MODE SWITCH LOGIC ---
-
-        // --- MODE SWITCH LOGIC ---
+        // --- MODE SWITCH LOGIC (MODIFIED TO CLOUD WINS) ---
 
         async function switchMode() {
             const toggleCheckbox = document.getElementById('modeToggleCheckbox');
@@ -971,20 +823,15 @@
 
             if (targetMode === currentMode) return;
             
-            // 1. Prepare a copy of the current WORKING state (Local or Cloud in memory)
-            const activeTab = getActiveTab();
-            if (activeTab) {
-                activeTab.colWidths = extractTabSpecificWidths();
-            }
+            // 1. Save the current working state to its respective store BEFORE switching.
+            // This ensures the data currently being viewed is preserved in its *origin* location.
+            saveData(); 
             
-            const currentWorkingTabs = JSON.parse(JSON.stringify(tabs));
-            const currentWorkingActiveId = activeTabId;
-            
-            // Revert the UI toggle immediately, as we may abort the switch or wait for user input
+            // Revert the UI toggle immediately, as we may abort the switch
             toggleCheckbox.checked = currentMode === 'cloud'; 
 
             // --------------------------------------------------------
-            // Case 1: Switching from LOCAL to CLOUD (currentMode is 'local')
+            // Case 1: Switching from LOCAL to CLOUD (Cloud Wins)
             // --------------------------------------------------------
             if (targetMode === 'cloud') {
                 if (!isGoogleSignedIn) {
@@ -994,99 +841,43 @@
                     }
                 }
                 
-                saveToLocalStorage(); // Backup the current local state
+                // FINAL SWITCH: Cloud wins. Attach listener to fetch/load cloud data.
+                currentMode = targetMode;
+                localStorage.setItem("csvSyncMode", targetMode);
+                toggleCheckbox.checked = true; // Finalize UI
+                updateModeDisplay();
                 
-                const { doc, getDoc } = window.FirebaseTools;
-                const docRef = doc(db, `artifacts/${APP_ID}/users/${userId}/${FIREBASE_COLLECTION_PATH}`, 'main_data');
+                // This starts the listener, which will fetch the cloud data and render.
+                startFirebaseListener(); 
                 
-                loadingOverlay.style.display = 'flex';
-                loadingOverlay.querySelector('p').textContent = 'Checking for existing Cloud data...';
-                
-                let docSnap;
-                try {
-                    docSnap = await getDoc(docRef);
-                    loadingOverlay.style.display = 'none';
-                } catch (e) {
-                    console.error("Firebase getDoc failed during switch mode:", e);
-                    loadingOverlay.style.display = 'none';
-                    showToast("Error checking cloud data. Aborting switch.", 5000);
-                    return; // Abort and keep state as 'local'
-                }
-                
-                if (docSnap.exists() && docSnap.data().tabs && docSnap.data().tabs.length > 0) {
-                    // CONFLICT: Cloud data exists. Prompt user.
-                    showSyncModal(
-                        "Data Sync Conflict",
-                        "Cloud data already exists. Which data set do you want to keep? **Keeping Cloud data will overwrite your current Local data.**",
-                        "Keep Local Data (Overwrite Cloud)",
-                        "Keep Cloud Data (Discard Local)",
-                        'localToCloud',
-                        currentWorkingTabs, 
-                        currentWorkingActiveId
-                    );
-                } else {
-                    // NO CONFLICT: Save local data to cloud and finalize switch
-                    currentMode = targetMode;
-                    localStorage.setItem("csvSyncMode", targetMode);
-                    toggleCheckbox.checked = true; // Finalize UI
-                    updateModeDisplay();
-                    saveToFirebase(); // Save the current 'tabs' state to cloud
-                    startFirebaseListener();
-                    // NOTE: renderTabs/renderTable are called inside startFirebaseListener on success
-                    showToast("Switched to Cloud Mode. Local data saved to Cloud. ☁️", 3000);
-                }
+                showToast("Switched to Cloud Mode. Loading data from Cloud. ☁️", 3000);
 
             // --------------------------------------------------------
-            // Case 2: Switching from CLOUD to LOCAL (currentMode is 'cloud')
+            // Case 2: Switching from CLOUD to LOCAL (Loads Local storage only)
             // --------------------------------------------------------
             } else { // targetMode === 'local'
                 
+                // Detach Firebase listener
                 if (unsubscribeSnapshot) {
                     unsubscribeSnapshot();
                     unsubscribeSnapshot = null;
                 }
                 
-                const oldLocalTabsString = localStorage.getItem(LOCAL_STORAGE_KEY_TABS);
-                
-                if (oldLocalTabsString) {
-                    
-                    // CONFLICT: Old local data exists. Prompt user.
-                    const rawLocalTabs = JSON.parse(oldLocalTabsString);
-                    const deserializedLocalTabs = rawLocalTabs.map(tab => {
-                        if (typeof tab.data === 'string') {
-                            return { ...tab, data: JSON.parse(tab.data) };
-                        }
-                        return tab; 
-                    });
+                // FINAL SWITCH: Load local storage.
+                currentMode = targetMode;
+                localStorage.setItem("csvSyncMode", targetMode);
+                toggleCheckbox.checked = false; // Finalize UI
+                updateModeDisplay();
 
-                    showSyncModal(
-                        "Data Sync Conflict",
-                        "Local data from a previous session exists. Which data set do you want to keep? **Keeping Old Local data will overwrite the current Cloud data in memory.**",
-                        "Keep Old Local Data (Discard Cloud)",
-                        "Keep Current Cloud Data (Overwrite Local)",
-                        'cloudToLocal',
-                        deserializedLocalTabs, 
-                        localStorage.getItem(LOCAL_STORAGE_KEY_ACTIVE)
-                    );
-
-                } else {
-                    // NO CONFLICT: Save current cloud data to local storage and finalize switch
-                    saveToLocalStorage(); // The current in-memory data (which came from cloud) is saved locally
-                    
-                    currentMode = targetMode;
-                    localStorage.setItem("csvSyncMode", targetMode);
-                    toggleCheckbox.checked = false; // Finalize UI
-                    updateModeDisplay();
-
-                    // CRITICAL FIX: Explicitly load the newly saved data and render
-                    if (!loadFromLocalStorage()) {
-                        initializeDefaultTabs();
-                        saveToLocalStorage();
-                    }
-                    renderTabs();
-                    renderTable();
-                    showToast("Switched to Local Mode. Cloud data saved locally. 💾", 3000);
+                // Load data from Local Storage (which may contain old data or data backed up from cloud)
+                if (!loadFromLocalStorage()) {
+                    initializeDefaultTabs();
+                    saveToLocalStorage();
                 }
+                
+                renderTabs();
+                renderTable();
+                showToast("Switched to Local Mode. Data loaded from Local Storage. 💾", 3000);
             }
         }
 
@@ -1119,13 +910,6 @@
             }
 
             try {
-                // IMPORTANT: When saving to local storage, we MUST ensure the data is saved in a format
-                // that is compatible with the loading logic. Since the cloud sync logic now stringifies data,
-                // if we are currently in 'cloud' mode, the in-memory 'tabs' array contains data that is
-                // an *array of arrays*. Local storage can handle this directly. 
-                // However, for consistency and robustness against different states, we'll save the in-memory
-                // structure directly. The `loadFromLocalStorage` will then handle if the tab.data is an array or a string.
-
                 localStorage.setItem(LOCAL_STORAGE_KEY_TABS, JSON.stringify(tabs));
                 localStorage.setItem(LOCAL_STORAGE_KEY_ACTIVE, activeTabId);
             } catch (e) {
@@ -1142,12 +926,8 @@
                 if (tabsString) {
                     let loadedTabs = JSON.parse(tabsString);
                     
-                    // Crucial: Ensure 'data' field is an array of arrays, not a JSON string, 
-                    // in case it was saved to local storage directly after a cloud load 
-                    // where it was already converted back to array-of-arrays.
                     loadedTabs = loadedTabs.map(tab => {
                         if (typeof tab.data === 'string') {
-                            // This scenario should only happen if the conflict resolver passed raw cloud data
                             return { ...tab, data: JSON.parse(tab.data) };
                         }
                         return tab;
@@ -1334,7 +1114,7 @@
 
         // --- Event Handlers ---
 
-        // NEW: Tab Click Handler
+        // Tab Click Handler
         $(document).on("click", ".tab-item", function(e) {
             // Prevent switching if the click originated from the rename span or delete icon
             if (e.target.closest('.tab-item-name') || e.target.closest('.tab-item-delete')) return;
@@ -1345,7 +1125,7 @@
             }
         });
         
-        // NEW: Tab Rename Handler (on blur)
+        // Tab Rename Handler (on blur)
         $(document).on("blur", ".tab-item-name[contenteditable='true']", function() {
             const tabId = $(this).data("tab-id");
             let newName = $(this).text().trim();
@@ -1360,7 +1140,7 @@
             }
         });
 
-        // NEW: Tab Delete Handler (using modal)
+        // Tab Delete Handler (using modal)
         $(document).on("click", ".tab-item-delete", function(e) {
             e.stopPropagation();
             const tabIdToDelete = $(this).data("tab-id");
@@ -1381,10 +1161,10 @@
             );
         });
         
-        // NEW: Add Tab Button
+        // Add Tab Button
         $("#addTabBtn").on("click", addTab);
 
-        // Modal Confirmation Logic (UPDATED to use delegation and check syncContext)
+        // Modal Confirmation Logic 
         document.getElementById('modalCancel').addEventListener('click', () => {
              // If not in a sync state, hide the modal (standard cancel button click)
             if (!syncContext.type) {
@@ -1427,14 +1207,9 @@
                     }
                 }
             }
-             // Ensure to clear sync context if the user clicks outside the modal
-            if (e.target.id === 'deletionModal' && syncContext.type) {
-                // User clicked outside the modal during a sync conflict prompt. Treat as a cancel.
+             // Clicks outside the modal during deletion context
+            if (e.target.id === 'deletionModal' && !syncContext.type) {
                 hideModal();
-                syncContext = { type: null, data: null };
-                // Also, revert the toggle button's state since the switch was aborted
-                const toggleCheckbox = document.getElementById('modeToggleCheckbox');
-                toggleCheckbox.checked = currentMode === 'cloud';
             }
         });
         
@@ -1452,7 +1227,7 @@
             if (activeData.length > 0 && activeData[0].length > col) {
                 activeData[0][col] = newHeader;
                 setActiveTabData(activeData);
-                debouncedSaveData(); // REPLACED saveData() with debouncedSaveData()
+                debouncedSaveData(); 
                 showToast(`Updated header for Column ${col + 1} to: ${newHeader}`, 1500);
             }
         });
@@ -1468,8 +1243,7 @@
             setActiveTabData(activeData);
             $(this).attr("title", $(this).text());
             
-            // CRITICAL FIX: Use debounced save. This prevents immediate Firebase write and re-render.
-            debouncedSaveData(); // REPLACED saveData() with debouncedSaveData()
+            debouncedSaveData(); 
         });
 
         // Cell Navigation 
