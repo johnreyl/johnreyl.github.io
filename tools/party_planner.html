@@ -730,7 +730,8 @@
         // --- 1. Expose Firebase Tools Globally to match the provided auth code ---
         window.FirebaseTools = {
             initializeApp, getAuth, signInWithPopup, GoogleAuthProvider, 
-            onAuthStateChanged, signOut, getFirestore, signInAnonymously
+            onAuthStateChanged, signOut, getFirestore, signInAnonymously,
+            doc, onSnapshot, setDoc 
         };
 
         // --- Global State & Initialization ---
