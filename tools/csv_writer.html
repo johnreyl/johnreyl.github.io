@@ -795,23 +795,26 @@
                     tabs = syncContext.data.tabs;
                     activeTabId = syncContext.data.activeTabId;
                     
-                    // --- CRITICAL FIX: Validate activeTabId before safely applying widths ---
+                    // CRITICAL FIX: Validate activeTabId before safely applying widths
                     if (tabs.length > 0 && (!activeTabId || !tabs.some(t => t.id === activeTabId))) {
-                        activeTabId = tabs[0].id; // Fallback to the first tab if the active ID is invalid
+                        activeTabId = tabs[0].id; // Fallback to the first tab
                     }
                     const activeTab = getActiveTab();
 
                     if (activeTab && activeTab.colWidths) {
                          applyTabSpecificWidths(activeTab.colWidths);
                     }
-                    // ----------------------------------------------------------------------
-
-                    // The target mode is 'cloud', so we proceed to overwrite Firebase.
+                    
+                    // Finalize switch and save
                     currentMode = 'cloud'; 
                     localStorage.setItem("csvSyncMode", currentMode);
                     updateModeDisplay();
                     saveToFirebase(); // Overwrite Cloud with Local
                     startFirebaseListener();
+                    
+                    // ADDED: RENDER CALLS TO FORCE UI UPDATE
+                    renderTabs();
+                    renderTable();
                     showToast("Kept Local Data. Switched to Cloud. ☁️", 4000);
                 } else if (keepDataMode === 'cloud') {
                     // User chose to keep Cloud data. We rely on the listener to load it.
@@ -819,6 +822,10 @@
                     localStorage.setItem("csvSyncMode", currentMode);
                     updateModeDisplay();
                     startFirebaseListener(); 
+                    
+                    // ADDED: RENDER CALLS TO FORCE UI UPDATE (In case listener is slow)
+                    renderTabs();
+                    renderTable();
                     showToast("Kept Cloud Data. Switched to Cloud. ☁️", 4000);
                 }
 
@@ -828,22 +835,23 @@
                     tabs = syncContext.data.tabs; // Use the temporarily stored local data
                     activeTabId = syncContext.data.activeTabId;
                     
-                    // --- CRITICAL FIX: Validate activeTabId before safely applying widths ---
+                    // CRITICAL FIX: Validate activeTabId before safely applying widths
                     if (tabs.length > 0 && (!activeTabId || !tabs.some(t => t.id === activeTabId))) {
-                        activeTabId = tabs[0].id; // Fallback to the first tab if the active ID is invalid
+                        activeTabId = tabs[0].id; // Fallback to the first tab
                     }
                     const activeTab = getActiveTab();
 
                     if (activeTab && activeTab.colWidths) {
                         applyTabSpecificWidths(activeTab.colWidths);
                     }
-                    // ----------------------------------------------------------------------
                     
+                    // Finalize switch and save
                     currentMode = 'local';
                     localStorage.setItem("csvSyncMode", currentMode);
                     updateModeDisplay();
                     saveToLocalStorage(); // Save the old local data as the current local state
                     
+                    // ADDED: RENDER CALLS
                     renderTabs();
                     renderTable();
                     showToast("Kept Old Local Data. Switched to Local. 💾", 4000);
@@ -854,6 +862,7 @@
                     updateModeDisplay();
                     saveToLocalStorage(); // Overwrite Local with current Cloud data
                     
+                    // ADDED: RENDER CALLS
                     renderTabs();
                     renderTable();
                     showToast("Kept Cloud Data. Switched to Local. 💾", 4000);
@@ -870,7 +879,7 @@
             // Clear context after use
             syncContext = { type: null, data: null };
             
-            // Crucial: Re-attach standard deletion handler logic by restoring the buttons' original state/listeners
+            // Crucial: Re-attach standard deletion handler logic
             restoreModalForDeletion();
         }
         
@@ -942,11 +951,9 @@
             // Determine the mode the user is trying to switch TO
             const targetMode = toggleCheckbox.checked ? 'cloud' : 'local';
 
-            // If the UI state (toggle) already matches the current programmatic mode, do nothing.
             if (targetMode === currentMode) return;
             
             // 1. Prepare a copy of the current WORKING state (Local or Cloud in memory)
-            // CRITICAL: Ensure column widths are saved into the tabs object *before* deep copying the state
             const activeTab = getActiveTab();
             if (activeTab) {
                 activeTab.colWidths = extractTabSpecificWidths();
@@ -1007,6 +1014,7 @@
                     updateModeDisplay();
                     saveToFirebase(); // Save the current 'tabs' state to cloud
                     startFirebaseListener();
+                    // NOTE: renderTabs/renderTable are called inside startFirebaseListener on success
                     showToast("Switched to Cloud Mode. Local data saved to Cloud. ☁️", 3000);
                 }
 
@@ -1020,16 +1028,13 @@
                     unsubscribeSnapshot = null;
                 }
                 
-                // Load existing local storage state to check for conflict (the data *before* the last cloud sync)
                 const oldLocalTabsString = localStorage.getItem(LOCAL_STORAGE_KEY_TABS);
                 
                 if (oldLocalTabsString) {
+                    
                     // CONFLICT: Old local data exists. Prompt user.
-                    
                     const rawLocalTabs = JSON.parse(oldLocalTabsString);
-                    
                     const deserializedLocalTabs = rawLocalTabs.map(tab => {
-                        // Ensure the stored local backup is deserialized if it was stored with stringified data 
                         if (typeof tab.data === 'string') {
                             return { ...tab, data: JSON.parse(tab.data) };
                         }
@@ -1047,7 +1052,7 @@
                     );
 
                 } else {
-                    // NO CONFLICT: Save current cloud data to local storage before switching back
+                    // NO CONFLICT: Save current cloud data to local storage and finalize switch
                     saveToLocalStorage(); // The current in-memory data (which came from cloud) is saved locally
                     
                     currentMode = targetMode;
@@ -1055,6 +1060,7 @@
                     toggleCheckbox.checked = false; // Finalize UI
                     updateModeDisplay();
 
+                    // CRITICAL FIX: Explicitly load the newly saved data and render
                     if (!loadFromLocalStorage()) {
                         initializeDefaultTabs();
                         saveToLocalStorage();
