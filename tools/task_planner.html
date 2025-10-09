@@ -244,7 +244,7 @@
                 <div class="card p-4">
                     <h5 class="card-title text-primary mb-3"><i class="fas fa-edit me-2"></i>Add Task Details</h5>
                     <form id="party-form" class="row g-3">
-                        <div class="col-md-4"><label for="company-name" class="form-label text-muted-subtle">Company/Client</label><input type="text" class="form-control" id="company-name" placeholder="e.g., Acme Corp"></div>
+                        <div class="col-md-4"><label for="company-name" class="form-label text-muted-subtle">Company/Client</label><input type="text" class="form-control" id="company-name" placeholder="e.g., Pinoy Data Capture Inc."></div>
                         <div class="col-md-4"><label for="event-name" class="form-label text-muted-subtle">Event/Project Name</label><input type="text" class="form-control" id="event-name" required value="New Event Project"></div>
                         <div class="col-md-4"><label for="event-task" class="form-label text-muted-subtle">Event Title</label><input type="text" class="form-control" id="event-task" required placeholder="e.g., Finalize venue contract"></div>
                         <div class="col-md-3"><label for="event-date" class="form-label text-muted-subtle">Date</label><input type="date" class="form-control" id="event-date" required></div>
@@ -300,7 +300,19 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                    
+                    <div class="row g-2 px-2 pb-2">
+                        <div class="col-12 filter-input-group">
+                            <h6><i class="fas fa-check-circle me-1"></i>Status</h6>
+                            <select id="filter-status" class="form-select form-select-sm">
+                                <option value="All">All Statuses</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                    </div>
 
                 <div id="filtered-summary" class="card p-3 mb-3 d-none">
                     <h6 class="text-primary mb-2"><i class="fas fa-calculator me-1"></i>Cost Summary for Filtered Tasks</h6>
@@ -831,6 +843,8 @@
                 costMax: parseFloat($('#filter-cost-max').val() || Infinity), 
                 timeMin: parseFloat($('#filter-time-min').val() || 0),
                 timeMax: parseFloat($('#filter-time-max').val() || Infinity),
+                // NEW: Status Filter
+                status: $('#filter-status').val() // Get selected status
             };
         }
 
@@ -861,6 +875,9 @@
                 // Time Filter
                 if (totalTime < filters.timeMin) return false;
                 if (totalTime > filters.timeMax) return false;
+                
+                // NEW: Status Filter
+                if (filters.status !== 'All' && task.status !== filters.status) return false;
 
                 return true;
             });
@@ -948,7 +965,7 @@
                 
                 const costDisplay = totalCost.toFixed(2);
                 const timeDisplay = parseFloat(task.estimatedTime);
-                const timeBadge = task.eventStartTime ? `<span class="badge bg-secondary ms-1" title="Start Time">${task.eventStartTime}</span>` : '';
+                const timeBadge = task.eventStartTime ? `<span class="badge bg-secondary me-2" title="Start Time">${task.eventStartTime}</span>` : '';
                 const companyDisplay = task.companyName ? `<span class="text-muted-subtle ms-1">(${task.companyName})</span>` : '';
 
                 let listItemClass = '';
@@ -968,25 +985,35 @@
                 const $li = $('<li>')
                     .addClass(`list-group-item d-flex justify-content-between align-items-center flex-column flex-md-row ${listItemClass}`)
                     .attr('data-task-id', task.id); 
+                
+                // NEW: Status badge logic moved to task content
+                const statusBadge = `
+                    <span class="badge ${statusBadgeClass} complete-toggle me-2" 
+                        style="cursor: pointer;" title="Click to cycle status: Pending -> Completed -> Cancelled">
+                        ${task.status.toUpperCase()}
+                    </span>
+                `;
 
+                // NEW: Separate task info into title line (with status) and badge line (below)
                 const taskContent = `
-                    <div class="text-center text-md-start mb-2 mb-md-0">
-                        <strong>${task.eventName}</strong> ${companyDisplay}: 
-                        <span class="${textDecoration}">${task.eventTask}</span> 
-                        <span class="badge bg-secondary ms-2">${task.eventDate}</span>
-                        ${timeBadge}
-                        
-                        <span class="badge bg-success ms-2" title="Total Calculated Cost">₱${costDisplay}</span>
-                        <span class="badge bg-warning text-dark" title="Estimated Time">${timeDisplay}h</span>
+                    <div class="task-info-group flex-grow-1 text-center text-md-start mb-2 mb-md-0">
+                        <div class="d-flex align-items-center mb-1 flex-wrap">
+                            ${statusBadge}
+                            <strong class="me-1">${task.eventName}</strong> ${companyDisplay}: 
+                            <span class="${textDecoration}">${task.eventTask}</span> 
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap" style="padding-left: ${task.status.toUpperCase().length * 8}px;">
+                            <span class="badge bg-secondary me-2">${task.eventDate}</span>
+                            ${timeBadge}
+                            <span class="badge bg-success me-2" title="Total Calculated Cost">₱${costDisplay}</span>
+                            <span class="badge bg-warning text-dark me-2" title="Estimated Time">${timeDisplay}h</span>
+                        </div>
                     </div>
                 `;
 
+                // NEW: Action buttons only contain the edit button
                 const actionButtons = `
                     <div class="d-flex justify-content-center justify-content-md-end">
-                        <span class="badge ${statusBadgeClass} complete-toggle me-2" 
-                            style="cursor: pointer;" title="Click to cycle status: Pending -> Completed -> Cancelled">
-                            ${task.status.toUpperCase()}
-                        </span>
                         <button class="btn btn-sm btn-outline-primary details-btn" title="Show/Edit Details">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -1213,7 +1240,8 @@
             
             // --- TO-DO LIST FILTER EVENT HANDLERS ---
             
-            const filterInputs = '#filter-date-start, #filter-date-end, #filter-cost-min, #filter-cost-max, #filter-time-min, #filter-time-max';
+            // UPDATED: Added #filter-status to the selector string
+            const filterInputs = '#filter-date-start, #filter-date-end, #filter-cost-min, #filter-cost-max, #filter-time-min, #filter-time-max, #filter-status';
 
             // 1. Toggle Button Text
             $('#todo-filter-inputs').on('shown.bs.collapse', function () {
@@ -1231,6 +1259,8 @@
             // 3. Clear Filters Button
             $('#clear-filters-btn').on('click', function() {
                 $(filterInputs).val('');
+                // Ensure #filter-status resets to 'All'
+                $('#filter-status').val('All'); 
                 // Reset page on clear
                 currentPage = 1; 
                 applyFiltersAndRender(allCurrentTasks); // Apply filters immediately after clearing
