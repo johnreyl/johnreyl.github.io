@@ -185,7 +185,26 @@
             border-bottom: 1px solid white; /* Hide bottom border on active tab */
             font-weight: 600;
             z-index: 10;
+            /* Allow the red marker to be visible */
+            overflow: visible; 
         }
+        
+        /* --- NEW: Diagonal Red Marker for Active Tab --- */
+        .tab-item.active::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            /* Creates a 10x10 red flag in the corner */
+            border-width: 0 10px 10px 0; 
+            border-color: transparent #ef4444 transparent transparent; /* Red 500 */
+            z-index: 12; 
+        }
+        /* ------------------------------------------------ */
+
         #tabsContainer {
             margin-bottom: -1px; /* Overlap the border */
         }
@@ -1114,15 +1133,17 @@
 
         // --- Event Handlers ---
 
-        // Tab Click Handler
+        // Tab Click Handler (MODIFIED: Allows clicks on tab-item-name to switch the tab)
         $(document).on("click", ".tab-item", function(e) {
-            // Prevent switching if the click originated from the rename span or delete icon
-            if (e.target.closest('.tab-item-name') || e.target.closest('.tab-item-delete')) return;
+            // ONLY prevent switching if the click originated from the delete icon
+            if (e.target.closest('.tab-item-delete')) return; 
 
             const tabId = $(this).data("tab-id");
             if (tabId !== activeTabId) {
                 switchTab(tabId);
             }
+            // If the user clicked the name of the *active* tab, switchTab does not run, 
+            // and the default contenteditable focus/cursor placement will work, allowing rename.
         });
         
         // Tab Rename Handler (on blur)
