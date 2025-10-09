@@ -282,7 +282,7 @@
                     <span id="page-info" class="text-muted-subtle" style="font-size: 0.9rem;">Page 0 of 0</span>
                     <button id="next-page-btn" class="btn btn-outline-primary btn-sm" disabled>Next <i class="fas fa-chevron-right ms-1"></i></button>
                 </div>
-                </div>
+            </div>
 
             <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
                  <div class="row g-4">
@@ -416,9 +416,11 @@
         // Import Firebase modules and expose them globally as window.FirebaseTools
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, setDoc, doc, onSnapshot, updateDoc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // NOTE: We change the imports from collection/setDoc/doc/onSnapshot/updateDoc/deleteDoc 
+        // to only use `doc` and `onSnapshot` for single-document data model
+        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        // --- 1. Expose Firebase Tools Globally to match the provided sign-in code ---
+        // --- 1. Expose Firebase Tools Globally to match the provided auth code ---
         window.FirebaseTools = {
             initializeApp, getAuth, signInWithPopup, GoogleAuthProvider, 
             onAuthStateChanged, signOut, getFirestore, signInAnonymously
@@ -428,11 +430,13 @@
         
         const LOCAL_STORAGE_KEY = 'taskPlannerTasks_v11_local'; 
         const FIREBASE_COLLECTION_PATH = 'events';
+        const APP_ID = window.__app_id || 'default_app'; // NEW: Get APP_ID from window
+        const FIREBASE_DOC_ID = 'main_data'; // NEW: Document ID for the single data doc
         
         let app; 
         let auth; // Global auth variable
         let db;   // Global db variable
-        let tasksCollectionRef = null; 
+        let tasksDocRef = null; // Changed from tasksCollectionRef to tasksDocRef
         let allCurrentTasks = []; // Holds ALL tasks (unfiltered)
         let currentTasks = [];    // Holds the currently rendered/filtered tasks
         let firebaseUnsubscribe = null; 
@@ -441,7 +445,7 @@
         let userId = null;
         let isGoogleSignedIn = false;
         
-        // NEW: Pagination State - Set to 25 items per page
+        // Pagination State - Set to 25 items per page
         const TASKS_PER_PAGE = 25; 
         let currentPage = 1;       
         
@@ -460,7 +464,7 @@
             createdAt: new Date().toISOString()
         };
         
-        // --- 2. Custom UI Overlays/Toasts (Placeholders for provided auth code) ---
+        // --- 2. Custom UI Overlays/Toasts ---
         const loadingOverlay = document.getElementById('auth-loading-overlay');
         
         function showToast(message, duration = 3000) {
@@ -535,6 +539,29 @@
                 renderTasks([]); 
             }
         }
+        
+        // Helper to find the index of a task
+        function findTaskIndex(taskId, tasks) {
+            return tasks.findIndex(t => t.id === taskId);
+        }
+
+        // Helper to update tasks in the global array (used by Firebase functions)
+        function getUpdatedTasks(taskId, updatedFields) {
+            const tasks = [...allCurrentTasks];
+            const index = findTaskIndex(taskId, tasks);
+
+            if (index > -1) {
+                tasks[index] = { ...tasks[index], ...updatedFields };
+            } else if (!taskId) {
+                // If no ID is provided, assume this is a brand new task
+                tasks.push({ ...defaultTask, ...updatedFields, id: `firebase-${Date.now()}` });
+            }
+            
+            // Sort tasks before saving
+            tasks.sort((a, b) => DateUtils.parseDate(a.eventDate) - DateUtils.parseDate(b.eventDate));
+            
+            return tasks;
+        }
 
         // --- CORE LOGIC: Storage Implementation ---
         
@@ -561,7 +588,7 @@
             },
             update: (taskId, updatedFields) => {
                 const tasks = LocalStorageImpl.load();
-                const index = tasks.findIndex(t => t.id === taskId);
+                const index = findTaskIndex(taskId, tasks);
                 if (index > -1) {
                     tasks[index] = { ...tasks[index], ...updatedFields };
                     LocalStorageImpl.save(tasks);
@@ -577,17 +604,18 @@
 
         const FirebaseImpl = {
             startSync: () => {
-                if (!tasksCollectionRef) return;
+                if (!tasksDocRef) return;
                 
                 if (firebaseUnsubscribe) { firebaseUnsubscribe(); } 
                 
                 showLoading("Syncing with Firebase Cloud...");
                 
-                firebaseUnsubscribe = onSnapshot(query(tasksCollectionRef), (snapshot) => {
-                    const tasks = [];
-                    snapshot.forEach(doc => {
-                        tasks.push({ id: doc.id, ...defaultTask, ...doc.data() }); 
-                    });
+                firebaseUnsubscribe = onSnapshot(tasksDocRef, (docSnapshot) => {
+                    let tasks = [];
+                    if (docSnapshot.exists() && docSnapshot.data().tasks) {
+                        // The entire list of tasks is stored in a single field called 'tasks'
+                        tasks = docSnapshot.data().tasks || [];
+                    }
                     
                     tasks.sort((a, b) => DateUtils.parseDate(a.eventDate) - DateUtils.parseDate(b.eventDate));
                     
@@ -606,24 +634,32 @@
                     firebaseUnsubscribe = null;
                 }
             },
+            // Save the entire tasks array back to the single document
+            _saveTasksArray: async (tasksArray) => {
+                if (!tasksDocRef) return;
+                try {
+                    // Overwrite the single document with the new array
+                    await setDoc(tasksDocRef, { tasks: tasksArray || [] }); 
+                } catch(e) {
+                    console.error("Error saving tasks array to Firebase:", e);
+                    showToast("Failed to save tasks to cloud: " + e.message, 5000);
+                }
+            },
             add: async (newTask) => {
-                if (!tasksCollectionRef || !auth.currentUser) return;
-                // Note: The original provided code had an issue with the collection path here. 
-                // We'll use a simplified path for Firebase to function properly in this context 
-                // but keep the original logic for collection path if it was intended for a different structure.
-                // Assuming `tasksCollectionRef` is the correct path established in onAuthStateChanged
-                const newDocRef = doc(db, tasksCollectionRef.path, new Date().getTime().toString()); // Use timestamp as doc ID for simplicity
-                await setDoc(newDocRef, { ...defaultTask, ...newTask, createdAt: new Date().toISOString() });
+                // Add a temporary ID for tracking before saving
+                const taskWithId = { ...defaultTask, ...newTask, id: `firebase-${Date.now()}` }; 
+                const updatedTasks = getUpdatedTasks(null, taskWithId);
+                await FirebaseImpl._saveTasksArray(updatedTasks);
             },
             update: async (taskId, updatedFields) => {
-                if (!tasksCollectionRef) return;
-                const taskRef = doc(db, tasksCollectionRef.path, taskId);
-                await updateDoc(taskRef, updatedFields);
+                // Use helper to create the new array with the single updated task
+                const updatedTasks = getUpdatedTasks(taskId, updatedFields);
+                await FirebaseImpl._saveTasksArray(updatedTasks);
             },
             delete: async (taskId) => {
-                if (!tasksCollectionRef) return;
-                const taskRef = doc(db, tasksCollectionRef.path, taskId);
-                await deleteDoc(taskRef);
+                // Filter the task out and save the remaining array
+                const filteredTasks = allCurrentTasks.filter(t => t.id !== taskId);
+                await FirebaseImpl._saveTasksArray(filteredTasks);
             }
         };
 
@@ -781,7 +817,7 @@
             $taskList.empty();
             $('#task-count').text(tasks.length);
 
-            // NEW: Pagination Logic
+            // Pagination Logic
             const totalPages = Math.ceil(tasks.length / TASKS_PER_PAGE);
             currentPage = Math.min(currentPage, totalPages || 1); // Clamp current page to total pages
             
@@ -793,7 +829,6 @@
             $('#page-info').text(`Page ${currentPage} of ${totalPages}`);
             $('#prev-page-btn').prop('disabled', currentPage === 1);
             $('#next-page-btn').prop('disabled', currentPage >= totalPages || totalPages === 0);
-            // END NEW
             
             if (tasksToRender.length === 0) {
                  const modeText = storageMode === 'local' ? 'Local Storage (Temporary)' : 'Cloud Storage';
@@ -967,7 +1002,11 @@
                         // Google/Email user session is active
                         storageMode = 'firebase';
                         isGoogleSignedIn = true;
-                        tasksCollectionRef = collection(db, `users/${user.uid}/sticky_notes`); 
+                        
+                        // NEW: Define the single document reference using the complex path
+                        const docPath = `artifacts/${APP_ID}/users/${userId}/${FIREBASE_COLLECTION_PATH}/${FIREBASE_DOC_ID}`;
+                        tasksDocRef = doc(db, docPath);
+                        
                         hideCloudSyncModal();
                         TaskManager.loadAndRender();
                     } else if (storageMode === 'firebase' && !isFirstAuthCheck) {
@@ -977,7 +1016,7 @@
                     
                 } else {
                     // User signed out or no session found (anonymous included if explicitly signed out)
-                    tasksCollectionRef = null;
+                    tasksDocRef = null;
                     FirebaseImpl.stopSync();
 
                     if (storageMode === 'firebase' || storageMode === '') {
@@ -1158,12 +1197,14 @@
                 const taskId = $('#modal-task-id').val();
                 TaskManager.toggleComplete(taskId);
 
-                const task = allCurrentTasks.find(t => t.id === taskId);
-                const newCompleted = !task.completed;
+                // Note: The modal state will automatically update when TaskManager.toggleComplete triggers Firebase/Local update 
+                // and the resulting data re-renders the list (and the modal's closed state forces a re-open if needed)
+                // For immediate visual feedback on the modal, we manually toggle the badge here:
                 const $statusBadge = $(this);
-                $statusBadge.text(newCompleted ? 'Completed' : 'Pending');
-                $statusBadge.removeClass().addClass('badge');
-                $statusBadge.addClass(newCompleted ? 'bg-success' : 'bg-info text-white');
+                const isCompleted = $statusBadge.hasClass('bg-info');
+                $statusBadge.text(isCompleted ? 'Completed' : 'Pending');
+                $statusBadge.removeClass('bg-success bg-info text-white').addClass(isCompleted ? 'bg-success' : 'bg-info text-white');
+
             });
             
             // 4. Modal: Handle Delete Task button click
