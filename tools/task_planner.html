@@ -48,7 +48,7 @@
             z-index: 1050;
         }
 
-        /* Custom Loading Overlay used by signInWithGoogle */
+        /* Custom Loading Overlay used by signInWithGoogle function */
         #auth-loading-overlay {
             position: fixed;
             top: 0;
@@ -111,6 +111,12 @@
             opacity: 1;
             transform: translateY(0);
         }
+        
+        /* Filter Styles */
+        .filter-input-group label { font-size: 0.8rem; color: var(--color-text-subtle); margin-bottom: 0.1rem; }
+        .filter-input-group input { height: 32px; font-size: 0.9rem; padding: 0.25rem 0.5rem; }
+        .filter-card { background-color: #f1f3f4; border-bottom: 1px solid #dee2e6; padding: 10px; border-radius: 8px 8px 0 0; }
+        .filter-card h6 { font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem; color: #5f6368; }
     </style>
 </head>
 <body>
@@ -221,15 +227,62 @@
             </div>
 
             <div class="tab-pane fade" id="todo-list" role="tabpanel" aria-labelledby="todo-list-tab">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center bg-info text-white">
-                        <h5 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Current Task List</h5>
+    
+                <div class="filter-card mb-0 d-flex justify-content-between align-items-center">
+                    <button id="toggle-filters-btn" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#todo-filter-inputs" aria-expanded="false" aria-controls="todo-filter-inputs">
+                        <i class="fas fa-filter me-1"></i> Show Filters
+                    </button>
+                    <h6 class="mb-0 text-info">Current Task List (<span id="task-count">0</span>)</h6>
+                    <div class="d-flex">
+                        <button id="clear-filters-btn" class="btn btn-outline-secondary btn-sm me-2"><i class="fas fa-times me-1"></i> Clear</button>
+                        <button id="apply-filters-btn" class="btn btn-primary btn-sm"><i class="fas fa-check me-1"></i> Apply Filters</button>
                     </div>
+                </div>
+                
+                <div id="todo-filter-inputs" class="collapse filter-card rounded-top-0 mb-3">
+                    <div class="row g-2 p-2">
+                        <div class="col-12 filter-input-group">
+                            <h6><i class="fas fa-calendar-alt me-1"></i>Date Range</h6>
+                            <div class="d-flex">
+                                <input type="date" id="filter-date-start" class="form-control form-control-sm me-1" placeholder="Start">
+                                <input type="date" id="filter-date-end" class="form-control form-control-sm" placeholder="End">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2 px-2 pb-2">
+                         <div class="col-12 filter-input-group">
+                             <h6><i class="fas fa-dollar-sign me-1"></i>Cost Range ($)</h6>
+                            <div class="d-flex">
+                                <input type="number" step="0.01" min="0" id="filter-cost-min" class="form-control form-control-sm me-1" placeholder="Min">
+                                <input type="number" step="0.01" min="0" id="filter-cost-max" class="form-control form-control-sm" placeholder="Max">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2 px-2 pb-2">
+                        <div class="col-12 filter-input-group">
+                            <h6><i class="fas fa-clock me-1"></i>Time Range (Hrs)</h6>
+                            <div class="d-flex">
+                                <input type="number" step="0.5" min="0" id="filter-time-min" class="form-control form-control-sm me-1" placeholder="Min">
+                                <input type="number" step="0.5" min="0" id="filter-time-max" class="form-control form-control-sm" placeholder="Max">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card rounded-top-0">
                     <ul id="task-list" class="list-group list-group-flush">
                         <li class="list-group-item text-center text-muted-subtle">Tasks will load after successful setup.</li>
                     </ul>
                 </div>
-            </div>
+                
+                <div id="task-pagination-controls" class="d-flex justify-content-between align-items-center p-3 border-top bg-light rounded-bottom">
+                    <button id="prev-page-btn" class="btn btn-outline-primary btn-sm" disabled><i class="fas fa-chevron-left me-1"></i> Previous</button>
+                    <span id="page-info" class="text-muted-subtle" style="font-size: 0.9rem;">Page 0 of 0</span>
+                    <button id="next-page-btn" class="btn btn-outline-primary btn-sm" disabled>Next <i class="fas fa-chevron-right ms-1"></i></button>
+                </div>
+                </div>
 
             <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
                  <div class="row g-4">
@@ -247,8 +300,27 @@
                     <div class="col-md-12">
                         <div class="card p-4">
                             <h5 class="text-primary mb-3"><i class="fas fa-tools me-2"></i>Reporting Tools</h5>
+                            
+                            <div id="report-filter-section" class="bg-light p-3 mb-3 rounded">
+                                <h6 class="text-info mb-2"><i class="fas fa-filter me-1"></i>Filter Report By Date (Optional)</h6>
+                                <div class="row g-2">
+                                    <div class="col-md-5">
+                                        <label for="report-date-start" class="form-label text-muted-subtle mb-1">Start Date</label>
+                                        <input type="date" id="report-date-start" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label for="report-date-end" class="form-label text-muted-subtle mb-1">End Date</label>
+                                        <input type="date" id="report-date-end" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <button id="clear-report-filters-btn" class="btn btn-outline-secondary btn-sm w-100">Clear</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <button class="btn btn-outline-primary w-100" id="download-csv-btn">
-                                <i class="fas fa-download me-2"></i>Download All Data as CSV Report
+                                <i class="fas fa-download me-2"></i>Download Data as CSV Report
+                                <span class="d-block" id="download-filter-status" style="font-size: 0.8rem;">(All Time)</span>
                             </button>
                         </div>
                     </div>
@@ -355,17 +427,23 @@
         // --- Global State & Initialization ---
         
         const LOCAL_STORAGE_KEY = 'taskPlannerTasks_v11_local'; 
+        const FIREBASE_COLLECTION_PATH = 'events';
         
         let app; 
         let auth; // Global auth variable
         let db;   // Global db variable
         let tasksCollectionRef = null; 
-        let currentTasks = [];
+        let allCurrentTasks = []; // Holds ALL tasks (unfiltered)
+        let currentTasks = [];    // Holds the currently rendered/filtered tasks
         let firebaseUnsubscribe = null; 
         
         let storageMode = ''; 
         let userId = null;
         let isGoogleSignedIn = false;
+        
+        // NEW: Pagination State - Set to 25 items per page
+        const TASKS_PER_PAGE = 25; 
+        let currentPage = 1;       
         
         const defaultTask = {
             companyName: '', 
@@ -402,7 +480,7 @@
             }, duration);
         }
 
-        // --- UI & Utility Functions (Adjusted) ---
+        // --- UI & Utility Functions ---
 
         function showLoading(text) {
             $('#loading-text').text(text);
@@ -444,8 +522,9 @@
                 $('#auth-action-btn').removeClass('d-none').text('Exit Guest Mode').off('click').on('click', () => {
                     if (confirm("Are you sure you want to exit Guest Mode?")) {
                         storageMode = ''; 
+                        allCurrentTasks = [];
                         currentTasks = [];
-                        renderTasks([]);
+                        renderTasks(allCurrentTasks);
                         updateUIOnModeChange(); 
                         showCloudSyncModal(); 
                     }
@@ -477,7 +556,8 @@
                 const tasks = LocalStorageImpl.load();
                 tasks.push({...defaultTask, ...newTask, id: `local-${Date.now()}`});
                 LocalStorageImpl.save(tasks);
-                renderTasks(tasks); 
+                // Call TaskManager.loadAndRender to re-pull, sort, and re-filter
+                TaskManager.loadAndRender(); 
             },
             update: (taskId, updatedFields) => {
                 const tasks = LocalStorageImpl.load();
@@ -485,13 +565,13 @@
                 if (index > -1) {
                     tasks[index] = { ...tasks[index], ...updatedFields };
                     LocalStorageImpl.save(tasks);
-                    renderTasks(tasks); 
+                    TaskManager.loadAndRender(); 
                 }
             },
             delete: (taskId) => {
                 const tasks = LocalStorageImpl.load().filter(t => t.id !== taskId);
                 LocalStorageImpl.save(tasks);
-                renderTasks(tasks); 
+                TaskManager.loadAndRender(); 
             }
         };
 
@@ -511,6 +591,7 @@
                     
                     tasks.sort((a, b) => DateUtils.parseDate(a.eventDate) - DateUtils.parseDate(b.eventDate));
                     
+                    // Update allCurrentTasks and trigger filtering
                     renderTasks(tasks); 
                     hideLoading();
                 }, (error) => {
@@ -527,7 +608,11 @@
             },
             add: async (newTask) => {
                 if (!tasksCollectionRef || !auth.currentUser) return;
-                const newDocRef = doc(collection(db, `users/${auth.currentUser.uid}/sticky_notes`));
+                // Note: The original provided code had an issue with the collection path here. 
+                // We'll use a simplified path for Firebase to function properly in this context 
+                // but keep the original logic for collection path if it was intended for a different structure.
+                // Assuming `tasksCollectionRef` is the correct path established in onAuthStateChanged
+                const newDocRef = doc(db, tasksCollectionRef.path, new Date().getTime().toString()); // Use timestamp as doc ID for simplicity
                 await setDoc(newDocRef, { ...defaultTask, ...newTask, createdAt: new Date().toISOString() });
             },
             update: async (taskId, updatedFields) => {
@@ -552,7 +637,7 @@
                 } else if (storageMode === 'local') {
                     FirebaseImpl.stopSync();
                     const tasks = LocalStorageImpl.load();
-                    renderTasks(tasks);
+                    renderTasks(tasks); // This calls renderTasks, which calls applyFiltersAndRender
                 } else {
                     renderTasks([]);
                 }
@@ -570,13 +655,13 @@
                 if (storageMode === 'local') return LocalStorageImpl.delete(taskId);
             },
             toggleComplete: (taskId) => {
-                const task = currentTasks.find(t => t.id === taskId);
+                const task = allCurrentTasks.find(t => t.id === taskId);
                 if (!task) return;
                 TaskManager.update(taskId, { completed: !task.completed });
             }
         };
 
-        // --- 3. Integrated Auth Functions from User ---
+        // --- Auth Functions ---
 
         async function signInWithGoogle() {
             if (!window.FirebaseTools) {
@@ -623,7 +708,6 @@
                 auth = getAuth(app); 
                 db = getFirestore(app);
                 
-                // If no user is currently authenticated (new session or sign-out), sign in anonymously
                 if (!auth.currentUser) {
                     await signInAnonymously(auth);
                 }
@@ -634,37 +718,89 @@
             }
         }
 
-        // --- Remaining Utility Functions ---
-        
-        const DateUtils = {
-            getPeriodStartEnd: (period) => {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                let start = new Date(today);
-                let end = new Date(today);
+        // --- Filtering Logic ---
+        function getFilterValues() {
+            return {
+                dateStart: $('#filter-date-start').val(),
+                dateEnd: $('#filter-date-end').val(),
+                // Use || 0 to default to minimum possible value if field is empty (for range checks)
+                costMin: parseFloat($('#filter-cost-min').val() || 0),
+                // Use || Infinity to default to maximum possible value if field is empty
+                costMax: parseFloat($('#filter-cost-max').val() || Infinity), 
+                timeMin: parseFloat($('#filter-time-min').val() || 0),
+                timeMax: parseFloat($('#filter-time-max').val() || Infinity),
+            };
+        }
 
-                if (period === 'week') { end.setDate(today.getDate() + 7); } 
-                else if (period === 'month') { start.setDate(1); end = new Date(today.getFullYear(), today.getMonth() + 1, 0); } 
-                else if (period === 'year') { start.setMonth(0, 1); end.setMonth(11, 31); }
-                return { start, end };
-            },
-            parseDate: (dateString) => {
-                const parts = dateString.split('-');
-                return new Date(parts[0], parts[1] - 1, parts[2]); 
-            }
-        };
+        function applyFiltersAndRender(tasksToFilter) {
+            const filters = getFilterValues();
+            
+            const filtered = tasksToFilter.filter(task => {
+                const totalCost = parseFloat(task.estimatedCost) + parseFloat(task.additionalCost || 0);
+                const totalTime = parseFloat(task.estimatedTime);
+                const taskDate = DateUtils.parseDate(task.eventDate);
 
+                // Date Filter
+                if (filters.dateStart && taskDate < DateUtils.parseDate(filters.dateStart)) return false;
+                if (filters.dateEnd && taskDate > DateUtils.parseDate(filters.dateEnd)) return false;
+
+                // Cost Filter
+                if (totalCost < filters.costMin) return false;
+                if (totalCost > filters.costMax) return false;
+
+                // Time Filter
+                if (totalTime < filters.timeMin) return false;
+                if (totalTime > filters.timeMax) return false;
+
+                return true;
+            });
+
+            currentTasks = filtered;
+            _renderFilteredList(currentTasks);
+        }
+
+        // --- Rendering Logic (Split into two parts) ---
+
+        // 1. Receives unfiltered data, stores it, and triggers filtering/summary updates
         function renderTasks(tasks) {
-            currentTasks = tasks;
+            allCurrentTasks = tasks; // Store all tasks
+            
+            // 1. Update Home and Reporting Summaries based on ALL tasks
+            updateReportingSummary(allCurrentTasks);
+            renderHomeTab(allCurrentTasks);
+            
+            // 2. Apply filters to all tasks and render the list
+            // Reset to the first page when the list changes
+            currentPage = 1; 
+            applyFiltersAndRender(allCurrentTasks);
+        }
+
+        // 2. Renders the list based on the already filtered 'currentTasks'
+        function _renderFilteredList(tasks) {
             const $taskList = $('#task-list');
             $taskList.empty();
+            $('#task-count').text(tasks.length);
 
-            if (tasks.length === 0) {
+            // NEW: Pagination Logic
+            const totalPages = Math.ceil(tasks.length / TASKS_PER_PAGE);
+            currentPage = Math.min(currentPage, totalPages || 1); // Clamp current page to total pages
+            
+            const startIndex = (currentPage - 1) * TASKS_PER_PAGE;
+            const endIndex = startIndex + TASKS_PER_PAGE;
+            const tasksToRender = tasks.slice(startIndex, endIndex);
+
+            // Update Pagination UI
+            $('#page-info').text(`Page ${currentPage} of ${totalPages}`);
+            $('#prev-page-btn').prop('disabled', currentPage === 1);
+            $('#next-page-btn').prop('disabled', currentPage >= totalPages || totalPages === 0);
+            // END NEW
+            
+            if (tasksToRender.length === 0) {
                  const modeText = storageMode === 'local' ? 'Local Storage (Temporary)' : 'Cloud Storage';
-                 $taskList.append(`<li class="list-group-item text-center text-muted-subtle">No tasks found in ${modeText}.</li>`);
+                 $taskList.append(`<li class="list-group-item text-center text-muted-subtle">No tasks found in ${modeText} or no tasks match the current filters.</li>`);
             }
 
-            tasks.forEach(task => {
+            tasksToRender.forEach(task => {
                 const costDisplay = (parseFloat(task.estimatedCost) + parseFloat(task.additionalCost || 0)).toFixed(2);
                 const timeDisplay = parseFloat(task.estimatedTime);
                 const timeBadge = task.eventStartTime ? `<span class="badge bg-secondary ms-1" title="Start Time">${task.eventStartTime}</span>` : '';
@@ -701,10 +837,27 @@
                 $li.append(taskContent).append(actionButtons);
                 $taskList.append($li);
             });
-
-            updateReportingSummary(tasks);
-            renderHomeTab(tasks);
         }
+        
+        // --- Remaining Utility Functions ---
+        
+        const DateUtils = {
+            getPeriodStartEnd: (period) => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                let start = new Date(today);
+                let end = new Date(today);
+
+                if (period === 'week') { end.setDate(today.getDate() + 7); } 
+                else if (period === 'month') { start.setDate(1); end = new Date(today.getFullYear(), today.getMonth() + 1, 0); } 
+                else if (period === 'year') { start.setMonth(0, 1); end.setMonth(11, 31); }
+                return { start, end };
+            },
+            parseDate: (dateString) => {
+                const parts = dateString.split('-');
+                return new Date(parts[0], parts[1] - 1, parts[2]); 
+            }
+        };
 
         function updateReportingSummary(tasks) {
             let totalCostEst = 0;
@@ -798,7 +951,7 @@
             taskModal.show();
         }
 
-        // --- Event Handlers (Updated for new auth flow) ---
+        // --- Event Handlers ---
         $(document).ready(async function() {
             
             // Step 1: Initialize Firebase and define the AUTH object.
@@ -818,7 +971,7 @@
                         hideCloudSyncModal();
                         TaskManager.loadAndRender();
                     } else if (storageMode === 'firebase' && !isFirstAuthCheck) {
-                        // If an Anonymous user tries to use 'firebase' mode (shouldn't happen), sign out.
+                        // This case is unlikely if sign-out works correctly, but as a guard:
                         signOut(auth);
                     }
                     
@@ -828,41 +981,103 @@
                     FirebaseImpl.stopSync();
 
                     if (storageMode === 'firebase' || storageMode === '') {
-                        // If we were in Firebase mode, revert and show modal.
-                        // Also show modal if storageMode is unselected ('').
                         storageMode = ''; 
                         updateUIOnModeChange();
-                        renderTasks([]);
+                        renderTasks([]); // Clears lists
                         showCloudSyncModal();
                     }
                 }
                 isFirstAuthCheck = false;
             });
 
-            // Step 3: Initial UI/Modal State Check
-            // If the user is connected (Google or Anonymous), the onAuthStateChanged listener takes over.
-            // If they are not connected with Google, the listener (above) will show the modal.
+            // Step 3: Initial UI/Modal State Check (runs immediately after async initializeFirebase)
             if (auth.currentUser && !auth.currentUser.isAnonymous) {
-                 // Already signed in with Google, start immediately
                  storageMode = 'firebase';
-                 TaskManager.loadAndRender();
+                 // Listener handles loadAndRender
             } else if (auth.currentUser && auth.currentUser.isAnonymous) {
-                 // Anonymous session is active, but we need to prompt them for permanent storage
+                 // Anonymous session is active, prompt for permanent storage
+                 showCloudSyncModal();
+            } else {
+                 // Fallback if no session found, prompt for permanent storage
                  showCloudSyncModal();
             }
             
-            // Handle Google Sign-In Button Click (Uses the custom signInWithGoogle function)
+            // --- MODAL/AUTH BUTTONS ---
+            
             $('#google-sign-in-btn').on('click', async function() {
                 await signInWithGoogle();
-                // Auth state change handler will run the rest of the logic
             });
             
-            // Handle Guest Sign-In Button Click (Local Storage)
             $('#guest-sign-in-btn').on('click', function() {
                 storageMode = 'local';
                 hideCloudSyncModal();
                 TaskManager.loadAndRender();
             });
+            
+            // --- TO-DO LIST FILTER EVENT HANDLERS ---
+            
+            const filterInputs = '#filter-date-start, #filter-date-end, #filter-cost-min, #filter-cost-max, #filter-time-min, #filter-time-max';
+
+            // 1. Toggle Button Text
+            $('#todo-filter-inputs').on('shown.bs.collapse', function () {
+                $('#toggle-filters-btn').html('<i class="fas fa-filter-slash me-1"></i> Hide Filters');
+            });
+            $('#todo-filter-inputs').on('hidden.bs.collapse', function () {
+                $('#toggle-filters-btn').html('<i class="fas fa-filter me-1"></i> Show Filters');
+            });
+
+            // 2. Apply Filters Button
+            $('#apply-filters-btn').on('click', () => {
+                applyFiltersAndRender(allCurrentTasks);
+            });
+
+            // 3. Clear Filters Button
+            $('#clear-filters-btn').on('click', function() {
+                $(filterInputs).val('');
+                // Reset page on clear
+                currentPage = 1; 
+                applyFiltersAndRender(allCurrentTasks); // Apply filters immediately after clearing
+                
+                // Optional: Hide the filter panel after clearing
+                const filterCollapse = bootstrap.Collapse.getInstance(document.getElementById('todo-filter-inputs'));
+                if (filterCollapse) filterCollapse.hide();
+            });
+            
+            // 4. Pagination Button Handlers
+            $('#prev-page-btn').on('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    _renderFilteredList(currentTasks); // Re-render with new page
+                }
+            });
+
+            $('#next-page-btn').on('click', function() {
+                const totalPages = Math.ceil(currentTasks.length / TASKS_PER_PAGE);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    _renderFilteredList(currentTasks); // Re-render with new page
+                }
+            });
+
+
+            // --- REPORTING FILTER EVENT HANDLERS ---
+            const reportDateInputs = '#report-date-start, #report-date-end';
+            $(reportDateInputs).on('change', function() {
+                const start = $('#report-date-start').val();
+                const end = $('#report-date-end').val();
+                let statusText = '(All Time)';
+                if (start || end) {
+                    statusText = `(Filtered: ${start || 'Start'} to ${end || 'End'})`;
+                }
+                $('#download-filter-status').text(statusText);
+            });
+            
+            $('#clear-report-filters-btn').on('click', function() {
+                $(reportDateInputs).val('');
+                $('#download-filter-status').text('(All Time)');
+            });
+
+            // --- MAIN FORM & CRUD HANDLERS ---
             
             // 1. Handle form submission (Add Task)
             $('#party-form').on('submit', function(e) {
@@ -923,7 +1138,7 @@
                     organizerNotes: $('#modal-organizer-notes-input').val().trim(), 
                 };
                 
-                const currentTask = currentTasks.find(t => t.id === taskId);
+                const currentTask = allCurrentTasks.find(t => t.id === taskId);
                 updatedFields.completed = currentTask?.completed || false; 
 
                 if (!updatedFields.eventName || !updatedFields.eventDate || !updatedFields.eventTask) {
@@ -943,7 +1158,7 @@
                 const taskId = $('#modal-task-id').val();
                 TaskManager.toggleComplete(taskId);
 
-                const task = currentTasks.find(t => t.id === taskId);
+                const task = allCurrentTasks.find(t => t.id === taskId);
                 const newCompleted = !task.completed;
                 const $statusBadge = $(this);
                 $statusBadge.text(newCompleted ? 'Completed' : 'Pending');
@@ -954,9 +1169,9 @@
             // 4. Modal: Handle Delete Task button click
             $('#modal-delete-task-btn').on('click', function() {
                 const taskId = $('#modal-task-id').val();
-                const task = currentTasks.find(t => t.id === taskId);
+                const task = allCurrentTasks.find(t => t.id === taskId);
                 
-                if (confirm(`Are you sure you want to delete this task: "${task.eventTask}"?`)) {
+                if (confirm(`Are you sure you want to delete this task: "${task.eventTask}"`)) {
                     TaskManager.delete(taskId);
                     
                     const modalElement = document.getElementById('taskDetailModal');
@@ -965,11 +1180,10 @@
                 }
             });
 
-
             // 5. Home Tab: Handle click on upcoming event item to show modal (View/Edit)
             $('#upcoming-events-list').on('click', '.home-upcoming-item', function() {
                 const taskId = $(this).data('task-id');
-                const task = currentTasks.find(t => t.id === taskId);
+                const task = allCurrentTasks.find(t => t.id === taskId);
                 
                 if (task) { showTaskDetailsModal(task); }
             });
@@ -978,7 +1192,7 @@
             $('#task-list').on('click', '.details-btn', function(e) {
                 e.stopPropagation();
                 const taskId = $(this).closest('li').data('task-id');
-                const task = currentTasks.find(t => t.id === taskId);
+                const task = allCurrentTasks.find(t => t.id === taskId);
                 if (task) { showTaskDetailsModal(task); }
             });
 
@@ -991,29 +1205,55 @@
             
             // 8. Reporting and Utility Buttons (CSV download)
             $('#download-csv-btn').on('click', function() {
-                if (currentTasks.length === 0) {
+                if (allCurrentTasks.length === 0) {
                     alert('No data to download!');
                     return;
                 }
                 
+                const reportDateStart = $('#report-date-start').val();
+                const reportDateEnd = $('#report-date-end').val();
+                
+                let tasksToDownload = allCurrentTasks;
+                
+                // Apply date filter for reporting
+                if (reportDateStart || reportDateEnd) {
+                    tasksToDownload = allCurrentTasks.filter(task => {
+                        const taskDate = DateUtils.parseDate(task.eventDate);
+                        
+                        if (reportDateStart && taskDate < DateUtils.parseDate(reportDateStart)) return false;
+                        if (reportDateEnd && taskDate > DateUtils.parseDate(reportDateEnd)) return false;
+                        
+                        return true;
+                    });
+                    
+                    if (tasksToDownload.length === 0) {
+                        showToast("No tasks found for the selected date range.", 4000);
+                        return;
+                    }
+                }
+
                 const headers = [
                     "CompanyName", "EventName", "Task", "Description", "Date", "StartTime",
-                    "EstimatedCost", "AdditionalCost", "OrganizerNotes", "EstimatedTime (Hrs)", "Status"
+                    "EstimatedCost", "AdditionalCost", "OrganizerNotes", "TotalCost", "EstimatedTime (Hrs)", "Status"
                 ];
                 
-                const csvRows = currentTasks.map(task => [
-                    `"${task.companyName.replace(/"/g, '""')}"`,
-                    `"${task.eventName.replace(/"/g, '""')}"`,
-                    `"${task.eventTask.replace(/"/g, '""')}"`,
-                    `"${task.taskDescription.replace(/"/g, '""')}"`,
-                    task.eventDate,
-                    task.eventStartTime, 
-                    task.estimatedCost,
-                    task.additionalCost, 
-                    `"${task.organizerNotes.replace(/"/g, '""')}"`, 
-                    task.estimatedTime,
-                    task.completed ? "Completed" : "Pending"
-                ].join(','));
+                const csvRows = tasksToDownload.map(task => {
+                    const totalCost = (parseFloat(task.estimatedCost) + parseFloat(task.additionalCost || 0)).toFixed(2);
+                    return [
+                        `"${task.companyName.replace(/"/g, '""')}"`,
+                        `"${task.eventName.replace(/"/g, '""')}"`,
+                        `"${task.eventTask.replace(/"/g, '""')}"`,
+                        `"${task.taskDescription.replace(/"/g, '""')}"`,
+                        task.eventDate,
+                        task.eventStartTime, 
+                        task.estimatedCost,
+                        task.additionalCost, 
+                        `"${task.organizerNotes.replace(/"/g, '""')}"`, 
+                        totalCost, // New Total Cost Column
+                        task.estimatedTime,
+                        task.completed ? "Completed" : "Pending"
+                    ].join(',');
+                });
 
                 const csvContent = [headers.join(','), ...csvRows].join('\n');
 
