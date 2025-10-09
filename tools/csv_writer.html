@@ -372,6 +372,21 @@
         const DEFAULT_COL_WIDTH = 120;
         let currentMode = localStorage.getItem("csvSyncMode") || 'local'; 
 
+        // --- NEW: Debounce Utility and Global Variable ---
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        let debouncedSaveData; 
+        // ------------------------------------------------
+
         // --- Deletion Context for Modal ---
         let deletionContext = { type: null, index: -1 }; 
         // --- Modal Context for Sync/Mode Switch ---
@@ -887,19 +902,22 @@
             const modalConfirm = document.getElementById('modalConfirm');
             const modalCancel = document.getElementById('modalCancel');
             
+            // Use clone and replace to remove any existing listeners from sync modals
+            modalConfirm.replaceWith(modalConfirm.cloneNode(true));
+            modalCancel.replaceWith(modalCancel.cloneNode(true));
+            
             // Restore styles
-            modalConfirm.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-            modalConfirm.classList.add('bg-red-600', 'hover:bg-red-700');
-            modalConfirm.replaceWith(modalConfirm.cloneNode(true)); // Replaces with clone to ensure listeners are clean
+            const newModalConfirm = document.getElementById('modalConfirm');
+            const newModalCancel = document.getElementById('modalCancel');
             
-            modalCancel.classList.remove('bg-green-600', 'hover:bg-green-700', 'text-white');
-            modalCancel.classList.add('bg-gray-200', 'hover:bg-gray-300');
-            modalCancel.replaceWith(modalCancel.cloneNode(true)); // Replaces with clone to ensure listeners are clean
+            newModalConfirm.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            newModalConfirm.classList.add('bg-red-600', 'hover:bg-red-700');
             
-            // Re-get the new, cloned elements and re-attach the basic hide listener
-             document.getElementById('modalCancel').addEventListener('click', hideModal);
-
-            // The main deletion logic is handled by delegation on 'deletionModal' and relies on syncContext being cleared.
+            newModalCancel.classList.remove('bg-green-600', 'hover:bg-green-700', 'text-white');
+            newModalCancel.classList.add('bg-gray-200', 'hover:bg-gray-300');
+            
+            // Re-attach the basic hide listener
+             newModalCancel.addEventListener('click', hideModal);
         }
 
         // Overload showModal to handle sync context
@@ -1420,7 +1438,7 @@
             }
         });
         
-        // Header Edit Handler
+        // Header Edit Handler (UPDATED to use debouncedSaveData)
         $(document).on("blur", "span.col-header-text[contenteditable='true']", function() {
             const col = $(this).data("header-col");
             let newHeader = $(this).text().trim();
@@ -1434,13 +1452,13 @@
             if (activeData.length > 0 && activeData[0].length > col) {
                 activeData[0][col] = newHeader;
                 setActiveTabData(activeData);
-                saveData(); 
+                debouncedSaveData(); // REPLACED saveData() with debouncedSaveData()
                 showToast(`Updated header for Column ${col + 1} to: ${newHeader}`, 1500);
             }
         });
 
 
-        // Cell Data Edit Handler
+        // Cell Data Edit Handler (UPDATED to fix focus loss with debouncedSaveData)
         $(document).on("input", "td[contenteditable='true']", function() {
             const row = $(this).data("row");
             const col = $(this).data("col");
@@ -1449,7 +1467,9 @@
             activeData[row][col] = $(this).text(); 
             setActiveTabData(activeData);
             $(this).attr("title", $(this).text());
-            saveData(); 
+            
+            // CRITICAL FIX: Use debounced save. This prevents immediate Firebase write and re-render.
+            debouncedSaveData(); // REPLACED saveData() with debouncedSaveData()
         });
 
         // Cell Navigation 
@@ -1684,6 +1704,8 @@
         $(document).ready(function() {
             initializeData();
             document.getElementById('modeToggleCheckbox').addEventListener('change', switchMode);
+            // NEW: Initialize debounced save function with a 500ms delay
+            debouncedSaveData = debounce(saveData, 500); 
         });
     </script>
 
