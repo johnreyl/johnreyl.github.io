@@ -47,6 +47,22 @@
             transform: translate(-50%, -50%);
             z-index: 1050;
         }
+
+        /* Custom Loading Overlay used by signInWithGoogle */
+        #auth-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            display: none; /* Starts hidden */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
         
         /* Cloud Sync Modal Styling */
         .start-sync-modal-body {
@@ -73,6 +89,28 @@
             border: 1px solid #ced4da;
             width: 100%;
         }
+
+        /* Toast Message Styling */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1060;
+        }
+        .custom-toast {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: opacity 0.5s, transform 0.5s;
+            transform: translateY(100%);
+        }
+        .custom-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -92,6 +130,13 @@
             </div>
             <p class="text-primary mt-2" id="loading-text">Connecting...</p>
         </div>
+
+        <div id="auth-loading-overlay">
+            <div class="spinner-border text-light mb-3" role="status"></div>
+            <p class="text-light">Waiting for Google Sign-In...</p>
+        </div>
+
+        <div id="toast-container"></div>
 
         <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
@@ -289,34 +334,39 @@
             appId: "1:277024201427:web:b1d23c088add4324226",
             measurementId: "G-1HJ0N30X1W"
         });
+        window.__app_id = 'task_planner_app';
     </script>
     
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script type="module">
-        // Import Firebase modules
+        // Import Firebase modules and expose them globally as window.FirebaseTools
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, setDoc, doc, onSnapshot, updateDoc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
+        // --- 1. Expose Firebase Tools Globally to match the provided sign-in code ---
+        window.FirebaseTools = {
+            initializeApp, getAuth, signInWithPopup, GoogleAuthProvider, 
+            onAuthStateChanged, signOut, getFirestore, signInAnonymously
+        };
+
         // --- Global State & Initialization ---
         
-        const firebaseConfig = JSON.parse(window.__firebase_config);
         const LOCAL_STORAGE_KEY = 'taskPlannerTasks_v11_local'; 
         
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        
+        let app; 
+        let auth; // Global auth variable
+        let db;   // Global db variable
         let tasksCollectionRef = null; 
         let currentTasks = [];
         let firebaseUnsubscribe = null; 
         
-        // Tracks the current storage mode: 'firebase' or 'local'
         let storageMode = ''; 
-
-        // Task defaults for consistency (same as before)
+        let userId = null;
+        let isGoogleSignedIn = false;
+        
         const defaultTask = {
             companyName: '', 
             eventName: 'New Event Project',
@@ -332,7 +382,27 @@
             createdAt: new Date().toISOString()
         };
         
-        // --- UI & Utility Functions ---
+        // --- 2. Custom UI Overlays/Toasts (Placeholders for provided auth code) ---
+        const loadingOverlay = document.getElementById('auth-loading-overlay');
+        
+        function showToast(message, duration = 3000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'custom-toast';
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            // Show
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            // Hide
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500); // Wait for transition
+            }, duration);
+        }
+
+        // --- UI & Utility Functions (Adjusted) ---
 
         function showLoading(text) {
             $('#loading-text').text(text);
@@ -344,7 +414,6 @@
         }
 
         function showCloudSyncModal() {
-            // Must be called inside document.ready or another function where the DOM is ready
             const modalElement = document.getElementById('StartCloudSyncModal');
             const syncModal = new bootstrap.Modal(modalElement, {
                 backdrop: 'static', 
@@ -362,33 +431,34 @@
         function updateUIOnModeChange() {
             if (storageMode === 'firebase') {
                 const userEmail = auth.currentUser?.email || 'Authenticated User';
-                $('#banner-storage-mode').text(`Permanent Cloud (User: ${userEmail})`);
+                const modeText = isGoogleSignedIn ? `Permanent Cloud (User: ${userEmail})` : 'Temporary Cloud (Guest)';
+                $('#banner-storage-mode').text(modeText);
+                
                 $('#auth-action-btn').removeClass('d-none').text('Sign Out').off('click').on('click', async () => {
                     if (confirm("Are you sure you want to sign out?")) {
                         await signOut(auth);
-                        // onAuthStateChanged will handle re-showing the modal
                     }
                 });
             } else if (storageMode === 'local') {
                 $('#banner-storage-mode').text('Local Storage (Guest Mode - Browser Only)');
                 $('#auth-action-btn').removeClass('d-none').text('Exit Guest Mode').off('click').on('click', () => {
-                    if (confirm("Are you sure you want to exit Guest Mode? Your data will remain in this browser, but you must choose a storage method to access the app again.")) {
-                        storageMode = ''; // Clear mode
+                    if (confirm("Are you sure you want to exit Guest Mode?")) {
+                        storageMode = ''; 
                         currentTasks = [];
                         renderTasks([]);
                         updateUIOnModeChange(); 
-                        showCloudSyncModal(); // Immediately show the modal after exit
+                        showCloudSyncModal(); 
                     }
                 });
             } else {
                 $('#banner-storage-mode').text('None (Please sign in)');
                 $('#auth-action-btn').addClass('d-none');
-                renderTasks([]); // Clear data if no mode is active
+                renderTasks([]); 
             }
         }
 
-        // --- CORE LOGIC: Storage Implementation (unchanged from last version) ---
-
+        // --- CORE LOGIC: Storage Implementation ---
+        
         const LocalStorageImpl = {
             load: () => {
                 showLoading("Loading from Local Storage...");
@@ -445,7 +515,7 @@
                     hideLoading();
                 }, (error) => {
                     console.error("Error reading data from Firestore: ", error);
-                    alert("Error connecting to Firebase: " + error.message);
+                    showToast("Error connecting to Firebase: " + error.message, 5000);
                     hideLoading();
                 });
             },
@@ -456,8 +526,9 @@
                 }
             },
             add: async (newTask) => {
-                if (!tasksCollectionRef) return;
-                await setDoc(doc(tasksCollectionRef), { ...defaultTask, ...newTask, createdAt: new Date().toISOString() });
+                if (!tasksCollectionRef || !auth.currentUser) return;
+                const newDocRef = doc(collection(db, `users/${auth.currentUser.uid}/sticky_notes`));
+                await setDoc(newDocRef, { ...defaultTask, ...newTask, createdAt: new Date().toISOString() });
             },
             update: async (taskId, updatedFields) => {
                 if (!tasksCollectionRef) return;
@@ -470,7 +541,6 @@
                 await deleteDoc(taskRef);
             }
         };
-
 
         // --- Task Manager Interface (The Router) ---
         const TaskManager = {
@@ -506,35 +576,66 @@
             }
         };
 
+        // --- 3. Integrated Auth Functions from User ---
 
-        // --- Authentication Handler ---
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // User signed in with Google
-                tasksCollectionRef = collection(db, `users/${user.uid}/tasks`);
-                storageMode = 'firebase';
-                hideCloudSyncModal();
-                TaskManager.loadAndRender();
-            } else if (storageMode === 'firebase') {
-                // User explicitly signed out from a Firebase session
-                tasksCollectionRef = null;
-                FirebaseImpl.stopSync();
-                storageMode = ''; // Revert to unselected mode
-                updateUIOnModeChange();
-                renderTasks([]);
-                showCloudSyncModal(); // <--- Show modal on Firebase sign out
-            } else if (storageMode === '') {
-                // Initial load or after sign-out/exit, no mode selected
-                updateUIOnModeChange();
-                renderTasks([]);
-                
+        async function signInWithGoogle() {
+            if (!window.FirebaseTools) {
+                showToast("Cloud connection is not available.", 3000);
+                return false;
             }
-            // Note: If storageMode === 'local', onAuthStateChanged won't fire unless sign-in is attempted.
-        });
 
-        // --- UI Rendering and Utility Functions (unchanged from last version) ---
+            const { GoogleAuthProvider, signInWithPopup } = window.FirebaseTools;
+            const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' }); 
 
+            loadingOverlay.style.display = 'flex';
+            loadingOverlay.querySelector('p').textContent = 'Waiting for Google Sign-In...';
+
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                userId = user.uid;
+                isGoogleSignedIn = true; 
+                
+                loadingOverlay.style.display = 'none';
+                showToast(`Signed in as ${user.displayName || 'Google User'}! 🚀`, 4000);
+                return true;
+            } catch (error) {
+                loadingOverlay.style.display = 'none';
+                
+                if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                    showToast("Google Sign-In canceled.", 3000);
+                } else {
+                    console.error("Google Sign-In Error:", error);
+                    showToast(`Sign-In Failed: ${error.message.substring(0, 50)}...`, 5000);
+                }
+                return false;
+            }
+        }
+
+        async function initializeFirebase() {
+            if (!window.FirebaseTools) return;
+            try {
+                const firebaseConfig = JSON.parse(window.__firebase_config);
+                const { initializeApp, getAuth, signInAnonymously, getFirestore } = window.FirebaseTools;
+
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app); 
+                db = getFirestore(app);
+                
+                // If no user is currently authenticated (new session or sign-out), sign in anonymously
+                if (!auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+                
+            } catch (e) {
+                console.error("Firebase Initialization Failed:", e);
+                showToast("Firebase Initialization Failed. Check console.", 5000);
+            }
+        }
+
+        // --- Remaining Utility Functions ---
+        
         const DateUtils = {
             getPeriodStartEnd: (period) => {
                 const today = new Date();
@@ -697,24 +798,63 @@
             taskModal.show();
         }
 
-        // --- Event Handlers ---
-        $(document).ready(function() {
+        // --- Event Handlers (Updated for new auth flow) ---
+        $(document).ready(async function() {
             
-            // Initial Check: If no user is authenticated and no mode is set, show the modal.
-            if (!auth.currentUser && storageMode === '') {
+            // Step 1: Initialize Firebase and define the AUTH object.
+            await initializeFirebase();
+
+            // Step 2: Define and attach the onAuthStateChanged listener now that 'auth' exists.
+            let isFirstAuthCheck = true;
+            onAuthStateChanged(auth, (user) => { 
+                if (user) {
+                    userId = user.uid;
+
+                    if (!user.isAnonymous) {
+                        // Google/Email user session is active
+                        storageMode = 'firebase';
+                        isGoogleSignedIn = true;
+                        tasksCollectionRef = collection(db, `users/${user.uid}/sticky_notes`); 
+                        hideCloudSyncModal();
+                        TaskManager.loadAndRender();
+                    } else if (storageMode === 'firebase' && !isFirstAuthCheck) {
+                        // If an Anonymous user tries to use 'firebase' mode (shouldn't happen), sign out.
+                        signOut(auth);
+                    }
+                    
+                } else {
+                    // User signed out or no session found (anonymous included if explicitly signed out)
+                    tasksCollectionRef = null;
+                    FirebaseImpl.stopSync();
+
+                    if (storageMode === 'firebase' || storageMode === '') {
+                        // If we were in Firebase mode, revert and show modal.
+                        // Also show modal if storageMode is unselected ('').
+                        storageMode = ''; 
+                        updateUIOnModeChange();
+                        renderTasks([]);
+                        showCloudSyncModal();
+                    }
+                }
+                isFirstAuthCheck = false;
+            });
+
+            // Step 3: Initial UI/Modal State Check
+            // If the user is connected (Google or Anonymous), the onAuthStateChanged listener takes over.
+            // If they are not connected with Google, the listener (above) will show the modal.
+            if (auth.currentUser && !auth.currentUser.isAnonymous) {
+                 // Already signed in with Google, start immediately
+                 storageMode = 'firebase';
+                 TaskManager.loadAndRender();
+            } else if (auth.currentUser && auth.currentUser.isAnonymous) {
+                 // Anonymous session is active, but we need to prompt them for permanent storage
                  showCloudSyncModal();
             }
-
-            // Handle Google Sign-In Button Click
+            
+            // Handle Google Sign-In Button Click (Uses the custom signInWithGoogle function)
             $('#google-sign-in-btn').on('click', async function() {
-                const provider = new GoogleAuthProvider();
-                try {
-                    await signInWithPopup(auth, provider);
-                    // onAuthStateChanged handler will take over from here
-                } catch (error) {
-                    console.error("Google Sign-in failed:", error);
-                    alert("Google Sign-In failed: " + error.message);
-                }
+                await signInWithGoogle();
+                // Auth state change handler will run the rest of the logic
             });
             
             // Handle Guest Sign-In Button Click (Local Storage)
@@ -728,6 +868,12 @@
             $('#party-form').on('submit', function(e) {
                 e.preventDefault();
 
+                if (storageMode === 'firebase' && (!auth.currentUser || auth.currentUser.isAnonymous)) {
+                    showToast("Please fully sign in with Google to save tasks to the cloud.", 4000);
+                    showCloudSyncModal();
+                    return;
+                }
+                
                 if (!storageMode) {
                     alert('Please select a storage method (Sign In or Guest Mode) before adding tasks.');
                     showCloudSyncModal();
