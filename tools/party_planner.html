@@ -1,0 +1,1941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Party Planner (Cloud/Local Sync)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Professional Color Palette (Inspired by Google/Material) */
+        :root {
+            --color-primary: #1a73e8; /* Blue */
+            --color-success: #34a853; /* Green */
+            --color-warning: #fbbc05; /* Yellow/Warning */
+            --color-info: #4285f4; /* Lighter Blue */
+            --color-text-subtle: #5f6368; /* Gray Text */
+            --color-danger: #ea4335; /* Red */
+        }
+
+        body { background-color: #f8f9fa; font-family: 'Roboto', sans-serif; }
+        .container { max-width: 950px; margin-top: 30px; }
+        .card { border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); border-radius: 8px; }
+        
+        /* Custom Colors */
+        .bg-primary { background-color: var(--color-primary) !important; }
+        .btn-primary { background-color: var(--color-primary); border-color: var(--color-primary); }
+        .text-primary { color: var(--color-primary) !important; }
+
+        /* Tabs and List Styling */
+        .nav-link.active { font-weight: 500; border-bottom: 2px solid var(--color-primary); color: var(--color-primary) !important; background-color: transparent !important; }
+        
+        /* Home Tab Specific Styles */
+        .home-banner {
+            background: linear-gradient(135deg, #a400ff, #4285f4); 
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        /* Loading indicator for Firebase */
+        #loading-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1050;
+        }
+
+        /* Custom Loading Overlay used by signInWithGoogle function */
+        #auth-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            display: none; /* Starts hidden */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        /* Cloud Sync Modal Styling */
+        .start-sync-modal-body {
+            text-align: center;
+            padding: 30px;
+        }
+        .google-sign-in-btn {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: background-color 0.2s;
+        }
+        .google-sign-in-btn:hover {
+            background-color: #357ae8;
+        }
+        .guest-button {
+            background-color: #e9ecef;
+            color: #495057;
+            border: 1px solid #ced4da;
+            width: 100%;
+        }
+
+        /* Toast Message Styling */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1060;
+        }
+        .custom-toast {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: opacity 0.5s, transform 0.5s;
+            transform: translateY(100%);
+        }
+        .custom-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Filter Styles */
+        .filter-input-group label { font-size: 0.8rem; color: var(--color-text-subtle); margin-bottom: 0.1rem; }
+        .filter-input-group input { height: 32px; font-size: 0.9rem; padding: 0.25rem 0.5rem; }
+        .filter-card { background-color: #f1f3f4; border-bottom: 1px solid #dee2e6; padding: 10px; border-radius: 8px 8px 0 0; }
+        .filter-card h6 { font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem; color: #5f6368; }
+
+        /* Reports Tab Custom Styles for Alignment and Mobile */
+        .summary-box {
+            border-left: 3px solid transparent;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center; /* Center align for titles */
+        }
+        .summary-box h6 {
+            white-space: nowrap;
+            text-align: center;
+        }
+        .summary-box p {
+            width: 100%;
+            text-align: center;
+            font-variant-numeric: tabular-nums; /* Helps align digits */
+            font-size: 1.5rem !important;
+        }
+        
+        /* ADDITION: Reports Mobile Adjustments */
+        @media (max-width: 576px) { 
+            .summary-box h6 {
+                font-size: 0.7rem !important; 
+                white-space: normal;
+                line-height: 1.2;
+            }
+            .summary-box p {
+                font-size: 1.2rem !important; 
+            }
+        }
+        /* END ADDITION */
+
+        /* Specific left-border colors using utility classes */
+        .border-left-info { border-left-color: var(--color-info) !important; }
+        .border-left-success { border-left-color: var(--color-success) !important; }
+        .border-left-primary { border-left-color: var(--color-primary) !important; }
+        .border-left-warning { border-left-color: var(--color-warning) !important; }
+
+        /* NEW: Custom style for Cancelled list item */
+        .list-group-item.list-group-item-danger {
+            background-color: #f8d7da !important; /* Bootstrap's alert-danger light color */
+        }
+        /* Style for revenue display */
+        .text-revenue { color: #008000 !important; } /* A bright green for revenue */
+        .border-left-revenue { border-left-color: #008000 !important; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="text-muted-subtle mb-0">Professional Party Planner</h1>
+            <button id="auth-action-btn" class="btn btn-outline-danger btn-sm d-none">
+                <i class="fas fa-sign-out-alt me-1"></i> Sign Out
+            </button>
+        </div>
+
+        
+        <div id="loading-indicator" class="d-none">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="text-primary mt-2" id="loading-text">Connecting...</p>
+        </div>
+
+        <div id="auth-loading-overlay">
+            <div class="spinner-border text-light mb-3" role="status"></div>
+            <p class="text-light">Waiting for Google Sign-In...</p>
+        </div>
+
+        <div id="toast-container"></div>
+
+        <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">
+                    <i class="fas fa-home me-2"></i>Home
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="new-task-tab" data-bs-toggle="tab" data-bs-target="#new-task" type="button" role="tab" aria-controls="new-task" aria-selected="false">
+                    <i class="fas fa-plus-circle me-2"></i>New Task
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="todo-list-tab" data-bs-toggle="tab" data-bs-target="#todo-list" type="button" role="tab" aria-controls="todo-list" aria-selected="false">
+                    <i class="fas fa-list-check me-2"></i>To-Do List
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab" aria-controls="reports" aria-selected="false">
+                    <i class="fas fa-chart-line me-2"></i>Reporting
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                <div class="home-banner">
+                    <h2>Welcome to Your Party Planner!</h2>
+                    <p class="mb-0">Your data is saved securely in the <span id="banner-storage-mode" class="fw-bold">...</span></p>
+                </div>
+                
+                <div class="row g-4">
+                    <div class="col-md-7">
+                        <div class="card p-4">
+                            <h5 class="text-primary mb-3"><i class="fas fa-chart-pie me-2"></i>Accumulated Estimates (Costs & Revenue)</h5>
+                            <div class="row g-3">
+                                <div class="col-md-4 summary-metric">
+                                    <h6 class="text-muted-subtle">This Week's Tasks</h6>
+                                    <p class="text-danger fw-bold mb-1">Cost: <span id="home-week-cost">0.00</span></p>
+                                    <p class="text-revenue fw-bold mb-1">Revenue: <span id="home-week-revenue">0.00</span></p>
+                                    <p class="fw-bold mb-0">Time: <span id="home-week-time">0.0 hrs</span></p>
+                                </div>
+                                <div class="col-md-4 summary-metric">
+                                    <h6 class="text-muted-subtle">This Month's Tasks</h6>
+                                    <p class="text-danger fw-bold mb-1">Cost: <span id="home-month-cost">0.00</span></p>
+                                    <p class="text-revenue fw-bold mb-1">Revenue: <span id="home-month-revenue">0.00</span></p>
+                                    <p class="fw-bold mb-0">Time: <span id="home-month-time">0.0 hrs</span></p>
+                                </div>
+                                <div class="col-md-4 summary-metric">
+                                    <h6 class="text-muted-subtle">This Year's Tasks</h6>
+                                    <p class="text-danger fw-bold mb-1">Cost: <span id="home-year-cost">0.00</span></p>
+                                    <p class="text-revenue fw-bold mb-1">Revenue: <span id="home-year-revenue">0.00</span></p>
+                                    <p class="fw-bold mb-0">Time: <span id="home-year-time">0.0 hrs</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5">
+                        <div class="card p-4 mb-4">
+                            <h5 class="text-success mb-3"><i class="fas fa-users-viewfinder me-2"></i>5 Most Recent Active Clients</h5>
+                            <ul class="list-group list-group-flush" id="recent-clients-list">
+                                <li class="list-group-item text-center text-muted-subtle">Loading...</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="card p-4">
+                            <h5 class="text-info mb-3"><i class="fas fa-calendar-check me-2"></i>Top 10 Upcoming Events</h5>
+                            <ul class="list-group list-group-flush" id="upcoming-events-list">
+                                <li class="list-group-item text-center text-muted-subtle">Loading...</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="new-task" role="tabpanel" aria-labelledby="new-task-tab">
+                <div class="card p-4">
+                    <h5 class="card-title text-primary mb-3"><i class="fas fa-edit me-2"></i>Add Task Details</h5>
+                    <form id="party-form" class="row g-3">
+                        <div class="col-md-3"><label for="client-host-name" class="form-label text-muted-subtle">Client/Host Name</label><input type="text" class="form-control" id="client-host-name" placeholder="e.g., Mikaela's Parents"></div>
+                        <div class="col-md-3"><label for="party-event-title" class="form-label text-muted-subtle">Party/Event Title</label><input type="text" class="form-control" id="party-event-title" required value="New Party Event"></div>
+                        <div class="col-md-3"><label for="task-item-description" class="form-label text-muted-subtle">Task/Item Description</label><input type="text" class="form-control" id="task-item-description" required placeholder="e.g., Book Catering Vendor"></div>
+                        <div class="col-md-3">
+                            <label for="category-service" class="form-label text-muted-subtle">Category/Service</label>
+                            <select class="form-select" id="category-service" required>
+                                <option value="Catering">Catering</option>
+                                <option value="Venue">Venue</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Decorations">Decorations</option>
+                                <option value="Guest Management">Guest Management</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Other" selected>Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3"><label for="event-date" class="form-label text-muted-subtle">Date</label><input type="date" class="form-control" id="event-date" required></div>
+                        <div class="col-md-3"><label for="event-start-time" class="form-label text-muted-subtle">Start Time</label><input type="time" class="form-control" id="event-start-time" value=""></div>
+                        
+                        <div class="col-md-3"><label for="estimated-vendor-cost" class="form-label text-muted-subtle">Processing Cost (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="estimated-vendor-cost" value="0.00"></div>
+                        <div class="col-md-3"><label for="estimated-planning-time" class="form-label text-muted-subtle">Est. Planning Effort (Hrs)</label><input type="number" step="0.5" min="0" class="form-control" id="estimated-planning-time" value="1"></div>
+                        
+                        <div class="col-md-3"><label for="responsible-person" class="form-label text-muted-subtle">Responsible Person</label><input type="text" class="form-control" id="responsible-person" placeholder="e.g., Jane Organizer"></div>
+                        
+                        <div class="col-md-3"><label for="client-payment" class="form-label text-muted-subtle">Client Payment (Final) (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="client-payment" value="0.00"></div>
+                        <div class="col-md-3"><label for="down-payment" class="form-label text-muted-subtle">Down Payment (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="down-payment" value="0.00"></div>
+                        
+                        <div class="col-md-3"><label for="guest-count" class="form-label text-muted-subtle">Guest Count (Est.)</label><input type="number" min="0" class="form-control" id="guest-count" value="0"></div>
+                        <div class="col-md-3"><label for="vendor-supplier-details" class="form-label text-muted-subtle">Vendor/Supplier Details</label><textarea class="form-control" id="vendor-supplier-details" rows="4" placeholder="Vendor contact, agreement details, or payment terms."></textarea></div>
+                        
+                        <div class="col-12 text-end"><button type="submit" class="btn btn-primary mt-3"><i class="fas fa-save me-2"></i>Save Task</button></div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="todo-list" role="tabpanel" aria-labelledby="todo-list-tab">
+    
+                <div class="filter-card mb-0 d-flex justify-content-between align-items-center flex-wrap">
+                    <button id="toggle-filters-btn" class="btn btn-outline-primary btn-sm mb-2 mb-sm-0" data-bs-toggle="collapse" data-bs-target="#todo-filter-inputs" aria-expanded="false" aria-controls="todo-filter-inputs">
+                        <i class="fas fa-filter me-1"></i> Show Filters
+                    </button>
+                    <h6 class="mb-2 mb-sm-0 text-info order-md-2">Current Task List (<span id="task-count">0</span>)</h6>
+                    <div class="d-flex flex-wrap order-md-3">
+                        <button id="clear-filters-btn" class="btn btn-outline-secondary btn-sm me-2 mb-1 mb-sm-0"><i class="fas fa-times me-1"></i> Clear</button>
+                        <button id="apply-filters-btn" class="btn btn-primary btn-sm"><i class="fas fa-check me-1"></i> Apply Filters</button>
+                    </div>
+                </div>
+                
+                <div id="todo-filter-inputs" class="collapse filter-card rounded-top-0 mb-3">
+                    <div class="row g-2 p-2">
+                        <div class="col-12 filter-input-group">
+                            <h6><i class="fas fa-calendar-alt me-1"></i>Date Range</h6>
+                            <div class="d-flex">
+                                <input type="date" id="filter-date-start" class="form-control form-control-sm me-1" placeholder="Start">
+                                <input type="date" id="filter-date-end" class="form-control form-control-sm" placeholder="End">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2 px-2 pb-2">
+                         <div class="col-12 filter-input-group">
+                             <h6><i class="fas fa-dollar-sign me-1"></i>Cost Range (₱)</h6>
+                            <div class="d-flex">
+                                <input type="number" step="0.01" min="0" id="filter-cost-min" class="form-control form-control-sm me-1" placeholder="Min">
+                                <input type="number" step="0.01" min="0" id="filter-cost-max" class="form-control form-control-sm" placeholder="Max">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2 px-2 pb-2">
+                        <div class="col-12 filter-input-group">
+                            <h6><i class="fas fa-clock me-1"></i>Time Range (Hrs)</h6>
+                            <div class="d-flex">
+                                <input type="number" step="0.5" min="0" id="filter-time-min" class="form-control form-control-sm me-1" placeholder="Min">
+                                <input type="number" step="0.5" min="0" id="filter-time-max" class="form-control form-control-sm" placeholder="Max">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2 px-2 pb-2">
+                        <div class="col-12 filter-input-group">
+                            <h6><i class="fas fa-sitemap me-1"></i>Category</h6>
+                            <select id="filter-category" class="form-select form-select-sm">
+                                <option value="All">All Categories</option>
+                                <option value="Catering">Catering</option>
+                                <option value="Venue">Venue</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Decorations">Decorations</option>
+                                <option value="Guest Management">Guest Management</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 px-2 pb-2">
+                        <div class="col-12 filter-input-group">
+                            <h6><i class="fas fa-check-circle me-1"></i>Status</h6>
+                            <select id="filter-status" class="form-select form-select-sm">
+                                <option value="All">All Statuses</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Inquiry Sent">Inquiry Sent</option>
+                                <option value="Confirmed/Paid">Confirmed/Paid</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2 px-2 pb-2">
+                        <div class="col-12 filter-input-group">
+                            <h6><i class="fas fa-user-tie me-1"></i>Client/Host Name</h6>
+                            <select id="filter-client" class="form-select form-select-sm">
+                                <option value="All">All Clients/Hosts</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-2 px-2 pb-2">
+                        <div class="col-12 filter-input-group">
+                            <h6><i class="fas fa-users me-1"></i>Responsible Person</h6>
+                            <select id="filter-responsible-person" class="form-select form-select-sm">
+                                <option value="All">All Persons</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <div id="filtered-summary" class="card p-3 mb-3 d-none">
+                    <h6 class="text-primary mb-2"><i class="fas fa-calculator me-1"></i>Financial Summary for Filtered Tasks</h6>
+                    <div class="row g-2 text-center">
+                        <div class="col-6 col-md-3">
+                            <h6 class="text-muted-subtle mb-0" style="font-size: 0.8rem;">Total Proc. Cost (Est.)</h6>
+                            <p class="fw-bold text-danger mb-0"><span id="filtered-est-cost">0.00</span></p>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <h6 class="text-muted-subtle mb-0" style="font-size: 0.8rem;">Total Client Income</h6>
+                            <p class="fw-bold text-info mb-0"><span id="filtered-client-payment">0.00</span></p>
+                        </div>
+                         <div class="col-6 col-md-3">
+                            <h6 class="text-muted-subtle mb-0" style="font-size: 0.8rem;">Total Additional Cost</h6>
+                            <p class="fw-bold text-danger mb-0"><span id="filtered-additional-cost">0.00</span></p>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <h6 class="text-muted-subtle mb-0" style="font-size: 0.8rem;">NET REVENUE</h6>
+                            <p class="fw-bold text-revenue mb-0" style="font-size: 1.1rem;"><span id="filtered-net-revenue">0.00</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card rounded-top-0">
+                    <ul id="task-list" class="list-group list-group-flush">
+                        <li class="list-group-item text-center text-muted-subtle">Tasks will load after successful setup.</li>
+                    </ul>
+                </div>
+                
+                <div id="task-pagination-controls" class="d-flex justify-content-between align-items-center p-3 border-top bg-light rounded-bottom flex-wrap">
+                    <button id="prev-page-btn" class="btn btn-outline-primary btn-sm mb-2 mb-sm-0" disabled><i class="fas fa-chevron-left me-1"></i> Previous</button>
+                    <span id="page-info" class="text-muted-subtle mx-auto mb-2 mb-sm-0" style="font-size: 0.9rem;">Page 0 of 0</span>
+                    <button id="next-page-btn" class="btn btn-outline-primary btn-sm" disabled>Next <i class="fas fa-chevron-right ms-1"></i></button>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
+                 <div class="row g-4">
+                    <div class="col-md-12">
+                         <div class="card p-4">
+                            <h5 class="text-primary mb-3"><i class="fas fa-chart-area me-2"></i>Summary Overview (All Time)</h5>
+                            <div class="row text-center g-3">
+                                <div class="col-6 col-lg-3"><div class="summary-box p-2 border-left-info"><h6 class="text-muted-subtle">Total Tasks</h6><p class="h5 text-info" id="total-tasks">0</p></div></div>
+                                <div class="col-6 col-lg-3"><div class="summary-box p-2 border-left-warning"><h6 class="text-muted-subtle">Total Proc. Cost (Est.)</h6><p class="h5 text-danger" id="total-cost-est">0.00</p></div></div>
+                                <div class="col-6 col-lg-3"><div class="summary-box p-2 border-left-warning"><h6 class="text-muted-subtle">Total Additional Cost</h6><p class="h5 text-danger" id="total-additional-cost">0.00</p></div></div>
+                                
+                                <div class="col-6 col-lg-3"><div class="summary-box p-2 border-left-warning"><h6 class="text-muted-subtle">FINAL EXPENSE TOTAL</h6><p class="h5 text-danger" id="grand-total-cost">0.00</p></div></div>
+                                
+                                <div class="col-6 col-lg-3"><div class="summary-box p-2 border-left-info"><h6 class="text-muted-subtle">Total Client Income</h6><p class="h5 text-info" id="total-client-payment">0.00</p></div></div>
+                                <div class="col-6 col-lg-3"><div class="summary-box p-2 border-left-revenue"><h6 class="text-muted-subtle">NET REVENUE (All Time)</h6><p class="h5 text-revenue" id="total-net-revenue">0.00</p></div></div>
+                                <div class="col-6 col-lg-3"><div class="summary-box p-2 border-left-warning"><h6 class="text-muted-subtle">Total Planning Hours (Est.)</h6><p class="h5 text-warning"><span id="total-time-est">0</span> hrs</p></div></div>
+                                <div class="col-6 col-lg-3"><div class="summary-box p-2 border-left-info"><h6 class="text-muted-subtle">Cost Per Guest (Est.)</h6><p class="h5 text-info" id="cost-per-guest">0.00</p></div></div>
+                                <div class="col-12 text-center mt-3"><h6 class="text-muted-subtle">Remaining Tasks: <span class="text-danger fw-bold" id="remaining-tasks">0</span></h6></div>
+                            </div>
+                         </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="card p-4">
+                            <h5 class="text-primary mb-3"><i class="fas fa-tools me-2"></i>Reporting Tools</h5>
+                            
+                            <div id="report-filter-section" class="bg-light p-3 mb-3 rounded">
+                                <h6 class="text-info mb-2"><i class="fas fa-filter me-1"></i>Filter Report By Date (Optional)</h6>
+                                <div class="row g-2">
+                                    <div class="col-md-5">
+                                        <label for="report-date-start" class="form-label text-muted-subtle mb-1">Start Date</label>
+                                        <input type="date" id="report-date-start" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label for="report-date-end" class="form-label text-muted-subtle mb-1">End Date</label>
+                                        <input type="date" id="report-date-end" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <button id="clear-report-filters-btn" class="btn btn-outline-secondary btn-sm w-100">Clear</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button class="btn btn-outline-primary w-100" id="download-csv-btn">
+                                <i class="fas fa-download me-2"></i>Download Data as CSV Report
+                                <span class="d-block" id="download-filter-status" style="font-size: 0.8rem;">(All Time)</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div> </div>
+
+    <div class="modal fade" id="taskDetailModal" tabindex="-1" aria-labelledby="taskDetailModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="taskDetailModalLabel">Task Details</h5>
+            <button type="button" class="btn-close btn-close-white close-modal-btn" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="modal-task-id">
+            <form id="task-update-form" class="row g-3">
+                
+                <div class="col-md-6 border-end pe-3">
+                    <h6 class="text-primary mb-3"><i class="fas fa-calendar-alt me-2"></i>Event Details</h6>
+                    <div class="row g-3">
+                        <div class="col-12"><label for="modal-client-host-name-input" class="form-label text-muted-subtle">Client/Host Name</label><input type="text" class="form-control" id="modal-client-host-name-input"></div>
+                        <div class="col-12"><label for="modal-party-event-title-input" class="form-label text-muted-subtle">Party/Event Title</label><input type="text" class="form-control" id="modal-party-event-title-input" required></div>
+                        <div class="col-12"><label for="modal-task-item-description-input" class="form-label text-muted-subtle">Task/Item Description</label><input type="text" class="form-control" id="modal-task-item-description-input" required></div>
+                        
+                        <div class="col-12">
+                            <label for="modal-category-service-input" class="form-label text-muted-subtle">Category/Service</label>
+                            <select class="form-select" id="modal-category-service-input">
+                                <option value="Catering">Catering</option>
+                                <option value="Venue">Venue</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Decorations">Decorations</option>
+                                <option value="Guest Management">Guest Management</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Other" selected>Other</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6"><label for="modal-event-date-input" class="form-label text-muted-subtle">Date</label><input type="date" class="form-control" id="modal-event-date-input" required></div>
+                        <div class="col-md-6"><label for="modal-event-time-input" class="form-label text-muted-subtle">Start Time</label><input type="time" class="form-control" id="modal-event-time-input"></div>
+                        
+                        <div class="col-12"><label for="modal-vendor-supplier-details-input" class="form-label text-muted-subtle">Vendor/Supplier Details</label><textarea class="form-control" id="modal-vendor-supplier-details-input" rows="4"></textarea></div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 ps-3">
+                    <h6 class="text-info mb-3"><i class="fas fa-user-gear me-2"></i>Organizer Inputs</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label for="modal-estimated-vendor-cost-input" class="form-label text-muted-subtle">Processing Cost (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-estimated-vendor-cost-input"></div>
+                        <div class="col-md-6"><label for="modal-actual-cost-variance-input" class="form-label text-muted-subtle">Additional Cost (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-actual-cost-variance-input" value="0.00"></div>
+                        
+                        <div class="col-md-6"><label for="modal-client-payment-input" class="form-label text-muted-subtle">Client Payment (Final) (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-client-payment-input" value="0.00"></div>
+                        <div class="col-md-6"><label for="modal-down-payment-input" class="form-label text-muted-subtle">Down Payment (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-down-payment-input" value="0.00"></div>
+
+                        <div class="col-12"><label for="modal-estimated-planning-time-input" class="form-label text-muted-subtle">Est. Planning Effort (Hrs)</label><input type="number" step="0.5" min="0" class="form-control" id="modal-estimated-planning-time-input"></div>
+                        
+                        <div class="col-md-6"><label for="modal-responsible-person-input" class="form-label text-muted-subtle">Responsible Person</label><input type="text" class="form-control" id="modal-responsible-person-input"></div>
+                        <div class="col-md-6"><label for="modal-guest-count-input" class="form-label text-muted-subtle">Guest Count (Est.)</label><input type="number" min="0" class="form-control" id="modal-guest-count-input" value="0"></div>
+
+                        <div class="col-12"><label for="modal-internal-notes-input" class="form-label text-muted-subtle">Internal Notes</label><textarea class="form-control" id="modal-internal-notes-input" rows="3"></textarea></div>
+                        
+                        <div class="col-12 mt-4"><strong>Status:</strong> <span id="modal-task-status" class="badge" title="Click to cycle status: Pending -> Inquiry Sent -> Confirmed/Paid -> Cancelled"></span></div>
+                    </div>
+                </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-danger me-auto" id="modal-delete-task-btn">
+                <i class="fas fa-trash-alt me-2"></i>Delete Task
+            </button>
+            <button type="submit" form="task-update-form" class="btn btn-primary">
+                <i class="fas fa-sync-alt me-2"></i>Update Task
+            </button>
+            <button type="button" class="btn btn-secondary close-modal-btn" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="StartCloudSyncModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="StartCloudSyncModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="StartCloudSyncModalLabel">Start Cloud Sync</h5>
+                </div>
+                <div class="modal-body start-sync-modal-body">
+                    <p>Choose how you want to access your planner. **Permanent login** is recommended for secure, multi-device data saving.</p>
+                    <button id="google-sign-in-btn" class="google-sign-in-btn">
+                        <i class="fab fa-google me-2"></i> Sign in with Google
+                    </button>
+                    <button id="guest-sign-in-btn" class="btn btn-light guest-button">
+                        Continue as Guest (Temporary Local Storage)
+                    </button>
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.__firebase_config = JSON.stringify({
+            apiKey: "AIzaSyDHUMDVGfZY2dwF-uxeG17r9yW3f2gBr-A",
+            authDomain: "multitools-fbc73.firebaseapp.com",
+            projectId: "multitools-fbc73",
+            storageBucket: "multitools-fbc73.firebasestorage.app",
+            messagingSenderId: "277024201427",
+            appId: "1:277024201427:web:b1d23c088add4324226",
+            measurementId: "G-1HJ0N30X1W"
+        });
+        window.__app_id = 'task_planner_app';
+    </script>
+    
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="module">
+        // Import Firebase modules and expose them globally as window.FirebaseTools
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // --- 1. Expose Firebase Tools Globally to match the provided auth code ---
+        window.FirebaseTools = {
+            initializeApp, getAuth, signInWithPopup, GoogleAuthProvider, 
+            onAuthStateChanged, signOut, getFirestore, signInAnonymously
+        };
+
+        // --- Global State & Initialization ---
+        
+        const LOCAL_STORAGE_KEY = 'taskPlannerTasks_v11_local'; 
+        const FIREBASE_COLLECTION_PATH = 'events';
+        const APP_ID = window.__app_id || 'default_app'; 
+        const FIREBASE_DOC_ID = 'main_data'; 
+        
+        let app; 
+        let auth; 
+        let db;   
+        let tasksDocRef = null; 
+        let allCurrentTasks = []; 
+        let currentTasks = [];    
+        let firebaseUnsubscribe = null; 
+        
+        let storageMode = ''; 
+        let userId = null;
+        let isGoogleSignedIn = false;
+        
+        // Pagination State - Set to 25 items per page
+        const TASKS_PER_PAGE = 25; 
+        let currentPage = 1;       
+        
+        // UPDATED: Party Planner Field Structure
+        const defaultTask = {
+            // Renamed fields from original code for new party planner structure
+            clientHostName: '', 
+            partyEventTitle: 'New Party Event', 
+            taskItemDescription: '', 
+            vendorSupplierDetails: '', 
+            estimatedVendorCost: '0.00', 
+            estimatedPlanningTime: '1.0', 
+            actualCostVariance: '0.00', 
+            clientPayment: '0.00',
+            downPayment: '0.00', // <-- NEW FIELD
+            internalNotes: '', 
+            // New fields for party planning
+            category: 'Other', 
+            responsiblePerson: '',
+            guestCount: '0',
+            // Existing fields
+            eventDate: '',
+            eventStartTime: '',
+            status: 'Pending',
+            createdAt: new Date().toISOString()
+        };
+        
+        // --- 2. Custom UI Overlays/Toasts ---
+        
+        const loadingOverlay = document.getElementById('auth-loading-overlay');
+        
+        function showToast(message, duration = 3000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'custom-toast';
+            toast.textContent = message;
+            container.appendChild(toast);
+            
+            // Show
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            // Hide
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500); // Wait for transition
+            }, duration);
+        }
+
+        // --- UI & Utility Functions ---
+
+        function showLoading(text) {
+            $('#loading-text').text(text);
+            $('#loading-indicator').removeClass('d-none');
+        }
+
+        function hideLoading() {
+            $('#loading-indicator').addClass('d-none');
+        }
+
+        function showCloudSyncModal() {
+            const modalElement = document.getElementById('StartCloudSyncModal');
+            const syncModal = new bootstrap.Modal(modalElement, {
+                backdrop: 'static',
+                keyboard: false
+            });
+            syncModal.show();
+        }
+
+        function hideCloudSyncModal() {
+            const modalElement = document.getElementById('StartCloudSyncModal');
+            const syncModal = bootstrap.Modal.getInstance(modalElement);
+            if (syncModal) syncModal.hide();
+        }
+
+        function updateUIOnModeChange() {
+            if (storageMode === 'firebase') {
+                const userEmail = auth.currentUser?.email || 'Authenticated User';
+                const modeText = isGoogleSignedIn ? `Permanent Cloud (User: ${userEmail})` : 'Temporary Cloud (Guest)';
+                $('#banner-storage-mode').text(modeText);
+                $('#auth-action-btn').removeClass('d-none').text('Sign Out').off('click').on('click', async () => {
+                    if (confirm("Are you sure you want to sign out?")) {
+                        await signOut(auth);
+                    }
+                });
+            } else if (storageMode === 'local') {
+                $('#banner-storage-mode').text('Local Storage (Guest Mode - Browser Only)');
+                $('#auth-action-btn').removeClass('d-none').text('Exit Guest Mode').off('click').on('click', () => {
+                    if (confirm("Are you sure you want to exit Guest Mode?")) {
+                        storageMode = '';
+                        allCurrentTasks = [];
+                        currentTasks = [];
+                        renderTasks(allCurrentTasks);
+                        updateUIOnModeChange();
+                        showCloudSyncModal();
+                    }
+                });
+            } else {
+                $('#banner-storage-mode').text('None (Please sign in)');
+                $('#auth-action-btn').addClass('d-none');
+                renderTasks([]);
+            }
+        }
+        
+        // Helper to find the index of a task
+        function findTaskIndex(taskId, tasks) {
+            return tasks.findIndex(t => t.id === taskId);
+        }
+        
+        // Helper to update tasks in the global array (used by Firebase functions)
+        function getUpdatedTasks(taskId, updatedFields) {
+            const tasks = [...allCurrentTasks];
+            const index = findTaskIndex(taskId, tasks);
+            if (index > -1) {
+                tasks[index] = { ...tasks[index], ...updatedFields };
+            } else if (!taskId) {
+                // If no ID is provided, assume this is a brand new task
+                tasks.push({ ...defaultTask, ...updatedFields, id: `firebase-${Date.now()}`, status: updatedFields.status || 'Pending' });
+            }
+            // Sort tasks before saving
+            tasks.sort((a, b) => DateUtils.parseDate(a.eventDate) - DateUtils.parseDate(b.eventDate));
+            return tasks;
+        }
+
+        // --- CORE LOGIC: Storage Implementation ---
+        
+        const LocalStorageImpl = {
+            load: () => {
+                showLoading("Loading from Local Storage...");
+                const tasks = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+
+                // MAPPING logic to handle old and new field names for backward compatibility
+                const normalizedTasks = tasks.map((task, index) => ({
+                    // MAPPING for loading old/new tasks
+                    clientHostName: task.companyName || task.clientHostName || '', // Handle old name (companyName)
+                    partyEventTitle: task.eventName || task.partyEventTitle || 'New Party Event', // Handle old name (eventName)
+                    taskItemDescription: task.eventTask || task.taskItemDescription || '', // Handle old name (eventTask)
+                    vendorSupplierDetails: task.taskDescription || task.vendorSupplierDetails || '', // Handle old name (taskDescription)
+                    estimatedVendorCost: task.estimatedCost || task.estimatedVendorCost || '0.00', // Handle old name (estimatedCost)
+                    estimatedPlanningTime: task.estimatedTime || task.estimatedPlanningTime || '1.0', // Handle old name (estimatedTime)
+                    actualCostVariance: task.additionalCost || task.actualCostVariance || '0.00', // Handle old name (additionalCost)
+                    clientPayment: task.clientPayment || '0.00',
+                    downPayment: task.downPayment || '0.00', // <-- NEW MAPPING
+                    internalNotes: task.organizerNotes || task.internalNotes || '', // Handle old name (organizerNotes)
+                    
+                    // New fields for party planning structure
+                    category: task.category || 'Other',
+                    responsiblePerson: task.responsiblePerson || '',
+                    guestCount: task.guestCount || '0',
+
+                    // Existing fields
+                    eventDate: task.eventDate || '',
+                    eventStartTime: task.eventStartTime || '',
+                    status: task.status || 'Pending',
+                    createdAt: task.createdAt || new Date().toISOString(),
+                    id: task.id || `local-${index}-${Date.now()}` // Ensure every task has an ID
+                }));
+
+                // Sort and save normalized back to local storage before returning
+                normalizedTasks.sort((a, b) => DateUtils.parseDate(a.eventDate) - DateUtils.parseDate(b.eventDate));
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(normalizedTasks));
+
+                hideLoading();
+                showToast(`Loaded ${normalizedTasks.length} tasks from Local Storage.`);
+                return normalizedTasks;
+            },
+            save: (tasks) => {
+                showLoading("Saving to Local Storage...");
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tasks));
+                setTimeout(() => { // Use a small delay for a better UX feeling
+                    hideLoading();
+                    showToast("Tasks saved locally.");
+                }, 100);
+            },
+            delete: (taskId, tasks) => {
+                const updatedTasks = tasks.filter(t => t.id !== taskId);
+                LocalStorageImpl.save(updatedTasks);
+                return updatedTasks;
+            },
+            updateStatus: (taskId, newStatus, tasks) => {
+                const index = findTaskIndex(taskId, tasks);
+                if (index > -1) {
+                    tasks[index].status = newStatus;
+                    LocalStorageImpl.save(tasks);
+                }
+                return tasks;
+            }
+        };
+
+        const FirebaseImpl = {
+            // Function to handle the initial sign-in for the user
+            signInWithGoogle: async () => {
+                loadingOverlay.style.display = 'flex';
+                try {
+                    const provider = new window.FirebaseTools.GoogleAuthProvider();
+                    // Optional: Request a refresh token (for long-lived sessions)
+                    provider.setCustomParameters({ prompt: 'select_account' });
+                    const result = await window.FirebaseTools.signInWithPopup(auth, provider);
+                    // This gives you a Google Access Token. You can use it to access the Google API.
+                    const credential = window.FirebaseTools.GoogleAuthProvider.credentialFromResult(result);
+                    // The signed-in user info.
+                    const user = result.user;
+                    showToast(`Signed in as ${user.displayName || user.email}`);
+                    loadingOverlay.style.display = 'none';
+                    return true;
+                } catch (error) {
+                    showToast(`Google Sign-In failed: ${error.message}`, 5000);
+                    loadingOverlay.style.display = 'none';
+                    return false;
+                }
+            },
+
+            // Function to sign in anonymously (Guest mode on Firebase)
+            signInAnonymously: async () => {
+                try {
+                    const result = await window.FirebaseTools.signInAnonymously(auth);
+                    showToast("Signed in as temporary guest user on Cloud.");
+                    return true;
+                } catch (error) {
+                    showToast(`Guest Sign-In failed: ${error.message}`, 5000);
+                    return false;
+                }
+            },
+
+            // Firebase data synchronization listener
+            setupDataListener: (userId) => {
+                // If a listener already exists, unsubscribe it first
+                if (firebaseUnsubscribe) {
+                    firebaseUnsubscribe();
+                }
+
+                // Create a reference to the user's document
+                tasksDocRef = doc(db, FIREBASE_COLLECTION_PATH, userId);
+
+                // Set up the real-time listener
+                firebaseUnsubscribe = onSnapshot(tasksDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        const tasks = data.tasks || [];
+                        
+                        // Apply the same normalization logic as local storage on load
+                        const normalizedTasks = tasks.map(task => ({
+                            // MAPPING for loading old/new tasks
+                            clientHostName: task.companyName || task.clientHostName || '', 
+                            partyEventTitle: task.eventName || task.partyEventTitle || 'New Party Event', 
+                            taskItemDescription: task.eventTask || task.taskItemDescription || '', 
+                            vendorSupplierDetails: task.taskDescription || task.vendorSupplierDetails || '', 
+                            estimatedVendorCost: task.estimatedCost || task.estimatedVendorCost || '0.00', 
+                            estimatedPlanningTime: task.estimatedTime || task.estimatedPlanningTime || '1.0', 
+                            actualCostVariance: task.additionalCost || task.actualCostVariance || '0.00', 
+                            clientPayment: task.clientPayment || '0.00',
+                            downPayment: task.downPayment || '0.00', // <-- NEW MAPPING
+                            internalNotes: task.organizerNotes || task.internalNotes || '', 
+                            
+                            // New fields for party planning structure
+                            category: task.category || 'Other',
+                            responsiblePerson: task.responsiblePerson || '',
+                            guestCount: task.guestCount || '0',
+
+                            // Existing fields
+                            eventDate: task.eventDate || '',
+                            eventStartTime: task.eventStartTime || '',
+                            status: task.status || 'Pending',
+                            createdAt: task.createdAt || new Date().toISOString(),
+                            id: task.id || `firebase-${Date.now()}`
+                        }));
+
+                        // Sort tasks
+                        normalizedTasks.sort((a, b) => DateUtils.parseDate(a.eventDate) - DateUtils.parseDate(b.eventDate));
+
+                        allCurrentTasks = normalizedTasks;
+                        renderTasks(allCurrentTasks);
+                        updateSummaryMetrics(allCurrentTasks);
+                        updateReportsMetrics(allCurrentTasks); // Update reporting metrics
+                        showToast(`Cloud sync complete. ${allCurrentTasks.length} tasks loaded.`);
+                        hideLoading();
+                    } else {
+                        // Document doesn't exist, initialize it
+                        showToast("New user: Initializing cloud database...");
+                        FirebaseImpl.save([]);
+                    }
+                }, (error) => {
+                    console.error("Firebase data listener failed: ", error);
+                    showToast(`Cloud sync error: ${error.message}`, 5000);
+                    hideLoading();
+                });
+            },
+
+            // Function to save all tasks to Firebase
+            save: async (tasks) => {
+                if (!tasksDocRef) return;
+                showLoading("Saving to Cloud...");
+                
+                // Use the simplified tasks array (no need for complex mapping on save)
+                const simplifiedTasks = tasks.map(task => {
+                    // Filter out any computed properties if necessary, but keep all data properties
+                    const {id, ...rest} = task;
+                    return { id, ...rest };
+                });
+                
+                try {
+                    await setDoc(tasksDocRef, { tasks: simplifiedTasks, lastUpdated: new Date().toISOString() });
+                    // showToast("Tasks saved to Cloud."); // Listener will confirm save
+                } catch (error) {
+                    console.error("Error saving to Firebase: ", error);
+                    showToast(`Cloud save failed: ${error.message}`, 5000);
+                } finally {
+                    hideLoading();
+                }
+            },
+            
+            // Function to delete a task in Firebase
+            delete: async (taskId, tasks) => {
+                const updatedTasks = tasks.filter(t => t.id !== taskId);
+                await FirebaseImpl.save(updatedTasks);
+                return updatedTasks;
+            },
+            
+            // Function to update task status in Firebase (handled by save)
+            updateStatus: async (taskId, newStatus, tasks) => {
+                const index = findTaskIndex(taskId, tasks);
+                if (index > -1) {
+                    tasks[index].status = newStatus;
+                    await FirebaseImpl.save(tasks);
+                }
+                return tasks;
+            }
+        };
+
+        // --- Data Access Layer ---
+        const DataService = {
+            getTasks: () => {
+                if (storageMode === 'local') return LocalStorageImpl.load();
+                if (storageMode === 'firebase') return allCurrentTasks; 
+                return [];
+            },
+            saveTasks: (tasks) => {
+                if (storageMode === 'local') LocalStorageImpl.save(tasks);
+                if (storageMode === 'firebase') FirebaseImpl.save(tasks);
+            },
+            deleteTask: (taskId) => {
+                if (storageMode === 'local') {
+                    allCurrentTasks = LocalStorageImpl.delete(taskId, allCurrentTasks);
+                } else if (storageMode === 'firebase') {
+                    FirebaseImpl.delete(taskId, allCurrentTasks);
+                }
+                // Refresh list on local delete
+                renderTasks(allCurrentTasks);
+                updateSummaryMetrics(allCurrentTasks);
+                updateReportsMetrics(allCurrentTasks);
+            },
+            updateTask: (taskId, updatedFields) => {
+                 let updatedTasks = getUpdatedTasks(taskId, updatedFields);
+                 allCurrentTasks = updatedTasks;
+                 DataService.saveTasks(updatedTasks);
+                 
+                 // Re-render task list in case of date/field change
+                 renderTasks(allCurrentTasks);
+                 
+                 // Recalculate summaries
+                 updateSummaryMetrics(allCurrentTasks);
+                 updateReportsMetrics(allCurrentTasks);
+            },
+            updateTaskStatus: (taskId, newStatus) => {
+                if (storageMode === 'local') {
+                    allCurrentTasks = LocalStorageImpl.updateStatus(taskId, newStatus, allCurrentTasks);
+                } else if (storageMode === 'firebase') {
+                    FirebaseImpl.updateStatus(taskId, newStatus, allCurrentTasks);
+                }
+                // Update UI regardless of mode (Firebase listener will re-render, but local needs immediate update)
+                renderTasks(allCurrentTasks);
+                updateSummaryMetrics(allCurrentTasks);
+                updateReportsMetrics(allCurrentTasks);
+            }
+        };
+
+        // --- Helper Classes (Date/Currency) ---
+        
+        const DateUtils = {
+            parseDate: (dateString) => {
+                if (!dateString) return new Date(0);
+                const [year, month, day] = dateString.split('-').map(Number);
+                // JS months are 0-indexed, so we subtract 1 from month
+                return new Date(year, month - 1, day);
+            },
+            formatDate: (dateString) => {
+                 if (!dateString) return 'N/A';
+                 const date = DateUtils.parseDate(dateString);
+                 if (isNaN(date)) return 'Invalid Date';
+                 // Format as MM/DD/YYYY
+                 return date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+            },
+            formatTime: (timeString) => {
+                if (!timeString) return '';
+                const [hours, minutes] = timeString.split(':').map(Number);
+                const date = new Date(0, 0, 0, hours, minutes);
+                // Format as HH:MM AM/PM
+                return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            },
+            isCurrentWeek: (date) => {
+                const now = new Date();
+                const startOfWeek = new Date(now.setDate(now.getDate() - (now.getDay() || 7) + 1)); // Monday
+                startOfWeek.setHours(0, 0, 0, 0);
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                endOfWeek.setHours(23, 59, 59, 999);
+                
+                const eventDate = DateUtils.parseDate(date);
+                return eventDate >= startOfWeek && eventDate <= endOfWeek;
+            },
+            isCurrentMonth: (date) => {
+                const now = new Date();
+                const eventDate = DateUtils.parseDate(date);
+                return eventDate.getFullYear() === now.getFullYear() && eventDate.getMonth() === now.getMonth();
+            },
+            isCurrentYear: (date) => {
+                const now = new Date();
+                const eventDate = DateUtils.parseDate(date);
+                return eventDate.getFullYear() === now.getFullYear();
+            }
+        };
+
+        function formatCurrency(amount) {
+            const number = parseFloat(amount);
+            if (isNaN(number)) return '₱0.00';
+            // Use Intl.NumberFormat for Philippine Peso (PHP) formatting.
+            // The replace ensures that the output is only the symbol and the number,
+            // which prevents duplicates if the ₱ symbol is also hardcoded in the HTML.
+            // We ensure it includes the symbol here.
+            return new Intl.NumberFormat('en-PH', {
+                style: 'currency',
+                currency: 'PHP',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(number).replace('PHP', '');
+        }
+        
+        function getStatusBadgeClass(status) {
+            switch (status) {
+                case 'Pending': return 'badge bg-warning text-dark';
+                case 'Inquiry Sent': return 'badge bg-info';
+                case 'Confirmed/Paid': return 'badge bg-success';
+                case 'Cancelled': return 'badge bg-danger';
+                default: return 'badge bg-secondary';
+            }
+        }
+        
+        function getBorderClass(status) {
+            switch (status) {
+                case 'Pending': return 'border-left-warning';
+                case 'Inquiry Sent': return 'border-left-info';
+                case 'Confirmed/Paid': return 'border-left-success';
+                case 'Cancelled': return 'border-left-danger';
+                default: return 'border-left-primary';
+            }
+        }
+
+        // --- Summary & Reports Logic ---
+
+        function calculateMetrics(tasks) {
+            let totalEstimatedCost = 0;
+            let totalAdditionalCost = 0;
+            let totalAccumulatedClientIncome = 0;
+            let totalAccumulatedNetRevenue = 0;
+            let totalPlanningTime = 0;
+            let totalGuestCount = 0;
+            let totalTasks = 0;
+            let remainingTasks = 0; // Tasks not Confirmed/Paid or Cancelled
+            
+            let metrics = {
+                week: { cost: 0, revenue: 0, time: 0, tasks: 0 },
+                month: { cost: 0, revenue: 0, time: 0, tasks: 0 },
+                year: { cost: 0, revenue: 0, time: 0, tasks: 0 }
+            };
+
+            for (const task of tasks) {
+                const estCost = parseFloat(task.estimatedVendorCost || 0);
+                const addCost = parseFloat(task.actualCostVariance || 0);
+                const payment = parseFloat(task.clientPayment || 0);
+                const downPayment = parseFloat(task.downPayment || 0); // <-- NEW FIELD
+                const time = parseFloat(task.estimatedPlanningTime || 0);
+                const guests = parseInt(task.guestCount || 0);
+                
+                const totalCost = estCost + addCost;
+                const totalClientIncome = payment + downPayment; // Total Income
+                const netRevenue = totalClientIncome - totalCost; // Net Revenue Calculation
+
+                totalEstimatedCost += estCost;
+                totalAdditionalCost += addCost;
+                totalAccumulatedClientIncome += totalClientIncome;
+                totalAccumulatedNetRevenue += netRevenue;
+                totalPlanningTime += time;
+                totalGuestCount += guests;
+                totalTasks++;
+                
+                if (task.status !== 'Confirmed/Paid' && task.status !== 'Cancelled') {
+                    remainingTasks++;
+                }
+                
+                if (task.eventDate) {
+                    if (DateUtils.isCurrentWeek(task.eventDate)) {
+                        metrics.week.cost += totalCost;
+                        metrics.week.revenue += netRevenue;
+                        metrics.week.time += time;
+                        metrics.week.tasks++;
+                    }
+                    if (DateUtils.isCurrentMonth(task.eventDate)) {
+                        metrics.month.cost += totalCost;
+                        metrics.month.revenue += netRevenue;
+                        metrics.month.time += time;
+                        metrics.month.tasks++;
+                    }
+                    if (DateUtils.isCurrentYear(task.eventDate)) {
+                        metrics.year.cost += totalCost;
+                        metrics.year.revenue += netRevenue;
+                        metrics.year.time += time;
+                        metrics.year.tasks++;
+                    }
+                }
+            }
+            
+            const grandTotalCost = totalEstimatedCost + totalAdditionalCost;
+            const costPerGuest = totalGuestCount > 0 ? grandTotalCost / totalGuestCount : 0;
+
+            return {
+                totalEstimatedCost,
+                totalAdditionalCost,
+                grandTotalCost,
+                totalClientPayment: totalAccumulatedClientIncome,
+                totalNetRevenue: totalAccumulatedNetRevenue,
+                totalPlanningTime,
+                totalGuestCount,
+                totalTasks,
+                remainingTasks,
+                costPerGuest,
+                metrics
+            };
+        }
+
+        function updateSummaryMetrics(tasks) {
+            const { grandTotalCost, totalClientPayment, totalNetRevenue, totalPlanningTime, costPerGuest, totalTasks, remainingTasks, metrics } = calculateMetrics(tasks);
+            
+            $('#home-week-cost').text(formatCurrency(metrics.week.cost));
+            $('#home-week-revenue').text(formatCurrency(metrics.week.revenue));
+            $('#home-week-time').text(metrics.week.time.toFixed(1) + ' hrs');
+            
+            $('#home-month-cost').text(formatCurrency(metrics.month.cost));
+            $('#home-month-revenue').text(formatCurrency(metrics.month.revenue));
+            $('#home-month-time').text(metrics.month.time.toFixed(1) + ' hrs');
+            
+            $('#home-year-cost').text(formatCurrency(metrics.year.cost));
+            $('#home-year-revenue').text(formatCurrency(metrics.year.revenue));
+            $('#home-year-time').text(metrics.year.time.toFixed(1) + ' hrs');
+            
+            // Update client/event lists on home tab
+            updateRecentClients(tasks);
+            updateUpcomingEvents(tasks);
+        }
+
+        function updateReportsMetrics(tasks) {
+            const { 
+                totalEstimatedCost, totalAdditionalCost, grandTotalCost, 
+                totalClientPayment, totalNetRevenue, totalPlanningTime, 
+                costPerGuest, totalTasks, remainingTasks 
+            } = calculateMetrics(tasks);
+            
+            $('#total-tasks').text(totalTasks);
+            $('#remaining-tasks').text(remainingTasks);
+            $('#total-cost-est').text(formatCurrency(totalEstimatedCost));
+            $('#total-additional-cost').text(formatCurrency(totalAdditionalCost));
+            $('#grand-total-cost').text(formatCurrency(grandTotalCost));
+            $('#total-client-payment').text(formatCurrency(totalClientPayment));
+            $('#total-net-revenue').text(formatCurrency(totalNetRevenue));
+            $('#total-time-est').text(totalPlanningTime.toFixed(1));
+            $('#cost-per-guest').text(formatCurrency(costPerGuest));
+            
+            // Update filtered summary panel
+            if ($('#todo-filter-inputs').hasClass('show')) {
+                $('#filtered-summary').removeClass('d-none');
+                $('#filtered-est-cost').text(formatCurrency(totalEstimatedCost));
+                $('#filtered-additional-cost').text(formatCurrency(totalAdditionalCost));
+                $('#filtered-client-payment').text(formatCurrency(totalClientPayment));
+                $('#filtered-net-revenue').text(formatCurrency(totalNetRevenue));
+            } else {
+                $('#filtered-summary').addClass('d-none');
+            }
+        }
+        
+        function updateRecentClients(tasks) {
+            const clientCounts = tasks.reduce((acc, task) => {
+                if (task.clientHostName) {
+                    acc[task.clientHostName] = (acc[task.clientHostName] || 0) + 1;
+                }
+                return acc;
+            }, {});
+
+            const sortedClients = Object.entries(clientCounts)
+                .sort(([, countA], [, countB]) => countB - countA)
+                .slice(0, 5);
+
+            const listHtml = sortedClients.length > 0 ? sortedClients.map(([name, count]) => 
+                `<li class="list-group-item d-flex justify-content-between align-items-center">
+                    ${name}
+                    <span class="badge bg-primary rounded-pill">${count}</span>
+                </li>`
+            ).join('') : '<li class="list-group-item text-center text-muted-subtle">No clients yet.</li>';
+
+            $('#recent-clients-list').html(listHtml);
+        }
+        
+        function updateUpcomingEvents(tasks) {
+             const today = new Date();
+             today.setHours(0, 0, 0, 0);
+             
+             const upcomingEvents = tasks
+                 .filter(task => task.eventDate && DateUtils.parseDate(task.eventDate) >= today && task.status !== 'Cancelled')
+                 .sort((a, b) => DateUtils.parseDate(a.eventDate) - DateUtils.parseDate(b.eventDate))
+                 .slice(0, 10);
+                 
+            const listHtml = upcomingEvents.length > 0 ? upcomingEvents.map(task => 
+                `<li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>${task.partyEventTitle}</strong>
+                        <small class="d-block text-muted-subtle">${DateUtils.formatDate(task.eventDate)}</small>
+                    </div>
+                    <span class="badge ${getStatusBadgeClass(task.status).replace('badge ', '')}">${task.status}</span>
+                </li>`
+            ).join('') : '<li class="list-group-item text-center text-muted-subtle">No upcoming events.</li>';
+            
+            $('#upcoming-events-list').html(listHtml);
+        }
+
+        // --- Task Rendering Functions ---
+        
+        // Function to render a single task item
+        function renderTask(task) {
+            const formattedDate = DateUtils.formatDate(task.eventDate);
+            const formattedTime = task.eventStartTime ? DateUtils.formatTime(task.eventStartTime) : 'N/A';
+
+            // Determine border color based on status
+            const borderClass = getBorderClass(task.status);
+            const statusBadgeClass = getStatusBadgeClass(task.status);
+            const isCancelled = task.status === 'Cancelled';
+            const itemClasses = `list-group-item d-flex justify-content-between align-items-center ${isCancelled ? 'list-group-item-danger' : ''} border-start ${borderClass}`;
+
+            // Calculate costs and income
+            const estimatedCost = parseFloat(task.estimatedVendorCost || 0);
+            const additionalCost = parseFloat(task.actualCostVariance || 0);
+            const totalCost = estimatedCost + additionalCost;
+            
+            const clientPayment = parseFloat(task.clientPayment || 0);
+            const downPayment = parseFloat(task.downPayment || 0); // <-- NEW FIELD
+            const totalClientIncome = clientPayment + downPayment; // <-- UPDATED CALCULATION
+            const netRevenue = totalClientIncome - totalCost; // Net Revenue
+
+            return `
+                <li class="${itemClasses}" data-id="${task.id}" data-event-date="${task.eventDate}">
+                    <div class="d-flex flex-column flex-md-row justify-content-between w-100">
+                        
+                        <div class="me-3 mb-2 mb-md-0" style="min-width: 250px;">
+                            <strong class="d-block text-primary">${task.partyEventTitle}</strong>
+                            <span class="text-muted-subtle" style="font-size: 0.9rem;">${task.clientHostName}</span>
+                            <span class="badge bg-secondary ms-2">${task.category}</span>
+                            <span class="badge bg-success ms-2" title="Total Client Income (Final + Down Payment)">+${formatCurrency(totalClientIncome)}</span>
+                            <small class="d-block mt-1 text-muted-subtle">
+                                <i class="fas fa-tasks me-1"></i> ${task.taskItemDescription}
+                            </small>
+                        </div>
+
+                        <div class="text-start text-md-center me-3 mb-2 mb-md-0" style="min-width: 150px;">
+                            <span class="d-block text-muted-subtle" style="font-size: 0.8rem;">Date/Time</span>
+                            <strong class="d-block">${formattedDate}</strong>
+                            <span class="text-muted-subtle" style="font-size: 0.8rem;">${formattedTime}</span>
+                        </div>
+
+                        <div class="text-start text-md-center me-3 mb-2 mb-md-0" style="min-width: 100px;">
+                            <span class="d-block text-muted-subtle" style="font-size: 0.8rem;">Cost (Total)</span>
+                            <strong class="d-block text-danger">${formatCurrency(totalCost)}</strong>
+                            <span class="text-muted-subtle" style="font-size: 0.8rem;">${task.estimatedPlanningTime} hrs</span>
+                        </div>
+
+                        <div class="ms-md-auto d-flex flex-row align-items-center">
+                            <button class="btn btn-sm btn-outline-info status-btn me-2" data-id="${task.id}" title="Toggle status">${task.status}</button>
+                            <button class="btn btn-sm btn-primary edit-task-btn" data-id="${task.id}">
+                                <i class="fas fa-edit me-1"></i> Edit
+                            </button>
+                        </div>
+                    </div>
+                </li>
+            `;
+        }
+
+        function renderTasks(tasks) {
+            // Update filter dropdowns with the complete, current task list
+            updateFilterSelects(tasks); // <-- FIX: Ensures dropdowns are populated
+
+            // Apply current filters
+            const filteredTasks = getFilteredTasks(tasks);
+            
+            // Apply pagination
+            const startIndex = (currentPage - 1) * TASKS_PER_PAGE;
+            const endIndex = startIndex + TASKS_PER_PAGE;
+            currentTasks = filteredTasks.slice(startIndex, endIndex);
+
+            // Update UI
+            $('#task-count').text(filteredTasks.length);
+            updatePaginationControls(filteredTasks.length);
+
+            const taskListElement = $('#task-list');
+            taskListElement.empty();
+
+            if (currentTasks.length === 0) {
+                 const message = tasks.length === 0 
+                    ? 'No tasks saved yet. Add one in the "New Task" tab!'
+                    : 'No tasks found matching current filters.';
+                taskListElement.append(`<li class="list-group-item text-center text-muted-subtle">${message}</li>`);
+                return;
+            }
+            
+            // Render visible tasks
+            currentTasks.forEach(task => {
+                taskListElement.append(renderTask(task));
+            });
+            
+            // Re-attach listeners for dynamically rendered elements
+            $('.edit-task-btn').off('click').on('click', function() {
+                const taskId = $(this).data('id');
+                const task = tasks.find(t => t.id === taskId);
+                if (task) setupModals.openEditModal(task);
+            });
+            
+            $('.status-btn').off('click').on('click', function() {
+                const taskId = $(this).data('id');
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    let newStatus;
+                    switch (task.status) {
+                        case 'Pending': newStatus = 'Inquiry Sent'; break;
+                        case 'Inquiry Sent': newStatus = 'Confirmed/Paid'; break;
+                        case 'Confirmed/Paid': newStatus = 'Cancelled'; break;
+                        case 'Cancelled': newStatus = 'Pending'; break;
+                        default: newStatus = 'Pending';
+                    }
+                    DataService.updateTaskStatus(taskId, newStatus);
+                }
+            });
+            
+            // Listener for status change inside the modal (it's a text span, not a button)
+             $('#modal-task-status').off('click').on('click', function() {
+                const taskId = $('#modal-task-id').val();
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    let newStatus;
+                    switch (task.status) {
+                        case 'Pending': newStatus = 'Inquiry Sent'; break;
+                        case 'Inquiry Sent': newStatus = 'Confirmed/Paid'; break;
+                        case 'Confirmed/Paid': newStatus = 'Cancelled'; break;
+                        case 'Cancelled': newStatus = 'Pending'; break;
+                        default: newStatus = 'Pending';
+                    }
+                    // Update in modal immediately for visual feedback
+                    $(this).text(newStatus).removeClass().addClass(getStatusBadgeClass(newStatus).replace('badge ', ''));
+                    // Update task object for form submission
+                    // Note: The task object here is a reference to the global task list item. 
+                    // This change is temporary for modal form. The actual update happens on form submit.
+                }
+            });
+            
+        }
+        
+        // --- Filtering Logic ---
+        
+        // Global object to store filter values
+        const filters = {
+            dateStart: null,
+            dateEnd: null,
+            costMin: null,
+            costMax: null,
+            timeMin: null,
+            timeMax: null,
+            category: 'All',
+            status: 'All',
+            client: 'All',
+            responsiblePerson: 'All'
+        };
+        
+        function getFilteredTasks(tasks) {
+            let filtered = tasks;
+            let isFiltered = false;
+
+            // 1. Date Range Filter
+            const dateStart = filters.dateStart ? DateUtils.parseDate(filters.dateStart) : null;
+            const dateEnd = filters.dateEnd ? DateUtils.parseDate(filters.dateEnd) : null;
+            if (dateStart || dateEnd) {
+                isFiltered = true;
+                filtered = filtered.filter(task => {
+                    const eventDate = DateUtils.parseDate(task.eventDate);
+                    if (dateStart && eventDate < dateStart) return false;
+                    if (dateEnd) {
+                        // Check if eventDate is on or before dateEnd
+                        const endOfDay = new Date(dateEnd);
+                        endOfDay.setHours(23, 59, 59, 999);
+                        if (eventDate > endOfDay) return false;
+                    }
+                    return true;
+                });
+            }
+            
+            // 2. Cost Range Filter
+            const costMin = parseFloat(filters.costMin);
+            const costMax = parseFloat(filters.costMax);
+            if (!isNaN(costMin) || !isNaN(costMax)) {
+                isFiltered = true;
+                filtered = filtered.filter(task => {
+                    const totalCost = parseFloat(task.estimatedVendorCost || 0) + parseFloat(task.actualCostVariance || 0);
+                    if (!isNaN(costMin) && totalCost < costMin) return false;
+                    if (!isNaN(costMax) && totalCost > costMax) return false;
+                    return true;
+                });
+            }
+            
+            // 3. Time Range Filter
+            const timeMin = parseFloat(filters.timeMin);
+            const timeMax = parseFloat(filters.timeMax);
+            if (!isNaN(timeMin) || !isNaN(timeMax)) {
+                isFiltered = true;
+                filtered = filtered.filter(task => {
+                    const time = parseFloat(task.estimatedPlanningTime || 0);
+                    if (!isNaN(timeMin) && time < timeMin) return false;
+                    if (!isNaN(timeMax) && time > timeMax) return false;
+                    return true;
+                });
+            }
+            
+            // 4. Category Filter
+            if (filters.category !== 'All') {
+                isFiltered = true;
+                filtered = filtered.filter(task => task.category === filters.category);
+            }
+
+            // 5. Status Filter
+            if (filters.status !== 'All') {
+                isFiltered = true;
+                filtered = filtered.filter(task => task.status === filters.status);
+            }
+            
+            // 6. Client Filter
+            if (filters.client !== 'All') {
+                isFiltered = true;
+                filtered = filtered.filter(task => task.clientHostName === filters.client);
+            }
+            
+            // 7. Responsible Person Filter
+            if (filters.responsiblePerson !== 'All') {
+                isFiltered = true;
+                filtered = filtered.filter(task => task.responsiblePerson === filters.responsiblePerson);
+            }
+            
+            // Show/hide the filtered summary
+            if (isFiltered) {
+                $('#filtered-summary').removeClass('d-none');
+                updateReportsMetrics(filtered);
+            } else {
+                $('#filtered-summary').addClass('d-none');
+            }
+
+            return filtered;
+        }
+        
+        function updateFilterSelects(tasks) {
+            // Only consider tasks with defined client names/responsible persons, and filter unique names
+            const clients = [...new Set(tasks.map(t => t.clientHostName).filter(name => name && name.trim()))].sort();
+            const responsiblePersons = [...new Set(tasks.map(t => t.responsiblePerson).filter(name => name && name.trim()))].sort();
+            
+            // Clients
+            const clientSelect = $('#filter-client').empty();
+            clientSelect.append('<option value="All">All Clients/Hosts</option>');
+            clients.forEach(client => {
+                const option = `<option value="${client}">${client}</option>`;
+                clientSelect.append(option);
+            });
+            clientSelect.val(filters.client); // Restore selected filter
+            
+            // Responsible Persons
+            const responsibleSelect = $('#filter-responsible-person').empty();
+            responsibleSelect.append('<option value="All">All Persons</option>');
+            responsiblePersons.forEach(person => {
+                const option = `<option value="${person}">${person}</option>`;
+                responsibleSelect.append(option);
+            });
+            responsibleSelect.val(filters.responsiblePerson); // Restore selected filter
+        }
+
+        // --- Pagination Logic ---
+        
+        function updatePaginationControls(totalTasks) {
+            const totalPages = Math.ceil(totalTasks / TASKS_PER_PAGE);
+            
+            // Ensure current page is valid after filtering
+            if (currentPage > totalPages && totalPages > 0) {
+                currentPage = totalPages;
+            } else if (totalPages === 0) {
+                 currentPage = 0;
+            } else if (currentPage === 0 && totalPages > 0) {
+                 currentPage = 1;
+            }
+
+            $('#page-info').text(`Page ${currentPage} of ${totalPages}`);
+            
+            $('#prev-page-btn').prop('disabled', currentPage <= 1);
+            $('#next-page-btn').prop('disabled', currentPage >= totalPages);
+        }
+
+
+        // --- Setup Functions for Events & Forms ---
+
+        function setupForm() {
+            // Set today's date as default for new task
+            const today = new Date().toISOString().split('T')[0];
+            $('#event-date').val(today);
+            
+            $('#party-form').on('submit', function(e) {
+                e.preventDefault();
+                
+                const task = {
+                    clientHostName: $('#client-host-name').val().trim(),
+                    partyEventTitle: $('#party-event-title').val().trim(),
+                    taskItemDescription: $('#task-item-description').val().trim(),
+                    category: $('#category-service').val(),
+                    eventDate: $('#event-date').val(),
+                    eventStartTime: $('#event-start-time').val().trim(),
+                    estimatedVendorCost: $('#estimated-vendor-cost').val() || '0.00',
+                    estimatedPlanningTime: $('#estimated-planning-time').val() || '0.0',
+                    responsiblePerson: $('#responsible-person').val().trim(),
+                    clientPayment: $('#client-payment').val() || '0.00',
+                    downPayment: $('#down-payment').val() || '0.00', // <-- NEW FIELD
+                    guestCount: $('#guest-count').val() || '0',
+                    vendorSupplierDetails: $('#vendor-supplier-details').val().trim(),
+                    // other default values are handled by getUpdatedTasks
+                };
+                
+                DataService.updateTask(null, task); // Pass null as ID to create a new task
+                
+                // Reset form (except for party title and time)
+                $('#party-form')[0].reset();
+                $('#party-event-title').val('New Party Event');
+                $('#estimated-vendor-cost').val('0.00');
+                $('#estimated-planning-time').val('1');
+                $('#client-payment').val('0.00');
+                $('#down-payment').val('0.00'); // <-- NEW FIELD
+                $('#guest-count').val('0');
+                
+                // Re-set today's date
+                $('#event-date').val(today);
+                
+                // Switch to to-do list tab
+                $('#todo-list-tab').tab('show');
+                
+                showToast("New task saved!");
+            });
+        }
+        
+        const setupModals = {
+            taskModal: new bootstrap.Modal(document.getElementById('taskDetailModal')),
+            
+            openEditModal: (task) => {
+                // Populate the modal fields
+                $('#modal-task-id').val(task.id);
+                $('#modal-client-host-name-input').val(task.clientHostName);
+                $('#modal-party-event-title-input').val(task.partyEventTitle);
+                $('#modal-task-item-description-input').val(task.taskItemDescription);
+                $('#modal-category-service-input').val(task.category);
+                $('#modal-event-date-input').val(task.eventDate);
+                $('#modal-event-time-input').val(task.eventStartTime);
+                $('#modal-vendor-supplier-details-input').val(task.vendorSupplierDetails);
+                $('#modal-estimated-vendor-cost-input').val(task.estimatedVendorCost);
+                $('#modal-actual-cost-variance-input').val(task.actualCostVariance);
+                $('#modal-client-payment-input').val(task.clientPayment);
+                $('#modal-down-payment-input').val(task.downPayment); // <-- NEW FIELD
+                $('#modal-estimated-planning-time-input').val(task.estimatedPlanningTime);
+                $('#modal-responsible-person-input').val(task.responsiblePerson);
+                $('#modal-guest-count-input').val(task.guestCount);
+                $('#modal-internal-notes-input').val(task.internalNotes);
+                
+                // Set status badge
+                $('#modal-task-status').text(task.status).removeClass().addClass(getStatusBadgeClass(task.status).replace('badge ', ''));
+                
+                setupModals.taskModal.show();
+            },
+            
+            setupEditForm: () => {
+                $('#task-update-form').on('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const taskId = $('#modal-task-id').val();
+                    
+                    const updatedFields = {
+                        clientHostName: $('#modal-client-host-name-input').val().trim(),
+                        partyEventTitle: $('#modal-party-event-title-input').val().trim(),
+                        taskItemDescription: $('#modal-task-item-description-input').val().trim(),
+                        category: $('#modal-category-service-input').val(),
+                        eventDate: $('#modal-event-date-input').val(),
+                        eventStartTime: $('#modal-event-time-input').val().trim(),
+                        vendorSupplierDetails: $('#modal-vendor-supplier-details-input').val().trim(),
+                        estimatedVendorCost: $('#modal-estimated-vendor-cost-input').val() || '0.00',
+                        actualCostVariance: $('#modal-actual-cost-variance-input').val() || '0.00',
+                        clientPayment: $('#modal-client-payment-input').val() || '0.00',
+                        downPayment: $('#modal-down-payment-input').val() || '0.00', // <-- NEW FIELD
+                        estimatedPlanningTime: $('#modal-estimated-planning-time-input').val() || '0.0',
+                        responsiblePerson: $('#modal-responsible-person-input').val().trim(),
+                        guestCount: $('#modal-guest-count-input').val() || '0',
+                        internalNotes: $('#modal-internal-notes-input').val().trim(),
+                        status: $('#modal-task-status').text() // Get status from the badge which is clickable
+                    };
+                    
+                    DataService.updateTask(taskId, updatedFields);
+                    setupModals.taskModal.hide();
+                    showToast("Task updated!");
+                });
+                
+                $('#modal-delete-task-btn').on('click', function() {
+                    if (confirm("Are you sure you want to delete this task? This action cannot be undone.")) {
+                        const taskId = $('#modal-task-id').val();
+                        DataService.deleteTask(taskId);
+                        setupModals.taskModal.hide();
+                        showToast("Task deleted.");
+                    }
+                });
+            }
+        };
+        
+        function setupFiltering() {
+            // Restore filter values on setup
+            $('#filter-date-start').val(filters.dateStart);
+            $('#filter-date-end').val(filters.dateEnd);
+            $('#filter-cost-min').val(filters.costMin);
+            $('#filter-cost-max').val(filters.costMax);
+            $('#filter-time-min').val(filters.timeMin);
+            $('#filter-time-max').val(filters.timeMax);
+            $('#filter-category').val(filters.category);
+            $('#filter-status').val(filters.status);
+            $('#filter-client').val(filters.client);
+            $('#filter-responsible-person').val(filters.responsiblePerson);
+
+            // Apply Filters Button
+            $('#apply-filters-btn').on('click', function() {
+                // Read all filter values into the global filters object
+                filters.dateStart = $('#filter-date-start').val() || null;
+                filters.dateEnd = $('#filter-date-end').val() || null;
+                filters.costMin = $('#filter-cost-min').val() || null;
+                filters.costMax = $('#filter-cost-max').val() || null;
+                filters.timeMin = $('#filter-time-min').val() || null;
+                filters.timeMax = $('#filter-time-max').val() || null;
+                filters.category = $('#filter-category').val();
+                filters.status = $('#filter-status').val();
+                filters.client = $('#filter-client').val();
+                filters.responsiblePerson = $('#filter-responsible-person').val();
+                
+                // Reset to page 1 and re-render the list
+                currentPage = 1;
+                renderTasks(allCurrentTasks);
+                showToast("Filters applied.");
+            });
+            
+            // Clear Filters Button
+            $('#clear-filters-btn').on('click', function() {
+                // Reset global filters object
+                filters.dateStart = null;
+                filters.dateEnd = null;
+                filters.costMin = null;
+                filters.costMax = null;
+                filters.timeMin = null;
+                filters.timeMax = null;
+                filters.category = 'All';
+                filters.status = 'All';
+                filters.client = 'All';
+                filters.responsiblePerson = 'All';
+                
+                // Reset input fields
+                $('#filter-date-start').val('');
+                $('#filter-date-end').val('');
+                $('#filter-cost-min').val('');
+                $('#filter-cost-max').val('');
+                $('#filter-time-min').val('');
+                $('#filter-time-max').val('');
+                $('#filter-category').val('All');
+                $('#filter-status').val('All');
+                $('#filter-client').val('All');
+                $('#filter-responsible-person').val('All');
+                
+                // Reset to page 1 and re-render the list
+                currentPage = 1;
+                renderTasks(allCurrentTasks);
+                showToast("Filters cleared.");
+            });
+            
+            // Pagination controls
+            $('#prev-page-btn').on('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTasks(allCurrentTasks);
+                }
+            });
+            
+            $('#next-page-btn').on('click', function() {
+                const totalFilteredTasks = getFilteredTasks(allCurrentTasks).length;
+                const totalPages = Math.ceil(totalFilteredTasks / TASKS_PER_PAGE);
+                
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTasks(allCurrentTasks);
+                }
+            });
+        }
+        
+        function setupReports() {
+            // Report filtering logic
+            $('#clear-report-filters-btn').on('click', function() {
+                 $('#report-date-start').val('');
+                 $('#report-date-end').val('');
+                 $('#download-filter-status').text('(All Time)');
+            });
+            
+            // CSV Download button functionality
+            $('#download-csv-btn').on('click', function() {
+                
+                const reportStart = $('#report-date-start').val() || null;
+                const reportEnd = $('#report-date-end').val() || null;
+
+                let tasksToReport = allCurrentTasks;
+                
+                // Apply date filtering for report generation
+                if (reportStart || reportEnd) {
+                    
+                    const dateStart = reportStart ? DateUtils.parseDate(reportStart) : null;
+                    const dateEnd = reportEnd ? DateUtils.parseDate(reportEnd) : null;
+                    
+                    tasksToReport = tasksToReport.filter(task => {
+                        const eventDate = DateUtils.parseDate(task.eventDate);
+                        if (dateStart && eventDate < dateStart) return false;
+                        if (dateEnd) {
+                            const endOfDay = new Date(dateEnd);
+                            endOfDay.setHours(23, 59, 59, 999);
+                            if (eventDate > endOfDay) return false;
+                        }
+                        return true;
+                    });
+                    
+                    let statusText = '';
+                    if (reportStart && reportEnd) {
+                        statusText = `(${DateUtils.formatDate(reportStart)} to ${DateUtils.formatDate(reportEnd)})`;
+                    } else if (reportStart) {
+                        statusText = `(Since ${DateUtils.formatDate(reportStart)})`;
+                    } else if (reportEnd) {
+                        statusText = `(Until ${DateUtils.formatDate(reportEnd)})`;
+                    }
+                    $('#download-filter-status').text(statusText);
+                } else {
+                    $('#download-filter-status').text('(All Time)');
+                }
+                
+                if (tasksToReport.length === 0) {
+                    showToast("No tasks to report for the selected filter.", 4000);
+                    return;
+                }
+                
+                // Define CSV columns and headers
+                const headers = [
+                    'ID', 'Event Date (MM/DD/YYYY)', 'Event Time', 'Client/Host Name', 'Party/Event Title', 'Task Description',
+                    'Category', 'Guest Count', 'Responsible Person', 
+                    'Estimated Cost (₱)', 'Additional Cost (₱)', 'Total Cost (₱)', 
+                    'Down Payment (₱)', // <-- NEW FIELD
+                    'Client Payment (Final) (₱)', // <-- UPDATED LABEL
+                    'Total Client Income (₱)', // <-- NEW CALCULATION
+                    'Net Revenue (₱)', 
+                    'Est. Planning Effort (Hrs)',
+                    'Status', 'Vendor/Supplier Details', 'Internal Notes'
+                ];
+                
+                const csvRows = tasksToReport.map(task => {
+                    // Recalculate cost metrics for the report row
+                    const estCost = parseFloat(task.estimatedVendorCost || 0);
+                    const addCost = parseFloat(task.actualCostVariance || 0);
+                    const totalCost = estCost + addCost;
+                    const clientPayment = parseFloat(task.clientPayment || 0);
+                    const downPayment = parseFloat(task.downPayment || 0); // <-- NEW FIELD
+                    const totalIncome = clientPayment + downPayment; // <-- NEW CALCULATION
+                    const netRevenue = totalIncome - totalCost;
+
+                    return [
+                        task.id, 
+                        DateUtils.formatDate(task.eventDate),
+                        task.eventStartTime,
+                        `\"${task.clientHostName.replace(/\"/g, '\"\"')}\"`,
+                        `\"${task.partyEventTitle.replace(/\"/g, '\"\"')}\"`,
+                        `\"${task.taskItemDescription.replace(/\"/g, '\"\"')}\"`,
+                        task.category,
+                        task.guestCount,
+                        `\"${task.responsiblePerson.replace(/\"/g, '\"\"')}\"`,
+                        
+                        estCost.toFixed(2), // Estimated Cost
+                        addCost.toFixed(2), // Additional Cost
+                        totalCost.toFixed(2), // Calculated field
+                        downPayment.toFixed(2), // <-- NEW FIELD
+                        clientPayment.toFixed(2), // Client Payment (Final)
+                        totalIncome.toFixed(2), // Total Client Income
+                        netRevenue.toFixed(2), // Calculated field
+                        
+                        task.estimatedPlanningTime,
+                        task.status,
+                        `\"${task.vendorSupplierDetails.replace(/\"/g, '\"\"')}\"`,
+                        `\"${task.internalNotes.replace(/\"/g, '\"\"')}\"`
+                    ].join(',');
+                });
+
+                const csvContent = [headers.join(','), ...csvRows].join('\n');
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+
+                link.setAttribute("href", url);
+                link.setAttribute("download", `party_planner_report_${new Date().toISOString().slice(0, 10)}.csv`);
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+            
+            // 9. Modal close cleanup
+            $('.close-modal-btn').on('click', function() {
+                const modalElement = document.getElementById('taskDetailModal');
+                const taskModal = bootstrap.Modal.getInstance(modalElement);
+                if (taskModal) taskModal.hide();
+            });
+
+            $('#taskDetailModal').on('hidden.bs.modal', function () {
+                $('body').removeClass('modal-open').css('padding-right', '');
+                $('.modal-backdrop').remove();
+            });
+        }
+
+        // --- Auth Setup and Initial Run ---
+
+        function setupAuthListeners() {
+            // Check if Firebase is initialized and if not, initialize it
+            if (!app) {
+                const firebaseConfig = JSON.parse(window.__firebase_config);
+                app = window.FirebaseTools.initializeApp(firebaseConfig);
+                auth = window.FirebaseTools.getAuth(app);
+                db = window.FirebaseTools.getFirestore(app);
+            }
+            
+            // Show the modal to choose storage mode if not already set
+            showCloudSyncModal();
+
+            // Set up Google Sign-in button listener
+            $('#google-sign-in-btn').on('click', FirebaseImpl.signInWithGoogle);
+            
+            // Set up Guest Sign-in button listener
+            $('#guest-sign-in-btn').on('click', async () => {
+                // Try to sign in anonymously for cloud sync (preferred over local storage for guests)
+                //const success = await FirebaseImpl.signInAnonymously();
+                //if (!success) {
+                    // Fallback to local storage if anonymous sign-in fails
+                    storageMode = 'local';
+                    allCurrentTasks = DataService.getTasks();
+                    updateUIOnModeChange();
+                    renderTasks(allCurrentTasks);
+                    hideCloudSyncModal();
+                //}
+            });
+
+            // Set up the Firebase Auth State Observer
+            window.FirebaseTools.onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    // User is signed in.
+                    userId = user.uid;
+                    isGoogleSignedIn = !user.isAnonymous;
+                    storageMode = 'firebase';
+                    
+                    hideCloudSyncModal();
+                    updateUIOnModeChange();
+                    
+                    // Start the real-time listener for task data
+                    FirebaseImpl.setupDataListener(userId);
+
+                } else {
+                    // User is signed out or has not chosen a mode yet
+                    userId = null;
+                    isGoogleSignedIn = false;
+                    
+                    // Only show the sync modal if the storageMode is not already set to local
+                    if (storageMode !== 'local') {
+                        storageMode = ''; // Clear state if user signed out
+                        updateUIOnModeChange(); // Update banner to 'None'
+                        showCloudSyncModal();
+                    }
+                }
+            });
+        }
+        
+        // --- Document Ready ---
+        $(function() {
+            // Initialize event listeners for all parts of the application
+            setupForm();
+            setupModals.setupEditForm();
+            setupFiltering();
+            setupReports();
+            setupAuthListeners();
+            
+            // The initial render will be handled by the data loading process (local or firebase)
+            // Initial task load handled inside setupAuthListeners via DataService.getTasks() or Firebase listener
+        });
+    </script>
+</body>
+</html>
