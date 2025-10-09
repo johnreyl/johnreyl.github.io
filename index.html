@@ -5,13 +5,9 @@
 <title>GizmoBox.io</title>
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 
-<!-- Load Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<!-- Google Font (Inter) -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<!-- Bootstrap Icons -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
 <style>
@@ -114,20 +110,50 @@ body {
     display: flex;
   }
 }
+
+/* Style for the collapsible header button */
+.nav-header{
+  /*border-top: 1px dotted #CBCCDC;*/
+}
+.nav-header-button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    text-align: left;
+    color: #6b7280; /* text-gray-500 */
+    cursor: pointer;
+    font-size: 0.75rem; /* text-xs */
+    font-weight: 600; /* font-semibold */
+    text-transform: uppercase;
+}
+
+/* Added style for the static Pinned/Favorites header */
+.pinned-header {
+    padding: 8px 12px; /* px-3 py-2 */
+    margin-top: 8px; /* mt-2 */
+    color: #6b7280;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    /* Ensure it has the same vertical padding as the nav-item headers */
+}
+
 </style>
 </head>
 <body class="bg-gray-100">
 
-<!-- Header -->
 <header class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white p-1 shadow-xl flex justify-between items-center">
 <h3 class="text-xl font-bold flex items-center">
-  <svg width="41px" height="41px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#bac2ca" stroke="#bac2ca" stroke-width="0.00024000000000000003" **class="mr-2"**>
+  <svg width="41px" height="41px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#bac2ca" stroke="#bac2ca" stroke-width="0.00024000000000000003" class="mr-2">
     <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.288"></g><g id="SVGRepo_iconCarrier"> <title>webhook</title> <rect width="24" height="24" fill="none"></rect> <path d="M10.46,19a4.59,4.59,0,0,1-6.37,1.15,4.63,4.63,0,0,1,2.49-8.38l0,1.43a3.17,3.17,0,0,0-2.36,1.36A3.13,3.13,0,0,0,5,18.91a3.11,3.11,0,0,0,4.31-.84,3.33,3.33,0,0,0,.56-1.44v-1l5.58,0,.07-.11a1.88,1.88,0,1,1,.67,2.59,1.77,1.77,0,0,1-.83-1l-4.07,0A5,5,0,0,1,10.46,19m7.28-7.14a4.55,4.55,0,1,1-1.12,9,4.63,4.63,0,0,1-3.43-2.21L14.43,18a3.22,3.22,0,0,0,2.32,1.45,3.05,3.05,0,1,0,.75-6.06,3.39,3.39,0,0,0-1.53.18l-.85.44L12.54,9.2h-.22a1.88,1.88,0,1,1,.13-3.76A1.93,1.93,0,0,1,14.3,7.39a1.88,1.88,0,0,1-.46,1.15l1.9,3.51a4.75,4.75,0,0,1,2-.19M8.25,9.14A4.54,4.54,0,1,1,16.62,5.6a4.61,4.61,0,0,1-.2,4.07L15.18,9a3.17,3.17,0,0,0,.09-2.73A3.05,3.05,0,1,0,9.65,8.6,3.21,3.21,0,0,0,11,10.11l.39.21-3.07,5a1.09,1.09,0,0,1,.1.19,1.88,1.88,0,1,1-2.56-.83,1.77,1.77,0,0,1,1.23-.17l2.31-3.77A4.41,4.41,0,0,1,8.25,9.14Z"></path>
     </g>
   </svg>
   GizmoBox.io
 </h3>
-  <!-- Mobile Toggle Button (Visible only on small screens) -->
   <button id="mobileToggleBtn" class="p-1 rounded-md text-white hover:bg-white hover:text-indigo-600 transition-colors duration-200">
     <i class="bi bi-list text-2xl"></i>
   </button>
@@ -135,26 +161,24 @@ body {
 
 <div class="flex-1 flex overflow-hidden">
   
-  <!-- Sidebar -->
   <nav class="sidebar flex flex-col bg-white border-r border-gray-200 overflow-y-auto" id="sidebar">
     
-    <!-- Desktop Toggle Button (Visible only on desktop) -->
     <div class="hidden md:flex justify-end p-2 border-b border-gray-200 cursor-pointer sticky top-0 bg-white z-10" id="desktopToggleBtn">
       <i class="bi bi-chevron-left text-xl text-gray-600 hover:text-indigo-600 transition"></i>
     </div>
 
-    <!-- Pinned Tabs -->
+    <div class="pinned-header nav-header">
+        <span class="tool-label">Favorites</span>
+    </div>
+    
     <ul class="flex flex-col border-b border-gray-200" id="pinnedTabs"></ul>
     
-    <!-- Separator -->
     <div class="h-2 bg-gray-50 border-y border-gray-200"></div>
 
-    <!-- All Tools -->
     <ul class="flex flex-col flex-1" id="toolTabs"></ul>
     
   </nav>
 
-  <!-- Content Area (Iframe) -->
   <div class="content flex-1 px-2 py-0 md:px-4 flex flex-col overflow-hidden" id="mainContent">
     <iframe id="toolFrame" src="about:blank" class="w-full flex-grow border-none rounded-xl shadow-2xl bg-white"></iframe>
     <footer class="text-right text-xs text-gray-500 py-2">
@@ -169,6 +193,8 @@ body {
 let allEntries = [];
 let pinnedFiles = JSON.parse(localStorage.getItem("pinnedTools") || "[]");
 let isDesktopCollapsed = false;
+// New: Storage for collapsed headers
+let collapsedGroups = JSON.parse(localStorage.getItem("collapsedGroups") || "[]");
 
 // --- CSS Class Definitions ---
 const UNPINNED_BASE = 'text-gray-700 hover:bg-gray-100';
@@ -182,25 +208,48 @@ const STAR_OFF = 'text-gray-300 hover:text-yellow-400';
 
 // The fallback content from the user's provided list
 const mockIni = `
-  Ping Tool v1,ping_tool.html,2
-  net_details.html
-  device_specs.html
-  user_info.html
-  sticky_notes.html
-  keyboard_tester.html
-  mic_tester.html
-  text_to_speech.html
-  text_to_image.html
-  image_analyzer.html
-  image_to_text.html
-  website_security_checker.html
-  csv_writer.html
-  xml_editor.html
-  text_analyzer.html
-  color_picker.html
-  image_coordinate_tracker.html
-  time_tools.html
-`;
+[Top Items]
+csv_writer.html
+color_picker.html
+text_analyzer.html
+
+[Small Systems]
+party_planner.html
+check_list.html
+sticky_notes.html
+
+[Main Tool Items]
+Ping Tool v1,ping_tool.html,2
+net_details.html
+device_specs.html
+user_info.html
+keyboard_tester.html
+mic_tester.html
+website_security_checker.html
+
+[AI Utilities]
+text_to_speech.html
+text_to_image.html,1
+Analyzer,image_analyzer.html
+Image to Text,image_to_text.html,2
+
+[Web & Dev Utilities]
+xml_editor.html
+regex_tester.html
+JSON Viewer/Editor,json_editor.html
+Base64 Encoder/Decoder,base64_tool.html
+jwt_decoder.html
+
+[Productivity & Utilities]
+Unit Conversion Calculator,converter.html,51
+World Clock,time_tools.html,52
+Clipboard Manager,clipboard_manager.html,53
+Password Generator,password_generator.html,54
+
+[Fun / Miscellaneous]
+Name Generator,name_generator.html,61
+image_coordinate_tracker.html
+`; // UPDATED: Added headers and new entries
 
 // --- API Mock/Fetch ---
 
@@ -230,9 +279,12 @@ function loadPagesIni() {
 // --- Utility Functions ---
 
 function prettifyTitle(str) {
-  str = str.replace(/\.html$/i, "");
-  str = str.replace(/[_\-]+/g, " ");
-  str = str.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.substr(1).toLowerCase());
+  // Only prettify if it looks like a filename, otherwise return as-is
+  if (str.toLowerCase().includes('.html')) {
+      str = str.replace(/\.html$/i, "");
+      str = str.replace(/[_\-]+/g, " ");
+      str = str.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.substr(1).toLowerCase());
+  }
   return str;
 }
 
@@ -247,10 +299,21 @@ function getToolIcon(file) {
   if(file.includes("xml") || file.includes("text") || file.includes("analyzer")) return "bi-file-text";
   if(file.includes("security")) return "bi-shield-lock";
   if(file.includes("notes") || file.includes("sticky")) return "bi-stickies";
+  if(file.includes("task") || file.includes("check")) return "bi-list-task";
+  if(file.includes("converter") || file.includes("unit")) return "bi-calculator";
+  if(file.includes("world") || file.includes("time")) return "bi-clock";
+  if(file.includes("clipboard")) return "bi-clipboard-check";
+  if(file.includes("password") || file.includes("generator")) return "bi-key";
+  if(file.includes("json")) return "bi-braces";
+  if(file.includes("base64")) return "bi-hash";
+  if(file.includes("jwt")) return "bi-shield-check";
+  if(file.includes("regex")) return "bi-terminal";
   return "bi-app-indicator";
 }
 
 function savePinnedFiles(){ localStorage.setItem("pinnedTools", JSON.stringify(pinnedFiles)); }
+// New: Function to save the collapsed state
+function saveCollapsedGroups(){ localStorage.setItem("collapsedGroups", JSON.stringify(collapsedGroups)); }
 
 function setCopyrightYear() {
     const currentYear = new Date().getFullYear();
@@ -290,35 +353,164 @@ $(function(){
         $sidebar.removeClass("open");
     }
   });
+  
+  // --- Header Collapse Handler ---
+  $(document).on("click", ".nav-header-button", function(){
+      const $button = $(this);
+      const groupTitle = $button.data('group-title');
+      const $icon = $button.find('i');
+      
+      // Get all subsequent tool items until the next header (nav-item containing a header) or the end of the list
+      const $itemsToToggle = $button.closest('li.nav-item').nextUntil('li.nav-item.nav-header');
+      
+      $itemsToToggle.slideToggle(150, function() {
+          // Toggle icon and update state after animation completes
+          const isHidden = $itemsToToggle.is(':hidden');
+          
+          if (isHidden) {
+              $icon.removeClass('bi-chevron-down').addClass('bi-chevron-right');
+              // Add to collapsedGroups if not already present
+              if (!collapsedGroups.includes(groupTitle)) {
+                  collapsedGroups.push(groupTitle);
+              }
+          } else {
+              $icon.removeClass('bi-chevron-right').addClass('bi-chevron-down');
+              // Remove from collapsedGroups
+              collapsedGroups = collapsedGroups.filter(t => t !== groupTitle);
+          }
+          saveCollapsedGroups();
+      });
+  });
 
   // --- Initial Data Load ---
   
   loadPagesIni().done(function(data){
-    let lines = data.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith(";") && !l.startsWith("["));
-    let entries = lines.map(line => {
-      let parts = line.split(",").map(s => s.trim()), file = "", title = "", index = 9999;
-      if(parts.length===3){title=parts[0]||parts[1];file=parts[1];index=parseInt(parts[2],10)||9999;}
-      else if(parts.length===2){if(isNaN(parts[1])){file=parts[0];title=file;index=parseInt(parts[1],10)||9999;}else{title=parts[0]||parts[1];file=parts[1];}}
-      else if(parts.length===1){file=parts[0];title=file;}
+    let lines = data.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith(";"));
+    let currentGroupIndex = 0;
+    let entries = [];
 
-      title = prettifyTitle(title);
-      let fav = pinnedFiles.includes(file);
-      return {title, file, index, favorite: fav, idSuffix: Math.random().toString(36).substr(2,5)};
+    // 1. Parse INI File Content
+    lines.forEach(line => {
+        if (line.startsWith("[") && line.endsWith("]")) {
+            // It's a header/group
+            const title = line.substring(1, line.length - 1).trim();
+            // New: Check if the group is collapsed
+            const isCollapsed = collapsedGroups.includes(title); 
+            
+            entries.push({ 
+                type: 'header', 
+                title: title, 
+                groupIndex: currentGroupIndex++,
+                isCollapsed: isCollapsed 
+            });
+        } else if (!line.startsWith(";")) {
+            // It's a tool entry
+            let parts = line.split(",").map(s => s.trim()).filter(s => s.length > 0);
+            let file = "", title = "", index = 9999;
+            
+            // Determine Title, File, and Index based on parts length and content
+            if (parts.length === 3) {
+                // Title, file.html, index
+                [title, file, index] = [parts[0], parts[1], parseInt(parts[2], 10) || 9999];
+            } else if (parts.length === 2) {
+                if (parts[1].toLowerCase().includes('.html')) {
+                    // Title, file.html
+                    [title, file] = [parts[0], parts[1]];
+                } else if (parts[0].toLowerCase().includes('.html') && !isNaN(parts[1])) {
+                    // file.html, index
+                    [file, index] = [parts[0], parseInt(parts[1], 10) || 9999];
+                    title = file;
+                }
+            } else if (parts.length === 1) {
+                // file.html
+                file = parts[0];
+                title = file;
+            }
+            
+            // Re-normalize for consistency
+            file = file.toLowerCase().includes('.html') ? file : `${file}.html`;
+            title = prettifyTitle(title);
+            let fav = pinnedFiles.includes(file);
+            
+            // Ensure title/file extraction is robust for cases like 'Analyzer,image_analyzer.html'
+            if (!file.toLowerCase().includes('.html') && parts.length === 2 && parts[1].toLowerCase().includes('.html')) {
+                 title = parts[0];
+                 file = parts[1];
+            }
+
+            entries.push({
+                type: 'tool',
+                title: title, 
+                file: file, 
+                index: parseInt(index, 10) || 9999, 
+                favorite: fav, 
+                idSuffix: Math.random().toString(36).substr(2,5),
+                groupIndex: currentGroupIndex > 0 ? currentGroupIndex - 1 : 0 // Assign to the last seen group
+            });
+        }
     });
 
-    entries.sort((a, b) => a.index - b.index);
-    allEntries = entries;
+    // 2. Sort all entries (tools only, headers are order-dependent)
+    const toolEntries = entries.filter(e => e.type === 'tool');
+    const headerEntries = entries.filter(e => e.type === 'header');
 
-    // Render Tab Function
+    // Sort tool entries by index
+    toolEntries.sort((a, b) => a.index - b.index);
+
+    // Reconstruct allEntries in the correct display order (headers in original position, tools interleaved, then sorted by index within group).
+    let finalEntries = [];
+    let groupMap = new Map();
+    // Initialize groups with headers
+    headerEntries.forEach(h => groupMap.set(h.groupIndex, {header: h, tools: []}));
+    // Place tools into their groups
+    toolEntries.forEach(t => {
+        let group = groupMap.get(t.groupIndex);
+        if(group) group.tools.push(t);
+    });
+    
+    // Sort tools within each group (already sorted, but to be sure)
+    groupMap.forEach(group => group.tools.sort((a, b) => a.index - b.index));
+
+    // Reassemble the list with headers and sorted tools
+    groupMap.forEach(group => {
+        if(group.header) finalEntries.push(group.header);
+        finalEntries.push(...group.tools);
+    });
+    
+    // Fallback for tools that had no preceding header
+    if (finalEntries.length === 0) finalEntries = toolEntries;
+    
+    allEntries = finalEntries; // This is the list for rendering
+
+    // Render Header Function (Updated)
+    function createHeader(entry) {
+        const iconClass = entry.isCollapsed ? 'bi-chevron-right' : 'bi-chevron-down';
+        const $header = $(`
+            <li class="nav-item nav-header px-3 py-2 mt-2">
+                <button class="nav-header-button" data-group-title="${entry.title}" title="Toggle ${entry.title}">
+                    <span class="tool-label">${entry.title}</span>
+                    <i class="bi ${iconClass} text-base transition-transform duration-150"></i>
+                </button>
+            </li>
+        `);
+        $tabs.append($header);
+    }
+    
+    // Render Tab Function (modified to handle different base classes and initial visibility)
     function createTab(entry, container){
       let id = "tab-" + entry.file.replace(/[^a-z0-9]/gi, "") + "-" + entry.idSuffix;
       let iconClass = getToolIcon(entry.file);
       
       let baseClasses = entry.favorite ? PINNED_BASE : UNPINNED_BASE;
       let starClasses = entry.favorite ? STAR_ON : STAR_OFF;
+      
+      // Determine initial visibility for unpinned items
+      const groupEntry = allEntries.find(e => e.type === 'header' && e.groupIndex === entry.groupIndex);
+      const isHidden = !entry.favorite && groupEntry && groupEntry.isCollapsed;
+      const displayStyle = isHidden ? 'style="display: none;"' : '';
 
       let $tab = $(`
-        <li class="nav-item">
+        <li class="nav-item" ${displayStyle}>
           <a class="nav-link p-3 rounded-none flex items-center justify-between transition-colors duration-150 ${baseClasses}" id="${id}" href="#" title="${entry.title}">
             <span class="tool-left flex items-center gap-3 flex-1 overflow-hidden">
                 <i class="bi ${iconClass} text-xl"></i>
@@ -340,7 +532,11 @@ $(function(){
             $link.removeClass(ACTIVE_UNPINNED).removeClass(ACTIVE_PINNED).removeClass('active-shadow');
             
             // Re-apply correct base class if it was pinned/unpinned
-            const currentEntry = allEntries.find(en => $link.attr('id').includes(en.idSuffix));
+            // Find the entry using the idSuffix part
+            const idPart = $link.attr('id').split("tab-")[1];
+            const idSuffix = idPart ? idPart.split('-').pop() : null;
+            const currentEntry = allEntries.find(en => en.type === 'tool' && en.idSuffix === idSuffix);
+            
             if (currentEntry) {
                  const baseClass = currentEntry.favorite ? PINNED_BASE : UNPINNED_BASE;
                  $link.addClass(baseClass);
@@ -356,12 +552,24 @@ $(function(){
       });
     }
 
-    // Sort and render tabs
-    entries.forEach(e => e.favorite ? createTab(e, $pinnedTabs) : createTab(e, $tabs));
+    // 3. Render all entries (Headers and Tools)
+    finalEntries.forEach(entry => {
+        if (entry.type === 'header') {
+            createHeader(entry);
+        } else {
+            // Check for pinned status to render in the correct list
+            if (entry.favorite) {
+                createTab(entry, $pinnedTabs);
+            } else {
+                createTab(entry, $tabs);
+            }
+        }
+    });
 
-    // Load the first entry by default and mark it as active
-    if (entries.length > 0) {
-        $(`#tab-${entries[0].file.replace(/[^a-z0-9]/gi,"")}-${entries[0].idSuffix}`).trigger('click');
+    // Load the first *tool* entry by default and mark it as active
+    const firstTool = finalEntries.find(e => e.type === 'tool');
+    if (firstTool) {
+        $(`#tab-${firstTool.file.replace(/[^a-z0-9]/gi,"")}-${firstTool.idSuffix}`).trigger('click');
     }
 
     setCopyrightYear();
@@ -376,7 +584,10 @@ $(function(){
     const $link = $star.closest("a");
     
     const idPart = $link.attr("id").split("tab-")[1];
-    const entry = allEntries.find(en => en.file.replace(/[^a-z0-9]/gi,"") + "-" + en.idSuffix === idPart);
+    // Find entry using the idSuffix part
+    const idSuffix = idPart.split('-').pop();
+    const entry = allEntries.find(en => en.type === 'tool' && en.idSuffix === idSuffix);
+
     if (!entry) return;
 
     entry.favorite = !entry.favorite;
@@ -391,13 +602,68 @@ $(function(){
     if (entry.favorite) {
       // Pin: Set Pinned Base, then detach/prepend
       $link.addClass(PINNED_BASE);
-      $tab.detach().prependTo("#pinnedTabs");
+      $tab.show().detach().prependTo("#pinnedTabs"); // Ensure pinned items are visible
       if(isActive) $link.removeClass(PINNED_BASE).addClass(ACTIVE_PINNED); // If active, re-apply active pinned class
       if(!pinnedFiles.includes(entry.file)) pinnedFiles.push(entry.file);
     } else {
-      // Unpin: Set Unpinned Base, then detach/append
+      // Unpin: Set Unpinned Base, then detach/append back to the main list
       $link.addClass(UNPINNED_BASE);
-      $tab.detach().appendTo("#toolTabs");
+      
+      // Check if the group is collapsed and hide the unpinned item
+      const groupEntry = allEntries.find(e => e.type === 'header' && e.groupIndex === entry.groupIndex);
+      if (groupEntry && groupEntry.isCollapsed) {
+          $tab.hide();
+      } else {
+          $tab.show();
+      }
+      
+      // Find the correct position in the main list ($tabs) to reinsert the unpinned item.
+      let inserted = false;
+      const entryIndex = allEntries.findIndex(e => e.idSuffix === entry.idSuffix);
+      
+      // Find where the tool should be reinserted (based on its position in the sorted allEntries list)
+      for (let i = entryIndex + 1; i < allEntries.length; i++) {
+        const nextEntry = allEntries[i];
+        
+        // Skip over favorited tools in the main list
+        if (nextEntry.type === 'tool' && nextEntry.favorite) continue;
+
+        if (nextEntry.type === 'tool' && !nextEntry.favorite) {
+          // Found the next non-pinned tool, insert before it
+          $tab.detach().insertBefore($(`#tab-${nextEntry.file.replace(/[^a-z0-9]/gi,"")}-${nextEntry.idSuffix}`).closest('li.nav-item'));
+          inserted = true;
+          break;
+        } else if (nextEntry.type === 'header') {
+          // Found the next header, insert before it
+          // Find the list item containing the header button
+          $tab.detach().insertBefore($(`.nav-header-button[data-group-title="${nextEntry.title}"]`).closest('li.nav-item'));
+          inserted = true;
+          break;
+        }
+      }
+      
+      // If we didn't find a place to insert it (i.e., it's the last item in the list/group), check the item immediately before it.
+      if (!inserted) {
+          let prevTool = null;
+          for (let i = entryIndex - 1; i >= 0; i--) {
+              if (allEntries[i].type === 'tool' && !allEntries[i].favorite) {
+                  prevTool = allEntries[i];
+                  break;
+              }
+              if (allEntries[i].type === 'header') break;
+          }
+          
+          if (prevTool) {
+              $tab.detach().insertAfter($(`#tab-${prevTool.file.replace(/[^a-z0-9]/gi,"")}-${prevTool.idSuffix}`).closest('li.nav-item'));
+              inserted = true;
+          }
+      }
+
+      // If still not inserted (e.g., it's the first tool in a group), append to the toolTabs container
+      if (!inserted) {
+         $tab.detach().appendTo("#toolTabs");
+      }
+
       if(isActive) $link.removeClass(UNPINNED_BASE).addClass(ACTIVE_UNPINNED); // If active, re-apply active unpinned class
       pinnedFiles = pinnedFiles.filter(f => f !== entry.file);
     }
