@@ -724,14 +724,21 @@
     <script type="module">
         // Import Firebase modules and expose them globally as window.FirebaseTools
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            onAuthStateChanged,
+            GoogleAuthProvider,
+            signInWithPopup 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // --- 1. Expose Firebase Tools Globally to match the provided auth code ---
-        window.FirebaseTools = {
-            initializeApp, getAuth, signInWithPopup, GoogleAuthProvider, 
-            onAuthStateChanged, signOut, getFirestore, signInAnonymously,
-            doc, onSnapshot, setDoc 
+        // Expose Firebase tools globally
+        window.FirebaseTools = { 
+            initializeApp, getAuth, signInAnonymously, onAuthStateChanged, 
+            GoogleAuthProvider, signInWithPopup, getDoc,
+            getFirestore, collection, doc, setDoc, onSnapshot 
         };
 
         // --- Global State & Initialization ---
