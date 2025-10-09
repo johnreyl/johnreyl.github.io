@@ -737,8 +737,8 @@
         // --- Global State & Initialization ---
         
         const LOCAL_STORAGE_KEY = 'taskPlannerTasks_v11_local'; 
-        const FIREBASE_COLLECTION_PATH = 'events';
         const APP_ID = window.__app_id || 'default_app'; 
+        const FIREBASE_COLLECTION_PATH = `artifacts/${APP_ID}`;
         const FIREBASE_DOC_ID = 'main_data'; 
         
         let app; 
@@ -1260,6 +1260,10 @@
                 showAuthLoadingOverlay("Waiting for Google Sign-In...");
                 try {
                     const provider = new FirebaseTools.GoogleAuthProvider();
+                    
+                    // 🔑 Force Gmail chooser every time
+                    provider.setCustomParameters({ prompt: 'select_account' });
+
                     await FirebaseTools.signInWithPopup(auth, provider);
                 } catch (error) {
                     console.error("Google Sign-In Error:", error);
@@ -1270,7 +1274,7 @@
                 } finally {
                     hideAuthLoadingOverlay();
                 }
-            },
+            }
             
             /**
              * Signs the current user in anonymously (Guest Mode).
