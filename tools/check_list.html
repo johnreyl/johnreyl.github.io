@@ -463,9 +463,10 @@
             border: 1px solid #e5e7eb;
             transition: all 0.15s;
         }
-       .d-none {
-           display: none;
-       } 
+
+       .d-none {
+           display: none;
+       } 
     </style>
 </head>
 <body>
@@ -490,6 +491,10 @@
             </svg>
             <span>Cabinet</span>
         </button>
+
+        <div id="overallProcessedTotal" class="text-xs font-bold text-green-500 order-last sm:order-none sm:w-auto">
+            Total Processed: $0.00
+        </div>
     </div>
 
     <div class="flex items-center space-x-2 text-xs sm:text-sm font-medium">
@@ -500,10 +505,8 @@
              Processed
         </button>
         <button data-filter="unprocessed" class="filter-btn text-gray-600 hover:bg-gray-100 px-2 py-1 rounded-md transition duration-150">Active</button>
-    </div>
-    
-    <div id="overallProcessedTotal" class="text-sm sm:text-lg font-bold text-green-700 w-full text-center order-last sm:order-none sm:w-auto">
-        Total Processed: $0.00
+
+
     </div>
 
     <label class="switch-container sm:ml-4">
