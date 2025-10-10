@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Speed Test</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      /*background-color: #f1f3f5;*/
+      font-size: 1.1rem;
+        background-color: #fff; 
+    }
+    #resultsOverlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+    #resultsOverlay.show {
+      display: flex;
+    }
+    #resultsPanel {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 650px;
+      width: 95%;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+    #resultsPanel h3 {
+      font-size: 2.2rem;
+      margin-bottom: 20px;
+    }
+    #resultsPanel p {
+      font-size: 1.2rem;
+      margin: 10px 0;
+    }
+    #progressBar {
+      height: 20px;
+    }
+    .correct {
+      color: green;
+    }
+    .incorrect {
+      color: red;
+      text-decoration: underline;
+    }
+    .current-text{
+      text-decoration: underline;
+    }
+    #passageArea {
+      font-family: monospace;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      max-height: 3em; /* ~rows */
+      overflow: hidden; /* Disable manual scroll */
+      line-height: 2.5em;
+      font-size: 2.2rem; /* Match typing area font size */
+      color: black;
+      padding-left: 50px!important;
+      padding-right: 50px!important;
+    }
+    #inputArea {
+      font-family: monospace;
+      font-size: 1.2rem;
+    }
+    /* Buttons styling */
+    .btn-group-custom {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .btn-group-custom button {
+      max-width: 130px;
+    }
+    .card-dark{
+        background-color: #384C55;
+        color: #fff;
+    }
+    .color-red {
+      color: #DA8383;
+    }
+    .result-header-passed{
+      background-color: #8DE0A0;
+    }
+    .result-header-failed{
+      background-color: #FBCFD0;
+    }
+    .duration-error{
+      /*color: red;*/
+      background-color: #FBCFD0;
+      width: 100%;
+      display: block;
+    }
+    .continue-text{
+      color: #A0A0A0;
+      font-size: 1.5rem;
+      margin-top: -10px;
+      width: 100%;
+      display: block;
+      text-align: center;
+    }
+    .blinking-underline {
+      position: relative;
+    }
+
+    .blinking-underline::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -2px; /* adjust underline distance */
+      width: 100%;
+      height: 3px;  /* underline thickness */
+      background-color: black; /* underline color */
+      animation: blink 1.5s infinite;
+    }
+    .blink-background{
+      animation: background-blink 1.5s infinite;
+    }
+
+    @keyframes blink {
+      0%, 50%, 100% {
+        opacity: 1;
+      }
+      25%, 75% {
+        opacity: 0;
+      }
+    }
+    @keyframes background-blink {
+      0% {
+        background-color: #ff0000; /* Red */
+      }
+      50% {
+        background-color: #0000ff; /* Blue */
+      }
+      100% {
+        background-color: #ff0000; /* Back to Red */
+      }
+    }
+
+    h2 > small {
+      font-size: 17px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-5">
+    <div class="card card-dark shadow-lg p-5">
+      
+
+      <div class="row mb-3">
+        <div class="col-md-6 col-xs-12">
+          <h2 class="text-center mb-3"><small>Typing Speed Test v1.00</small></h2>
+        </div>
+        <div class="col-md-3 col-xs-6">
+          <!--<label for="difficulty" class="form-label">Difficulty</label>-->
+          <select id="difficulty" class="form-select">
+            <option value="easy">Beginner</option>
+            <option value="medium">Intermediate</option>
+            <option value="hard" selected>Advanced</option>
+            <option value="word-test">Practice #1 - random</option>
+            <option value="prod-test">Practice #2 - accounts</option>
+            <option value="add-test">Practice #3 - address</option>
+            <option value="prodB-test">Practice #4 - production</option>
+            <option value="numb">Practice #5 - numbers A</option>
+            <option value="num">Practice #6 - numbers B</option>
+            <option value="code">Practice #7 - programming</option>
+          </select>
+        </div>
+        <div class="col-md-3 col-xs-6">
+          <!--<label for="timeLimit" class="form-label">Time</label>-->
+          <select id="timeLimit" class="form-select">
+            <option value="60">1 Minute</option>
+            <option value="180">3 Minutes</option>
+            <option value="300" selected>5 Minutes</option>
+            <option value="600">10 Minutes</option>
+            <option value="900">15 Minutes</option>
+            <option value="1200">20 Minutes</option>
+            <option value="1800">30 Minutes</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <strong id="timerDisplay" class="color-red">Time Left: 00:00</strong>
+        <div class="progress mt-2">
+          <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Passage</label>
+        <div id="passageArea" class="p-3 bg-light border rounded"><span class="continue-text">Press start to begin...</span>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="inputArea" class="form-label">Your Typing 
+          <small class="color-red">
+            [Errors: <label id="errorLbl">0</label>] 
+            [WPM: <label id="wpmLbl">0</label>]
+            [Accuracy: <label id="accuracyLbl">0</label>]
+            [Keystrokes: <label id="keysLbl">0</label>]
+          </small></label>
+        <textarea id="inputArea" class="form-control" rows="5" placeholder="Start typing here..." autocorrect="off" autocomplete="off" disabled>
+Instructions: 
+1. Symbol(⏎) - Enter Key
+2. for applicants - Do not reload, retry code will be updated
+3. for applicants - Choose difficulty of Advanced and duration of 5 minutes
+        </textarea>
+      </div>
+
+      <div class="btn-group-custom">
+        <button id="startBtn" class="btn btn-success">Start</button>
+        <button id="endBtn" class="btn btn-danger" disabled>End</button>
+      </div>
+
+      <div class="mb-3">
+        <label id="randomCode" class="str-code"></label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Overlay -->
+  <div id="resultsOverlay">
+    <div id="resultsPanel">
+      <h3>Your Results</h3>
+      <p id="resultsText"></p>
+      <button class="btn btn-primary mt-3" onclick="resetTest()">Try Again</button><br/><small>*retry code will be updated.</small>
+    </div>
+  </div>
+
+  <script>
+    const startBtn = document.getElementById("startBtn");
+    const endBtn = document.getElementById("endBtn");
+    const inputArea = document.getElementById("inputArea");
+    const passageArea = document.getElementById("passageArea");
+    const timerDisplay = document.getElementById("timerDisplay");
+    const progressBar = document.getElementById("progressBar");
+    const errorLbl = document.getElementById("errorLbl");
+    const wpmLbl = document.getElementById("wpmLbl");
+    const accuracyLbl = document.getElementById("accuracyLbl");
+    const keysLbl = document.getElementById("keysLbl");
+    const randomCode = document.getElementById("randomCode");
+
+    const difficultySelect = document.getElementById("difficulty");
+    const timeLimitSelect = document.getElementById("timeLimit");
+
+    let timerInterval;
+    let timeLeft = 0;
+    let totalTime = 0;
+    let isRunning = false;
+    let passageText = "";
+    let elapsed = 0;
+    let initialValue = "";
+    let errorCount = 0;
+    let compareIndex = 0;
+
+    inputArea.addEventListener('keydown', function(event) {
+      const prohibitedKeys = [
+        'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+        'Home', 'End'
+      ];
+
+      if (prohibitedKeys.includes(event.key)) {
+        event.preventDefault();
+      }
+
+      //if(!updateHighlight(event.key)) event.preventDefault(); 
+    });
+
+    inputArea.addEventListener('input', function(event) {
+      const currentValue = inputArea.value;
+
+      // Ensure initial value is preserved
+      if (!currentValue.startsWith(initialValue)) {
+        inputArea.value = initialValue;
+        addErrorCount();
+        return;
+      }
+
+      // Get the newly typed character
+      const typedChar = currentValue.slice(initialValue.length);
+
+      // Pass it to updateHighlight
+      if (!updateHighlight(typedChar)) {
+        // If it's an invalid input, revert
+        inputArea.value = initialValue;
+        return;
+      }
+
+      // Update the tracked value
+      initialValue = inputArea.value;
+
+      // Force cursor to the end if needed
+      inputArea.selectionStart = inputArea.selectionEnd = inputArea.value.length;
+    });
+
+    function addErrorCount(){
+      errorCount += 1;
+      errorLbl.innerText = errorCount;
+    }
+
+    /*inputArea.addEventListener('input', function(event) {
+        const currentValue = inputArea.value;
+
+        if (!currentValue.startsWith(initialValue)) {
+            inputArea.value = initialValue;
+        }
+        initialValue = inputArea.value;
+    });*/
+
+      function generateRandomCode(length) {
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let result = '';
+        const charactersLength = characters.length;
+        for (let i = 0; i < length; i++) {
+          result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result;
+      }
+
+    function renderPassage(text) {
+      passageArea.innerHTML = "";
+      let isBrPrev = false;
+      let n = 0; // span index
+
+      text.split("").forEach((char, idx) => {
+        let span = document.createElement("span");
+        span.innerText = char;
+        span.id = "char-" + n; // idx
+
+        if(isBrPrev) {
+          // remove duplicate break lines...
+          isBrPrev = false;
+        }else{
+          if(span.innerHTML === '<br>') {
+            span.innerHTML = '⏎<br>';
+            isBrPrev = true;
+          }
+          // add passage...
+          passageArea.appendChild(span);
+          n += 1;
+        }
+      });
+    }
+
+    function positionInputFocus(el){
+      // Auto scroll passage to current typing position
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+
+    function updateHighlight(keyPressed) {
+      let span = document.getElementById("char-" + compareIndex);
+      span.classList.remove('blinking-underline');
+      span.classList.remove('current-text');
+
+      // Re position input focus position to end.
+      inputArea.selectionStart = inputArea.selectionEnd = inputArea.value.length;
+
+      //if((span.innerText === keyPressed) || (span.innerHTML === '⏎<br>' && keyPressed == 'Enter')){
+      if((span.innerText === keyPressed) || (span.innerHTML === '⏎<br>' && keyPressed == '\n')){ // Updated for moile
+        span.className = "correct";
+        compareIndex += 1; // move to next span element
+
+        let nextSpan = document.getElementById("char-" + (compareIndex));
+        //let nextSpan = document.getElementById("char-" + (compareIndex + 1));
+        /*if(nextSpan.innerText.trim() === '' || nextSpan.innerHTML === '⏎<br>'){
+          nextSpan.classList.add('blinking-underline');
+        }*/
+        //nextSpan.classList.add('blinking-underline');
+        nextSpan.classList.add('current-text');
+        positionInputFocus(nextSpan);
+
+        return true;
+      }
+
+      span.className = "incorrect";
+      addErrorCount();
+      positionInputFocus(span);
+      return false;
+    }
+
+    /*function updateHighlight() {
+      const typed = inputArea.value.split("");
+
+      for (let i = 0; i < passageText.length; i++) {
+        let span = document.getElementById("char-" + i);
+        if (!span) continue;
+
+        if (i < typed.length) {
+          if ((typed[i] === passageText[i]) || (span.innerHTML === '-' && isEnterKeyPressed)) {
+            span.className = "correct";
+            if(isEnterKeyPressed) inputArea.value += '-';
+          } else {
+            span.className = "incorrect";
+            inputArea.value = initialValue;
+            errorCount += 1;
+            console.log(span.innerHTML); //show error for debugging
+            //console.log(typed[i]); //show error for debugging
+            //console.log(passageText[i]); //show error for debugging
+          }
+
+        } else {
+          span.className = "";
+        }
+      }
+
+      //errorLbl.innerText = document.querySelectorAll('.incorrect').length;
+
+      // Auto scroll passage to current typing position
+      const currentChar = document.getElementById("char-" + typed.length);
+      if (currentChar) {
+        currentChar.scrollIntoView({ block: "center", behavior: "smooth" });
+      }
+    }*/
+
+    async function loadPassage(difficulty) {
+      const rand = Math.floor(Math.random() * 5) + 1; // pick 1–5
+      const url = `passages/${difficulty}${rand}.txt`;
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Passage not found");
+        return await res.text();
+      } catch (e) {
+        return "⚠️ Error loading passage. Please check your passages folder.";
+      }
+    }
+
+    async function startTest() {
+      startBtn.disabled = true;
+
+      clearInterval(timerInterval);
+      const difficulty = difficultySelect.value;
+      totalTime = parseInt(timeLimitSelect.value);
+
+      timeLeft = totalTime;
+      elapsed = 0;
+      errorCount = 0;
+      compareIndex = 0;
+
+      passageText = await loadPassage(difficulty);
+      renderPassage(passageText);
+
+      inputArea.value = initialValue = "";
+      inputArea.disabled = false;
+      inputArea.focus();
+
+      difficultySelect.disabled = true;
+      timeLimitSelect.disabled = true;
+
+      isRunning = true;
+      endBtn.disabled = false;
+
+      timerInterval = setInterval(updateTimer, 1000);
+      //inputArea.addEventListener("input", updateHighlight);
+
+      // Disable copy-paste
+      inputArea.onpaste = e => e.preventDefault();
+      inputArea.oncopy = e => e.preventDefault();
+      inputArea.oncut = e => e.preventDefault();
+
+      // Random Code, this is to detect retries... Must match for single retry.
+      //randomCode.innerHTML = `Retry code: ${generateRandomCode(10)}`;
+
+      errorLbl.innerText = errorCount;
+
+      let span = document.getElementById("char-0");
+      positionInputFocus(span);
+    }
+
+    function updateTimer() {
+      if (timeLeft <= 0 && isRunning) {
+        endTest();
+        return;
+      }
+      timeLeft--;
+      elapsed++;
+      const minutes = String(Math.floor(timeLeft / 60)).padStart(2, "0");
+      const seconds = String(timeLeft % 60).padStart(2, "0");
+      timerDisplay.innerText = `Time Left: ${minutes}:${seconds}`;
+
+      let progress = ((totalTime - timeLeft) / totalTime) * 100;
+      progressBar.style.width = progress + "%";
+
+      let wpm = calculateWPM();
+      let accuracy = calculateAccuracy();
+      let keystrokes = inputArea.value.length;
+
+      wpmLbl.innerText = `${wpm}`;
+      accuracyLbl.innerText = `${accuracy}`;
+      keysLbl.innerText = `${keystrokes}`;
+    }
+
+    function calculateWPM() {
+      const words = inputArea.value.trim().split(/\s+/).length;
+      const minutes = elapsed / 60 || 1;
+      return Math.round(words / minutes);
+    }
+
+    function calculateAccuracy() {
+      /*const typed = inputArea.value.split("");
+      let correct = 0;
+      for (let i = 0; i < typed.length; i++) {
+        if (typed[i] === passageText[i]) correct++;
+      }
+      return Math.round((correct / typed.length) * 100) || 0;*/
+
+      const keystrokes = inputArea.value.length;
+      let correct = (keystrokes - errorCount);
+      let accuracy = Math.round((correct / keystrokes) * 100) || 0;
+      if(accuracy < 0) { accuracy = 0; }
+
+      return accuracy;
+    }
+
+    function endTest() {
+      clearInterval(timerInterval);
+      inputArea.disabled = true;
+      isRunning = false;
+
+      let wpm = calculateWPM();
+      let accuracy = calculateAccuracy();
+      let keystrokes = inputArea.value.length;
+      let kpm = Math.round(keystrokes / (elapsed / 60 || 1));
+      let kph = Math.round(kpm * 60);
+      let passfail = (accuracy >= 80 && kph >= 9000) ? "passed" : "failed";
+
+      const difficultyDropdown = document.getElementById("difficulty");
+      const difficultySelectedIndex = difficultyDropdown.selectedIndex;
+
+      const durationMin = String(Math.floor(elapsed / 60)).padStart(2, "0");
+      const durationSec = String(elapsed % 60).padStart(2, "0");
+      const difficulty = difficultyDropdown.options[difficultySelectedIndex].text;
+      const timeLimit = document.getElementById("timeLimit").value;
+      //const errorCount = document.querySelectorAll('.incorrect').length;
+      const errDuration = (elapsed < timeLimit) ? "duration-error" : "duration-success";
+
+      document.getElementById("resultsText").innerHTML =
+        `
+        <hr>
+        <div class='result-header-${passfail}'>
+        <h3>✅ Accuracy: <b>${accuracy}%</b></h3>
+        <h3>📈 Keystrokes / Hour: <b>${kph}</b></h3>
+        </div>
+        <hr>
+        🎯 Difficulty: <b>${difficulty}</b><br>
+        ⏳ Time Limit: <b>${timeLimit/60} mins</b><br>
+        <hr>
+        <span class='${errDuration}'>⏱ Duration: <b>${durationMin}:${durationSec}</b></span><br>
+        ❌ Total Errors: <b>${errorCount}</b><br>
+        ⌨️ Total Keystrokes: <b>${keystrokes}</b><br>
+        ⚡ WPM: <b>${wpm}</b><br>
+        
+        <hr>`;
+
+      document.getElementById("resultsOverlay").classList.add("show");
+    }
+
+    function resetTest() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      inputArea.disabled = true;
+      inputArea.value = initialValue = "";
+      randomCode.innerHTML = "";
+      passageArea.innerHTML = "<span class='continue-text'>Press start to begin...</span>";
+      timerDisplay.innerText = "Time Left: 00:00";
+      progressBar.style.width = "0%";
+      startBtn.disabled = false;
+      endBtn.disabled = true;
+
+      difficultySelect.disabled = false;
+      timeLimitSelect.disabled = false;
+      document.getElementById("resultsOverlay").classList.remove("show");
+
+      // Random Code, this is to detect retries... Must match for single retry.
+      randomCode.innerHTML = `Retry code: ${generateRandomCode(8)}`;
+    }
+
+    startBtn.addEventListener("click", startTest);
+    endBtn.addEventListener("click", endTest);
+    // Random Code, this is to detect retries... Must match for single retry.
+    randomCode.innerHTML = `Retry code: ${generateRandomCode(8)}`;
+  </script>
+</body>
+</html>
