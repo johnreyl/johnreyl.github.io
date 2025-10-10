@@ -1,0 +1,125 @@
+Android typing test
+package com.example.app
+import android.os.Bundle
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.appcompat.app.AppCompatActivity
+import java.io.ByteArrayInputStream
+import java.io.InputStream
+import java.nio.charset.StandardCharsets
+class MainActivity : AppCompatActivity() {
+override fun onCreate(savedInstanceState: Bundle?) {
+super.onCreate(savedInstanceState)
+setContentView(R.layout.activity_main)
+val myWebView: WebView = findViewById(R.id.webview)
+myWebView.webViewClient = MyWebViewClient()
+myWebView.loadUrl("https://example.com")
+}
+private inner class MyWebViewClient : WebViewClient() {
+override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+val url = request.url.toString()
+return if (url.contains("ads.js")) {
+createAdBlockResponse()
+} else {
+super.shouldInterceptRequest(view, request)
+}
+}
+private fun createAdBlockResponse(): WebResourceResponse {
+val mimeType = "text/javascript"
+val encoding = "UTF-8"
+val data = "console.log('Ad blocked');".toByteArray(StandardCharsets.UTF_8)
+val inputStream: InputStream = ByteArrayInputStream(data)
+return WebResourceResponse(mimeType, encoding, inputStream)
+}
+}
+}
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:orientation="vertical">
+<WebView
+android:id="@+id/webview"
+android:layout_width="match_parent"
+android:layout_height="match_parent" />
+</LinearLayout>
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:orientation="vertical">
+<WebView
+android:id="@+id/webview_settings"
+android:layout_width="match_parent"
+android:layout_height="match_parent" />
+</LinearLayout>
+package com.example.app
+import android.os.Bundle
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.appcompat.app.AppCompatActivity
+import java.io.ByteArrayInputStream
+import java.io.InputStream
+import java.nio.charset.StandardCharsets
+class WebAppInterfaceActivity : AppCompatActivity() {
+override fun onCreate(savedInstanceState: Bundle?) {
+super.onCreate(savedInstanceState)
+setContentView(R.layout.activity_webview_interface)
+val webView: WebView = findViewById(R.id.webview_interface)
+webView.settings.javaScriptEnabled = true
+webView.addJavascriptInterface(WebAppInterface(this), "Android")
+webView.loadUrl("https://example.com/app_interface")
+}
+}
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:orientation="vertical">
+<WebView
+android:id="@+id/webview_interface"
+android:layout_width="match_parent"
+android:layout_height="match_parent" />
+</LinearLayout>
+package com.example.app
+import android.content.Context
+import android.webkit.JavascriptInterface
+import android.widget.Toast
+class WebAppInterface(private val mContext: Context) {
+@JavascriptInterface
+fun showToast(toast: String) {
+Toast.makeText(mContext, toast, Toast.LENGTH_SHORT).show()
+}
+}
+package com.example.app
+import android.os.Bundle
+import android.webkit.WebView
+import androidx.appcompat.app.AppCompatActivity
+class CustomWebViewActivity : AppCompatActivity() {
+override fun onCreate(savedInstanceState: Bundle?) {
+super.onCreate(savedInstanceState)
+setContentView(R.layout.activity_custom_webview)
+val webView: WebView = findViewById(R.id.custom_webview)
+webView.settings.javaScriptEnabled = true
+webView.settings.domStorageEnabled = true
+webView.loadUrl("https://example.com/custom")
+}
+}
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:orientation="vertical">
+<WebView
+android:id="@+id/custom_webview"
+android:layout_width="match_parent"
+android:layout_height="match_parent" />
+</LinearLayout>

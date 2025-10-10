@@ -1,0 +1,258 @@
+Python typing test
+x = 5
+print("Hello, world!")
+def greet(name): print(f"Hello, {name}!")
+for i in range(10): print(i)
+my_list = [1, 2, 3, 4, 5]
+if x > 3: print("x is greater than 3")
+class Dog:
+ def __init__(self, name): self.name = name
+while True: break
+data = {"a": 1, "b": 2}
+import math
+result = math.sqrt(25)
+my_string = "Python is fun"
+def add_numbers(a, b): return a + b
+sum_val = add_numbers(10, 20)
+with open("file.txt", "w") as f: f.write("test")
+num = 100
+if num == 100: print("Exactly 100")
+age = 30
+is_adult = age >= 18
+list_comp = [i*2 for i in range(5)]
+try: 1 / 0
+except ZeroDivisionError: print("Cannot divide by zero")
+class Animal: pass
+animal = Animal()
+def is_even(n): return n % 2 == 0
+for char in "abc": print(char)
+value = None
+if value is None: print("Value is not set")
+my_tuple = (1, 2)
+def countdown(n):
+ while n > 0: print(n); n -= 1
+import random
+random_num = random.randint(1, 100)
+colors = ["red", "blue", "green"]
+if "blue" in colors: print("Blue is in the list")
+def power(base, exp): return base ** exp
+my_set = {1, 2, 3}
+import os
+current_dir = os.getcwd()
+def factorial(n):
+ if n == 0: return 1
+ else: return n * factorial(n - 1)
+print(factorial(5))
+x, y = 10, 20
+my_dict = {"name": "Alice", "age": 25}
+if my_dict.get("name") == "Alice": print("Found Alice")
+def square(num): return num * num
+squared_val = square(7)
+for key, value in data.items(): print(key, value)
+def check_positive(num): assert num > 0, "Number must be positive"
+class Car:
+ def drive(self): print("Driving...")
+my_car = Car()
+my_car.drive()
+names = ["Bob", "Charlie"]
+for name in names: print(name)
+a = 15
+b = 10
+if a > b: print("a is greater")
+my_string = my_string.upper()
+def subtract(a, b): return a - b
+diff = subtract(50, 20)
+print(diff)
+def say_hello(): print("Hello!")
+say_hello()
+import sys
+version = sys.version
+new_list = sorted(my_list)
+def get_length(item): return len(item)
+length = get_length("hello")
+def multiply(a, b): return a * b
+product = multiply(3, 4)
+print(product)
+def greet_person(name): return f"Greetings, {name}!"
+message = greet_person("Dave")
+print(message)
+def get_user_input(): return input("Enter something: ")
+user_text = get_user_input()
+def reverse_string(s): return s[::-1]
+reversed_s = reverse_string("test")
+print(reversed_s)
+def get_type(item): print(type(item))
+get_type(1.0)
+class Point:
+ def __init__(self, x, y): self.x = x; self.y = y
+p = Point(3, 4)
+print(p.x)
+def sum_list(numbers):
+ total = 0
+ for num in numbers: total += num
+ return total
+list_sum = sum_list([1, 2, 3])
+def find_max(numbers): return max(numbers)
+max_val = find_max([10, 20, 5])
+print(max_val)
+def find_min(numbers): return min(numbers)
+min_val = find_min([10, 20, 5])
+print(min_val)
+def contains_char(s, char): return char in s
+if contains_char("hello", "e"): print("Found 'e'")
+def replace_char(s, old, new): return s.replace(old, new)
+new_s = replace_char("hello", "o", "a")
+print(new_s)
+def split_string(s, delimiter): return s.split(delimiter)
+words = split_string("one two three", " ")
+print(words)
+def join_list(items, sep): return sep.join(items)
+joined_s = join_list(["a", "b", "c"], "-")
+print(joined_s)
+def count_items(items): return len(items)
+count = count_items(["x", "y", "z"])
+print(count)
+def get_keys(d): return d.keys()
+keys = get_keys({"a": 1, "b": 2})
+print(list(keys))
+def get_values(d): return d.values()
+values = get_values({"a": 1, "b": 2})
+print(list(values))
+def get_items(d): return d.items()
+items = get_items({"a": 1, "b": 2})
+print(list(items))
+def check_in_dict(d, key): return key in d
+if check_in_dict({"a": 1}, "a"): print("Key 'a' exists")
+def create_set(items): return set(items)
+unique_items = create_set([1, 2, 2, 3])
+print(unique_items)
+def add_to_set(s, item): s.add(item)
+my_set.add(4)
+print(my_set)
+def remove_from_set(s, item): s.remove(item)
+my_set.remove(1)
+print(my_set)
+def union_sets(s1, s2): return s1.union(s2)
+s1 = {1, 2}
+s2 = {2, 3}
+union_s = union_sets(s1, s2)
+print(union_s)
+def intersection_sets(s1, s2): return s1.intersection(s2)
+intersection_s = intersection_sets(s1, s2)
+print(intersection_s)
+def difference_sets(s1, s2): return s1.difference(s2)
+diff_s = difference_sets(s1, s2)
+print(diff_s)
+def symmetrical_difference(s1, s2): return s1.symmetric_difference(s2)
+sym_diff_s = symmetrical_difference(s1, s2)
+print(sym_diff_s)
+def create_tuple(items): return tuple(items)
+my_tuple_new = create_tuple([1, 2, 3])
+print(my_tuple_new)
+def access_tuple(t, index): return t[index]
+item = access_tuple((10, 20), 0)
+print(item)
+def unpack_tuple(t):
+ a, b = t
+ print(a, b)
+unpack_tuple((1, 2))
+def list_from_string(s): return list(s)
+char_list = list_from_string("python")
+print(char_list)
+def string_from_list(l): return "".join(l)
+string_from_list(["p", "y"])
+def sort_list_inplace(l): l.sort()
+my_list_sort = [3, 1, 2]
+sort_list_inplace(my_list_sort)
+print(my_list_sort)
+def append_to_list(l, item): l.append(item)
+append_to_list(my_list, 6)
+print(my_list)
+def pop_from_list(l): return l.pop()
+popped_item = pop_from_list(my_list)
+print(popped_item)
+print(my_list)
+def insert_to_list(l, index, item): l.insert(index, item)
+insert_to_list(my_list, 0, 0)
+print(my_list)
+def remove_from_list(l, item): l.remove(item)
+remove_from_list(my_list, 0)
+print(my_list)
+def extend_list(l1, l2): l1.extend(l2)
+extend_list(my_list, [6, 7])
+print(my_list)
+def clear_list(l): l.clear()
+clear_list(my_list)
+print(my_list)
+def create_range(n): return list(range(n))
+new_range = create_range(5)
+print(new_range)
+def format_string(s, val): return s.format(val)
+formatted_s = format_string("The value is {}", 10)
+print(formatted_s)
+def check_start(s, prefix): return s.startswith(prefix)
+if check_start("abc", "a"): print("Starts with a")
+def check_end(s, suffix): return s.endswith(suffix)
+if check_end("abc", "c"): print("Ends with c")
+def strip_string(s): return s.strip()
+stripped_s = strip_string("  hello  ")
+print(f"'{stripped_s}'")
+def is_digit(s): return s.isdigit()
+print(is_digit("123"))
+def is_alpha(s): return s.isalpha()
+print(is_alpha("abc"))
+def is_alnum(s): return s.isalnum()
+print(is_alnum("ab12"))
+def find_substring(s, sub): return s.find(sub)
+index = find_substring("hello", "ll")
+print(index)
+def count_substring(s, sub): return s.count(sub)
+count = count_substring("banana", "a")
+print(count)
+def capitalize_string(s): return s.capitalize()
+print(capitalize_string("python"))
+def title_string(s): return s.title()
+print(title_string("python is cool"))
+def swapcase_string(s): return s.swapcase()
+print(swapcase_string("Hello World"))
+def make_list_tuple(t): return list(t)
+new_list = make_list_tuple((1, 2, 3))
+print(new_list)
+def make_tuple_list(l): return tuple(l)
+new_tuple = make_tuple_list([1, 2, 3])
+print(new_tuple)
+def use_zip(l1, l2): return list(zip(l1, l2))
+zipped = use_zip(["a", "b"], [1, 2])
+print(zipped)
+def use_map(func, l): return list(map(func, l))
+mapped = use_map(lambda x: x*2, [1, 2, 3])
+print(mapped)
+def use_filter(func, l): return list(filter(func, l))
+filtered = use_filter(lambda x: x > 2, [1, 2, 3, 4])
+print(filtered)
+def get_user_age(): return int(input("Enter age: "))
+age = get_user_age()
+print(f"You entered age: {age}")
+def add_to_set_list(l): return set(l)
+result_set = add_to_set_list([1, 2, 3, 3])
+print(result_set)
+python speed test
+def remove_duplicates(l): return list(set(l))
+unique_list = remove_duplicates([1, 2, 2, 3, 4, 4])
+print(unique_list)
+def check_instance(obj, cls): return isinstance(obj, cls)
+if check_instance("hello", str): print("It's a string")
+def is_power_of_two(n): return (n & (n - 1) == 0) and n != 0
+print(is_power_of_two(8))
+def swap_variables(a, b):
+ a, b = b, a
+ return a, b
+x, y = swap_variables(10, 20)
+print(x, y)
+def get_dict_keys(d): return list(d.keys())
+my_keys = get_dict_keys({"a": 1, "b": 2})
+print(my_keys)
+def get_dict_values(d): return list(d.values())
+my_values = get_dict_values({"a": 1, "b": 2})
+print(my_values)
+def get_dict_items(d): return list(d.items

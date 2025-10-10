@@ -1,0 +1,403 @@
+C# typing test
+int x = 5;
+Console.WriteLine("Hello, world!");
+public void Greet(string name) { Console.WriteLine($"Hello, {name}!"); }
+for (int i = 0; i < 10; i++) { Console.WriteLine(i); }
+List<int> myList = new List<int> { 1, 2, 3, 4, 5 };
+if (x > 3) { Console.WriteLine("x is greater than 3"); }
+public class Dog { public string Name { get; set; } }
+while (true) { break; }
+Dictionary<string, int> data = new Dictionary<string, int> { { "a", 1 }, { "b", 2 } };
+using System;
+double result = Math.Sqrt(25);
+string myString = "C# is fun";
+public int AddNumbers(int a, int b) { return a + b; }
+int sumVal = AddNumbers(10, 20);
+File.WriteAllText("file.txt", "test");
+int num = 100; if (num == 100) { Console.WriteLine("Exactly 100"); }
+int age = 30; bool isAdult = age >= 18;
+var listComp = Enumerable.Range(0, 5).Select(i => i * 2).ToList();
+try { int y = 1 / 0; } catch (DivideByZeroException) { Console.WriteLine("Cannot divide by zero"); }
+public class Animal { }
+Animal animal = new Animal();
+public bool IsEven(int n) { return n % 2 == 0; }
+foreach (char c in "abc") { Console.WriteLine(c); }
+object value = null; if (value == null) { Console.WriteLine("Value is not set"); }
+Tuple<int, int> myTuple = new Tuple<int, int>(1, 2);
+public void Countdown(int n) { while (n > 0) { Console.WriteLine(n); n--; } }
+Random random = new Random(); int randomNum = random.Next(1, 101);
+string[] colors = { "red", "blue", "green" };
+if (colors.Contains("blue")) { Console.WriteLine("Blue is in the list"); }
+public double Power(double baseVal, double exp) { return Math.Pow(baseVal, exp); }
+HashSet<int> mySet = new HashSet<int> { 1, 2, 3 };
+using System.IO;
+string currentDir = Directory.GetCurrentDirectory();
+public int Factorial(int n) { return (n == 0) ? 1 : n * Factorial(n - 1); }
+Console.WriteLine(Factorial(5));
+int a = 10, b = 20;
+Dictionary<string, object> myDict = new Dictionary<string, object> { { "name", "Alice" }, { "age", 25 } };
+if (myDict.ContainsKey("name")) { Console.WriteLine("Found name key"); }
+public int Square(int num) { return num * num; }
+int squaredVal = Square(7);
+foreach (var kvp in data) { Console.WriteLine($"{kvp.Key} {kvp.Value}"); }
+public void CheckPositive(int num) { if (num <= 0) throw new ArgumentException("Number must be positive"); }
+public class Car { public void Drive() { Console.WriteLine("Driving..."); } }
+Car myCar = new Car(); myCar.Drive();
+string[] names = { "Bob", "Charlie" }; foreach (string name in names) { Console.WriteLine(name); }
+int valA = 15; int valB = 10; if (valA > valB) { Console.WriteLine("a is greater"); }
+myString = myString.ToUpper();
+public int Subtract(int a, int b) { return a - b; }
+int diff = Subtract(50, 20);
+Console.WriteLine(diff);
+public void SayHello() { Console.WriteLine("Hello!"); }
+SayHello();
+using System.Linq;
+var newlist = myList.OrderBy(x => x).ToList();
+public int GetLength(string item) { return item.Length; }
+int length = GetLength("hello");
+public int Multiply(int a, int b) { return a * b; }
+int product = Multiply(3, 4);
+Console.WriteLine(product);
+public string GreetPerson(string name) { return $"Greetings, {name}!"; }
+string message = GreetPerson("Dave");
+Console.WriteLine(message);
+public string GetUserInput() { Console.Write("Enter something: "); return Console.ReadLine(); }
+string userText = GetUserInput();
+public string ReverseString(string s) { return new string(s.Reverse().ToArray()); }
+string reversedS = ReverseString("test");
+Console.WriteLine(reversedS);
+public void GetType(object item) { Console.WriteLine(item.GetType()); }
+GetType(1.0);
+public class Point { public int X { get; set; } public int Y { get; set; } }
+Point p = new Point { X = 3, Y = 4 };
+Console.WriteLine(p.X);
+public int SumList(List<int> numbers) { return numbers.Sum(); }
+int listSum = SumList(new List<int> { 1, 2, 3 });
+public int FindMax(List<int> numbers) { return numbers.Max(); }
+int maxVal = FindMax(new List<int> { 10, 20, 5 });
+Console.WriteLine(maxVal);
+public int FindMin(List<int> numbers) { return numbers.Min(); }
+int minVal = FindMin(new List<int> { 10, 20, 5 });
+Console.WriteLine(minVal);
+public bool ContainsChar(string s, char c) { return s.Contains(c); }
+if (ContainsChar("hello", 'e')) { Console.WriteLine("Found 'e'"); }
+public string ReplaceChar(string s, char old, char newChar) { return s.Replace(old, newChar); }
+string newS = ReplaceChar("hello", 'o', 'a');
+Console.WriteLine(newS);
+public string[] SplitString(string s, char delimiter) { return s.Split(delimiter); }
+string[] words = SplitString("one two three", ' ');
+Console.WriteLine(string.Join(", ", words));
+public string JoinList(IEnumerable<string> items, string sep) { return string.Join(sep, items); }
+string joinedS = JoinList(new string[] { "a", "b", "c" }, "-");
+Console.WriteLine(joinedS);
+public int CountItems<T>(IEnumerable<T> items) { return items.Count(); }
+int count = CountItems(new string[] { "x", "y", "z" });
+Console.WriteLine(count);
+public IEnumerable<string> GetKeys(Dictionary<string, int> d) { return d.Keys; }
+IEnumerable<string> keys = GetKeys(new Dictionary<string, int> { { "a", 1 }, { "b", 2 } });
+Console.WriteLine(string.Join(", ", keys));
+public IEnumerable<int> GetValues(Dictionary<string, int> d) { return d.Values; }
+IEnumerable<int> values = GetValues(new Dictionary<string, int> { { "a", 1 }, { "b", 2 } });
+Console.WriteLine(string.Join(", ", values));
+public IEnumerable<KeyValuePair<string, int>> GetItems(Dictionary<string, int> d) { return d; }
+var items = GetItems(new Dictionary<string, int> { { "a", 1 }, { "b", 2 } });
+foreach (var kvp in items) { Console.WriteLine(kvp); }
+public bool CheckInDict(Dictionary<string, int> d, string key) { return d.ContainsKey(key); }
+if (CheckInDict(new Dictionary<string, int> { { "a", 1 } }, "a")) { Console.WriteLine("Key 'a' exists"); }
+public HashSet<T> CreateSet<T>(IEnumerable<T> items) { return new HashSet<T>(items); }
+HashSet<int> uniqueItems = CreateSet(new int[] { 1, 2, 2, 3 });
+Console.WriteLine(string.Join(", ", uniqueItems));
+public void AddToSet<T>(HashSet<T> s, T item) { s.Add(item); }
+mySet.Add(4);
+Console.WriteLine(string.Join(", ", mySet));
+public void RemoveFromSet<T>(HashSet<T> s, T item) { s.Remove(item); }
+mySet.Remove(1);
+Console.WriteLine(string.Join(", ", mySet));
+public HashSet<T> UnionSets<T>(HashSet<T> s1, HashSet<T> s2) { return new HashSet<T>(s1.Union(s2)); }
+HashSet<int> s1 = new HashSet<int> { 1, 2 }; HashSet<int> s2 = new HashSet<int> { 2, 3 };
+HashSet<int> unionS = UnionSets(s1, s2);
+Console.WriteLine(string.Join(", ", unionS));
+public HashSet<T> IntersectionSets<T>(HashSet<T> s1, HashSet<T> s2) { return new HashSet<T>(s1.Intersect(s2)); }
+HashSet<int> intersectionS = IntersectionSets(s1, s2);
+Console.WriteLine(string.Join(", ", intersectionS));
+public HashSet<T> DifferenceSets<T>(HashSet<T> s1, HashSet<T> s2) { return new HashSet<T>(s1.Except(s2)); }
+HashSet<int> diffS = DifferenceSets(s1, s2);
+Console.WriteLine(string.Join(", ", diffS));
+public HashSet<T> SymmetricalDifference<T>(HashSet<T> s1, HashSet<T> s2) { return new HashSet<T>(s1.SymmetricExcept(s2)); }
+HashSet<int> symDiffS = SymmetricalDifference(s1, s2);
+Console.WriteLine(string.Join(", ", symDiffS));
+public Tuple<T1, T2> CreateTuple<T1, T2>(T1 item1, T2 item2) { return Tuple.Create(item1, item2); }
+var myTupleNew = CreateTuple(1, 2);
+Console.WriteLine(myTupleNew);
+public T AccessTuple<T>(Tuple<T, object> t) { return t.Item1; }
+int item = AccessTuple(Tuple.Create(10, (object)20));
+Console.WriteLine(item);
+public void UnpackTuple(Tuple<int, int> t) { var (a, b) = t; Console.WriteLine($"{a} {b}"); }
+UnpackTuple(Tuple.Create(1, 2));
+public List<char> ListFromString(string s) { return s.ToList(); }
+List<char> charList = ListFromString("csharp");
+Console.WriteLine(string.Join(", ", charList));
+public string StringFromList(List<string> l) { return string.Join("", l); }
+StringFromList(new List<string> { "c", "s" });
+public void SortListInplace(List<int> l) { l.Sort(); }
+List<int> myListSort = new List<int> { 3, 1, 2 }; SortListInplace(myListSort);
+Console.WriteLine(string.Join(", ", myListSort));
+public void AppendToList<T>(List<T> l, T item) { l.Add(item); }
+AppendToList(myList, 6);
+Console.WriteLine(string.Join(", ", myList));
+public int PopFromList(List<int> l) { int last = l.Last(); l.RemoveAt(l.Count - 1); return last; }
+int poppedItem = PopFromList(myList);
+Console.WriteLine(poppedItem);
+Console.WriteLine(string.Join(", ", myList));
+public void InsertToList<T>(List<T> l, int index, T item) { l.Insert(index, item); }
+InsertToList(myList, 0, 0);
+Console.WriteLine(string.Join(", ", myList));
+public void RemoveFromList<T>(List<T> l, T item) { l.Remove(item); }
+RemoveFromList(myList, 0);
+Console.WriteLine(string.Join(", ", myList));
+public void ExtendList<T>(List<T> l1, IEnumerable<T> l2) { l1.AddRange(l2); }
+ExtendList(myList, new int[] { 6, 7 });
+Console.WriteLine(string.Join(", ", myList));
+public void ClearList<T>(List<T> l) { l.Clear(); }
+ClearList(myList);
+Console.WriteLine(string.Join(", ", myList));
+public List<int> CreateRange(int n) { return Enumerable.Range(0, n).ToList(); }
+List<int> newRange = CreateRange(5);
+Console.WriteLine(string.Join(", ", newRange));
+public string FormatString(string s, object val) { return string.Format(s, val); }
+string formattedS = FormatString("The value is {0}", 10);
+Console.WriteLine(formattedS);
+public bool CheckStart(string s, string prefix) { return s.StartsWith(prefix); }
+if (CheckStart("abc", "a")) { Console.WriteLine("Starts with a"); }
+public bool CheckEnd(string s, string suffix) { return s.EndsWith(suffix); }
+if (CheckEnd("abc", "c")) { Console.WriteLine("Ends with c"); }
+public string StripString(string s) { return s.Trim(); }
+string strippedS = StripString("  hello  ");
+Console.WriteLine($"'{strippedS}'");
+public bool IsDigit(string s) { return s.All(char.IsDigit); }
+Console.WriteLine(IsDigit("123"));
+public bool IsAlpha(string s) { return s.All(char.IsLetter); }
+Console.WriteLine(IsAlpha("abc"));
+public bool IsAlnum(string s) { return s.All(char.IsLetterOrDigit); }
+Console.WriteLine(IsAlnum("ab12"));
+public int FindSubstring(string s, string sub) { return s.IndexOf(sub); }
+int index = FindSubstring("hello", "ll");
+Console.WriteLine(index);
+public int CountSubstring(string s, string sub) { return s.Split(new[] { sub }, StringSplitOptions.None).Length - 1; }
+int count = CountSubstring("banana", "a");
+Console.WriteLine(count);
+public string CapitalizeString(string s) { return char.ToUpper(s[0]) + s.Substring(1); }
+Console.WriteLine(CapitalizeString("csharp"));
+public string TitleString(string s) { return System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(s); }
+Console.WriteLine(TitleString("csharp is cool"));
+public string SwapcaseString(string s) { return new string(s.Select(c => char.IsUpper(c) ? char.ToLower(c) : char.ToUpper(c)).ToArray()); }
+Console.WriteLine(SwapcaseString("Hello World"));
+public List<T> MakeListTuple<T>(Tuple<T, T, T> t) { return new List<T> { t.Item1, t.Item2, t.Item3 }; }
+List<int> newList = MakeListTuple(Tuple.Create(1, 2, 3));
+Console.WriteLine(string.Join(", ", newList));
+public Tuple<int, int, int> MakeTupleList(List<int> l) { return Tuple.Create(l[0], l[1], l[2]); }
+Tuple<int, int, int> newTuple = MakeTupleList(new List<int> { 1, 2, 3 });
+Console.WriteLine(newTuple);
+public List<Tuple<T1, T2>> UseZip<T1, T2>(IEnumerable<T1> l1, IEnumerable<T2> l2) { return l1.Zip(l2, Tuple.Create).ToList(); }
+List<Tuple<string, int>> zipped = UseZip(new[] { "a", "b" }, new[] { 1, 2 });
+foreach (var item in zipped) Console.WriteLine(item);
+public List<TReturn> UseMap<TInput, TReturn>(Func<TInput, TReturn> func, IEnumerable<TInput> l) { return l.Select(func).ToList(); }
+List<int> mapped = UseMap(x => x * 2, new List<int> { 1, 2, 3 });
+Console.WriteLine(string.Join(", ", mapped));
+public List<T> UseFilter<T>(Func<T, bool> func, IEnumerable<T> l) { return l.Where(func).ToList(); }
+List<int> filtered = UseFilter(x => x > 2, new List<int> { 1, 2, 3, 4 });
+Console.WriteLine(string.Join(", ", filtered));
+public int GetUserAge() { Console.Write("Enter age: "); return int.Parse(Console.ReadLine()); }
+int userAge = GetUserAge();
+Console.WriteLine($"You entered age: {userAge}");
+public HashSet<T> AddToSetList<T>(IEnumerable<T> l) { return new HashSet<T>(l); }
+HashSet<int> resultSet = AddToSetList(new int[] { 1, 2, 3, 3 });
+Console.WriteLine(string.Join(", ", resultSet));
+public List<T> RemoveDuplicates<T>(IEnumerable<T> l) { return l.Distinct().ToList(); }
+List<int> uniqueList = RemoveDuplicates(new int[] { 1, 2, 2, 3, 4, 4 });
+Console.WriteLine(string.Join(", ", uniqueList));
+public bool CheckInstance<T>(T obj) { return obj is string; }
+if (CheckInstance("hello")) { Console.WriteLine("It's a string"); }
+public bool IsPowerOfTwo(int n) { return n > 0 && (n & (n - 1)) == 0; }
+Console.WriteLine(IsPowerOfTwo(8));
+public (int, int) SwapVariables(int a, int b) { return (b, a); }
+(int xVar, int yVar) = SwapVariables(10, 20);
+Console.WriteLine($"{xVar}, {yVar}");
+public List<string> GetDictKeys(Dictionary<string, int> d) { return d.Keys.ToList(); }
+List<string> myKeys = GetDictKeys(new Dictionary<string, int> { { "a", 1 }, { "b", 2 } });
+Console.WriteLine(string.Join(", ", myKeys));
+public List<int> GetDictValues(Dictionary<string, int> d) { return d.Values.ToList(); }
+List<int> myValues = GetDictValues(new Dictionary<string, int> { { "a", 1 }, { "b", 2 } });
+Console.WriteLine(string.Join(", ", myValues));
+public List<KeyValuePair<string, int>> GetDictItems(Dictionary<string, int> d) { return d.ToList(); }
+List<KeyValuePair<string, int>> myItems = GetDictItems(new Dictionary<string, int> { { "a", 1 }, { "b", 2 } });
+foreach (var item in myItems) Console.WriteLine(item);
+public int CountVowels(string s) { return s.Count(c => "aeiouAEIOU".Contains(c)); }
+int numVowels = CountVowels("Hello");
+Console.WriteLine(numVowels);
+public string GetFileExtension(string filename) { return Path.GetExtension(filename); }
+string ext = GetFileExtension("image.png");
+Console.WriteLine(ext);
+public List<T> ReverseList<T>(List<T> l) { return l.AsEnumerable().Reverse().ToList(); }
+List<int> revList = ReverseList(new List<int> { 1, 2, 3 });
+Console.WriteLine(string.Join(", ", revList));
+public bool IsPalindrome(string s) { return s.SequenceEqual(s.Reverse()); }
+Console.WriteLine(IsPalindrome("madam"));
+public long GetFileSize(string filepath) { return new FileInfo(filepath).Length; }
+// GetFileSize("file.txt");
+public bool CheckEmpty<T>(IEnumerable<T> collection) { return !collection.Any(); }
+if (CheckEmpty(new List<int>())) { Console.WriteLine("List is empty"); }
+public double CalculateAverage(IEnumerable<int> numbers) { return numbers.Any() ? numbers.Average() : 0; }
+double avg = CalculateAverage(new List<int> { 1, 2, 3 });
+Console.WriteLine(avg);
+public int? ConvertToInt(string s) { return int.TryParse(s, out int result) ? result : (int?)null; }
+int? num = ConvertToInt("123");
+Console.WriteLine(num);
+public void WriteToFile(string filename, string content) { File.WriteAllText(filename, content); }
+// WriteToFile("new_file.txt", "Hello there");
+public string ReadFromFile(string filename) { return File.ReadAllText(filename); }
+// ReadFromFile("new_file.txt");
+public void AppendToFile(string filename, string content) { File.AppendAllText(filename, content); }
+// AppendToFile("new_file.txt", " appended text");
+public bool IsPrime(int n) { if (n <= 1) return false; for (int i = 2; i * i <= n; i++) { if (n % i == 0) return false; } return true; }
+Console.WriteLine(IsPrime(7));
+public bool CheckListContainment<T>(List<T> l, T item) { return l.Contains(item); }
+if (CheckListContainment(new List<int> { 1, 2 }, 1)) { Console.WriteLine("Found 1"); }
+public Dictionary<T, int> CountFrequency<T>(IEnumerable<T> items) { return items.GroupBy(x => x).ToDictionary(g => g.Key, g => g.Count()); }
+Dictionary<string, int> freq = CountFrequency(new[] { "a", "b", "a" });
+foreach (var kvp in freq) Console.WriteLine(kvp);
+public bool IsSubstring(string sub, string s) { return s.Contains(sub); }
+Console.WriteLine(IsSubstring("world", "hello world"));
+public string GetUserName() { Console.Write("Enter your name: "); return Console.ReadLine(); }
+// string userName = GetUserName();
+public float ConvertToFloat(string s) { return float.Parse(s); }
+float fVal = ConvertToFloat("3.14");
+Console.WriteLine(fVal);
+public int GetAbs(int num) { return Math.Abs(num); }
+int absVal = GetAbs(-10);
+Console.WriteLine(absVal);
+public double GetRounded(double num) { return Math.Round(num); }
+double roundedVal = GetRounded(3.7);
+Console.WriteLine(roundedVal);
+public double GetRoundedToDec(double num, int dec) { return Math.Round(num, dec); }
+double roundedValDec = GetRoundedToDec(3.14159, 2);
+Console.WriteLine(roundedValDec);
+public bool CheckFileExists(string path) { return File.Exists(path); }
+// if (CheckFileExists("file.txt")) { Console.WriteLine("File exists"); }
+public string GetFileBasename(string path) { return Path.GetFileName(path); }
+// string baseName = GetFileBasename("/usr/bin/python");
+public string GetFileDirname(string path) { return Path.GetDirectoryName(path); }
+// string dirName = GetFileDirname("/usr/bin/python");
+public void CreateDirectory(string path) { Directory.CreateDirectory(path); }
+// CreateDirectory("my_folder");
+public List<T> GetListSlice<T>(List<T> l, int start, int end) { return l.Skip(start).Take(end - start).ToList(); }
+List<int> slicedList = GetListSlice(new List<int> { 0, 1, 2, 3, 4 }, 1, 3);
+Console.WriteLine(string.Join(", ", slicedList));
+public List<int> GetListFromRange(int start, int stop, int step) { return Enumerable.Range(0, (stop - start) / step).Select(i => start + i * step).ToList(); }
+List<int> rangeList = GetListFromRange(1, 10, 2);
+Console.WriteLine(string.Join(", ", rangeList));
+// Func<T, T, T> is a Func<T,T,T> delegate. C# has no 'reduce' equivalent in its standard library.
+// We can use Aggregate, but it's more verbose for a simple typing test line.
+// public int SumWithAggregate(List<int> numbers) { return numbers.Aggregate(0, (sum, next) => sum + next); }
+// int totalSum = SumWithAggregate(new List<int> { 1, 2, 3, 4, 5 });
+// Console.WriteLine(totalSum);
+
+public List<T> GetUniqueItems<T>(IEnumerable<T> l) { return l.Distinct().ToList(); }
+List<int> unique = GetUniqueItems(new int[] { 1, 1, 2, 3, 3 });
+Console.WriteLine(string.Join(", ", unique));
+public List<T> RemoveDuplicatesAndSort<T>(IEnumerable<T> l) { return l.Distinct().OrderBy(x => x).ToList(); }
+List<int> sortedUnique = RemoveDuplicatesAndSort(new int[] { 3, 1, 2, 1 });
+Console.WriteLine(string.Join(", ", sortedUnique));
+public Dictionary<TKey, TValue> GetDictFromLists<TKey, TValue>(IEnumerable<TKey> keys, IEnumerable<TValue> values) { return keys.Zip(values, (k, v) => new { Key = k, Value = v }).ToDictionary(x => x.Key, x => x.Value); }
+Dictionary<string, int> myNewDict = GetDictFromLists(new[] { "a", "b" }, new[] { 1, 2 });
+foreach (var kvp in myNewDict) Console.WriteLine(kvp);
+using System.Text.Json;
+public T GetJsonData<T>(string s) { return JsonSerializer.Deserialize<T>(s); }
+// var jsonData = GetJsonData<Dictionary<string, string>>("{\"key\": \"value\"}");
+public string ConvertToJson<T>(T d) { return JsonSerializer.Serialize(d); }
+// string jsonString = ConvertToJson(new Dictionary<string, string> { { "key", "value" } });
+public List<int> ListComprehensionWithIf(List<int> l) { return l.Where(i => i % 2 == 0).ToList(); }
+List<int> evenNumbers = ListComprehensionWithIf(new List<int> { 1, 2, 3, 4 });
+Console.WriteLine(string.Join(", ", evenNumbers));
+public List<Tuple<T, T>> GetListOfTuples<T>(List<T> l) { return l.Zip(l, Tuple.Create).ToList(); }
+List<Tuple<int, int>> tupleList = GetListOfTuples(new List<int> { 1, 2 });
+foreach (var tuple in tupleList) Console.WriteLine(tuple);
+public Dictionary<TKey, TValue> GetDictFromTupleList<TKey, TValue>(IEnumerable<Tuple<TKey, TValue>> l) { return l.ToDictionary(t => t.Item1, t => t.Item2); }
+Dictionary<string, int> newDict = GetDictFromTupleList(new[] { Tuple.Create("a", 1), Tuple.Create("b", 2) });
+foreach (var kvp in newDict) Console.WriteLine(kvp);
+public List<T> GetReversedList<T>(List<T> l) { return l.AsEnumerable().Reverse().ToList(); }
+List<int> revList = GetReversedList(new List<int> { 1, 2, 3 });
+Console.WriteLine(string.Join(", ", revList));
+public string GetReversedString(string s) { return new string(s.Reverse().ToArray()); }
+string revString = GetReversedString("hello");
+Console.WriteLine(revString);
+public bool CheckListOverlap<T>(IEnumerable<T> l1, IEnumerable<T> l2) { return l1.Intersect(l2).Any(); }
+if (CheckListOverlap(new int[] { 1, 2 }, new int[] { 2, 3 })) { Console.WriteLine("Lists overlap"); }
+public List<T> FindUniqueToFirstList<T>(IEnumerable<T> l1, IEnumerable<T> l2) { return l1.Except(l2).ToList(); }
+List<int> uniqueItems = FindUniqueToFirstList(new int[] { 1, 2, 3 }, new int[] { 2, 4 });
+Console.WriteLine(string.Join(", ", uniqueItems));
+public bool IsSubset<T>(IEnumerable<T> l1, IEnumerable<T> l2) { return !l1.Except(l2).Any(); }
+Console.WriteLine(IsSubset(new[] { 1, 2 }, new[] { 1, 2, 3 }));
+public bool IsSuperset<T>(IEnumerable<T> l1, IEnumerable<T> l2) { return !l2.Except(l1).Any(); }
+Console.WriteLine(IsSuperset(new[] { 1, 2, 3 }, new[] { 1, 2 }));
+public List<T> GetIntersection<T>(IEnumerable<T> l1, IEnumerable<T> l2) { return l1.Intersect(l2).ToList(); }
+List<int> intersection = GetIntersection(new int[] { 1, 2, 3 }, new int[] { 2, 3, 4 });
+Console.WriteLine(string.Join(", ", intersection));
+public List<T> GetUnion<T>(IEnumerable<T> l1, IEnumerable<T> l2) { return l1.Union(l2).ToList(); }
+List<int> union = GetUnion(new int[] { 1, 2 }, new int[] { 2, 3 });
+Console.WriteLine(string.Join(", ", union));
+public List<T> GetSymmetricDifference<T>(IEnumerable<T> l1, IEnumerable<T> l2) { return l1.Except(l2).Union(l2.Except(l1)).ToList(); }
+List<int> symDiff = GetSymmetricDifference(new int[] { 1, 2 }, new int[] { 2, 3 });
+Console.WriteLine(string.Join(", ", symDiff));
+public bool CheckAllTrue(IEnumerable<bool> l) { return l.All(x => x); }
+Console.WriteLine(CheckAllTrue(new[] { true, true, false }));
+public bool CheckAnyTrue(IEnumerable<bool> l) { return l.Any(x => x); }
+Console.WriteLine(CheckAnyTrue(new[] { false, false, true }));
+public int FindFirstOccurrence<T>(List<T> l, T item) { return l.IndexOf(item); }
+int index = FindFirstOccurrence(new List<int> { 1, 2, 3, 2 }, 2);
+Console.WriteLine(index);
+public int GetListCount<T>(List<T> l, T item) { return l.Count(x => EqualityComparer<T>.Default.Equals(x, item)); }
+int count = GetListCount(new List<int> { 1, 2, 2, 3 }, 2);
+Console.WriteLine(count);
+public void ReverseListInPlace<T>(List<T> l) { l.Reverse(); }
+List<int> myListRev = new List<int> { 1, 2, 3 }; ReverseListInPlace(myListRev);
+Console.WriteLine(string.Join(", ", myListRev));
+public List<T> GetSortedList<T>(IEnumerable<T> l) { return l.OrderBy(x => x).ToList(); }
+List<int> sortedList = GetSortedList(new int[] { 3, 1, 2 });
+Console.WriteLine(string.Join(", ", sortedList));
+public List<string> GetDictKeysSorted<T>(Dictionary<string, T> d) { return d.Keys.OrderBy(x => x).ToList(); }
+List<string> sortedKeys = GetDictKeysSorted(new Dictionary<string, int> { { "c", 3 }, { "a", 1 }, { "b", 2 } });
+Console.WriteLine(string.Join(", ", sortedKeys));
+public List<T> GetDictValuesSorted<T>(Dictionary<string, T> d) { return d.Values.OrderBy(x => x).ToList(); }
+List<int> sortedValues = GetDictValuesSorted(new Dictionary<string, int> { { "c", 3 }, { "a", 1 }, { "b", 2 } });
+Console.WriteLine(string.Join(", ", sortedValues));
+public List<KeyValuePair<string, int>> GetDictItemsSorted(Dictionary<string, int> d) { return d.OrderBy(x => x.Key).ToList(); }
+List<KeyValuePair<string, int>> sortedItems = GetDictItemsSorted(new Dictionary<string, int> { { "c", 3 }, { "a", 1 }, { "b", 2 } });
+foreach (var item in sortedItems) Console.WriteLine(item);
+public Type GetTypeInfo(object obj) { return obj.GetType(); }
+Type typeInfo = GetTypeInfo(1);
+Console.WriteLine(typeInfo);
+public bool CheckIsInstance(object obj, Type type) { return obj.GetType() == type; }
+Console.WriteLine(CheckIsInstance(1, typeof(int)));
+public bool CheckIsSubclass(Type cls1, Type cls2) { return cls1.IsSubclassOf(cls2); }
+public class Parent { } public class Child : Parent { } Console.WriteLine(CheckIsSubclass(typeof(Child), typeof(Parent)));
+public void GetTypeMembers(object obj) { obj.GetType().GetMembers().ToList().ForEach(m => Console.WriteLine(m.Name)); }
+GetTypeMembers(new List<int>());
+public void GetHelp(object obj) { /* No direct equivalent to Python's help() in C# for this purpose */ }
+public int GetHashCode(object obj) { return obj.GetHashCode(); }
+int hashCode = GetHashCode("hello");
+Console.WriteLine(hashCode);
+public int GetLength<T>(IEnumerable<T> obj) { return obj.Count(); }
+int lenVal = GetLength("world");
+Console.WriteLine(lenVal);
+public int GetMax(List<int> l) { return l.Max(); }
+int maxVal = GetMax(new List<int> { 1, 2, 3 });
+Console.WriteLine(maxVal);
+public int GetMin(List<int> l) { return l.Min(); }
+int minVal = GetMin(new List<int> { 1, 2, 3 });
+Console.WriteLine(minVal);
+public int GetSum(List<int> l) { return l.Sum(); }
+int sumVal2 = GetSum(new List<int> { 1, 2, 3 });
+Console.WriteLine(sumVal2);
+public List<T> GetSorted<T>(IEnumerable<T> l) { return l.OrderBy(x => x).ToList(); }
+List<int> sortedL = GetSorted

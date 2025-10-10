@@ -1,0 +1,777 @@
+JQuery typing test
+$(document).ready(function(){
+$('h1').hide();
+$('#showButton').show();
+$('p').toggle();
+$('.box').fadeToggle();
+$('.slide-box').slideToggle();
+$('.animate-box').animate({
+left: '250px',
+opacity: '0.5'
+});
+$('#chain-box').css('color', 'red').slideUp(2000).slideDown(2000);
+$('input[name="name"]').val('John Doe');
+$('ul#list li:first').css('color', 'blue');
+$('ul#list li:last').css('color', 'green');
+$('ul#list li:eq(1)').css('font-weight', 'bold');
+$('ul#list li:odd').css('background-color', '#f2f2f2');
+$('ul#list li:even').css('background-color', '#e9e9e9');
+$('.special-box').addClass('highlight');
+$('.special-box').removeClass('highlight');
+$('.special-box').toggleClass('highlight-toggle');
+var text = $('#my-div').text();
+$('#my-div').text('New text here');
+var html = $('#my-div').html();
+$('#my-div').html('<strong>New HTML here</strong>');
+$('input').val();
+$('#empty-div').append('<p>Appended text</p>');
+$('#empty-div').prepend('<p>Prepended text</p>');
+$('#remove-me').remove();
+$('#empty-div').empty();
+$('.item').wrap('<div></div>');
+$('.item').unwrap();
+$('.sibling').next().css('border', '1px solid black');
+$('.sibling').prev().css('border', '1px solid black');
+$('.all-siblings').siblings().css('color', 'purple');
+$('.parent').children().css('font-style', 'italic');
+$('.descendant').closest('.ancestor').css('font-size', '20px');
+$('.filter-list li').filter('.blue').css('color', 'blue');
+$('.not-blue li').not('.blue').css('color', 'red');
+var count = $('.list-item').length;
+var firstItem = $('.list-item').first();
+var lastItem = $('.list-item').last();
+$('.list-item').eq(2).css('background-color', 'yellow');
+$('.list-item').slice(1, 3).css('font-style', 'italic');
+$('.find-me').find('span').css('font-size', '16px');
+$('#data-box').data('custom-key', 'custom-value');
+var customValue = $('#data-box').data('custom-key');
+$('.focus-input').focus(function() {
+$(this).css('background-color', 'yellow');
+});
+$('.blur-input').blur(function() {
+$(this).css('background-color', 'white');
+});
+$('form').submit(function(event) {
+event.preventDefault();
+});
+$('a').on('click', function(event) {
+event.preventDefault();
+alert('Link clicked!');
+});
+$('#delegate-parent').on('click', 'button', function() {
+$(this).text('Delegated click');
+});
+$(window).scroll(function() {
+console.log('Scrolled!');
+});
+$(window).resize(function() {
+console.log('Resized!');
+});
+$('#hover-div').hover(function() {
+$(this).css('background-color', 'lightgray');
+}, function() {
+$(this).css('background-color', 'white');
+});
+$.ajax({
+url: "https://jsonplaceholder.typicode.com/posts/1",
+success: function(result) {
+$('#ajax-result').text(result.title);
+}
+});
+$.get("https://jsonplaceholder.typicode.com/users/1", function(data, status) {
+$('#get-result').text(data.name + ' - ' + status);
+});
+$.post("https://jsonplaceholder.typicode.com/posts", {
+userId: 1,
+title: 'New Post'
+}, function(data, status) {
+$('#post-result').text('Post created with ID: ' + data.id);
+});
+$('#load-content').click(function() {
+$('#content-container').load('https://jsonplaceholder.typicode.com/albums/1');
+});
+$('#serialize-form').submit(function(event) {
+event.preventDefault();
+var formData = $(this).serialize();
+console.log(formData);
+});
+$('#serialize-array-form').submit(function(event) {
+event.preventDefault();
+var formData = $(this).serializeArray();
+console.log(formData);
+});
+var myWidth = $(window).width();
+var myHeight = $(window).height();
+var divWidth = $('#my-div').width();
+var divHeight = $('#my-div').height();
+var innerWidth = $('#my-div').innerWidth();
+var innerHeight = $('#my-div').innerHeight();
+var outerWidth = $('#my-div').outerWidth(true);
+var outerHeight = $('#my-div').outerHeight(true);
+var offset = $('#my-div').offset();
+var position = $('#my-div').position();
+$('#my-div').css({
+'background-color': 'red',
+'color': 'white'
+});
+$('#my-div').css('background-color');
+$('#my-div').hide(1000, function() {
+alert('Div is now hidden!');
+});
+$('#my-div').show(1000);
+$('#my-div').slideUp();
+$('#my-div').slideDown();
+$('#my-div').fadeIn();
+$('#my-div').fadeOut();
+$('#my-div').fadeTo(1000, 0.5);
+$('#stop-animation').click(function() {
+$('.animate-box').stop();
+});
+$('.has-children').children('p').css('color', 'green');
+$('.next-all-siblings').nextAll().css('font-weight', 'bold');
+$('.prev-all-siblings').prevAll().css('font-style', 'italic');
+$('.parents-until').parentsUntil('.grandparent').css('border', '2px solid red');
+$('.find-children').find('*').css('text-decoration', 'underline');
+$('.is-box').is('div').toString();
+$('.has-p').has('p').css('background-color', 'yellow');
+$('.not-p').not('p').css('background-color', 'lightblue');
+$('.all').add('#another').css('color', 'orange');
+$('.slice-items').slice(1).css('border', '1px dashed black');
+$('.contents-div').contents().filter(function() {
+return this.nodeType === 3;
+}).wrap('<p></p>');
+$.each([5, 2, 8], function(index, value) {
+console.log(index + ': ' + value);
+});
+var mapArray = $.map([1, 2, 3], function(n, i) {
+return n * 2;
+});
+var grepArray = $.grep([1, 2, 3, 4, 5], function(n, i) {
+return n > 3;
+});
+var now = $.now();
+var trimmed = $.trim('    hello world    ');
+var isArray = $.isArray([]);
+var isFunction = $.isFunction(function() {});
+var isEmptyObject = $.isEmptyObject({});
+var isNumeric = $.isNumeric('123');
+var isPlainObject = $.isPlainObject({});
+var isWindow = $.isWindow(window);
+var supports = $.support.ajax;
+$.noop();
+$.camelCase('my-camel-case-string');
+$.parseHTML('<div><p>Hello</p></div>');
+$.parseJSON('{"name": "John"}');
+$.proxy(myObject, 'myMethod');
+var deferred = $.Deferred();
+deferred.resolve();
+deferred.done(function() {
+console.log('Done!');
+});
+var promise = deferred.promise();
+promise.done(function() {
+console.log('Promise done!');
+});
+$('button').promise().done(function() {
+console.log('Button animation complete');
+});
+var jqXHR = $.get('/');
+jqXHR.done(function() {
+console.log('Request done');
+});
+jqXHR.fail(function() {
+console.log('Request failed');
+});
+jqXHR.always(function() {
+console.log('Request always');
+});
+var myData = {
+name: 'Jane'
+};
+var result = $.param(myData);
+$.cookie('name', 'John', {
+expires: 7
+});
+var cookie = $.cookie('name');
+$.removeCookie('name');
+$.parseXML('<data><item>1</item></data>');
+$.sub();
+$.noConflict();
+var a = $('<a>Click me</a>');
+$('body').append(a);
+a.attr('href', '#');
+a.removeAttr('href');
+a.prop('checked', true);
+a.removeProp('checked');
+a.clone().appendTo('body');
+var height = $('div').height(100).css('height');
+var width = $('div').width(200).css('width');
+var position = $('div').offset({
+top: 10,
+left: 20
+});
+var scrollLeft = $(window).scrollLeft(100);
+var scrollTop = $(window).scrollTop(200);
+$('div').addClass('new-class');
+$('div').removeClass('old-class');
+$('div').toggleClass('toggle-class');
+$('div').hasClass('some-class');
+$('input:text').val('some text');
+$('input:password').val('password');
+$('input:checkbox').prop('checked', true);
+$('select option:selected').val();
+$('li:first-child').css('color', 'red');
+$('li:last-child').css('color', 'blue');
+$('li:nth-child(2)').css('font-weight', 'bold');
+$('li:only-child').css('background-color', 'yellow');
+$('p:empty').text('I was empty');
+$('p:hidden').show();
+$('p:visible').hide();
+$('a[target="_blank"]').css('color', 'red');
+$('input[name^="q"]').val('startsWith');
+$('input[name$="d"]').val('endsWith');
+$('input[name*="in"]').val('contains');
+$('div[id!="myDiv"]').css('border', '1px solid black');
+$('form :input').css('background-color', 'lightgray');
+$('form :button').css('border', '2px solid red');
+$('form :submit').val('Go');
+$('form :reset').val('Reset');
+$('form :radio').prop('checked', true);
+$('form :checkbox').prop('checked', true);
+$('form :file').prop('disabled', true);
+$('form :image').attr('src', 'new.png');
+$('form :password').css('border-color', 'green');
+$('form :text').css('border-color', 'blue');
+$('form :header').css('font-family', 'Arial');
+$('form :animated').stop();
+$('form :focus').css('outline', 'none');
+$('form :lang(fr)').text('Bonjour');
+$('div.container > p').css('font-size', '14px');
+$('div.container p').css('font-style', 'italic');
+$('h1 + p').css('margin-top', '20px');
+$('h1 ~ p').css('color', 'gray');
+$('form label, input').css('display', 'block');
+$('form > *').css('padding', '5px');
+$('h1').on('click.myEvent', function() {
+alert('Hello!');
+});
+$('h1').off('click.myEvent');
+$('h1').trigger('click');
+$('h1').triggerHandler('click');
+$('#myButton').one('click', function() {
+alert('This runs only once');
+});
+$('h1').hover(function() {
+$(this).css('color', 'red');
+}, function() {
+$(this).css('color', 'black');
+});
+$('#myButton').bind('click', function() {
+alert('Bound!');
+});
+$('#myButton').unbind('click');
+$('div.parent').delegate('p', 'click', function() {
+alert('Delegated click');
+});
+$('div.parent').undelegate('p', 'click');
+$('body').live('click', 'p', function() {
+alert('Live!');
+});
+$('body').die('click', 'p');
+var events = $._data($('#myButton')[0], 'events');
+$(window).load(function() {
+alert('Window loaded');
+});
+$(window).unload(function() {
+alert('Window unloaded');
+});
+$(window).on('beforeunload', function() {
+return 'Are you sure?';
+});
+$('#myButton').on('mouseenter', function() {
+$(this).css('background-color', 'green');
+}).on('mouseleave', function() {
+$(this).css('background-color', '');
+});
+$('#myDiv').on('mousedown', function() {
+$(this).text('Mouse down!');
+}).on('mouseup', function() {
+$(this).text('Mouse up!');
+});
+$('#myDiv').on('mousemove', function(event) {
+$('#coords').text('X: ' + event.pageX + ', Y: ' + event.pageY);
+});
+$('#myDiv').on('dblclick', function() {
+alert('Double-click!');
+});
+$('input').on('keydown', function(e) {
+if (e.which == 13) {
+alert('Enter pressed');
+}
+});
+$('input').on('keyup', function(e) {
+console.log('Key up');
+});
+$('input').on('keypress', function(e) {
+console.log('Key press');
+});
+$('input').on('change', function() {
+alert('Value changed');
+});
+$('input').on('select', function() {
+alert('Text selected');
+});
+$('form').on('submit', function() {
+alert('Form submitted');
+});
+$('img').on('error', function() {
+$(this).attr('src', 'placeholder.png');
+});
+$('img').on('load', function() {
+console.log('Image loaded');
+});
+$('#target').on('click', function(e) {
+e.stopPropagation();
+});
+$('#target').parent().on('click', function() {
+alert('Parent clicked');
+});
+$('a').on('click', function(e) {
+e.preventDefault();
+});
+var arr = [1, 2, 3];
+$.each(arr, function(index, value) {
+console.log(value);
+});
+var obj = {
+name: 'John',
+age: 30
+};
+$.each(obj, function(key, value) {
+console.log(key + ': ' + value);
+});
+var mapped = $.map(arr, function(value) {
+return value * 2;
+});
+var filtered = $.grep(arr, function(value) {
+return value > 1;
+});
+var contains = $.inArray(2, arr);
+var merged = $.merge([1, 2], [3, 4]);
+var unique = $.unique([1, 2, 1, 3, 2]);
+var version = $.fn.jquery;
+var isReady = $.isReady;
+var extend = $.extend({}, obj, {
+city: 'NY'
+});
+var globalEval = $.globalEval('var x = 10;');
+var getScript = $.getScript('myscript.js');
+var getJSON = $.getJSON('data.json', function(data) {
+console.log(data);
+});
+$.when($.get('/a'), $.get('/b')).done(function(a, b) {
+console.log(a, b);
+});
+var animate = $('#myDiv').animate({
+opacity: 0.5
+}, {
+duration: 1000,
+complete: function() {
+alert('Animation complete');
+}
+});
+var stop = $('#myDiv').stop(true, true);
+var delay = $('#myDiv').delay(1000).fadeIn();
+$('#myDiv').queue('myQueue', function(next) {
+alert('Step 1');
+next();
+}).queue('myQueue', function(next) {
+alert('Step 2');
+next();
+}).dequeue('myQueue');
+var queue = $('#myDiv').queue();
+$('#myDiv').clearQueue();
+var hasData = $('#myDiv').hasData();
+var removeData = $('#myDiv').removeData('myKey');
+var val = $('input').val();
+$('input').val('new value');
+var text = $('p').text();
+$('p').text('new text');
+var html = $('div').html();
+$('div').html('<strong>new html</strong>');
+$('a').attr('href', 'http://example.com');
+$('a').removeAttr('target');
+$('input:checkbox').prop('checked', true);
+$('input:checkbox').removeProp('checked');
+$('li').addClass('item');
+$('li').removeClass('item');
+$('li').toggleClass('highlight');
+$('li').hasClass('item');
+$('div').css('background-color', 'red');
+$('div').css({
+'border': '1px solid black',
+'font-size': '12px'
+});
+$('div').offset();
+$('div').position();
+$('div').scrollLeft(100);
+$('div').scrollTop(200);
+$('div').height(50);
+$('div').width(50);
+$('div').innerHeight(60);
+$('div').innerWidth(60);
+$('div').outerHeight(true);
+$('div').outerWidth(true);
+var parent = $('li').parent();
+var parents = $('li').parents();
+var parentsUntil = $('li').parentsUntil('.list');
+var children = $('ul').children();
+var find = $('ul').find('li');
+var siblings = $('li').siblings();
+var next = $('li:first').next();
+var nextAll = $('li:first').nextAll();
+var nextUntil = $('li:first').nextUntil('li:last');
+var prev = $('li:last').prev();
+var prevAll = $('li:last').prevAll();
+var prevUntil = $('li:last').prevUntil('li:first');
+var first = $('li').first();
+var last = $('li').last();
+var eq = $('li').eq(2);
+var filter = $('li').filter('.special');
+var not = $('li').not('.special');
+var has = $('div').has('p');
+var end = $('ul').find('li').end();
+var add = $('ul').add('h1');
+var each = $('li').each(function() {
+$(this).css('color', 'red');
+});
+var map = $('li').map(function() {
+return $(this).text();
+});
+var get = $('li').get();
+$('ul').wrap('<div>');
+$('ul').wrapAll('<div>');
+$('li').wrapInner('<span>');
+$('p').unwrap();
+$('div').append('<span>Appended</span>');
+$('div').appendTo('body');
+$('div').prepend('<span>Prepended</span>');
+$('div').prependTo('body');
+$('div').after('<span>After</span>');
+$('div').before('<span>Before</span>');
+$('div').insertAfter('p');
+$('div').insertBefore('p');
+$('p').clone().appendTo('body');
+$('p').remove();
+$('div').empty();
+$('div').detach();
+$('div').replaceWith('<span>New element</span>');
+$('<span>New element</span>').replaceAll('div');
+$('div').toggle();
+$('div').toggle(1000);
+$('div').show();
+$('div').hide();
+$('div').show(1000);
+$('div').hide(1000);
+$('div').slideDown();
+$('div').slideUp();
+$('div').slideToggle();
+$('div').fadeIn();
+$('div').fadeOut();
+$('div').fadeToggle();
+$('div').fadeTo(1000, 0.5);
+$('div').animate({
+height: 'toggle'
+});
+$('div').stop();
+$('div').stop(true, true);
+$('div').delay(1000);
+$('div').promise().done(function() {
+console.log('Animation done');
+});
+$('form').submit(function(e) {
+e.preventDefault();
+});
+$('button').click(function(e) {
+e.stopPropagation();
+});
+$('a').click(function(e) {
+e.preventDefault();
+});
+var data = $('div').data('key', 'value');
+var value = $('div').data('key');
+$('div').removeData('key');
+$.trim('  hello  ');
+$.map([1, 2], function(val) {
+return val * 2;
+});
+$.each([1, 2], function(i, val) {
+console.log(val);
+});
+$.grep([1, 2, 3], function(val) {
+return val > 1;
+});
+$.inArray(2, [1, 2, 3]);
+$.merge([1, 2], [3, 4]);
+$.unique([1, 2, 1]);
+$.extend(true, {}, {
+a: 1
+}, {
+b: 2
+});
+$.ajax({
+url: 'data.json',
+method: 'GET'
+});
+$.get('data.json');
+$.post('data.json', {
+name: 'John'
+});
+$.getJSON('data.json');
+$.getScript('my-script.js');
+$('#content').load('page.html');
+$.Deferred().resolve();
+$.when().done();
+$.now();
+$.camelCase('my-variable-name');
+$.isFunction(function() {});
+$.isArray([]);
+$.isWindow(window);
+$.isNumeric('123');
+$.isEmptyObject({});
+$.isPlainObject({});
+$.noop();
+$.proxy(myObject, 'myMethod');
+$.parseJSON('{"name":"John"}');
+$.parseXML('<root></root>');
+$.type([]);
+$.escapeSelector('#my.id');
+$.holdReady(true);
+$.support.ajax;
+$.speed({
+duration: 100
+});
+$.cssHooks.myProp;
+$.fx.interval = 13;
+$.Event('click');
+$('button').on('click', function() {
+$(this).data('clicked', true);
+});
+var clicked = $('button').data('clicked');
+$('ul').children().addClass('child');
+$('ul').find('li').addClass('found');
+$('li').first().addClass('first');
+$('li').last().addClass('last');
+$('li').eq(1).addClass('second');
+$('li').filter(':odd').addClass('odd');
+$('li').not('.odd').addClass('even');
+$('div').has('p').addClass('has-p');
+$('p').closest('.container').addClass('closest-container');
+$('li').slice(1, 3).addClass('sliced');
+$('h1').next().addClass('next');
+$('h1').nextAll().addClass('next-all');
+$('h1').nextUntil('h3').addClass('next-until');
+$('p').prev().addClass('prev');
+$('p').prevAll().addClass('prev-all');
+$('p').prevUntil('h1').addClass('prev-until');
+$('p').siblings().addClass('sibling');
+$('li').parent().addClass('parent');
+$('li').parents().addClass('ancestor');
+$('li').parentsUntil('.list').addClass('mid-ancestor');
+$('div').add('p').addClass('added-element');
+$('li').contents().addClass('content');
+$('div').end().addClass('back-to-previous');
+$('div').pushStack().end().addClass('back-to-pushed');
+$('#myId').trigger('click');
+$('#myId').triggerHandler('click');
+$('#myId').one('click', function() {});
+$('#myId').on('click', function() {});
+$('#myId').off('click');
+$('#myId').bind('click', function() {});
+$('#myId').unbind('click');
+$('#myId').live('click', function() {});
+$('#myId').die('click');
+$('#myId').delegate('a', 'click', function() {});
+$('#myId').undelegate('a', 'click');
+$(window).scroll();
+$(window).resize();
+$('#myId').hover(function() {}, function() {});
+$('#myId').focus();
+$('#myId').blur();
+$('#myId').change();
+$('#myId').select();
+$('#myId').submit();
+$('#myId').keydown();
+$('#myId').keypress();
+$('#myId').keyup();
+$('#myId').mousedown();
+$('#myId').mouseup();
+$('#myId').mousemove();
+$('#myId').mouseenter();
+$('#myId').mouseleave();
+$('#myId').dblclick();
+$('#myId').click();
+$('#myId').load();
+$('#myId').unload();
+$('#myId').error();
+$('#myId').ready();
+$('form').serialize();
+$('form').serializeArray();
+$('#myDiv').load('content.html');
+$.ajax({
+url: 'test.html'
+});
+$.get('test.html', function() {});
+$.post('test.html', {
+name: 'John'
+}, function() {});
+$.getJSON('test.json', function() {});
+$.getScript('test.js', function() {});
+$.param({
+name: 'John'
+});
+$.globalEval('var a=1;');
+$.parseJSON('{"a":1}');
+$.parseXML('<p></p>');
+$.trim('  hi  ');
+$.isPlainObject({});
+$.isEmptyObject({});
+$.isFunction(function() {});
+$.isArray([]);
+$.isWindow(window);
+$.isNumeric('123');
+$.isXMLDoc(document);
+$.contains(document, document.body);
+$.each([1, 2], function() {});
+$.map([1, 2], function() {
+return 1;
+});
+$.grep([1, 2, 3], function() {
+return true;
+});
+$.extend({}, {
+a: 1
+});
+$.now();
+$.proxy(fn, context);
+$.noConflict();
+$.when(ajaxCall).done();
+$('div').animate({
+opacity: 0.5
+});
+$('div').stop();
+$('div').delay(1000);
+$('div').queue();
+$('div').dequeue();
+$('div').clearQueue();
+$('div').promise();
+$('div').promise('fx');
+$.speed({
+duration: 500
+});
+$.fx.interval = 13;
+$.fx.off = false;
+$.sub();
+$.support.leadingWhitespace;
+$._data($('body')[0], 'events');
+$._removeData($('body')[0], 'events');
+var event = $.Event('click');
+$('body').trigger(event);
+$('a').attr('href');
+$('a').removeAttr('href');
+$('input').prop('checked');
+$('input').removeProp('checked');
+$('div').addClass('myClass');
+$('div').removeClass('myClass');
+$('div').toggleClass('myClass');
+$('div').hasClass('myClass');
+$('input').val();
+$('p').text();
+$('div').html();
+$('div').append('new');
+$('div').prepend('new');
+$('div').after('new');
+$('div').before('new');
+$('div').appendTo('body');
+$('div').prependTo('body');
+$('div').insertAfter('p');
+$('div').insertBefore('p');
+$('p').clone();
+$('p').remove();
+$('div').empty();
+$('div').detach();
+$('p').replaceWith('<span>');
+$('<span>').replaceAll('p');
+$('p').wrap('<div>');
+$('p').wrapAll('<div>');
+$('p').wrapInner('<span>');
+$('p').unwrap();
+$('div').hide();
+$('div').show();
+$('div').toggle();
+$('div').fadeIn();
+$('div').fadeOut();
+$('div').fadeToggle();
+$('div').fadeTo(1000, 0.5);
+$('div').slideDown();
+$('div').slideUp();
+$('div').slideToggle();
+$('div').animate({
+height: '100px'
+});
+$('div').stop();
+$('div').delay(1000);
+$('div').promise();
+$('div').queue();
+$('div').dequeue();
+$('div').clearQueue();
+$('div').offset();
+$('div').position();
+$('div').scrollLeft(100);
+$('div').scrollTop(100);
+$('div').height();
+$('div').width();
+$('div').innerHeight();
+$('div').innerWidth();
+$('div').outerHeight();
+$('div').outerWidth();
+$('div').css('color');
+$('div').css('color', 'red');
+$('div').data('name');
+$('div').data('name', 'John');
+$('div').removeData('name');
+$('div').hasData();
+$('div').children();
+$('div').find('p');
+$('div').parent();
+$('div').parents();
+$('div').parentsUntil();
+$('div').siblings();
+$('div').next();
+$('div').nextAll();
+$('div').nextUntil();
+$('div').prev();
+$('div').prevAll();
+$('div').prevUntil();
+$('div').first();
+$('div').last();
+$('div').eq(1);
+$('div').slice(1, 2);
+$('div').filter('.myClass');
+$('div').not('.myClass');
+$('div').has('p');
+$('div').is('.myClass');
+$('div').add('p');
+$('div').contents();
+$('div').end();
+$('div').each(function() {});
+$('div').map(function() {
+return this.id;
+});
+$('div').get();
+$('div').toArray();
+$('div').length;
+$('div').selector;
+$('div').context;
+$('div').pushStack();
+});
