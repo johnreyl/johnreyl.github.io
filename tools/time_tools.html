@@ -272,7 +272,16 @@ function updateClocks(){
   });
 }
 
+function isMobileView() {
+    // Check if the current window width is less than or equal to 768px (a common mobile breakpoint)
+    return $(window).width() <= 768; 
+}
+
 function centerMapOnLocalClock() {
+    if (!isMobileView()) {
+        return; 
+    }
+
     const $wrapper = $('#mapWrapper');
     const wrapperWidth = $wrapper.width();
     const mapScaledWidth = $wrapper[0].scrollWidth; 
