@@ -1,138 +1,142 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Microphone Tester with Record</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <style>
-    body { padding: 2rem; background: #f8f9fa; }
-    #meter { width: 100%; height: 30px; background: #e9ecef; border-radius: 5px; overflow: hidden; margin-top: 1rem; }
-    #level { width: 0%; height: 100%; background: #0d6efd; transition: width 0.05s; }
-    #status { margin-top: 1rem; font-weight: bold; }
-    #audioPlayback { margin-top: 1rem; }
-  </style>
+    <meta charset="utf-8">
+    <title>Microphone Tester with Record</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        body { padding: 2rem; background: #f8f9fa; }
+        #meter { width: 100%; height: 30px; background: #e9ecef; border-radius: 5px; overflow: hidden; margin-top: 1rem; }
+        #level { width: 0%; height: 100%; background: #0d6efd; transition: width 0.05s; }
+        #status { margin-top: 1rem; font-weight: bold; }
+        #audioPlayback { margin-top: 1rem; }
+    </style>
 </head>
 <body>
 <div class="container text-center">
-  <h1>Microphone Tester with Record</h1>
-  <p>Click "Start Test" to see input levels, "Record" to record audio, then play it back.</p>
+    <h1>Microphone Tester with Record</h1>
+    <p>Click "Start Test" to begin level monitoring and **automatically start recording**. Click "Stop Test" to end both and play the recording back.</p>
 
-  <button id="startBtn" class="btn btn-primary">Start Test</button>
-  <button id="stopBtn" class="btn btn-danger ms-2" disabled>Stop Test</button>
-  <button id="recordBtn" class="btn btn-success ms-2" disabled>Start Recording</button>
-  <button id="stopRecordBtn" class="btn btn-warning ms-2" disabled>Stop Recording</button>
+    <button id="startBtn" class="btn btn-primary">Start Test & Record</button>
+    <button id="stopBtn" class="btn btn-danger ms-2" disabled>Stop Test & Play</button>
+    
+    <div id="meter">
+        <div id="level"></div>
+    </div>
 
-  <div id="meter">
-    <div id="level"></div>
-  </div>
+    <div id="status">Status: Not started</div>
 
-  <div id="status">Status: Not started</div>
-
-  <audio id="audioPlayback" controls></audio>
+    <audio id="audioPlayback" controls></audio>
 </div>
 
 <script>
 let audioContext, analyser, microphone, dataArray, rafId;
 let mediaRecorder, recordedChunks = [];
+let streamGlobal; // Hold the stream globally to stop tracks later
 
-// Start mic test
-function startMicTest() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    alert("Microphone access not supported in this browser.");
-    return;
-  }
+// --- NEW/MODIFIED FUNCTIONS ---
 
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(stream => {
-      audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      analyser = audioContext.createAnalyser();
-      microphone = audioContext.createMediaStreamSource(stream);
-      microphone.connect(analyser);
-      analyser.fftSize = 256;
-      dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-      $("#status").text("Status: Mic access granted");
-      $("#startBtn").prop("disabled", true);
-      $("#stopBtn").prop("disabled", false);
-      $("#recordBtn").prop("disabled", false);
-
-      updateMeter();
-    })
-    .catch(err => {
-      $("#status").text("Status: Microphone access denied");
-      console.error(err);
-    });
-}
-
-// Update input level meter
-function updateMeter() {
-  analyser.getByteTimeDomainData(dataArray);
-  let max = 0;
-  for (let i = 0; i < dataArray.length; i++) {
-    let val = Math.abs(dataArray[i] - 128);
-    if (val > max) max = val;
-  }
-  let level = Math.min(100, (max / 128) * 100);
-  $("#level").css("width", level + "%");
-  rafId = requestAnimationFrame(updateMeter);
-}
-
-// Stop mic test
-function stopMicTest() {
-  if (rafId) cancelAnimationFrame(rafId);
-  if (microphone) microphone.disconnect();
-  if (analyser) analyser.disconnect();
-  if (audioContext) audioContext.close();
-
-  $("#level").css("width", "0%");
-  $("#status").text("Status: Stopped");
-  $("#startBtn").prop("disabled", false);
-  $("#stopBtn").prop("disabled", true);
-  $("#recordBtn").prop("disabled", true);
-  $("#stopRecordBtn").prop("disabled", true);
-}
-
-// Start recording
-function startRecording() {
-  recordedChunks = [];
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(stream => {
-      mediaRecorder = new MediaRecorder(stream);
-      mediaRecorder.ondataavailable = e => {
+// Initializes MediaRecorder and starts recording
+function startRecording(stream) {
+    recordedChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    
+    mediaRecorder.ondataavailable = e => {
         if (e.data.size > 0) recordedChunks.push(e.data);
-      };
-      mediaRecorder.onstop = () => {
+    };
+
+    mediaRecorder.onstop = () => {
+        // Create Blob and set as playback source
         const blob = new Blob(recordedChunks, { type: 'audio/webm' });
         const url = URL.createObjectURL(blob);
         $("#audioPlayback").attr("src", url);
-      };
-      mediaRecorder.start();
-      $("#status").text("Status: Recording...");
-      $("#recordBtn").prop("disabled", true);
-      $("#stopRecordBtn").prop("disabled", false);
-    })
-    .catch(err => console.error(err));
+        $("#status").text("Status: Test stopped. Recording ready for playback.");
+        
+        // Stop all media tracks to release the mic light/icon
+        streamGlobal.getTracks().forEach(track => track.stop());
+    };
+    
+    mediaRecorder.start();
 }
 
-// Stop recording
-function stopRecording() {
-  if (mediaRecorder && mediaRecorder.state !== "inactive") {
-    mediaRecorder.stop();
-    $("#status").text("Status: Recording stopped, playback ready");
-    $("#recordBtn").prop("disabled", false);
-    $("#stopRecordBtn").prop("disabled", true);
-  }
+// Start mic test AND recording
+function startMicTestAndRecord() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("Microphone access not supported in this browser.");
+        return;
+    }
+
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            streamGlobal = stream; // Store stream for global access to stop tracks
+
+            // --- 1. Start AudioContext for Level Meter ---
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            microphone = audioContext.createMediaStreamSource(stream);
+            microphone.connect(analyser);
+            analyser.fftSize = 256;
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+            // --- 2. Start Recording ---
+            startRecording(stream);
+
+            // --- 3. Update UI ---
+            $("#status").text("Status: Recording and monitoring level...");
+            $("#startBtn").prop("disabled", true);
+            $("#stopBtn").prop("disabled", false);
+            updateMeter();
+        })
+        .catch(err => {
+            $("#status").text("Status: Microphone access denied");
+            console.error(err);
+        });
 }
 
+// Stop mic test AND recording
+function stopMicTestAndRecord() {
+    // 1. Stop Level Meter
+    if (rafId) cancelAnimationFrame(rafId);
+    if (microphone) microphone.disconnect();
+    if (analyser) analyser.disconnect();
+    if (audioContext) audioContext.close();
+
+    // 2. Stop Recording
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop(); 
+        // Note: The stream is stopped inside mediaRecorder.onstop() 
+        // to ensure the recorded data is fully processed first.
+    } else if (streamGlobal) {
+         // Fallback to stop stream if recording didn't start for some reason
+        streamGlobal.getTracks().forEach(track => track.stop());
+    }
+
+    // 3. Update UI
+    $("#level").css("width", "0%");
+    $("#startBtn").prop("disabled", false);
+    $("#stopBtn").prop("disabled", true);
+}
+
+// --- EXISTING METER FUNCTION (Minor name change for clarity) ---
+function updateMeter() {
+    analyser.getByteTimeDomainData(dataArray);
+    let max = 0;
+    for (let i = 0; i < dataArray.length; i++) {
+        let val = Math.abs(dataArray[i] - 128);
+        if (val > max) max = val;
+    }
+    let level = Math.min(100, (max / 128) * 100);
+    $("#level").css("width", level + "%");
+    rafId = requestAnimationFrame(updateMeter);
+}
+
+// --- JQUERY READY BINDINGS ---
 $(function(){
-  $("#startBtn").on("click", startMicTest);
-  $("#stopBtn").on("click", stopMicTest);
-  $("#recordBtn").on("click", startRecording);
-  $("#stopRecordBtn").on("click", stopRecording);
+    $("#startBtn").on("click", startMicTestAndRecord);
+    $("#stopBtn").on("click", stopMicTestAndRecord);
 });
 </script>
 </body>
 </html>
-
