@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coming Soon - With a Koopa Troopa Surprise</title>
+    <!-- Load Tailwind CSS from CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load jQuery for the Koopa jump and message animation -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* 1. Global & Font Setup */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f7f7;
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* 2. Mario World Section Styling */
+        #mario-world-container {
+            /* Fixed width for the game container, centered below the main box */
+            width: 90%; 
+            max-width: 600px;
+            height: 120px; /* Space for the background and jump */
+            position: relative;
+            overflow: hidden; 
+            margin: 30px auto 0;
+            background-color: #79a1d1; /* Sky Blue background */
+            border-bottom: 5px solid #2d3748; /* Horizon/Frame */
+        }
+
+        /* CSS for the Animated Mario World Ground */
+        #mario-world-ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 300%; 
+            height: 25px;
+            
+            /* Simulating the blocky grass/dirt texture with repeating gradients */
+            background: 
+                /* Grass Texture (Top 5px) */
+                repeating-linear-gradient(90deg, #5aa85d, #5aa85d 20px, #61b365 20px, #61b365 40px),
+                /* Dirt Texture (Bottom 20px) */
+                repeating-linear-gradient(90deg, #965a3c, #965a3c 20px, #a06341 20px, #a06341 40px);
+            
+            background-size: 100% 5px, 100% 20px; 
+            background-position: 0 0, 0 5px; 
+            background-repeat: repeat-x;
+
+            /* Animation to make the ground scroll left */
+            animation: scroll-ground 1.5s linear infinite;
+        }
+
+        /* Keyframes for ground scrolling */
+        @keyframes scroll-ground {
+            from { background-position: 0 0, 0 5px; } 
+            to { background-position: -40px 0, -40px 5px; }
+        }
+
+        /* Koopa Character Styling (using the #mario ID for existing JS logic) */
+        #mario {
+            position: absolute;
+            bottom: 25px; 
+            left: 50px; /* Base running position */
+            z-index: 10;
+            cursor: pointer;
+            width: 55px;
+            height: 55px;
+            /* Subtle bounce animation for running */
+            animation: run-bob 0.4s infinite alternate;
+        }
+        
+        @keyframes run-bob {
+            from { transform: translateY(0px); }
+            to { transform: translateY(2px); }
+        }
+
+        /* Message Styling adjustments */
+        #koopa-message {
+            /* Positioned top right */
+            top: 5px; 
+            right: 5px; /* Margin from the right border */
+            left: auto; 
+            transform: none;
+            
+            z-index: 20; 
+            position: absolute; 
+            pointer-events: none;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-charcoal': '#2d3748', 
+                        'brand-orange': '#ed8936',   
+                        'text-gray': '#4a5568',      
+                    }
+                }
+            }
+        }
+
+        // jQuery for Koopa Jump and Message
+        $(document).ready(function() {
+            // Standard jQuery easing functions for smooth jump animation arc
+            $.easing.easeOutQuad = function (x, t, b, c, d) { return -c * (t /= d) * (t - 2) + b; };
+            $.easing.easeInQuad = function (x, t, b, c, d) { return c * (t /= d) * t + b; };
+            
+            const $koopa = $('#mario'); 
+            const $message = $('#koopa-message'); 
+            const groundHeight = 25; 
+            const jumpHeight = 60; 
+            const originalLeft = '50px';
+            // Move back 40px during the jump
+            const shuffleLeft = '10px'; 
+
+            $koopa.on('click', function() {
+                // Prevent queueing multiple actions
+                if ($koopa.is(':animated')) {
+                    return;
+                }
+                
+                // 1. Show message briefly
+                $message.fadeIn(100);
+                setTimeout(() => { $message.fadeOut(500); }, 2000); // Show for 2 seconds
+
+                // 2. Perform Jump Up and Backward Movement (200ms)
+                // Animating bottom and left together with easing creates the parabolic arc
+                $koopa.css('animation', 'none'); 
+
+                $koopa.animate(
+                    { 
+                        bottom: groundHeight + jumpHeight + 'px',
+                        left: shuffleLeft // Moves back 40px while jumping up
+                    }, 
+                    200, 
+                    'easeOutQuad' // Controls the upward arc (slows at the peak)
+                ) 
+                // 3. Jump Down (200ms) - lands at the backward position (10px)
+                .animate(
+                    { 
+                        bottom: groundHeight + 'px',
+                        left: shuffleLeft // Stays at 10px horizontally while descending
+                    }, 
+                    200, 
+                    'easeInQuad' // Controls the downward arc (speeds up near the ground)
+                ) 
+                
+                // 4. Return to original position (600ms to complete the 1-second total delay)
+                .animate(
+                    { left: originalLeft }, 
+                    600, 
+                    function() {
+                        // Re-enable the running animation after all movement is complete
+                        $koopa.css('animation', 'run-bob 0.4s infinite alternate');
+                    }
+                );
+            });
+        });
+    </script>
+</head>
+<body class="pt-16">
+
+    <!-- 1. Main Professional Content Container -->
+    <div class="max-w-xl w-full p-8 text-center bg-white rounded-xl border border-gray-100 shadow-md">
+
+        <!-- Logo/Icon (Traffic Cone) -->
+        <div class="mb-6 flex justify-center">
+            <svg class="w-16 h-16 text-brand-orange" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <!-- Traffic Cone Icon -->
+                <path d="M19.986 21.053l-2.739-6.315h-10.494l-2.739 6.315h16zM15.426 12l-2.715-6.25h-1.422l-2.715 6.25h6.852zM12 2l-7 16h14l-7-16z"/>
+            </svg>
+        </div>
+
+        <!-- Main Heading -->
+        <h2 class="text-4xl font-bold text-brand-charcoal mb-4">
+            Website Under Construction
+        </h2>
+
+        <!-- Status Message -->
+        <p class="text-lg text-text-gray mb-8 leading-relaxed">
+            We're building something great! Our site will be live very soon. Thank you for your patience.
+        </p>
+
+        <!-- Simple Contact Link -->
+        <a href="mailto:contact@yourdomain.com"
+           class="text-base font-medium text-brand-charcoal border-b border-brand-charcoal/50 hover:text-brand-orange transition duration-150">
+            Contact us if you have an urgent inquiry
+        </a>
+
+    </div>
+
+    <!-- 2. Super Mario World Runner Area -->
+    <div id="mario-world-container">
+        <!-- Message Prompt Overlay -->
+        <div id="koopa-message" class="hidden">
+            <!-- Responsive Width Classes: w-2/3 (67%) on mobile, max 400px on desktop, TEXT CENTERED -->
+            <p class="bg-white/90 px-2 py-1 rounded-md text-sm font-bold text-black shadow-md border border-gray-300 w-2/3 md:w-auto md:max-w-[400px] text-center ml-auto">
+                Sorry princess, the website is still under construction
+            </p>
+        </div>
+
+        <!-- The continuously scrolling Mario World ground -->
+        <div id="mario-world-ground"></div>
+        
+        <div id="mario">
+            <!-- Detailed Pixel Art Koopa Troopa SVG (64x64 grid) -->
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Color Palette: Shell: #3CB371 (MediumSeaGreen), Skin: #FFD700 (Gold), Headband/Shoes: #8B4513 (SaddleBrown) -->
+
+                <!-- Shell (Green with dark edge) -->
+                <rect x="10" y="26" width="44" height="24" fill="#3CB371"/>
+                <rect x="12" y="28" width="40" height="20" fill="#3CB371"/>
+                <rect x="18" y="30" width="28" height="16" fill="#3CB371"/>
+                <!-- Shell Pattern (Simple Black Lines) -->
+                <rect x="18" y="32" width="6" height="4" fill="#000000"/>
+                <rect x="40" y="32" width="6" height="4" fill="#000000"/>
+                <rect x="24" y="40" width="6" height="4" fill="#000000"/>
+                <rect x="34" y="40" width="6" height="4" fill="#000000"/>
+                
+                <!-- Head (Yellow/Gold) -->
+                <rect x="22" y="8" width="20" height="18" fill="#FFD700"/>
+
+                <!-- Eyes (White) and Pupils (Black) -->
+                <rect x="24" y="14" width="4" height="4" fill="#FFFFFF"/>
+                <rect x="36" y="14" width="4" height="4" fill="#FFFFFF"/>
+                <rect x="26" y="16" width="2" height="2" fill="#000000"/>
+                <rect x="38" y="16" width="2" height="2" fill="#000000"/>
+                
+                <!-- Mouth/Beak -->
+                <rect x="26" y="24" width="12" height="2" fill="#8B4513"/>
+
+                <!-- Arms (Yellow) -->
+                <rect x="44" y="34" width="8" height="10" fill="#FFD700"/>
+                <rect x="12" y="34" width="8" height="10" fill="#FFD700"/>
+
+                <!-- Legs/Feet (Brown Shoes) -->
+                <rect x="22" y="50" width="8" height="6" fill="#8B4513"/>
+                <rect x="34" y="50" width="8" height="6" fill="#8B4513"/>
+
+                <!-- Headband/Hair (Brown) -->
+                <rect x="22" y="6" width="20" height="2" fill="#8B4513"/>
+            </svg>
+        </div>
+    </div>
+
+</body>
+</html>
+
