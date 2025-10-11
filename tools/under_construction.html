@@ -65,7 +65,7 @@
         #mario-world-container {
             width: 90%; 
             max-width: 600px;
-            height: 150px; /* Height 150px as requested */
+            height: 150px; 
             position: relative;
             overflow: hidden; 
             margin: 0 auto 0; 
@@ -74,7 +74,7 @@
             border-radius: 0 0 0 0;
         }
 
-        /* CSS for the Animated Mario World Ground */
+        /* CSS for the Animated Mario World Ground (Duration now set by JS) */
         #mario-world-ground {
             position: absolute;
             bottom: 0;
@@ -87,7 +87,11 @@
             background-size: 100% 5px, 100% 20px; 
             background-position: 0 0, 0 5px; 
             background-repeat: repeat-x;
-            animation: scroll-ground 1.5s linear infinite;
+            /* Animation properties split to allow dynamic duration change */
+            animation-name: scroll-ground;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+            animation-duration: 1.5s; /* Default duration */
         }
 
         @keyframes scroll-ground {
@@ -146,6 +150,7 @@
             const $messageContainer = $('#koopa-message-content'); 
             const $currentScoreDisplay = $('#current-score');
             const $topScoreDisplay = $('#top-score');
+            const $ground = $('#mario-world-ground'); 
 
             // --- Sound Elements ---
             const tapSound = document.getElementById('tapSound');
@@ -163,6 +168,15 @@
             const DBLCLICK_DELAY = 300; 
             const TOUCH_MARGIN = 20; 
             const STORAGE_KEY = 'koopaTopScore';
+
+            // --- Ground Speed Constants ---
+            const ORIGINAL_GROUND_DURATION = 1.5; 
+            const MIN_GROUND_DURATION = 0.15;    
+            
+            // --- Mario Movement Cap (NEW) ---
+            // 80% of max-width (600px) is 480px. Mario's width is 55px.
+            // Mario's left edge must stop at 480px - 55px = 425px.
+            const MARIO_MAX_LEFT_EDGE = 425; 
             
             // --- State Management ---
             let isDoubleClicked = false;
@@ -171,8 +185,9 @@
             let scoreInterval = null;
             let currentScore = 0;
             let startTime = 0;
+            let currentGroundDuration = ORIGINAL_GROUND_DURATION; 
 
-            // --- Sound Functions (Volume levels adjusted) ---
+            // --- Sound Functions ---
             function playTapSound() {
                 // DECREASED VOLUME FOR TAP EFFECT to 0.3
                 tapSound.volume = 0.3;
@@ -181,7 +196,6 @@
             }
 
             function playGameOverSound() {
-                // Keep game over sound at full volume
                 gameOverSound.volume = 1.0; 
                 gameOverSound.currentTime = 0;
                 gameOverSound.play();
@@ -197,6 +211,14 @@
             function stopChaseMusic() {
                 chaseMusic.pause();
                 chaseMusic.currentTime = 0;
+            }
+
+            // --- Ground Speed Control ---
+            function setGroundSpeed(duration) {
+                // Ensures duration doesn't go below the limit
+                currentGroundDuration = Math.max(duration, MIN_GROUND_DURATION); 
+                // Applies the new speed to the CSS animation-duration property
+                $ground.css('animation-duration', currentGroundDuration + 's');
             }
 
 
@@ -284,15 +306,14 @@
                 }
             }
 
-            // --- Mario Chase Logic ---
+            // --- Mario Chase Logic (MODIFIED to enforce 80% cap) ---
 
             function startChase() {
-                // Start the score clock when chase begins (i.e., when Koopa moves)
                 startScoring();
 
-                // ONLY START MUSIC IF CHASE IS NOT ALREADY RUNNING
                 if (marioChaseInterval === null) { 
                     startChaseMusic();
+                    setGroundSpeed(ORIGINAL_GROUND_DURATION);
                 }
 
                 if (marioChaseInterval !== null) return;
@@ -311,12 +332,22 @@
                         disableClick();
                         $mario.css('animation', 'none'); 
                         return; 
-                    } else {
-                        enableClick();
                     }
 
+                    // CHECK CAP: If Mario is at or past the maximum allowed left position (80% boundary), stop.
+                    if (marioLeft >= MARIO_MAX_LEFT_EDGE) {
+                         $mario.css('animation', 'none');
+                         return;
+                    }
+
+
                     if (marioLeft < koopaLeft) {
-                        marioLeft += MARIO_STEP_DISTANCE;
+                        // Calculate the next potential position
+                        let nextMarioLeft = marioLeft + MARIO_STEP_DISTANCE;
+
+                        // Ensure Mario does not step beyond the cap
+                        marioLeft = Math.min(nextMarioLeft, MARIO_MAX_LEFT_EDGE);
+                        
                         $mario.css('left', marioLeft + 'px');
                     } else {
                         $mario.css('animation', 'none');
@@ -333,9 +364,10 @@
                 }
                 
                 stopChaseMusic(); 
-                
-                // Stop scoring now that Koopa is back at originalLeft
                 stopScoring();
+
+                // RESET GROUND SPEED TO NORMAL
+                setGroundSpeed(ORIGINAL_GROUND_DURATION);
 
                 // Return Mario to his starting position
                 $mario.stop(true).animate(
@@ -349,7 +381,7 @@
                 );
             }
 
-            // --- Double Click Action Function (Slide/Chase) ---
+            // --- Double Click Action Function ---
             function dblClickAction() {
                 playTapSound();
                 
@@ -382,6 +414,11 @@
                 }
 
                 startChase();
+                
+                // INCREASE GROUND SPEED (x2)
+                if (marioChaseInterval) { 
+                    setGroundSpeed(currentGroundDuration / 2);
+                }
 
                 // 2. CHAIN: Koopa Move forward (3s)
                 animationChain.animate(
@@ -401,7 +438,7 @@
                 );
             }
 
-            // --- Single Click Action Function (Jump/Chase) ---
+            // --- Single Click Action Function ---
             function singleClickAction() {
                 playTapSound();
 
@@ -411,6 +448,11 @@
                 $koopa.css('animation', 'none'); 
                 
                 startChase();
+                
+                // INCREASE GROUND SPEED (x2)
+                if (marioChaseInterval) { 
+                    setGroundSpeed(currentGroundDuration / 2);
+                }
                 
                 const currentLeft = parseInt($koopa.css('left'));
                 const currentBottom = parseInt($koopa.css('bottom'));
@@ -475,9 +517,9 @@
 </head>
 <body class="pt-16">
     
-    <audio id="tapSound" src="files/tap_effect.mp3" preload="auto"></audio>
-    <audio id="gameOverSound" src="files/game_over.mp3" preload="auto"></audio>
-    <audio id="chaseMusic" src="files/chase_music.mp3" preload="auto" loop></audio> 
+    <audio id="tapSound" src="tap_effect.mp3" preload="auto"></audio>
+    <audio id="gameOverSound" src="game_over.mp3" preload="auto"></audio>
+    <audio id="chaseMusic" src="chase_music.mp3" preload="auto" loop></audio> 
     <div class="max-w-xl w-full p-8 text-center bg-white rounded-xl border border-gray-100 shadow-md">
 
         <div class="mb-6 flex justify-center">
