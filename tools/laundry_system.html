@@ -252,17 +252,13 @@
                             <i class="fas fa-home me-2"></i>Home
                         </a>
                     </li>
+                    
                     <li class="nav-item" role="presentation">
-                        <a class="nav-link" id="new-order-tab" data-bs-toggle="tab" data-bs-target="#new-order" type="button" role="tab" aria-controls="new-order" aria-selected="false" href="#">
-                            <i class="fas fa-plus-circle me-2"></i>New Order
+                        <a class="nav-link" id="orders-group-tab" data-bs-toggle="tab" data-bs-target="#orders-group" type="button" role="tab" aria-controls="orders-group" aria-selected="false" href="#">
+                            <i class="fas fa-file-invoice me-2"></i>Orders
                         </a>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <a class="nav-link" id="order-list-tab" data-bs-toggle="tab" data-bs-target="#order-list" type="button" role="tab" aria-controls="order-list" aria-selected="false" href="#">
-                            <i class="fas fa-list-check me-2"></i>Order List
-                        </a>
-                    </li>
-                     <li class="nav-item" role="presentation">
                         <a class="nav-link" id="inventory-tab" data-bs-toggle="tab" data-bs-target="#inventory" type="button" role="tab" aria-controls="inventory" aria-selected="false" href="#">
                             <i class="fas fa-boxes-stacked me-2"></i>Detergents
                         </a>
@@ -340,7 +336,7 @@
                     <p class="mb-4">Data storage mode: <span id="banner-storage-mode" class="fw-bold">...</span></p>
                     
                     <div class="row g-3" id="home-buttons-dashboard">
-                        <div class="col-md-4"><button data-target-tab="#order-list" class="btn btn-primary w-100 py-3 home-nav-btn"><i class="fas fa-list-check me-2"></i>Laundry Requests</button></div>
+                        <div class="col-md-4"><button data-target-tab="#orders-group" class="btn btn-primary w-100 py-3 home-nav-btn"><i class="fas fa-list-check me-2"></i>Laundry Requests</button></div>
                         <div class="col-md-4"><button data-target-tab="#reports" class="btn btn-primary w-100 py-3 home-nav-btn"><i class="fas fa-chart-line me-2"></i>Reports</button></div>
                         <div class="col-md-4"><button data-target-tab="#inventory" class="btn btn-primary w-100 py-3 home-nav-btn"><i class="fas fa-boxes-stacked me-2"></i>Inventory</button></div>
                         
@@ -359,78 +355,122 @@
                 </div>
             </div>
 
-            <div class="tab-pane fade" id="new-order" role="tabpanel" aria-labelledby="new-order-tab">
-                <div class="card p-4 mt-4"> <h5 class="card-title text-primary mb-3"><i class="fas fa-soap me-2"></i>New Laundry Order Details</h5>
-                    <form id="order-form" class="row g-3">
-                        
-                        <div class="col-12 mt-1 mb-0"><h6 class="text-info"><i class="fas fa-user me-2"></i>Customer Details</h6><hr class="mt-1 mb-2"></div>
+            <div class="tab-pane fade" id="orders-group" role="tabpanel" aria-labelledby="orders-group-tab">
+                <ul class="nav nav-tabs mb-4 mt-4" id="orderSubTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="new-order-sub-tab" data-bs-toggle="tab" data-bs-target="#sub-new-order" type="button" role="tab" aria-controls="sub-new-order" aria-selected="true">
+                            <i class="fas fa-plus-circle me-2"></i>New Order
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="order-list-sub-tab" data-bs-toggle="tab" data-bs-target="#sub-order-list" type="button" role="tab" aria-controls="sub-order-list" aria-selected="false">
+                            <i class="fas fa-list-check me-2"></i>Order List
+                        </button>
+                    </li>
+                </ul>
 
-                        <div class="col-md-3"><label for="customer-name" class="form-label text-muted-subtle">Customer Name</label><input type="text" class="form-control" id="customer-name" placeholder="e.g., Jane Doe"></div>
-                        <div class="col-md-3"><label for="customer-phone-number" class="form-label text-muted-subtle">Phone Number</label><input type="tel" class="form-control" id="customer-phone-number" placeholder="e.g., +1 (555) 123-4567"></div>
-                        <div class="col-md-6"><label for="customer-email" class="form-label text-muted-subtle">Customer Email (Optional)</label><input type="email" class="form-control" id="customer-email" placeholder="e.g., customer@example.com"></div>
-                        
-                        <div class="col-12 mt-3 mb-0"><h6 class="text-info"><i class="fas fa-shirt me-2"></i>Service Details & Weight</h6><hr class="mt-1 mb-2"></div>
-                        
-                        <div class="col-md-3">
-                            <label for="service-type" class="form-label text-muted-subtle">Service Type</label>
-                            <select class="form-select" id="service-type" required>
-                                <option value="Wash & Fold" selected>Wash & Fold</option>
-                                <option value="Dry Cleaning">Dry Cleaning</option>
-                                <option value="Self Service">Self Service</option>
-                                <option value="Pressing Only">Pressing Only</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="load-type" class="form-label text-muted-subtle">Load Type/Preference</label>
-                            <select class="form-select" id="load-type" required>
-                                <option value="Standard Detergent" selected>Standard Detergent</option>
-                                <option value="Sensitive Skin">Sensitive Skin</option>
-                                <option value="Organic Wash">Organic Wash</option>
-                                <option value="Bleach Added">Bleach Added</option>
-                                <option value="Heavy Duty">Heavy Duty</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3"><label for="weight-kg" class="form-label text-muted-subtle">Weight (kg) / Item Count</label><input type="number" step="0.1" min="0" class="form-control" id="weight-kg" required value="0"></div>
-                        <div class="col-md-3"><label for="detergent-used" class="form-label text-muted-subtle">Detergent Units Used</label><input type="number" step="0.5" min="0" class="form-control" id="detergent-used" value="1"></div>
-                        
-                        <div class="col-12 mt-3 mb-0"><h6 class="text-info"><i class="fas fa-hand-holding-dollar me-2"></i>Financial & Personnel</h6><hr class="mt-1 mb-2"></div>
-                        
-                        <div class="col-md-3"><label for="staff-in-charge" class="form-label text-muted-subtle">Staff In Charge</label><input type="text" class="form-control" id="staff-in-charge" placeholder="e.g., Manager A"></div>
-                        
-                        <div class="col-md-3"><label for="base-cost" class="form-label text-muted-subtle">Base Service Cost (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="base-cost" value="0.00"></div>
-                        <div class="col-md-3"><label for="deposit" class="form-label text-muted-subtle">Deposit Received (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="deposit" value="0.00"></div>
-                        
-                        <div class="col-md-3"><label for="total-price" class="form-label text-muted-subtle">Total Price (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="total-price" value="0.00" required></div>
-                        
-                        <div class="col-12 mt-3 mb-0"><h6 class="text-info"><i class="fas fa-calendar-alt me-2"></i>Pickup & Notes</h6><hr class="mt-1 mb-2"></div>
+                <div class="tab-content" id="orderSubTabContent">
+                    
+<div class="tab-pane fade show active" id="sub-new-order" role="tabpanel" aria-labelledby="new-order-sub-tab">
+    <div class="card p-4"> 
+        <h5 class="card-title text-primary mb-3"><i class="fas fa-plus-circle me-2"></i>New Laundry Order Details</h5>
+        <form id="order-form" class="row g-3">
+            
+            <div class="col-12 mt-1 mb-0"><h6 class="text-info"><i class="fas fa-user-check me-2"></i>Customer & Details</h6><hr class="mt-1 mb-2"></div>
 
-                        <div class="col-md-3"><label for="pickup-date" class="form-label text-muted-subtle">Est. Pickup Date</label><input type="date" class="form-control" id="pickup-date" required></div>
-                        <div class="col-md-3"><label for="pickup-time" class="form-label text-muted-subtle">Est. Pickup Time</label><input type="time" class="form-control" id="pickup-time" value=""></div>
-
-                        <div class="col-md-6"><label for="notes" class="form-label text-muted-subtle">Notes (Stains, Special Instructions)</label><textarea class="form-control" id="notes" rows="1" placeholder="e.g., Stain on collar. Do not use heat dry."></textarea></div>
-                        
-                        <div class="col-12 text-end"><button type="submit" class="btn btn-primary mt-3"><i class="fas fa-save me-2"></i>Save Order</button></div>
-                    </form>
-                </div>
-            </div>
-
-            <div class="tab-pane fade" id="order-list" role="tabpanel" aria-labelledby="order-list-tab">
-                 <div class="card p-4 mb-3 mt-4"> <h5 class="text-primary mb-3"><i class="fas fa-plus-circle me-2"></i>New Order Shortcut</h5>
-                     <button id="add-new-order-btn" class="btn btn-success w-100"><i class="fas fa-plus me-2"></i>Add New Laundry Order</button>
-                 </div>
-                <div class="card rounded-top-0">
-                    <ul id="order-list-ul" class="list-group list-group-flush">
-                        <li class="list-group-item text-center text-muted-subtle">Orders will load after successful setup.</li>
-                    </ul>
-                </div>
-                
-                <div id="order-pagination-controls" class="d-flex justify-content-between align-items-center p-3 border-top bg-light rounded-bottom flex-wrap">
-                    <button id="prev-page-btn" class="btn btn-outline-primary btn-sm mb-2 mb-sm-0" disabled><i class="fas fa-chevron-left me-1"></i> Previous</button>
-                    <span id="page-info" class="text-muted-subtle mx-auto mb-2 mb-sm-0" style="font-size: 0.9rem;">Page 0 of 0</span>
-                    <button id="next-page-btn" class="btn btn-outline-primary btn-sm" disabled>Next <i class="fas fa-chevron-right ms-1"></i></button>
-                </div>
+            <div class="col-md-6">
+                <label for="customer-dropdown" class="form-label text-primary">Select Registered Customer <span class="text-danger">*</span></label>
+                <select class="form-select" id="customer-dropdown" required>
+                    <option value="" selected disabled>-- Choose Customer --</option>
+                    </select>
             </div>
             
+            <div class="col-md-6">
+                <label class="form-label text-muted-subtle">Selected Customer Information:</label>
+                <div class="card border-0 p-2 bg-light">
+                    <p class="mb-1" style="font-size: 0.9rem;">
+                        <strong><i class="fas fa-user me-1"></i> Name:</strong> <span id="display-customer-name" class="fw-bold">N/A</span>
+                    </p>
+                    <p class="mb-1" style="font-size: 0.9rem;">
+                        <strong><i class="fas fa-phone me-1"></i> Contact:</strong> <span id="display-customer-contact">N/A</span>
+                    </p>
+                    <p class="mb-1" style="font-size: 0.9rem;">
+                        <strong><i class="fas fa-map-marker-alt me-1"></i> Address:</strong> <span id="display-customer-address">N/A</span>
+                    </p>
+                    <p class="mb-0" style="font-size: 0.9rem;">
+                        <strong><i class="fas fa-calendar-alt me-1"></i> Date Reg:</strong> <span id="display-customer-datereg">N/A</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-12 mt-3 mb-0"><h6 class="text-info"><i class="fas fa-tools me-2"></i>Operation Details</h6><hr class="mt-1 mb-2"></div>
+            
+            <div class="col-md-4">
+                <label for="machine-dropdown" class="form-label text-muted-subtle">Select Available Machine <span class="text-danger">*</span></label>
+                <select class="form-select" id="machine-dropdown" required>
+                    <option value="" selected disabled>-- Choose Machine --</option>
+                    </select>
+                <div class="form-text">In-use machines will be disabled.</div>
+            </div>
+            
+            <div class="col-md-4">
+                <label for="detergent-dropdown" class="form-label text-muted-subtle">Detergent Choice <span class="text-danger">*</span></label>
+                <select class="form-select" id="detergent-dropdown" required>
+                    <option value="" selected disabled>-- Select Detergent --</option>
+                    </select>
+            </div>
+            
+            <div class="col-md-4">
+                <label for="staff-dropdown" class="form-label text-muted-subtle">Staff In Charge <span class="text-danger">*</span></label>
+                <select class="form-select" id="staff-dropdown" required>
+                    <option value="" selected disabled>-- Select Staff --</option>
+                    </select>
+            </div>
+            
+            <div class="col-12 mt-3 mb-0"><h6 class="text-info"><i class="fas fa-shirt me-2"></i>Service Details</h6><hr class="mt-1 mb-2"></div>
+            
+            <div class="col-md-3">
+                <label for="service-type" class="form-label text-muted-subtle">Service Type</label>
+                <select class="form-select" id="service-type" required>
+                    <option value="Wash & Fold" selected>Wash & Fold</option>
+                    <option value="Dry Cleaning">Dry Cleaning</option>
+                    <option value="Self Service">Self Service</option>
+                </select>
+            </div>
+            <div class="col-md-3"><label for="weight-kg" class="form-label text-muted-subtle">Weight (kg) / Item Count</label><input type="number" step="0.1" min="0" class="form-control" id="weight-kg" required value="0"></div>
+            <div class="col-md-3"><label for="base-cost" class="form-label text-muted-subtle">Base Service Cost (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="base-cost" value="0.00"></div>
+            <div class="col-md-3"><label for="total-price" class="form-label text-muted-subtle">Total Price (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="total-price" value="0.00" required></div>
+            
+            <div class="col-12 mt-3 mb-0"><h6 class="text-info"><i class="fas fa-calendar-alt me-2"></i>Pickup & Notes</h6><hr class="mt-1 mb-2"></div>
+
+            <div class="col-md-3"><label for="pickup-date" class="form-label text-muted-subtle">Est. Pickup Date</label><input type="date" class="form-control" id="pickup-date" required></div>
+            <div class="col-md-3"><label for="pickup-time" class="form-label text-muted-subtle">Est. Pickup Time</label><input type="time" class="form-control" id="pickup-time" value=""></div>
+
+            <div class="col-md-6"><label for="notes" class="form-label text-muted-subtle">Notes (Stains, Special Instructions)</label><textarea class="form-control" id="notes" rows="1" placeholder="e.g., Stain on collar. Do not use heat dry."></textarea></div>
+            
+            <div class="col-12 text-end"><button type="submit" class="btn btn-primary mt-3"><i class="fas fa-save me-2"></i>Save Order</button></div>
+        </form>
+    </div>
+</div>
+<div class="tab-pane fade" id="sub-order-list" role="tabpanel" aria-labelledby="order-list-sub-tab">
+                        <div class="card p-4 mb-3 mt-4"> 
+                            <h5 class="text-primary mb-3"><i class="fas fa-plus-circle me-2"></i>New Order Shortcut</h5>
+                            <button id="add-new-order-btn" data-target-sub-tab="#sub-new-order" class="btn btn-success w-100"><i class="fas fa-plus me-2"></i>Add New Laundry Order</button>
+                        </div>
+                        <div class="card rounded-top-0">
+                            <ul id="order-list-ul" class="list-group list-group-flush">
+                                <li class="list-group-item text-center text-muted-subtle">Orders will load after successful setup.</li>
+                            </ul>
+                        </div>
+                        
+                        <div id="order-pagination-controls" class="d-flex justify-content-between align-items-center p-3 border-top bg-light rounded-bottom flex-wrap">
+                            <button id="prev-page-btn" class="btn btn-outline-primary btn-sm mb-2 mb-sm-0" disabled><i class="fas fa-chevron-left me-1"></i> Previous</button>
+                            <span id="page-info" class="text-muted-subtle mx-auto mb-2 mb-sm-0" style="font-size: 0.9rem;">Page 0 of 0</span>
+                            <button id="next-page-btn" class="btn btn-outline-primary btn-sm" disabled>Next <i class="fas fa-chevron-right ms-1"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="tab-pane fade" id="inventory" role="tabpanel" aria-labelledby="inventory-tab">
                 <ul class="nav nav-tabs mb-4 mt-4" id="inventoryMainTabs" role="tablist"> <li class="nav-item" role="presentation">
                         <button class="nav-link" id="inventory-add-tab" data-bs-toggle="tab" data-bs-target="#tab-inventory-add" type="button" role="tab" aria-controls="tab-inventory-add" aria-selected="false"><i class="fas fa-cart-plus me-2"></i>Add New Stock</button>
@@ -533,8 +573,29 @@
             </div>
             
             <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
-                 <div class="row g-4 mt-4"> <div class="col-md-12">
-                         <div class="card p-4">
+                 <div class="row g-4 mt-4"> 
+                    <div class="col-md-12">
+                        
+                        <div class="card p-4 mb-4">
+                            <h5 class="text-primary mb-3"><i class="fas fa-calendar-alt me-2"></i>Filter Reports by Date</h5>
+                            <form id="report-filter-form" class="row g-3">
+                                <div class="col-md-5">
+                                    <label for="filter-start-date" class="form-label text-muted-subtle">Start Date</label>
+                                    <input type="date" class="form-control" id="filter-start-date">
+                                </div>
+                                <div class="col-md-5">
+                                    <label for="filter-end-date" class="form-label text-muted-subtle">End Date</label>
+                                    <input type="date" class="form-control" id="filter-end-date">
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-2"></i>Filter</button>
+                                </div>
+                                <div class="col-12 text-end">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="clear-report-filter-btn"><i class="fas fa-redo me-1"></i>Clear Filter</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="card p-4">
                             <h5 class="text-primary mb-3"><i class="fas fa-chart-line me-2"></i>Financial Overview</h5>
                             
                             <div class="row g-3">
@@ -681,7 +742,7 @@
                     </ul>
                 </div>
             </div>
-
+            
             <div class="tab-pane fade" id="customers" role="tabpanel" aria-labelledby="customers-tab">
                 <ul class="nav nav-tabs mb-4 mt-4" id="customerMainTabs" role="tablist">
                     <li class="nav-item" role="presentation">
@@ -696,8 +757,9 @@
                 </ul>
 
                 <div class="tab-content" id="customerMainTabContent">
+                    
                     <div class="tab-pane fade" id="tab-customer-add" role="tabpanel" aria-labelledby="customer-add-tab">
-                        <div class="card p-4 mb-4"> 
+                        <div class="card p-4 mb-4">
                             <h5 class="text-info card-title mb-3"><i class="fas fa-address-card me-2"></i>Register New Customer</h5>
                             <form id="customer-form" class="row g-3">
                                 <div class="col-md-4"><label for="customer-reg-name" class="form-label text-muted-subtle">Full Name</label><input type="text" class="form-control" id="customer-reg-name" required placeholder="e.g., Jane Doe"></div>
@@ -708,49 +770,45 @@
                             </form>
                         </div>
                     </div>
+                    
                     <div class="tab-pane fade show active" id="tab-customer-view" role="tabpanel" aria-labelledby="customer-view-tab">
                         <div class="card p-4">
                             <h5 class="text-primary mb-3"><i class="fas fa-list me-2"></i>Registered Customer List (Click to Edit)</h5>
                             <ul id="customer-list" class="list-group list-group-flush">
-                                <li class="list-group-item text-center text-muted-subtle">Customer list will load here.</li>
+                                <li class="list-group-item text-center text-muted-subtle">Customers will load here.</li>
                             </ul>
                         </div>
                     </div>
+                    
                     <div class="tab-pane fade" id="tab-customer-id" role="tabpanel" aria-labelledby="customer-id-tab">
-                        <div class="card p-4 mb-4 mt-4">
-                            <h5 class="text-primary card-title mb-3"><i class="fas fa-qrcode me-2"></i>Generate Customer ID Card</h5>
+                        <div class="card p-4 mb-4">
+                            <h5 class="text-info card-title mb-3"><i class="fas fa-qrcode me-2"></i>Customer ID Card Generator</h5>
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label for="id-customer-select" class="form-label text-muted-subtle">Select Customer</label>
+                                    <label for="id-customer-select" class="form-label text-muted-subtle">Select Customer to Print ID</label>
                                     <select class="form-select" id="id-customer-select" required>
-                                        <option value="">Select a customer to generate ID</option>
-                                    </select>
+                                        <option value="" selected disabled>-- Choose Customer --</option>
+                                        </select>
                                 </div>
                                 <div class="col-md-6 d-flex align-items-end">
-                                    <button type="button" class="btn btn-primary w-100" id="generate-id-card-btn"><i class="fas fa-file-invoice me-2"></i>Generate ID Preview</button>
+                                    <button type="button" class="btn btn-outline-info w-100" id="generate-id-btn" disabled><i class="fas fa-id-card me-2"></i>Generate/Preview ID</button>
                                 </div>
                             </div>
                             
-                            <div id="id-card-print-area" class="id-card-container d-none">
-                                <div class="id-card-header">
-                                    LAUNDRY SHOP CUSTOMER ID
-                                </div>
-                                <div class="id-card-photo">
-                                    NO PHOTO
-                                </div>
+                            <div id="id-card-preview" class="id-card-container d-none">
+                                <div class="id-card-header">LAUNDRY CUSTOMER LOYALTY CARD</div>
+                                <div class="id-card-photo"><i class="fas fa-camera"></i> Photo</div>
                                 <div class="id-card-details">
-                                    <p><strong>Name:</strong> <span id="id-card-name"></span></p>
-                                    <p><strong>Contact:</strong> <span id="id-card-contact"></span></p>
-                                    <p><strong>Address:</strong> <span id="id-card-address"></span></p>
-                                    <p><strong>Age:</strong> <span id="id-card-age"></span></p>
+                                    <p><strong>Name:</strong> <span id="id-display-name">N/A</span></p>
+                                    <p><strong>Contact:</strong> <span id="id-display-contact">N/A</span></p>
+                                    <p><strong>Address:</strong> <span id="id-display-address">N/A</span></p>
+                                    <p><strong>Reg. Date:</strong> <span id="id-display-datereg">N/A</span></p>
                                 </div>
-                                <div class="id-card-id" id="id-card-unique-id">
-                                    UNIQUE ID HERE
-                                </div>
+                                <div class="id-card-id">ID: <span id="id-display-id">CID-XXXXX</span></div>
                             </div>
                             
-                            <div class="print-area mt-4 d-none" id="id-card-print-buttons">
-                                <button class="btn btn-success" onclick="window.print()"><i class="fas fa-print me-2"></i>Print ID Card</button>
+                            <div class="print-area d-none" id="id-card-print-area">
+                                <button type="button" class="btn btn-primary mt-3"><i class="fas fa-print me-2"></i>Print ID Card</button>
                             </div>
                         </div>
                     </div>
@@ -760,1622 +818,1307 @@
     </div>
     
     <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header bg-primary text-white">
-            <h5 class="modal-title" id="orderDetailModalLabel"><i class="fas fa-edit me-2"></i>Order ID: <span id="modal-order-id-display" class="fw-bold">...</span></h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body p-4">
-            <form id="order-detail-form" class="row g-3">
-                <input type="hidden" id="modal-order-id">
-                <input type="hidden" id="modal-order-timestamp">
-
-                <div class="col-12 mt-1 mb-0"><h6 class="text-info"><i class="fas fa-user me-2"></i>Customer Details</h6><hr class="mt-1 mb-2"></div>
-                <div class="col-md-4"><label for="modal-customer-name" class="form-label text-muted-subtle">Customer Name</label><input type="text" class="form-control" id="modal-customer-name" required></div>
-                <div class="col-md-4"><label for="modal-customer-phone-number" class="form-label text-muted-subtle">Phone</label><input type="tel" class="form-control" id="modal-customer-phone-number"></div>
-                <div class="col-md-4"><label for="modal-customer-email" class="form-label text-muted-subtle">Email (Optional)</label><input type="email" class="form-control" id="modal-customer-email"></div>
-
-                <div class="col-12 mt-3 mb-0"><h6 class="text-info"><i class="fas fa-shirt me-2"></i>Service & Weight</h6><hr class="mt-1 mb-2"></div>
-                <div class="col-md-4">
-                    <label for="modal-service-type" class="form-label text-muted-subtle">Service Type</label>
-                    <select class="form-select" id="modal-service-type" required>
-                        <option value="Wash & Fold">Wash & Fold</option>
-                        <option value="Dry Cleaning">Dry Cleaning</option>
-                        <option value="Self Service">Self Service</option>
-                        <option value="Pressing Only">Pressing Only</option>
-                    </select>
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="orderDetailModalLabel"><i class="fas fa-file-invoice me-2"></i>Order Details: <span id="modal-order-id"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="col-md-4"><label for="modal-weight-kg" class="form-label text-muted-subtle">Weight (kg) / Count</label><input type="number" step="0.1" min="0" class="form-control" id="modal-weight-kg" required></div>
-                <div class="col-md-4"><label for="modal-detergent-used" class="form-label text-muted-subtle">Detergent Units Used</label><input type="number" step="0.5" min="0" class="form-control" id="modal-detergent-used"></div>
-                
-                <div class="col-12 mt-3 mb-0"><h6 class="text-info"><i class="fas fa-hand-holding-dollar me-2"></i>Financial & Status</h6><hr class="mt-1 mb-2"></div>
-                <div class="col-md-3"><label for="modal-base-cost" class="form-label text-muted-subtle">Base Cost (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-base-cost" required></div>
-                <div class="col-md-3"><label for="modal-deposit" class="form-label text-muted-subtle">Deposit (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-deposit" required></div>
-                <div class="col-md-3"><label for="modal-total-price" class="form-label text-muted-subtle">Total Price (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-total-price" required></div>
-                <div class="col-md-3">
-                    <label for="modal-status" class="form-label text-muted-subtle">Status</label>
-                    <select class="form-select" id="modal-status" required>
-                        <option value="Pending">Pending</option>
-                        <option value="Washing">Washing</option>
-                        <option value="Drying">Drying</option>
-                        <option value="Finished">Finished</option>
-                        <option value="Collected">Collected</option>
-                        <option value="Cancelled">Cancelled</option>
-                    </select>
+                <div class="modal-body">
+                    <div id="modal-order-content"></div>
+                    <form id="modal-order-update-form" class="row g-3 mt-3">
+                        <div class="col-md-6">
+                            <label for="modal-update-status" class="form-label text-muted-subtle">Update Status</label>
+                            <select class="form-select" id="modal-update-status" required>
+                                <option value="Pending">Pending</option>
+                                <option value="Washing">Washing</option>
+                                <option value="Drying">Drying</option>
+                                <option value="Folding">Folding</option>
+                                <option value="Ready for Pickup">Ready for Pickup</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="modal-update-payment" class="form-label text-muted-subtle">Payment Status</label>
+                            <select class="form-select" id="modal-update-payment" required>
+                                <option value="Unpaid">Unpaid</option>
+                                <option value="Partially Paid">Partially Paid</option>
+                                <option value="Paid">Paid</option>
+                            </select>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save Changes</button>
+                        </div>
+                    </form>
                 </div>
-                
-                <div class="col-md-4">
-                    <label for="modal-payment-status" class="form-label text-muted-subtle">Payment Status</label>
-                    <select class="form-select" id="modal-payment-status" required>
-                        <option value="Unpaid">Unpaid</option>
-                        <option value="Partial">Partial (Deposit)</option>
-                        <option value="Paid">Paid (Full)</option>
-                    </select>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="delete-order-btn"><i class="fas fa-trash me-2"></i>Delete Order</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
-                <div class="col-md-4"><label for="modal-staff-in-charge" class="form-label text-muted-subtle">Staff In Charge</label><input type="text" class="form-control" id="modal-staff-in-charge"></div>
-
-                <div class="col-12 mt-3 mb-0"><h6 class="text-info"><i class="fas fa-calendar-alt me-2"></i>Pickup & Notes</h6><hr class="mt-1 mb-2"></div>
-                <div class="col-md-4"><label for="modal-pickup-date" class="form-label text-muted-subtle">Est. Pickup Date</label><input type="date" class="form-control" id="modal-pickup-date" required></div>
-                <div class="col-md-4"><label for="modal-pickup-time" class="form-label text-muted-subtle">Est. Pickup Time</label><input type="time" class="form-control" id="modal-pickup-time"></div>
-                <div class="col-md-4"><label for="modal-date-collected" class="form-label text-muted-subtle">Actual Collection Date</label><input type="datetime-local" class="form-control" id="modal-date-collected"></div>
-                
-                <div class="col-12"><label for="modal-notes" class="form-label text-muted-subtle">Notes (Special Instructions)</label><textarea class="form-control" id="modal-notes" rows="2"></textarea></div>
-
-            </form>
-          </div>
-          <div class="modal-footer d-flex justify-content-between">
-            <button type="button" class="btn btn-danger me-auto" id="delete-order-btn"><i class="fas fa-trash-alt me-2"></i>Delete</button>
-            <div>
-                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                 <button type="submit" class="btn btn-primary" form="order-detail-form" id="save-order-changes-btn"><i class="fas fa-save me-2"></i>Save changes</button>
             </div>
-          </div>
         </div>
-      </div>
     </div>
     
     <div class="modal fade" id="inventoryDetailModal" tabindex="-1" aria-labelledby="inventoryDetailModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header bg-success text-white">
-            <h5 class="modal-title" id="inventoryDetailModalLabel"><i class="fas fa-boxes-stacked me-2"></i>Edit Inventory Item: <span id="modal-inventory-name-display" class="fw-bold">...</span></h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form id="inventory-detail-form" class="row g-3">
-                <input type="hidden" id="modal-inventory-id">
-                
-                <div class="col-md-6"><label for="modal-inventory-name" class="form-label text-muted-subtle">Item Name</label><input type="text" class="form-control" id="modal-inventory-name" required></div>
-                <div class="col-md-6">
-                    <label for="modal-inventory-type" class="form-label text-muted-subtle">Type</label>
-                    <select class="form-select" id="modal-inventory-type" required>
-                        <option value="Liquid">Liquid</option>
-                        <option value="Powder">Powder</option>
-                        <option value="Pods">Pods/Unit</option>
-                        <option value="Softener">Softener</option>
-                        <option value="Special">Special</option>
-                    </select>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="inventoryDetailModalLabel"><i class="fas fa-box me-2"></i>Update Stock: <span id="modal-inventory-name"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="col-md-6"><label for="modal-inventory-qty" class="form-label text-muted-subtle">Quantity (Units)</label><input type="number" min="0" class="form-control" id="modal-inventory-qty" required></div>
-                <div class="col-md-6"><label for="modal-inventory-cost" class="form-label text-muted-subtle">Cost Per Unit (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-inventory-cost" required></div>
-                <div class="col-md-6"><label for="modal-inventory-vendor" class="form-label text-muted-subtle">Vendor</label><input type="text" class="form-control" id="modal-inventory-vendor"></div>
-                <div class="col-md-6"><label for="modal-inventory-reorder-level" class="form-label text-muted-subtle">Reorder Level</label><input type="number" min="0" class="form-control" id="modal-inventory-reorder-level" required></div>
-            </form>
-          </div>
-          <div class="modal-footer d-flex justify-content-between">
-            <button type="button" class="btn btn-danger me-auto" id="delete-inventory-btn"><i class="fas fa-trash-alt me-2"></i>Delete Item</button>
-            <div>
-                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                 <button type="submit" class="btn btn-success" form="inventory-detail-form" id="save-inventory-changes-btn"><i class="fas fa-save me-2"></i>Save changes</button>
+                <div class="modal-body">
+                    <form id="modal-inventory-update-form" class="row g-3">
+                        <input type="hidden" id="modal-inventory-id">
+                        <div class="col-md-6">
+                            <label for="modal-inventory-qty" class="form-label text-muted-subtle">New Quantity (Units)</label>
+                            <input type="number" min="0" class="form-control" id="modal-inventory-qty" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="modal-inventory-cost" class="form-label text-muted-subtle">Cost Per Unit (₱)</label>
+                            <input type="number" step="0.01" min="0" class="form-control" id="modal-inventory-cost" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="modal-inventory-vendor" class="form-label text-muted-subtle">Vendor</label>
+                            <input type="text" class="form-control" id="modal-inventory-vendor">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-info mt-2"><i class="fas fa-save me-2"></i>Update Stock</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="delete-inventory-btn"><i class="fas fa-trash me-2"></i>Delete Item</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
+    </div>
+
+    <div class="modal fade" id="machineDetailModal" tabindex="-1" aria-labelledby="machineDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="machineDetailModalLabel"><i class="fas fa-washing-machine me-2"></i>Machine Status: <span id="modal-machine-name"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="modal-machine-update-form" class="row g-3">
+                        <input type="hidden" id="modal-machine-id">
+                        <div class="col-md-6">
+                            <label for="modal-machine-status" class="form-label text-muted-subtle">Current Status</label>
+                            <select class="form-select" id="modal-machine-status" required>
+                                <option value="available">Available</option>
+                                <option value="in-use">In Use</option>
+                                <option value="maintenance">Under Maintenance</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="modal-machine-capacity" class="form-label text-muted-subtle">Capacity (kg)</label>
+                            <input type="number" step="0.1" min="1" class="form-control" id="modal-machine-capacity" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="modal-machine-notes" class="form-label text-muted-subtle">Notes (Model, Location)</label>
+                            <textarea class="form-control" id="modal-machine-notes" rows="1"></textarea>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-warning mt-2 text-dark"><i class="fas fa-save me-2"></i>Update Status</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="delete-machine-btn"><i class="fas fa-trash me-2"></i>Remove Machine</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
     
     <div class="modal fade" id="employeeDetailModal" tabindex="-1" aria-labelledby="employeeDetailModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header bg-success text-white">
-            <h5 class="modal-title" id="employeeDetailModalLabel"><i class="fas fa-user-gear me-2"></i>Edit Employee: <span id="modal-employee-name-display" class="fw-bold">...</span></h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form id="employee-detail-form" class="row g-3">
-                <input type="hidden" id="modal-employee-id">
-                
-                <div class="col-md-6"><label for="modal-employee-name" class="form-label text-muted-subtle">Employee Name</label><input type="text" class="form-control" id="modal-employee-name" required></div>
-                <div class="col-md-6">
-                    <label for="modal-employee-type" class="form-label text-muted-subtle">Employee Type</label>
-                    <select class="form-select" id="modal-employee-type" required>
-                        <option value="Agent">Agent (Shop)</option>
-                        <option value="Delivery">Delivery (Driver)</option>
-                        <option value="Driver">Driver (Logistics)</option>
-                        <option value="Manager">Manager</option>
-                    </select>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="employeeDetailModalLabel"><i class="fas fa-user-gear me-2"></i>Update Employee: <span id="modal-employee-name"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="col-md-6"><label for="modal-employee-salary" class="form-label text-muted-subtle">Base Salary (₱)</label><input type="number" step="0.01" min="0" class="form-control" id="modal-employee-salary" required></div>
-                <div class="col-md-6">
-                    <label for="modal-employee-rate-type" class="form-label text-muted-subtle">Rate Type</label>
-                    <select class="form-select" id="modal-employee-rate-type" required>
-                        <option value="Monthly">Monthly Rate</option>
-                        <option value="Daily">Daily Rate</option>
-                    </select>
+                <div class="modal-body">
+                    <form id="modal-employee-update-form" class="row g-3">
+                        <input type="hidden" id="modal-employee-id">
+                        <div class="col-md-6">
+                            <label for="modal-employee-type" class="form-label text-muted-subtle">Employee Type</label>
+                            <select class="form-select" id="modal-employee-type" required>
+                                <option value="Agent">Agent (Shop)</option>
+                                <option value="Delivery">Delivery (Driver)</option>
+                                <option value="Manager">Manager</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="modal-employee-salary" class="form-label text-muted-subtle">Base Salary (₱)</label>
+                            <input type="number" step="0.01" min="0" class="form-control" id="modal-employee-salary" required>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-success mt-2"><i class="fas fa-save me-2"></i>Update Employee</button>
+                        </div>
+                    </form>
                 </div>
-            </form>
-          </div>
-          <div class="modal-footer d-flex justify-content-between">
-            <button type="button" class="btn btn-danger me-auto" id="delete-employee-btn"><i class="fas fa-trash-alt me-2"></i>Fire Employee</button>
-            <div>
-                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                 <button type="submit" class="btn btn-success" form="employee-detail-form" id="save-employee-changes-btn"><i class="fas fa-save me-2"></i>Save changes</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="delete-employee-btn"><i class="fas fa-trash me-2"></i>Remove Employee</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
     </div>
     
     <div class="modal fade" id="customerDetailModal" tabindex="-1" aria-labelledby="customerDetailModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header bg-info text-white">
-            <h5 class="modal-title" id="customerDetailModalLabel"><i class="fas fa-user-edit me-2"></i>Edit Customer: <span id="modal-customer-name-display-2" class="fw-bold">...</span></h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form id="customer-detail-form" class="row g-3">
-                <input type="hidden" id="modal-customer-id">
-                
-                <div class="col-md-12"><label for="modal-customer-name-2" class="form-label text-muted-subtle">Full Name</label><input type="text" class="form-control" id="modal-customer-name-2" required></div>
-                <div class="col-md-6"><label for="modal-customer-contact" class="form-label text-muted-subtle">Contact Number</label><input type="tel" class="form-control" id="modal-customer-contact" required></div>
-                <div class="col-md-6"><label for="modal-customer-age" class="form-label text-muted-subtle">Age</label><input type="number" min="1" class="form-control" id="modal-customer-age"></div>
-                <div class="col-md-12"><label for="modal-customer-address" class="form-label text-muted-subtle">Address</label><input type="text" class="form-control" id="modal-customer-address"></div>
-                <div class="col-12"><label for="modal-customer-unique-id" class="form-label text-muted-subtle">System ID</label><input type="text" class="form-control" id="modal-customer-unique-id" readonly></div>
-            </form>
-          </div>
-          <div class="modal-footer d-flex justify-content-between">
-            <button type="button" class="btn btn-danger me-auto" id="delete-customer-btn"><i class="fas fa-trash-alt me-2"></i>Delete Record</button>
-            <div>
-                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                 <button type="submit" class="btn btn-info" form="customer-detail-form" id="save-customer-changes-btn"><i class="fas fa-save me-2"></i>Save changes</button>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="customerDetailModalLabel"><i class="fas fa-user-edit me-2"></i>Update Customer: <span id="modal-customer-name"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="modal-customer-update-form" class="row g-3">
+                        <input type="hidden" id="modal-customer-id">
+                        <div class="col-md-6">
+                            <label for="modal-customer-contact" class="form-label text-muted-subtle">Contact Number</label>
+                            <input type="tel" class="form-control" id="modal-customer-contact" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="modal-customer-address" class="form-label text-muted-subtle">Address</label>
+                            <input type="text" class="form-control" id="modal-customer-address">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-info mt-2"><i class="fas fa-save me-2"></i>Update Customer</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="delete-customer-btn"><i class="fas fa-trash me-2"></i>Remove Customer</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
     </div>
     
-    <div class="modal fade" id="startSyncModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="startSyncModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header bg-primary text-white">
-            <h5 class="modal-title" id="startSyncModalLabel"><i class="fas fa-cloud me-2"></i>Cloud Sync Setup</h5>
-          </div>
-          <div class="modal-body start-sync-modal-body">
-            <p>Choose a data storage method to begin:</p>
-            <button id="google-sign-in-btn" class="google-sign-in-btn"><i class="fab fa-google me-2"></i>Sync with Google (Cloud)</button>
-            <p class="text-muted-subtle mt-2 mb-2">or</p>
-            <button id="continue-as-guest-btn" class="btn guest-button"><i class="fas fa-desktop me-2"></i>Use Local Storage Only</button>
-            <small class="d-block mt-3 text-muted">Cloud Sync requires a Firebase setup in the script. Local storage is browser-only and can be cleared.</small>
-          </div>
+    <div class="modal fade" id="cloudSyncModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="cloudSyncModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="cloudSyncModalLabel"><i class="fas fa-cloud me-2"></i>Cloud Sync Setup</h5>
+                </div>
+                <div class="modal-body start-sync-modal-body">
+                    <p class="text-muted">Choose your data storage mode. You can change this later in settings (not yet implemented).</p>
+                    <button id="sync-google-btn" class="google-sign-in-btn">
+                        <i class="fab fa-google me-2"></i>Sign in with Google (Cloud Sync)
+                    </button>
+                    <button id="sync-local-btn" class="btn guest-button">
+                        <i class="fas fa-desktop me-2"></i>Continue Locally (Local Storage)
+                    </button>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
     <script>
-        // ====================================================================
-        // GLOBAL VARIABLES
-        // ====================================================================
-        let storageMode = 'local'; // 'local' or 'cloud'
-        let firebaseApp = null;
-        let auth = null;
-        let database = null;
-        let userId = 'local_user'; // Default user ID for local mode
+        // --- DATA MANAGEMENT (Mock Data for Local Storage) ---
+        let storageMode = 'local'; // Default to local until explicitly set
+        let ORDERS = [];
+        let INVENTORY = [];
+        let MACHINES = [];
+        let WORKFORCE = [];
+        let CUSTOMERS = [];
         const PAGE_SIZE = 10;
         let currentPage = 1;
 
-        // ====================================================================
-        // UTILITY FUNCTIONS
-        // ====================================================================
+        // Utility to save to Local Storage (synchronously)
+        function saveDataLocally() {
+            localStorage.setItem('orders', JSON.stringify(ORDERS));
+            localStorage.setItem('inventory', JSON.stringify(INVENTORY));
+            localStorage.setItem('machines', JSON.stringify(MACHINES));
+            localStorage.setItem('workforce', JSON.stringify(WORKFORCE));
+            localStorage.setItem('customers', JSON.stringify(CUSTOMERS));
+            // console.log("Data saved locally.");
+            showToast('Data saved locally!', 'success');
+        }
 
-        /**
-         * Displays a custom toast notification.
-         * @param {string} message - The message to display.
-         * @param {string} type - 'success', 'error', 'warning', 'info'.
-         */
-        const showToast = (message, type = 'info') => {
-            const container = $('#toast-container');
-            const toast = $('<div>').addClass('custom-toast');
+        // Utility to load from Local Storage (synchronously)
+        function loadDataLocally() {
+            ORDERS = JSON.parse(localStorage.getItem('orders')) || [];
+            INVENTORY = JSON.parse(localStorage.getItem('inventory')) || [];
+            MACHINES = JSON.parse(localStorage.getItem('machines')) || [];
+            WORKFORCE = JSON.parse(localStorage.getItem('workforce')) || [];
+            CUSTOMERS = JSON.parse(localStorage.getItem('customers')) || [];
+            // console.log("Data loaded locally.");
+        }
 
-            let icon = '';
-            let bgColor = '#333';
-            switch (type) {
-                case 'success': icon = '<i class="fas fa-check-circle me-2"></i>'; bgColor = '#34a853'; break;
-                case 'error': icon = '<i class="fas fa-times-circle me-2"></i>'; bgColor = '#ea4335'; break;
-                case 'warning': icon = '<i class="fas fa-exclamation-triangle me-2"></i>'; bgColor = '#fbbc05'; break;
-                case 'info':
-                default: icon = '<i class="fas fa-info-circle me-2"></i>'; bgColor = '#4285f4'; break;
-            }
+        // Function to show a custom toast message
+        function showToast(message, type = 'info') {
+            const toastContainer = $('#toast-container');
+            const toast = $(`<div class="custom-toast bg-${type}">${message}</div>`);
+            
+            toastContainer.append(toast);
 
-            toast.css('background-color', bgColor);
-            toast.html(`${icon}${message}`);
-            container.append(toast);
-
-            // Show and hide logic
             setTimeout(() => {
                 toast.addClass('show');
-            }, 50);
+            }, 10); // Small delay for CSS transition to work
 
             setTimeout(() => {
                 toast.removeClass('show');
                 setTimeout(() => {
                     toast.remove();
-                }, 500);
+                }, 500); // Wait for transition to finish before removing
             }, 3000);
-        };
-
-        /**
-         * Returns a formatted timestamp string.
-         * @returns {string} Current timestamp (YYYY-MM-DD HH:mm:ss).
-         */
-        const getTimestamp = () => {
-            const now = new Date();
-            return now.toISOString().replace('T', ' ').substring(0, 19);
-        };
+        }
         
-        /**
-         * Generates a simple unique ID using timestamp and a random number.
-         * @returns {string} Unique ID.
-         */
-        const generateUniqueID = (prefix = '') => {
-            const datePart = Date.now().toString(36); // Base 36 timestamp
-            const randomPart = Math.random().toString(36).substring(2, 6); // Random 4 chars
-            return prefix + datePart + randomPart;
-        };
-
-        // ====================================================================
-        // DATA STORAGE & SYNC FUNCTIONS (LOCAL & FIREBASE)
-        // ====================================================================
-
-        /**
-         * Gets the appropriate storage key based on the storage mode and user ID.
-         * @param {string} key - The base key (e.g., 'orders').
-         * @returns {string} The full key for localStorage or Firebase path.
-         */
-        const getStorageKey = (key) => {
-            return storageMode === 'cloud' ? `${userId}/${key}` : key;
-        };
+        // Utility to generate unique ID
+        function generateId(prefix) {
+            return prefix + Math.random().toString(36).substring(2, 9).toUpperCase();
+        }
         
-        /**
-         * Initializes local data stores if they don't exist.
-         */
-        const initializeData = () => {
-            const keys = ['orders', 'inventory', 'machines', 'workforce', 'customers'];
-            keys.forEach(key => {
-                if (localStorage.getItem(key) === null) {
-                    localStorage.setItem(key, JSON.stringify({}));
-                }
-            });
-        };
-
-        /**
-         * Saves data to local storage.
-         * @param {string} key - The base key.
-         * @param {object} data - The data object to save.
-         */
-        const saveLocalData = (key, data) => {
-            try {
-                localStorage.setItem(key, JSON.stringify(data));
-                return true;
-            } catch (e) {
-                showToast(`Error saving local data for ${key}: ${e.message}`, 'error');
-                return false;
-            }
-        };
-
-        /**
-         * Loads data from local storage.
-         * @param {string} key - The base key.
-         * @returns {object} The loaded data object, or an empty object on error/missing.
-         */
-        const loadLocalData = (key) => {
-            try {
-                const data = localStorage.getItem(key);
-                return data ? JSON.parse(data) : {};
-            } catch (e) {
-                showToast(`Error loading local data for ${key}: ${e.message}`, 'error');
-                return {};
-            }
-        };
-
-        // --- FIREBASE/CLOUD SYNC FUNCTIONS (Mocked setup for security) ---
+        // --- DATA CRUD FUNCTIONS (Mocks) ---
         
-        // NOTE: Replace these with your actual Firebase configuration!
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-        
-        /**
-         * Initializes Firebase if not already done.
-         */
-        const initFirebase = () => {
-             if (typeof firebase !== 'undefined' && firebase.apps.length === 0) {
-                 try {
-                     firebaseApp = firebase.initializeApp(firebaseConfig);
-                     auth = firebaseApp.auth();
-                     database = firebaseApp.database();
-                     showToast('Firebase initialized successfully.', 'success');
-                 } catch (e) {
-                      // This is a common error if Firebase is already initialized
-                      if (!e.message.includes('already been initialized')) {
-                         showToast(`Firebase Init Error: ${e.message}`, 'error');
-                      }
-                 }
-             } else if (typeof firebase !== 'undefined' && !firebaseApp) {
-                 // Get the already initialized app
-                 firebaseApp = firebase.app();
-                 auth = firebaseApp.auth();
-                 database = firebaseApp.database();
-             }
-        };
-
-        /**
-         * Handles Google Sign-In for Cloud Sync.
-         */
-        const signInWithGoogle = async () => {
-            $('#auth-loading-overlay').fadeIn();
-            
-            if (typeof firebase === 'undefined' || typeof firebase.auth.GoogleAuthProvider === 'undefined') {
-                showToast('Firebase SDKs not loaded. Cannot sign in.', 'error');
-                $('#auth-loading-overlay').fadeOut();
-                return;
-            }
-
-            try {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                await auth.signInWithPopup(provider);
-                // Auth state observer will handle the rest
-            } catch (error) {
-                showToast(`Google Sign-In Failed: ${error.message}`, 'error');
-                $('#auth-loading-overlay').fadeOut();
-            }
-        };
-        
-        /**
-         * Writes a data object to Firebase Realtime Database.
-         * @param {string} key - The base key (e.g., 'orders').
-         * @param {object} data - The data object to save.
-         */
-        const writeCloudData = (key, data) => {
-            if (database) {
-                const path = getStorageKey(key);
-                database.ref(path).set(data)
-                    .then(() => {
-                        showToast(`Cloud data saved for ${key}.`, 'success');
-                    })
-                    .catch(error => {
-                        showToast(`Cloud Save Error for ${key}: ${error.message}`, 'error');
-                    });
+        // Order CRUD (Mocked)
+        function saveOrder(order) {
+            if (order.id) {
+                const index = ORDERS.findIndex(o => o.id === order.id);
+                if (index !== -1) ORDERS[index] = order;
             } else {
-                 showToast('Cloud database is not initialized. Cannot save.', 'error');
+                order.id = generateId('ORD');
+                order.dateCreated = new Date().toISOString().substring(0, 10);
+                ORDERS.unshift(order); // Add to the front for easier viewing
             }
-        };
-        
-        /**
-         * Reads data from Firebase Realtime Database.
-         * @param {string} key - The base key.
-         * @returns {Promise<object>} A promise that resolves with the data.
-         */
-        const readCloudData = (key) => {
-            return new Promise((resolve, reject) => {
-                if (database) {
-                    const path = getStorageKey(key);
-                    database.ref(path).once('value')
-                        .then(snapshot => {
-                            resolve(snapshot.val() || {});
-                        })
-                        .catch(error => {
-                            showToast(`Cloud Read Error for ${key}: ${error.message}`, 'error');
-                            reject({});
-                        });
-                } else {
-                    reject({});
-                }
-            });
-        };
-        
-        /**
-         * Master sync function: pull cloud data and merge/overwrite local data.
-         */
-        const syncToCloud = async (isInitialSetup = false) => {
-             const keys = ['orders', 'inventory', 'machines', 'workforce', 'customers'];
-             let syncSuccess = true;
-             
-             $('#loading-indicator').removeClass('d-none');
-             $('#loading-text').text('Syncing data...');
+            saveDataLocally();
+            renderOrderList();
+            renderSummaryStats();
+            return order.id;
+        }
 
-             for (const key of keys) {
-                 try {
-                     const cloudData = await readCloudData(key);
-                     saveLocalData(key, cloudData); // Overwrite local data with cloud data
-                 } catch (e) {
-                     syncSuccess = false;
-                     // In initial setup, if cloud read fails, we just fall back to local data.
-                     if (!isInitialSetup) {
-                         showToast(`Failed to sync ${key} from cloud.`, 'error');
-                     }
-                 }
-             }
-             
-             $('#loading-indicator').addClass('d-none');
-             
-             if (syncSuccess) {
-                 showToast('Cloud Sync successful. All data updated.', 'success');
-             }
+        function deleteOrderData(id) {
+            ORDERS = ORDERS.filter(o => o.id !== id);
+            saveDataLocally();
+            renderOrderList();
+            renderSummaryStats();
+            showToast(`Order ${id} deleted.`, 'danger');
+        }
 
-             // Always refresh UI after attempting sync
-             refreshUI();
-        };
-        
-        // ====================================================================
-        // ORDER MANAGEMENT FUNCTIONS
-        // ====================================================================
-        
-        /**
-         * Saves a new order or updates an existing one.
-         * @param {object} newOrder - The order object.
-         */
-        const saveOrderData = (newOrder) => {
-            const orders = loadLocalData('orders');
-            orders[newOrder.id] = newOrder;
-
-            if (storageMode === 'local') {
-                saveLocalData('orders', orders);
-                showToast(`Order ID ${newOrder.id} saved to local storage.`, 'success');
+        // Inventory CRUD (Mocked)
+        function saveInventoryItem(item) {
+            let existingItem = INVENTORY.find(i => i.name.toLowerCase() === item.name.toLowerCase());
+            if (existingItem) {
+                existingItem.quantity = parseFloat(existingItem.quantity) + parseFloat(item.quantity);
+                existingItem.costPerUnit = item.costPerUnit;
+                existingItem.vendor = item.vendor;
+                showToast(`Stock updated for ${item.name}.`, 'warning');
             } else {
-                writeCloudData('orders', orders);
+                item.id = generateId('INV');
+                item.quantity = parseFloat(item.quantity);
+                item.minStockLevel = 5; // Default for mock
+                INVENTORY.push(item);
+                showToast(`New item ${item.name} added.`, 'success');
             }
-             
-            refreshUI();
-        };
-
-        /**
-         * Updates an existing order.
-         * @param {object} updatedOrder - The order object with changes.
-         */
-        const updateOrderData = (updatedOrder) => {
-            saveOrderData(updatedOrder);
-        };
+            saveDataLocally();
+            renderInventoryList();
+            renderLowStockAlert();
+            populateOrderDropdowns(); // Refresh dropdown on new stock add/update
+        }
         
-        /**
-         * Deletes an order by ID.
-         * @param {string} orderId - The ID of the order to delete.
-         */
-        const deleteOrderData = (orderId) => {
-            const orders = loadLocalData('orders');
-            delete orders[orderId];
-            
-            if (storageMode === 'local') {
-                saveLocalData('orders', orders);
-                showToast(`Order ID ${orderId} deleted locally.`, 'warning');
+        function updateInventoryItem(id, updates) {
+            const index = INVENTORY.findIndex(i => i.id === id);
+            if (index !== -1) {
+                INVENTORY[index] = { ...INVENTORY[index], ...updates };
+                saveDataLocally();
+                renderInventoryList();
+                renderLowStockAlert();
+                populateOrderDropdowns(); // Re-populate order dropdowns to update stock count
+                showToast(`Inventory item updated.`, 'info');
+            }
+        }
+
+        // NEW: Function to deduct 1 unit from inventory
+        function deductInventory(detergentId) {
+            const item = INVENTORY.find(i => i.id === detergentId);
+            if (item && item.quantity > 0) {
+                const updates = { quantity: item.quantity - 1 };
+                // Call the existing update function to handle saving, rendering, and dropdown refresh
+                updateInventoryItem(detergentId, updates);
+                showToast(`Deducted 1 unit of ${item.name} from inventory.`, 'success');
+            } else if (item) {
+                 showToast(`${item.name} is out of stock! Deduction failed.`, 'danger');
+            }
+        }
+        
+        function deleteInventoryItem(id) {
+            INVENTORY = INVENTORY.filter(i => i.id !== id);
+            saveDataLocally();
+            renderInventoryList();
+            renderLowStockAlert();
+            populateOrderDropdowns(); // Refresh dropdown after deletion
+            showToast(`Inventory item deleted.`, 'danger');
+        }
+        
+        // Machine CRUD (Mocked)
+        function saveMachine(machine) {
+            if (machine.id) {
+                const index = MACHINES.findIndex(m => m.id === machine.id);
+                if (index !== -1) MACHINES[index] = machine;
             } else {
-                writeCloudData('orders', orders);
+                machine.id = generateId('MCH');
+                machine.status = 'available';
+                MACHINES.push(machine);
+                showToast(`New machine ${machine.name} added.`, 'success');
             }
-             
-            refreshUI();
-        };
+            saveDataLocally();
+            renderMachineGrid();
+            populateOrderDropdowns(); // Refresh machine dropdowns
+        }
 
-        /**
-         * Renders the order list with pagination.
-         */
-        const renderOrderList = () => {
-            const orders = loadLocalData('orders');
-            const ordersArray = Object.values(orders).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            const listElement = $('#order-list-ul');
-            listElement.empty();
-            
-            const totalPages = Math.ceil(ordersArray.length / PAGE_SIZE);
-            const start = (currentPage - 1) * PAGE_SIZE;
-            const end = currentPage * PAGE_SIZE;
-            const paginatedOrders = ordersArray.slice(start, end);
-            
-            $('#page-info').text(`Page ${ordersArray.length === 0 ? 0 : currentPage} of ${totalPages}`);
-            $('#prev-page-btn').prop('disabled', currentPage === 1 || ordersArray.length === 0);
-            $('#next-page-btn').prop('disabled', currentPage === totalPages || ordersArray.length === 0);
-
-            if (paginatedOrders.length === 0) {
-                 listElement.append('<li class="list-group-item text-center text-muted-subtle">No orders found.</li>');
-                 return;
+        // NEW: Utility to update only the status
+        function updateMachineStatus(machineId, status) {
+            const machine = MACHINES.find(m => m.id === machineId);
+            if (machine) {
+                machine.status = status;
+                saveMachine(machine); // Reuses the save/update logic
+                showToast(`Machine ${machine.name} status set to ${status}.`, 'info');
             }
-
-            paginatedOrders.forEach(order => {
-                let statusClass = '';
-                let statusTextClass = '';
-                let statusIcon = 'fas fa-spinner fa-spin';
-
-                switch (order.status) {
-                    case 'Pending':
-                        statusClass = 'list-group-item-light';
-                        statusTextClass = 'text-info';
-                        statusIcon = 'fas fa-hourglass-start';
-                        break;
-                    case 'Washing':
-                    case 'Drying':
-                        statusClass = 'list-group-item-warning';
-                        statusTextClass = 'text-warning';
-                        statusIcon = 'fas fa-tshirt';
-                        break;
-                    case 'Finished':
-                        statusClass = 'list-group-item-success';
-                        statusTextClass = 'text-success';
-                        statusIcon = 'fas fa-check-circle';
-                        break;
-                    case 'Collected':
-                        statusClass = 'list-group-item-light';
-                        statusTextClass = 'text-muted';
-                        statusIcon = 'fas fa-box-open';
-                        break;
-                    case 'Cancelled':
-                        statusClass = 'list-group-item-danger';
-                        statusTextClass = 'text-danger';
-                        statusIcon = 'fas fa-times-circle';
-                        break;
-                }
-
-                const priceDisplay = parseFloat(order.totalPrice).toFixed(2);
-                const pickupDate = order.pickupDate ? new Date(order.pickupDate).toLocaleDateString() : 'N/A';
-
-                const listItem = `
-                    <li class="list-group-item d-flex justify-content-between align-items-center ${statusClass} order-item" data-id="${order.id}" style="cursor: pointer;">
-                        <div>
-                            <p class="mb-1 fw-bold text-primary">${order.customerName || 'N/A'} <small class="text-muted-subtle ms-2">ID: ${order.id}</small></p>
-                            <small class="text-muted"><i class="${statusIcon} me-1 ${statusTextClass}"></i> ${order.status} - ${order.serviceType}</small><br>
-                            <small class="text-muted">Est. Pickup: ${pickupDate} @ ${order.pickupTime}</small>
-                        </div>
-                        <span class="badge bg-primary rounded-pill p-2">₱${priceDisplay}</span>
-                    </li>
-                `;
-                listElement.append(listItem);
-            });
-        };
+        }
         
-        /**
-         * Calculates and updates the summary statistics on the Home and Reports tabs.
-         */
-        const calculateDailyStats = () => {
-            const orders = loadLocalData('orders');
-            const ordersArray = Object.values(orders);
+        function deleteMachineData(id) {
+            MACHINES = MACHINES.filter(m => m.id !== id);
+            saveDataLocally();
+            renderMachineGrid();
+            populateOrderDropdowns(); // Refresh machine dropdowns
+            showToast(`Machine deleted.`, 'danger');
+        }
 
-            let totalOrders = ordersArray.length;
-            let remainingOrders = 0;
-            let totalRevenue = 0;
-            let totalWeight = 0;
-            let totalBaseCost = 0;
-            let totalDetergentCost = 0;
+        // Workforce CRUD (Mocked)
+        function saveEmployee(employee) {
+            if (!employee.id) {
+                employee.id = generateId('EMP');
+                employee.dateHired = new Date().toISOString().substring(0, 10);
+                WORKFORCE.push(employee);
+                showToast(`New employee ${employee.name} added.`, 'success');
+            } else {
+                const index = WORKFORCE.findIndex(e => e.id === employee.id);
+                if (index !== -1) WORKFORCE[index] = employee;
+                showToast(`Employee ${employee.name} updated.`, 'info');
+            }
+            saveDataLocally();
+            renderWorkforceList();
+            populateOrderDropdowns(); // Refresh staff dropdown
+        }
+        
+        function deleteEmployeeData(id) {
+            WORKFORCE = WORKFORCE.filter(e => e.id !== id);
+            saveDataLocally();
+            renderWorkforceList();
+            populateOrderDropdowns(); // Refresh staff dropdown
+            showToast(`Employee deleted.`, 'danger');
+        }
 
-            const inventory = loadLocalData('inventory');
+        // Customer CRUD (Mocked)
+        function saveCustomer(customer) {
+            if (!customer.id) {
+                customer.id = generateId('CUS');
+                customer.dateRegistered = new Date().toISOString().substring(0, 10);
+                CUSTOMERS.push(customer);
+                showToast(`New customer ${customer.name} registered.`, 'success');
+            } else {
+                const index = CUSTOMERS.findIndex(c => c.id === customer.id);
+                if (index !== -1) CUSTOMERS[index] = customer;
+                showToast(`Customer ${customer.name} updated.`, 'info');
+            }
+            saveDataLocally();
+            renderCustomerList();
+            populateOrderDropdowns(); // Refresh customer dropdown
+        }
 
-            // Calculate total cost of detergent used across all orders (assuming detergent-used is units)
-            const getDetergentCostPerUnit = (type) => {
-                const item = Object.values(inventory).find(inv => inv.type === type && inv.name.toLowerCase().includes('detergent'));
-                return item ? parseFloat(item.costPerUnit) : 0;
-            };
+        function updateCustomerData(id, updates) {
+            const index = CUSTOMERS.findIndex(c => c.id === id);
+            if (index !== -1) {
+                CUSTOMERS[index] = { ...CUSTOMERS[index], ...updates };
+                saveDataLocally();
+                renderCustomerList();
+                populateOrderDropdowns(); // Refresh customer dropdown
+                showToast(`Customer updated.`, 'info');
+            }
+        }
+        
+        function deleteCustomerData(id) {
+            CUSTOMERS = CUSTOMERS.filter(c => c.id !== id);
+            saveDataLocally();
+            renderCustomerList();
+            populateOrderDropdowns(); // Refresh customer dropdown
+            showToast(`Customer deleted.`, 'danger');
+        }
+
+        // --- RENDERING FUNCTIONS ---
+
+        function renderSummaryStats(ordersList = ORDERS) {
+            // Use provided list or default to all orders
+            const ordersToUse = ordersList;
             
-            // Simplified cost estimation for reporting purposes (can be expanded)
-            const getDefaultCost = (serviceType) => {
-                switch (serviceType) {
-                    case 'Wash & Fold': return 5.00;
-                    case 'Dry Cleaning': return 10.00;
-                    case 'Pressing Only': return 3.00;
-                    case 'Self Service': return 0.00;
-                    default: return 0.00;
-                }
-            };
+            const totalOrders = ordersToUse.length;
+            const remainingOrders = ordersToUse.filter(o => o.status !== 'Completed' && o.status !== 'Cancelled').length;
+            const totalClientPayment = ordersToUse.reduce((sum, o) => sum + parseFloat(o.totalPrice || 0), 0);
 
-
-            ordersArray.forEach(order => {
-                if (order.status !== 'Collected' && order.status !== 'Cancelled') {
-                    remainingOrders++;
-                }
-
-                if (order.status === 'Collected' || order.paymentStatus === 'Paid' || order.paymentStatus === 'Partial') {
-                    totalRevenue += parseFloat(order.totalPrice);
-                }
-                
-                totalWeight += parseFloat(order.weightKg);
-
-                // Cost calculation
-                totalBaseCost += getDefaultCost(order.serviceType);
-                const detergentCost = parseFloat(order.detergentUsed) * getDetergentCostPerUnit('Detergent');
-                totalDetergentCost += detergentCost;
-            });
+            // --- Home Tab Stats (Only update All-Time data) ---
+            if (ordersList === ORDERS) {
+                $('#total-orders-card').text(totalOrders);
+                $('#remaining-orders-card').text(remainingOrders);
+                $('#total-client-payment-card').text('₱' + totalClientPayment.toFixed(2));
+            }
             
-            const totalEstimatedCost = totalBaseCost + totalDetergentCost; // Simple sum
-            const totalNetRevenue = totalRevenue - totalEstimatedCost;
-            const revenuePerKg = totalWeight > 0 ? totalRevenue / totalWeight : 0;
-            
-            // --- Update HOME Tab ---
-            $('#total-orders-card').text(totalOrders);
-            $('#remaining-orders-card').text(remainingOrders);
-            $('#total-client-payment-card').text(`₱${totalRevenue.toFixed(2)}`);
-            
-            // --- Update REPORTS Tab ---
-            $('#total-client-payment').text(`₱${totalRevenue.toFixed(2)}`);
-            $('#grand-total-cost').text(`₱${totalEstimatedCost.toFixed(2)}`);
-            $('#total-net-revenue').text(`₱${totalNetRevenue.toFixed(2)}`);
+            // --- Reports Tab Stats ---
+            const totalCost = ordersToUse.reduce((sum, o) => sum + parseFloat(o.baseCost || 0), 0); // Using a simplified total cost for mock
+            const totalWeight = ordersToUse.reduce((sum, o) => sum + parseFloat(o.weightKg || 0), 0);
             
             $('#total-orders').text(totalOrders);
             $('#remaining-orders').text(remainingOrders);
-            $('#total-weight-kg').text(`${totalWeight.toFixed(1)} kg`);
-            $('#revenue-per-kg').text(`₱${revenuePerKg.toFixed(2)}`);
-            
-            // Cost Breakdown
-            $('#total-cost-est').text(`₱${totalBaseCost.toFixed(2)}`);
-            $('#total-additional-cost').text(`₱0.00`); // Placeholder for future feature
-            $('#total-detergent-cost').text(`₱${totalDetergentCost.toFixed(2)}`);
-            
-            // Check low stock after loading orders (as order logic relies on inventory)
-            checkLowStock();
-        };
+            $('#total-client-payment').text('₱' + totalClientPayment.toFixed(2));
+            $('#total-weight-kg').text(totalWeight.toFixed(1) + ' kg');
+            $('#revenue-per-kg').text(totalWeight > 0 ? '₱' + (totalClientPayment / totalWeight).toFixed(2) : '₱0.00');
 
-        // ====================================================================
-        // INVENTORY MANAGEMENT FUNCTIONS
-        // ====================================================================
-        
-        /**
-         * Saves a new inventory item or updates an existing one.
-         * @param {object} item - The inventory item object.
-         */
-        const saveInventoryData = (item) => {
-            const inventory = loadLocalData('inventory');
-            inventory[item.id] = item;
+            // Simplified cost breakdown (needs real implementation)
+            const totalDetergentCost = INVENTORY.reduce((sum, item) => sum + (item.costPerUnit * (10 - item.quantity)), 0); // Mock usage
+            $('#total-cost-est').text('₱' + totalCost.toFixed(2));
+            $('#total-additional-cost').text('₱0.00'); // Mock
+            $('#total-detergent-cost').text('₱' + totalDetergentCost.toFixed(2));
+            $('#grand-total-cost').text('₱' + (totalCost + totalDetergentCost).toFixed(2));
+            $('#total-net-revenue').text('₱' + (totalClientPayment - (totalCost + totalDetergentCost)).toFixed(2));
+        }
+
+        function renderOrderList() {
+            const list = $('#order-list-ul');
+            list.empty();
             
-            if (storageMode === 'local') {
-                saveLocalData('inventory', inventory);
-                showToast(`${item.name} stock saved locally.`, 'success');
+            const filteredOrders = ORDERS.sort((a, b) => new Date(b.dateCreated) - new Date(a.dateCreated));
+            const totalPages = Math.ceil(filteredOrders.length / PAGE_SIZE);
+            
+            currentPage = Math.min(currentPage, totalPages > 0 ? totalPages : 1);
+            
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const end = start + PAGE_SIZE;
+            const paginatedOrders = filteredOrders.slice(start, end);
+
+            if (paginatedOrders.length === 0) {
+                list.append('<li class="list-group-item text-center text-muted-subtle">No orders found.</li>');
             } else {
-                writeCloudData('inventory', inventory);
+                paginatedOrders.forEach(order => {
+                    let statusClass = 'list-group-item-light';
+                    if (order.status === 'Ready for Pickup') statusClass = 'list-group-item-warning';
+                    if (order.status === 'Completed') statusClass = 'list-group-item-success';
+                    if (order.status === 'Cancelled') statusClass = 'list-group-item-danger';
+                    if (order.status === 'Washing' || order.status === 'Drying') statusClass = 'list-group-item-info';
+
+                    list.append(`
+                        <li class="list-group-item ${statusClass} d-flex justify-content-between align-items-center order-list-item" data-id="${order.id}" style="cursor: pointer;">
+                            <div>
+                                <strong>#${order.id}</strong> - ${order.customerName} (${order.dateCreated})
+                                <small class="text-muted d-block">${order.serviceType} / ${order.weightKg}kg</small>
+                            </div>
+                            <div>
+                                <span class="badge bg-secondary me-2">₱${parseFloat(order.totalPrice).toFixed(2)}</span>
+                                <span class="badge bg-primary">${order.status}</span>
+                            </div>
+                        </li>
+                    `);
+                });
             }
             
-            refreshUI();
-        };
-
-        /**
-         * Updates an existing inventory item.
-         * @param {object} updatedItem - The item object with changes.
-         */
-        const updateInventoryData = (updatedItem) => {
-            saveInventoryData(updatedItem);
-        };
+            $('#page-info').text(`Page ${currentPage} of ${totalPages}`);
+            $('#prev-page-btn').prop('disabled', currentPage === 1 || totalPages === 0);
+            $('#next-page-btn').prop('disabled', currentPage === totalPages || totalPages === 0);
+            
+            // Re-attach event listeners for dynamic content
+            $('.order-list-item').on('click', handleOrderView);
+        }
         
-        /**
-         * Deletes an inventory item by ID.
-         * @param {string} itemId - The ID of the item to delete.
-         */
-        const deleteInventoryData = (itemId) => {
-            const inventory = loadLocalData('inventory');
-            delete inventory[itemId];
+        function renderInventoryList() {
+            const list = $('#inventory-list');
+            list.empty();
             
-            if (storageMode === 'local') {
-                saveLocalData('inventory', inventory);
-                showToast(`Inventory item deleted locally.`, 'warning');
-            } else {
-                writeCloudData('inventory', inventory);
-            }
-             
-            refreshUI();
-        };
-
-        /**
-         * Renders the inventory list based on current filters.
-         */
-        const renderInventoryList = () => {
-            const inventory = loadLocalData('inventory');
-            let inventoryArray = Object.values(inventory).sort((a, b) => a.name.localeCompare(b.name));
-            const listElement = $('#inventory-list');
-            listElement.empty();
-            
-            // Apply Filters
             const filterName = $('#filter-name').val()?.toLowerCase() || '';
             const filterType = $('#filter-type').val()?.toLowerCase() || '';
             const filterVendor = $('#filter-vendor').val()?.toLowerCase() || '';
             
-            inventoryArray = inventoryArray.filter(item => {
-                const nameMatch = item.name.toLowerCase().includes(filterName);
-                const typeMatch = filterType === '' || item.type.toLowerCase().includes(filterType);
-                const vendorMatch = filterVendor === '' || item.vendor.toLowerCase().includes(filterVendor);
-                return nameMatch && typeMatch && vendorMatch;
-            });
-            
+            const filteredInventory = INVENTORY.filter(item => {
+                return (
+                    (filterName === '' || item.name.toLowerCase().includes(filterName) || item.type.toLowerCase().includes(filterName)) &&
+                    (filterType === '' || item.type.toLowerCase() === filterType) &&
+                    (filterVendor === '' || item.vendor.toLowerCase().includes(filterVendor))
+                );
+            }).sort((a, b) => a.name.localeCompare(b.name));
 
-            if (inventoryArray.length === 0) {
-                 listElement.append('<li class="list-group-item text-center text-muted-subtle">No inventory items found matching the filter.</li>');
-                 return;
-            }
-
-            inventoryArray.forEach(item => {
-                const qty = parseFloat(item.qty);
-                const reorder = parseFloat(item.reorderLevel);
-                let statusClass = '';
-
-                if (qty <= 0) {
-                    statusClass = 'list-group-item-danger';
-                } else if (qty <= reorder) {
-                    statusClass = 'list-group-item-warning';
-                } else {
-                    statusClass = 'list-group-item-light';
-                }
-                
-                const costDisplay = parseFloat(item.costPerUnit).toFixed(2);
-
-                const listItem = `
-                    <li class="list-group-item d-flex justify-content-between align-items-center inventory-item-row ${statusClass}" data-id="${item.id}">
-                        <div>
-                            <p class="mb-1 fw-bold text-dark">${item.name}</p>
-                            <small class="text-muted">Type: ${item.type} | Vendor: ${item.vendor}</small>
-                        </div>
-                        <div class="text-end">
-                            <span class="badge bg-primary rounded-pill me-2">${qty} units</span>
-                            <small class="text-muted d-block">Cost/Unit: ₱${costDisplay}</small>
-                        </div>
-                    </li>
-                `;
-                listElement.append(listItem);
-            });
-            
-            // Update recommendations list (for adding new detergent)
-             const recommendationsList = $('#detergent-recommendations');
-             recommendationsList.empty();
-             const uniqueNames = new Set(inventoryArray.map(item => item.name));
-             uniqueNames.forEach(name => {
-                 recommendationsList.append(`<option value="${name}">`);
-             });
-             
-        };
-        
-        /**
-         * Checks inventory levels and displays a low stock alert if necessary.
-         */
-        const checkLowStock = () => {
-             const inventory = loadLocalData('inventory');
-             const lowStockItems = Object.values(inventory).filter(item => parseFloat(item.qty) <= parseFloat(item.reorderLevel));
-             const alertBox = $('#low-stock-alert');
-             const list = $('#low-stock-list');
-             
-             list.empty();
-             
-             if (lowStockItems.length > 0) {
-                 lowStockItems.forEach(item => {
-                     list.append(`<li>${item.name} (Current: ${item.qty}, Reorder: ${item.reorderLevel})</li>`);
-                 });
-                 alertBox.removeClass('d-none');
-             } else {
-                 alertBox.addClass('d-none');
-             }
-        };
-
-        // ====================================================================
-        // MACHINE MANAGEMENT FUNCTIONS
-        // ====================================================================
-        
-        /**
-         * Saves a new machine or updates an existing one.
-         * @param {object} machine - The machine object.
-         */
-        const saveMachineData = (machine) => {
-            const machines = loadLocalData('machines');
-            machines[machine.id] = machine;
-            
-            if (storageMode === 'local') {
-                saveLocalData('machines', machines);
-                showToast(`Machine ${machine.name} saved locally.`, 'success');
+            if (filteredInventory.length === 0) {
+                list.append('<li class="list-group-item text-center text-muted-subtle">No inventory items match the filter.</li>');
             } else {
-                writeCloudData('machines', machines);
+                filteredInventory.forEach(item => {
+                    let statusClass = 'list-group-item-light';
+                    if (item.quantity <= item.minStockLevel) statusClass = 'list-group-item-danger';
+                    
+                    list.append(`
+                        <li class="list-group-item ${statusClass} d-flex justify-content-between align-items-center inventory-item-row" data-id="${item.id}">
+                            <div>
+                                <strong>${item.name}</strong> (${item.type})
+                                <small class="text-muted d-block">Cost/Unit: ₱${parseFloat(item.costPerUnit).toFixed(2)}</small>
+                            </div>
+                            <div>
+                                <span class="badge bg-info me-2">Qty: ${item.quantity}</span>
+                                <span class="badge bg-secondary">${item.vendor || 'N/A'}</span>
+                            </div>
+                        </li>
+                    `);
+                });
             }
-             
-            renderMachinesGrid();
-        };
-
-        /**
-         * Updates the status of an existing machine (Maintenance Toggle).
-         * @param {string} machineId - The ID of the machine.
-         * @param {boolean} isUnderMaintenance - New maintenance status.
-         */
-        const updateMachineStatus = (machineId, isUnderMaintenance) => {
-            const machines = loadLocalData('machines');
-            if (machines[machineId]) {
-                machines[machineId].isUnderMaintenance = isUnderMaintenance;
-                
-                if (storageMode === 'local') {
-                    saveLocalData('machines', machines);
-                    showToast(`Machine ${machines[machineId].name} status updated.`, 'info');
-                } else {
-                    writeCloudData('machines', machines);
+            
+            // Re-attach event listeners
+            $('.inventory-item-row').on('click', handleInventoryView);
+        }
+        
+        function renderLowStockAlert() {
+            const lowStockItems = INVENTORY.filter(item => item.quantity <= item.minStockLevel);
+            const alertDiv = $('#low-stock-alert');
+            const list = $('#low-stock-list');
+            list.empty();
+            
+            if (lowStockItems.length > 0) {
+                lowStockItems.forEach(item => {
+                    list.append(`<li>${item.name} (${item.type}) - Only ${item.quantity} left.</li>`);
+                });
+                alertDiv.removeClass('d-none');
+            } else {
+                alertDiv.addClass('d-none');
+            }
+        }
+        
+        function renderMachineGrid() {
+            const grid = $('#machines-grid-list');
+            grid.empty();
+            
+            if (MACHINES.length === 0) {
+                grid.append('<div class="col-12 text-center text-muted-subtle">No machines registered.</div>');
+                return;
+            }
+            
+            MACHINES.sort((a, b) => a.name.localeCompare(b.name)).forEach(machine => {
+                let statusBg = 'bg-success'; // available
+                let statusText = 'Available';
+                if (machine.status === 'in-use') {
+                    statusBg = 'bg-warning';
+                    statusText = 'In Use';
+                } else if (machine.status === 'maintenance') {
+                    statusBg = 'bg-danger';
+                    statusText = 'Maint.';
                 }
                 
-                renderMachinesGrid();
-            }
-        };
-
-        /**
-         * Renders the machines grid list.
-         */
-        const renderMachinesGrid = () => {
-            const machines = loadLocalData('machines');
-            const machinesArray = Object.values(machines).sort((a, b) => a.name.localeCompare(b.name));
-            const gridElement = $('#machines-grid-list');
-            gridElement.empty();
-            
-            if (machinesArray.length === 0) {
-                 gridElement.append('<div class="col-12 text-center text-muted-subtle" id="machines-grid-placeholder">No machines registered.</div>');
-                 return;
-            }
-
-            machinesArray.forEach(machine => {
-                const isUnderMaintenance = machine.isUnderMaintenance;
-                let cardClass = isUnderMaintenance ? 'bg-danger' : (machine.type === 'Washer' ? 'bg-primary' : 'bg-info');
-                let cardIcon = machine.type === 'Washer' ? 'fas fa-washing-machine' : 'fas fa-dryer';
-                let statusText = isUnderMaintenance ? 'Under Maintenance' : 'Available';
-                
-                if (isUnderMaintenance) cardIcon = 'fas fa-screwdriver-wrench';
-
-                const cardHtml = `
+                grid.append(`
                     <div class="col-md-4">
-                        <div class="card machine-card-item text-white ${cardClass}" data-id="${machine.id}" style="height: 100%;">
+                        <div class="card machine-card-item h-100" data-id="${machine.id}" style="border: 1px solid ${statusBg === 'bg-danger' ? 'var(--color-danger)' : statusBg === 'bg-warning' ? 'var(--color-warning)' : 'var(--color-success)'};">
                             <div class="card-body">
-                                <h5 class="card-title"><i class="${cardIcon} me-2"></i>${machine.name}</h5>
-                                <p class="card-text mb-1">Type: ${machine.type}</p>
-                                <p class="card-text mb-1">Capacity: ${machine.capacity} kg</p>
-                                <p class="card-text mb-0">Status: <span class="fw-bold">${statusText}</span></p>
+                                <h5 class="card-title">${machine.name} <span class="badge ${statusBg}">${statusText}</span></h5>
+                                <p class="card-text mb-1"><i class="fas fa-box me-1"></i> ${machine.type}</p>
+                                <p class="card-text mb-1"><i class="fas fa-weight-hanging me-1"></i> Capacity: ${machine.capacity} kg</p>
+                                <p class="card-text mb-0"><small class="text-muted">Notes: ${machine.notes || 'N/A'}</small></p>
                             </div>
-                            <div class="card-footer d-flex justify-content-between align-items-center">
-                                <a href="#" class="text-white toggle-maintenance-btn" data-id="${machine.id}" data-status="${isUnderMaintenance ? 'true' : 'false'}">
-                                    ${isUnderMaintenance ? 'Mark as Available' : 'Mark for Maintenance'}
-                                </a>
-                                <small class="text-white">${new Date(machine.purchaseDate).getFullYear() || 'N/A'}</small>
+                            <div class="card-footer ${statusBg} text-white">
+                                <a href="#" class="d-block update-machine-status" data-id="${machine.id}">Update Status <i class="fas fa-arrow-right ms-1"></i></a>
                             </div>
                         </div>
                     </div>
-                `;
-                gridElement.append(cardHtml);
+                `);
             });
-        };
-        
-        // ====================================================================
-        // WORKFORCE MANAGEMENT FUNCTIONS
-        // ====================================================================
-        
-        /**
-         * Saves a new employee or updates an existing one.
-         * @param {object} employee - The employee object.
-         */
-        const saveEmployeeData = (employee) => {
-            const workforce = loadLocalData('workforce');
-            workforce[employee.id] = employee;
             
-            if (storageMode === 'local') {
-                saveLocalData('workforce', workforce);
-                showToast(`Employee ${employee.name} saved locally.`, 'success');
-            } else {
-                writeCloudData('workforce', workforce);
-            }
-             
-            renderWorkforceList();
-        };
+            // Re-attach event listener
+            $('.update-machine-status').on('click', handleMachineView);
+        }
 
-        /**
-         * Updates an existing employee.
-         * @param {object} updatedEmployee - The employee object with changes.
-         */
-        const updateEmployeeData = (updatedEmployee) => {
-            saveEmployeeData(updatedEmployee);
-        };
-        
-        /**
-         * Deletes an employee by ID.
-         * @param {string} employeeId - The ID of the employee to delete.
-         */
-        const deleteEmployeeData = (employeeId) => {
-            const workforce = loadLocalData('workforce');
-            const employeeName = workforce[employeeId] ? workforce[employeeId].name : 'Employee';
-            delete workforce[employeeId];
+        function renderWorkforceList() {
+            const list = $('#workforce-list');
+            list.empty();
             
-            if (storageMode === 'local') {
-                saveLocalData('workforce', workforce);
-                showToast(`${employeeName} record deleted.`, 'warning');
-            } else {
-                writeCloudData('workforce', workforce);
+            if (WORKFORCE.length === 0) {
+                list.append('<li class="list-group-item text-center text-muted-subtle">No employees registered.</li>');
+                return;
             }
-             
-            renderWorkforceList();
-        };
-
-        /**
-         * Renders the workforce list.
-         */
-        const renderWorkforceList = () => {
-            const workforce = loadLocalData('workforce');
-            const workforceArray = Object.values(workforce).sort((a, b) => a.name.localeCompare(b.name));
-            const listElement = $('#workforce-list');
-            listElement.empty();
             
-            if (workforceArray.length === 0) {
-                 listElement.append('<li class="list-group-item text-center text-muted-subtle">No employees registered.</li>');
-                 return;
-            }
-
-            workforceArray.forEach(employee => {
-                const salaryDisplay = parseFloat(employee.salary).toFixed(2);
+            WORKFORCE.sort((a, b) => a.name.localeCompare(b.name)).forEach(employee => {
+                const badgeClass = employee.type === 'Manager' ? 'bg-primary' : employee.type === 'Delivery' ? 'bg-warning text-dark' : 'bg-info';
                 
-                const listItem = `
+                list.append(`
                     <li class="list-group-item d-flex justify-content-between align-items-center workforce-item-row" data-id="${employee.id}" style="cursor: pointer;">
                         <div>
-                            <p class="mb-1 fw-bold text-dark">${employee.name}</p>
-                            <small class="text-muted">Role: ${employee.type} | Rate: ${employee.rateType}</small>
+                            <strong>${employee.name}</strong> (${employee.dateHired})
+                            <small class="text-muted d-block">Rate: ₱${parseFloat(employee.baseSalary).toFixed(2)} / ${employee.rateType}</small>
                         </div>
-                        <div class="text-end">
-                            <span class="badge bg-success rounded-pill p-2">₱${salaryDisplay}</span>
-                        </div>
+                        <span class="badge ${badgeClass}">${employee.type}</span>
                     </li>
-                `;
-                listElement.append(listItem);
+                `);
             });
-        };
-        
-        // ====================================================================
-        // CUSTOMER MANAGEMENT FUNCTIONS
-        // ====================================================================
-        
-        /**
-         * Saves a new customer or updates an existing one.
-         * @param {object} customer - The customer object.
-         */
-        const saveCustomerData = (customer) => {
-            const customers = loadLocalData('customers');
-            customers[customer.id] = customer;
             
-            if (storageMode === 'local') {
-                saveLocalData('customers', customers);
-                showToast(`Customer ${customer.name} saved locally.`, 'success');
-            } else {
-                writeCloudData('customers', customers);
-            }
-             
-            renderCustomersList();
-        };
+            // Re-attach event listener
+            $('.workforce-item-row').on('click', handleEmployeeView);
+        }
 
-        /**
-         * Updates an existing customer.
-         * @param {object} updatedCustomer - The customer object with changes.
-         */
-        const updateCustomerData = (updatedCustomer) => {
-            saveCustomerData(updatedCustomer);
-        };
-        
-        /**
-         * Deletes a customer by ID.
-         * @param {string} customerId - The ID of the customer to delete.
-         */
-        const deleteCustomerData = (customerId) => {
-            const customers = loadLocalData('customers');
-            const customerName = customers[customerId] ? customers[customerId].name : 'Customer';
-            delete customers[customerId];
+        function renderCustomerList() {
+            const list = $('#customer-list');
+            list.empty();
+            const idSelect = $('#id-customer-select');
+            idSelect.empty().append('<option value="" selected disabled>-- Choose Customer --</option>');
+
+            if (CUSTOMERS.length === 0) {
+                list.append('<li class="list-group-item text-center text-muted-subtle">No customers registered.</li>');
+                $('#generate-id-btn').prop('disabled', true);
+                return;
+            }
             
-            if (storageMode === 'local') {
-                saveLocalData('customers', customers);
-                showToast(`${customerName} record deleted.`, 'warning');
-            } else {
-                writeCloudData('customers', customers);
-            }
-             
-            renderCustomersList();
-        };
-
-        /**
-         * Renders the customer list and updates the ID generation select.
-         */
-        const renderCustomersList = () => {
-            const customers = loadLocalData('customers');
-            const customersArray = Object.values(customers).sort((a, b) => a.name.localeCompare(b.name));
-            const listElement = $('#customer-list');
-            const selectElement = $('#id-customer-select');
-            listElement.empty();
-            selectElement.empty();
-            selectElement.append('<option value="">Select a customer to generate ID</option>');
-            
-            if (customersArray.length === 0) {
-                 listElement.append('<li class="list-group-item text-center text-muted-subtle">No customers registered.</li>');
-                 return;
-            }
-
-            customersArray.forEach(customer => {
-                // List rendering
-                const listItem = `
+            CUSTOMERS.sort((a, b) => a.name.localeCompare(b.name)).forEach(customer => {
+                list.append(`
                     <li class="list-group-item d-flex justify-content-between align-items-center customer-item-row" data-id="${customer.id}" style="cursor: pointer;">
                         <div>
-                            <p class="mb-1 fw-bold text-dark">${customer.name}</p>
-                            <small class="text-muted">Contact: ${customer.contact} | ID: ${customer.uniqueID}</small>
+                            <strong>${customer.name}</strong> (${customer.id})
+                            <small class="text-muted d-block">Contact: ${customer.contact || 'N/A'}</small>
                         </div>
-                        <div class="text-end">
-                            <span class="badge bg-info rounded-pill p-2">${customer.age || 'N/A'} yo</span>
-                        </div>
+                        <span class="badge bg-secondary">${customer.dateRegistered}</span>
                     </li>
-                `;
-                listElement.append(listItem);
+                `);
                 
-                // Select rendering
-                selectElement.append(`<option value="${customer.id}">${customer.name} (ID: ${customer.uniqueID})</option>`);
+                idSelect.append(`<option value="${customer.id}">${customer.name} (${customer.id})</option>`);
             });
-        };
-        
-        /**
-         * Populates and shows the ID card for printing.
-         * @param {object} customer - The customer object.
-         */
-        const renderIDCard = (customer) => {
-            $('#id-card-name').text(customer.name);
-            $('#id-card-contact').text(customer.contact);
-            $('#id-card-address').text(customer.address || 'N/A');
-            $('#id-card-age').text(customer.age || 'N/A');
-            $('#id-card-unique-id').text(customer.uniqueID);
             
-            $('#id-card-print-area').removeClass('d-none');
-            $('#id-card-print-buttons').removeClass('d-none');
-        };
+            $('#generate-id-btn').prop('disabled', false);
 
-        // ====================================================================
-        // MASTER UI REFRESH FUNCTION
-        // ====================================================================
+            // Re-attach event listener
+            $('.customer-item-row').on('click', handleCustomerView);
+            
+            // Also need to re-populate the customer dropdown in the order tab
+            populateOrderDropdowns();
+        }
+        
+        // --- EVENT HANDLERS ---
+        
+        function handleOrderView(event) {
+            const orderId = $(event.currentTarget).data('id');
+            const order = ORDERS.find(o => o.id === orderId);
+            
+            if (order) {
+                $('#modal-order-id').text(order.id);
+                $('#modal-update-status').val(order.status);
+                $('#modal-update-payment').val(order.paymentStatus || 'Unpaid');
+                
+                const content = `
+                    <p class="mb-1"><strong>Customer:</strong> ${order.customerName}</p>
+                    <p class="mb-1"><strong>Service:</strong> ${order.serviceType} (${order.weightKg} kg)</p>
+                    <p class="mb-1"><strong>Price:</strong> ₱${parseFloat(order.totalPrice).toFixed(2)} (Deposit: ₱${parseFloat(order.deposit || 0).toFixed(2)})</p>
+                    <p class="mb-1"><strong>Pickup:</strong> ${order.pickupDate} at ${order.pickupTime}</p>
+                    <p class="mb-1"><strong>Staff:</strong> ${order.staffInCharge || 'N/A'}</p>
+                    <p class="mb-0"><strong>Notes:</strong> ${order.notes || 'None'}</p>
+                    <input type="hidden" id="modal-order-hidden-id" value="${order.id}">
+                `;
+                $('#modal-order-content').html(content);
+                
+                // Set the ID for the delete button
+                $('#delete-order-btn').data('id', order.id);
 
-        const refreshUI = () => {
-            // Recalculate and update stats (Home & Reports)
-            calculateDailyStats(); 
-            // Render Lists
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+                modal.show();
+            }
+        }
+        
+        function handleInventoryView(event) {
+            const itemId = $(event.currentTarget).data('id');
+            const item = INVENTORY.find(i => i.id === itemId);
+            
+            if (item) {
+                $('#modal-inventory-name').text(item.name);
+                $('#modal-inventory-id').val(item.id);
+                $('#modal-inventory-qty').val(item.quantity);
+                $('#modal-inventory-cost').val(item.costPerUnit);
+                $('#modal-inventory-vendor').val(item.vendor);
+                
+                // Set the ID for the delete button
+                $('#delete-inventory-btn').data('id', item.id);
+
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('inventoryDetailModal'));
+                modal.show();
+            }
+        }
+        
+        function handleMachineView(event) {
+            event.preventDefault();
+            const machineId = $(event.currentTarget).data('id');
+            const machine = MACHINES.find(m => m.id === machineId);
+
+            if (machine) {
+                $('#modal-machine-name').text(machine.name);
+                $('#modal-machine-id').val(machine.id);
+                $('#modal-machine-status').val(machine.status);
+                $('#modal-machine-capacity').val(machine.capacity);
+                $('#modal-machine-notes').val(machine.notes);
+
+                // Set the ID for the delete button
+                $('#delete-machine-btn').data('id', machine.id);
+
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('machineDetailModal'));
+                modal.show();
+            }
+        }
+
+        function handleEmployeeView(event) {
+            const employeeId = $(event.currentTarget).data('id');
+            const employee = WORKFORCE.find(e => e.id === employeeId);
+
+            if (employee) {
+                $('#modal-employee-name').text(employee.name);
+                $('#modal-employee-id').val(employee.id);
+                $('#modal-employee-type').val(employee.type);
+                $('#modal-employee-salary').val(employee.baseSalary);
+
+                // Set the ID for the delete button
+                $('#delete-employee-btn').data('id', employee.id);
+
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('employeeDetailModal'));
+                modal.show();
+            }
+        }
+
+        function handleCustomerView(event) {
+            const customerId = $(event.currentTarget).data('id');
+            const customer = CUSTOMERS.find(c => c.id === customerId);
+
+            if (customer) {
+                $('#modal-customer-name').text(customer.name);
+                $('#modal-customer-id').val(customer.id);
+                $('#modal-customer-contact').val(customer.contact);
+                $('#modal-customer-address').val(customer.address);
+
+                // Set the ID for the delete button
+                $('#delete-customer-btn').data('id', customer.id);
+
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('customerDetailModal'));
+                modal.show();
+            }
+        }
+        
+        // --- INITIALIZATION & MAIN FUNCTION ---
+        
+        // --- START: NEW JAVASCRIPT LOGIC FOR ORDER TAB ---
+
+        // MOCK DATA (Replace with actual data retrieval from your system/database)
+        const MOCK_CUSTOMERS = [
+            { id: 'CUST001', name: 'Alice Johnson', contact: '0917-123-4567', address: '123 Main St, Quezon City', dateRegistered: '2023-01-15' },
+            { id: 'CUST002', name: 'Bob Williams', contact: '0918-987-6543', address: '456 Elm St, Makati', dateRegistered: '2023-03-22' },
+            { id: 'CUST003', name: 'Jane Doe', contact: '0999-555-1212', address: '789 Oak St, Manila', dateRegistered: '2024-05-01' }
+        ];
+
+        const MOCK_MACHINES = [
+            { id: 'M01', name: 'Washer #1 (10kg)', status: 'available' },
+            { id: 'M02', name: 'Washer #2 (15kg)', status: 'in-use' }, // This will be disabled
+            { id: 'M03', name: 'Dryer #A (20kg)', status: 'available' }
+        ];
+
+        const MOCK_STAFF = [
+            { id: 'S001', name: 'Maria Dela Cruz (Agent)', type: 'Agent' },
+            { id: 'S002', name: 'Ramon Garcia (Manager)', type: 'Manager' },
+            { id: 'S003', name: 'Sofia Reyes (Delivery)', type: 'Delivery' }
+        ];
+
+        // Function to populate the Customer, Machine, and Staff dropdowns
+        function populateOrderDropdowns() {
+            const customerDropdown = $('#customer-dropdown');
+            const machineDropdown = $('#machine-dropdown');
+            const staffDropdown = $('#staff-dropdown');
+            const detergentDropdown = $('#detergent-dropdown'); // Added
+
+            // Clear existing options, keeping the default disabled one
+            customerDropdown.find('option:not(:first)').remove();
+            machineDropdown.find('option:not(:first)').remove();
+            staffDropdown.find('option:not(:first)').remove();
+            detergentDropdown.find('option:not(:first)').remove(); // Added
+
+            // Use the actual CUSTOMERS array (from local storage load) if available, otherwise use mock
+            const customerSource = CUSTOMERS.length > 0 ? CUSTOMERS : MOCK_CUSTOMERS;
+            
+            // 1. Populate Customer Dropdown
+            customerSource.forEach(customer => {
+                customerDropdown.append(
+                    `<option value="${customer.id}" 
+                             data-name="${customer.name}"
+                             data-contact="${customer.contact || 'N/A'}"
+                             data-address="${customer.address || 'N/A'}"
+                             data-datereg="${customer.dateRegistered || 'N/A'}">
+                             ${customer.name} (${customer.id})
+                    </option>`
+                );
+            });
+
+            // Use the actual MACHINES array if available, otherwise use mock
+            const machineSource = MACHINES.length > 0 ? MACHINES : MOCK_MACHINES;
+
+            // 2. Populate Machine Dropdown (with status check)
+            machineSource.forEach(machine => {
+                const statusText = machine.status === 'available' ? 'Available' : (machine.status === 'in-use' ? 'In Use' : 'Maint.');
+                const disabledAttr = machine.status !== 'available' ? 'disabled' : '';
+                const statusClass = machine.status === 'available' ? 'text-success' : 'text-danger';
+
+                machineDropdown.append(
+                    `<option value="${machine.id}" ${disabledAttr} class="${statusClass}">${machine.name} - [${statusText}]</option>`
+                );
+            });
+
+            // Use the actual WORKFORCE array if available, otherwise use mock
+            const staffSource = WORKFORCE.length > 0 ? WORKFORCE : MOCK_STAFF;
+
+            // 3. Populate Staff Dropdown (from agents workforce)
+            staffSource.forEach(staff => {
+                staffDropdown.append(
+                    `<option value="${staff.id}">${staff.name}</option>`
+                );
+            });
+
+            // 4. Populate Detergent Dropdown (from INVENTORY)
+            // Filter inventory for detergents/softeners/pods
+            const detergentInventory = INVENTORY.filter(item => 
+                item.type === 'Liquid' || 
+                item.type === 'Powder' || 
+                item.type === 'Pods' || 
+                item.type === 'Softener' || 
+                item.type === 'Special'
+            ).sort((a, b) => a.name.localeCompare(b.name));
+            
+            // Add the "No Detergent" option first (use unique ID 'NO_DETERGENT' for value and 'N/A' for inventory-id)
+            detergentDropdown.append(
+                `<option value="NO_DETERGENT (Customer's Own)" data-inventory-id="N/A">No Detergent (Customer's Own)</option>`
+            );
+
+            detergentInventory.forEach(item => {
+                const disabledAttr = item.quantity < 1 ? 'disabled' : '';
+                const stockText = item.quantity < 1 ? ' (OUT OF STOCK)' : ` (Qty: ${item.quantity})`;
+                const stockClass = item.quantity < 1 ? 'text-danger' : 'text-success';
+                
+                // Value stores the displayed name, data-inventory-id stores the ID for deduction
+                detergentDropdown.append(
+                    `<option value="${item.name} (${item.type})" 
+                             data-inventory-id="${item.id}"
+                             class="${stockClass}"
+                             ${disabledAttr}>
+                             ${item.name} (${item.type})${stockText}
+                    </option>`
+                );
+            });
+        }
+
+        // Function for Customer Detail Display (Event Handler)
+        function handleCustomerSelection() {
+            // Listen for changes in the customer dropdown
+            $('#customer-dropdown').off('change').on('change', function() {
+                const selectedOption = $(this).find('option:selected');
+                
+                // Get details from data attributes of the selected option
+                const name = selectedOption.data('name');
+                const contact = selectedOption.data('contact');
+                const address = selectedOption.data('address');
+                const dateRegistered = selectedOption.data('datereg');
+
+                if (name) {
+                    // Update the display labels with the customer's details
+                    $('#display-customer-name').text(name);
+                    $('#display-customer-contact').text(contact);
+                    $('#display-customer-address').text(address);
+                    $('#display-customer-datereg').text(dateRegistered);
+                } else {
+                    // Reset to default if no customer is selected
+                    $('#display-customer-name').text('N/A');
+                    $('#display-customer-contact').text('N/A');
+                    $('#display-customer-address').text('N/A');
+                    $('#display-customer-datereg').text('N/A');
+                }
+            });
+        }
+        
+        // Override the default order form submission to use the new fields
+        function handleOrderFormSubmission(event) {
+             event.preventDefault();
+             
+             // Get Customer Name from the selected option's data attribute
+             const selectedCustomerOption = $('#customer-dropdown option:selected');
+             const customerId = $('#customer-dropdown').val();
+             const customerName = selectedCustomerOption.data('name') || 'Unregistered Customer';
+             
+             const selectedMachineId = $('#machine-dropdown').val();
+             const selectedDetergentOption = $('#detergent-dropdown option:selected');
+             const detergentName = selectedDetergentOption.val();
+             const detergentInventoryId = selectedDetergentOption.data('inventory-id'); // Inventory ID for deduction
+
+             const newOrder = {
+                 // New Fields
+                 customerName: customerName,
+                 customerId: customerId,
+                 machineId: selectedMachineId,
+                 detergent: detergentName,
+                 staffInCharge: $('#staff-dropdown option:selected').text(), // Get text for display
+                 
+                 // Existing Fields (Renamed/Adjusted as needed)
+                 serviceType: $('#service-type').val(),
+                 weightKg: parseFloat($('#weight-kg').val()),
+                 baseCost: parseFloat($('#base-cost').val()),
+                 totalPrice: parseFloat($('#total-price').val()),
+                 
+                 pickupDate: $('#pickup-date').val(),
+                 pickupTime: $('#pickup-time').val(),
+                 notes: $('#notes').val(),
+                 
+                 // Default Statuses
+                 status: 'Pending',
+                 paymentStatus: 'Unpaid',
+                 dateCreated: new Date().toISOString().substring(0, 10)
+             };
+             
+             const orderId = saveOrder(newOrder);
+
+             // --- NEW LOGIC FOR AUTOMATIC UPDATES ---
+             if (selectedMachineId) {
+                // 1. Set Machine Status to 'in-use'
+                updateMachineStatus(selectedMachineId, 'in-use');
+             }
+
+             if (detergentInventoryId && detergentInventoryId !== 'N/A') {
+                // 2. Deduct 1 unit from Inventory
+                deductInventory(detergentInventoryId);
+             }
+             // --- END NEW LOGIC ---
+
+             // Reset form
+             $('#order-form')[0].reset();
+             // Manually reset dynamically displayed customer details
+             $('#display-customer-name').text('N/A');
+             $('#display-customer-contact').text('N/A');
+             $('#display-customer-address').text('N/A');
+             $('#display-customer-datereg').text('N/A');
+             
+             // Switch to order list tab after submission
+             bootstrap.Tab.getOrCreateInstance(document.getElementById('order-list-sub-tab')).show();
+        }
+
+        // --- END: NEW JAVASCRIPT LOGIC FOR ORDER TAB ---
+
+
+        function main() {
+            // 1. Initial Load from Local Storage
+            loadDataLocally();
+            
+            // 2. Determine Storage Mode
+            const savedStorageMode = localStorage.getItem('storageMode');
+            if (!savedStorageMode) {
+                // Show sync modal on first load
+                const syncModal = new bootstrap.Modal(document.getElementById('cloudSyncModal'));
+                syncModal.show();
+                
+                $('#sync-local-btn').on('click', function() {
+                    localStorage.setItem('storageMode', 'local');
+                    storageMode = 'local';
+                    $('#banner-storage-mode').text('Local Storage (Browser)');
+                    $('#banner-storage-mode-hidden').text('Local Storage (Browser)');
+                    syncModal.hide();
+                    // Proceed with rendering and event binding after setting mode
+                    initializeDashboardAndEvents();
+                });
+                
+                $('#sync-google-btn').on('click', function() {
+                    // MOCK: This would trigger Firebase sign-in
+                    showToast('Cloud Sync is a premium feature, starting locally...', 'warning');
+                    localStorage.setItem('storageMode', 'local');
+                    storageMode = 'local';
+                    $('#banner-storage-mode').text('Local Storage (Browser)');
+                    $('#banner-storage-mode-hidden').text('Local Storage (Browser)');
+                    syncModal.hide();
+                    // Proceed with rendering and event binding after setting mode
+                    initializeDashboardAndEvents();
+                });
+            } else {
+                // Already set, proceed directly
+                storageMode = savedStorageMode;
+                $('#banner-storage-mode').text(storageMode === 'local' ? 'Local Storage (Browser)' : 'Cloud Sync (Google)');
+                $('#banner-storage-mode-hidden').text(storageMode === 'local' ? 'Local Storage (Browser)' : 'Cloud Sync (Google)');
+                initializeDashboardAndEvents();
+            }
+        }
+        
+        function initializeDashboardAndEvents() {
+            // 3. Initial Renderings
+            renderSummaryStats();
             renderOrderList();
             renderInventoryList();
-            renderMachinesGrid();
+            renderLowStockAlert();
+            renderMachineGrid();
             renderWorkforceList();
-            renderCustomersList();
-        };
-
-        // ====================================================================
-        // EVENT HANDLERS & INITIALIZATION
-        // ====================================================================
-
-        const main = () => {
-            // 1. Initial Data Setup (Only if local storage is empty)
-            initializeData();
+            renderCustomerList();
             
-            // 2. Determine Storage Mode & Start Sync Modal
-            if (localStorage.getItem('storageMode')) {
-                storageMode = localStorage.getItem('storageMode');
-            }
+            // 4. Attach Event Listeners
             
-            if (storageMode === 'local' && localStorage.getItem('hasSeenSyncModal') === null) {
-                // Show modal if it's the first time or if the user explicitly logged out
-                 const syncModal = new bootstrap.Modal(document.getElementById('startSyncModal'));
-                 syncModal.show();
-            } else {
-                 $('#banner-storage-mode').text(storageMode === 'cloud' ? 'Cloud Sync (via Firebase)' : 'Local Browser Storage');
-                 $('#banner-storage-mode-hidden').text(storageMode === 'cloud' ? 'Cloud' : 'Local Storage');
-                 
-                 // If cloud mode is set, try to re-authenticate/re-initialize
-                 if (storageMode === 'cloud') {
-                     initFirebase();
-                     // Set up Firebase auth state observer
-                     if (auth) {
-                         auth.onAuthStateChanged(user => {
-                             if (user) {
-                                 // User is signed in.
-                                 userId = user.uid;
-                                 syncToCloud(true); // Initial sync from cloud
-                             } else {
-                                 // User is signed out. Fall back to local, show modal again
-                                 storageMode = 'local';
-                                 userId = 'local_user';
-                                 localStorage.setItem('storageMode', 'local');
-                                 showToast('Logged out from Cloud Sync. Switched to Local Storage.', 'warning');
-                                 const syncModal = new bootstrap.Modal(document.getElementById('startSyncModal'));
-                                 syncModal.show();
-                             }
-                         });
-                     } else {
-                         // Fallback if auth isn't initialized correctly
-                         showToast('Firebase Authentication not available. Defaulting to Local Storage.', 'error');
-                         storageMode = 'local';
-                         userId = 'local_user';
-                     }
-                 }
-                 
-                 // Refresh UI for local data display
-                 refreshUI();
-            }
-            
-            // --- Sync Modal Event Handlers ---
-            
-            $('#continue-as-guest-btn').on('click', function() {
-                storageMode = 'local';
-                userId = 'local_user';
-                localStorage.setItem('storageMode', 'local');
-                localStorage.setItem('hasSeenSyncModal', 'true');
-                $('#startSyncModal').modal('hide');
-                $('#banner-storage-mode').text('Local Browser Storage');
-                $('#banner-storage-mode-hidden').text('Local Storage');
-                showToast('Continuing with Local Storage Mode.', 'info');
-                refreshUI();
-            });
-
-            $('#google-sign-in-btn').on('click', function() {
-                initFirebase();
-                if (firebaseApp) {
-                     signInWithGoogle();
-                     // Auth state observer handles the mode switch and sync upon successful sign-in
-                } else {
-                     showToast('Firebase initialization failed. Cannot connect to Cloud.', 'error');
-                }
-                localStorage.setItem('hasSeenSyncModal', 'true'); // Assume user has chosen a path
-                $('#startSyncModal').modal('hide');
-            });
-            
-            // --- General Navigation Handlers ---
-            
-            // Home Dashboard Nav Buttons
-            $('.home-nav-btn').on('click', function() {
-                 const targetTabId = $(this).data('target-tab');
-                 const targetTabTrigger = $(`a[data-bs-target="${targetTabId}"]`);
-                 
-                 // Use Bootstrap's native tab method to switch
-                 const tab = new bootstrap.Tab(targetTabTrigger[0]);
-                 tab.show();
-                 
-                 // Update the active class manually if necessary, and ensure mobile menu collapses
-                 $('.navbar-nav .nav-link').removeClass('active');
-                 targetTabTrigger.addClass('active');
-                 $('#navbarNav').collapse('hide');
-            });
-
-            // "Add New Order" shortcut on Order List tab
-            $('#add-new-order-btn').on('click', function() {
-                const targetTabTrigger = $(`a[data-bs-target="#new-order"]`);
-                const tab = new bootstrap.Tab(targetTabTrigger[0]);
-                tab.show();
-                $('.navbar-nav .nav-link').removeClass('active');
-                targetTabTrigger.addClass('active');
-            });
-            
-            // Tab change event: ensures active class is correctly set on navbar links
-            $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
-                 // Remove active class from all nav links
-                 $('.navbar-nav .nav-link').removeClass('active');
-                 // Add active class to the newly shown tab's link
-                 $(this).addClass('active');
-            });
-
-
-            // --- Order Tab Handlers ---
-            
-            // New Order Form Submission
-            $('#order-form').on('submit', function(e) {
+            // Report Date Filter Handlers
+            $('#report-filter-form').on('submit', function(e) {
                 e.preventDefault();
+                const startDateStr = $('#filter-start-date').val();
+                const endDateStr = $('#filter-end-date').val();
                 
-                const newOrder = {
-                    id: generateUniqueID('ORD'),
-                    customerName: $('#customer-name').val().trim() || 'Guest Customer',
-                    customerPhoneNumber: $('#customer-phone-number').val().trim(),
-                    customerEmail: $('#customer-email').val().trim(),
-                    serviceType: $('#service-type').val(),
-                    loadType: $('#load-type').val(),
-                    weightKg: parseFloat($('#weight-kg').val() || 0),
-                    detergentUsed: parseFloat($('#detergent-used').val() || 0),
-                    staffInCharge: $('#staff-in-charge').val().trim(),
-                    baseCost: parseFloat($('#base-cost').val() || 0),
-                    deposit: parseFloat($('#deposit').val() || 0),
-                    totalPrice: parseFloat($('#total-price').val() || 0),
-                    pickupDate: $('#pickup-date').val(),
-                    pickupTime: $('#pickup-time').val(),
-                    notes: $('#notes').val().trim(),
-                    timestamp: getTimestamp(),
-                    status: 'Pending', // Default status for a new order
-                    paymentStatus: (parseFloat($('#deposit').val() || 0) > 0) ? 'Partial' : 'Unpaid',
-                    dateCollected: '' // Will be updated when collected
-                };
-                
-                saveOrderData(newOrder);
-                
-                // Reset form
-                this.reset();
-                $('#weight-kg').val('0');
-                $('#detergent-used').val('1');
-                $('#base-cost').val('0.00');
-                $('#deposit').val('0.00');
-                $('#total-price').val('0.00');
-            });
-
-            // Order List Item Click (Open Detail Modal)
-            $('#order-list-ul').on('click', '.order-item', function() {
-                const orderId = $(this).data('id');
-                const orders = loadLocalData('orders');
-                const order = orders[orderId];
-                
-                if (!order) {
-                    showToast('Order not found.', 'error');
+                if (!startDateStr || !endDateStr) {
+                    showToast('Please select both Start and End Dates.', 'danger');
                     return;
                 }
-                
-                // Populate Modal Fields
-                $('#modal-order-id-display').text(order.id);
-                $('#modal-order-id').val(order.id);
-                $('#modal-order-timestamp').val(order.timestamp);
-                
-                $('#modal-customer-name').val(order.customerName);
-                $('#modal-customer-phone-number').val(order.customerPhoneNumber);
-                $('#modal-customer-email').val(order.customerEmail);
-                $('#modal-service-type').val(order.serviceType);
-                $('#modal-weight-kg').val(order.weightKg);
-                $('#modal-detergent-used').val(order.detergentUsed);
-                
-                $('#modal-base-cost').val(parseFloat(order.baseCost).toFixed(2));
-                $('#modal-deposit').val(parseFloat(order.deposit).toFixed(2));
-                $('#modal-total-price').val(parseFloat(order.totalPrice).toFixed(2));
-                $('#modal-status').val(order.status);
-                $('#modal-payment-status').val(order.paymentStatus);
-                $('#modal-staff-in-charge').val(order.staffInCharge);
-                
-                $('#modal-pickup-date').val(order.pickupDate);
-                $('#modal-pickup-time').val(order.pickupTime);
-                $('#modal-date-collected').val(order.dateCollected);
-                $('#modal-notes').val(order.notes);
 
-                $('#orderDetailModal').modal('show');
-            });
+                // Parse dates and adjust for comparison (end date to end of day)
+                const startDate = new Date(startDateStr);
+                // Set endDate to 23:59:59 to include orders on that day
+                const endDate = new Date(endDateStr);
+                endDate.setHours(23, 59, 59, 999); 
+                
+                if (startDate > endDate) {
+                    showToast('Start Date cannot be after End Date.', 'danger');
+                    return;
+                }
 
-            // Order Detail Modal - Save Button
-            $('#order-detail-form').on('submit', function(e) {
-                e.preventDefault();
+                // Filter the orders
+                const filteredOrders = ORDERS.filter(order => {
+                    const orderDate = new Date(order.dateCreated);
+                    // order.dateCreated is stored as 'YYYY-MM-DD', so orderDate is 00:00:00 UTC
+                    // The comparison works because orderDate is effectively at the start of the day
+                    return orderDate >= startDate && orderDate <= endDate;
+                });
                 
-                const updatedOrder = {
-                    id: $('#modal-order-id').val(),
-                    customerName: $('#modal-customer-name').val().trim(),
-                    customerPhoneNumber: $('#modal-customer-phone-number').val().trim(),
-                    customerEmail: $('#modal-customer-email').val().trim(),
-                    serviceType: $('#modal-service-type').val(),
-                    loadType: $('#modal-load-type').val(),
-                    weightKg: parseFloat($('#modal-weight-kg').val() || 0),
-                    detergentUsed: parseFloat($('#modal-detergent-used').val() || 0),
-                    staffInCharge: $('#modal-staff-in-charge').val().trim(),
-                    baseCost: parseFloat($('#modal-base-cost').val() || 0),
-                    deposit: parseFloat($('#modal-deposit').val() || 0),
-                    totalPrice: parseFloat($('#modal-total-price').val() || 0),
-                    pickupDate: $('#modal-pickup-date').val(),
-                    pickupTime: $('#modal-pickup-time').val(),
-                    notes: $('#modal-notes').val().trim(),
-                    timestamp: $('#modal-order-timestamp').val(),
-                    status: $('#modal-status').val(),
-                    paymentStatus: $('#modal-payment-status').val(),
-                    dateCollected: $('#modal-date-collected').val()
-                };
-                
-                updateOrderData(updatedOrder);
-                $('#orderDetailModal').modal('hide');
+                renderSummaryStats(filteredOrders);
+                showToast(`Reports filtered from ${startDateStr} to ${endDateStr}. (${filteredOrders.length} orders)`, 'info');
             });
             
-            // Order Detail Modal - Delete Button
-            $('#delete-order-btn').on('click', function() {
-                 if (confirm('Are you sure you want to delete this order?')) {
-                    const orderId = $('#modal-order-id').val();
-                    deleteOrderData(orderId);
-                    $('#orderDetailModal').modal('hide');
-                 }
+            $('#clear-report-filter-btn').on('click', function() {
+                $('#report-filter-form')[0].reset();
+                renderSummaryStats(ORDERS); // Re-render with all orders
+                showToast('Date filter cleared. Showing all-time data.', 'info');
             });
+
+            // New Order Tab Dropdowns and Submission
+            populateOrderDropdowns(); // Re-populate with fresh data including newly registered customers
+            handleCustomerSelection();
+            $('#order-form').off('submit').on('submit', handleOrderFormSubmission);
             
-            // Pagination Handlers
+            // Order List Pagination
             $('#prev-page-btn').on('click', function() {
                 if (currentPage > 1) {
                     currentPage--;
                     renderOrderList();
                 }
             });
+
             $('#next-page-btn').on('click', function() {
-                const orders = loadLocalData('orders');
-                const totalPages = Math.ceil(Object.keys(orders).length / PAGE_SIZE);
+                const totalPages = Math.ceil(ORDERS.length / PAGE_SIZE);
                 if (currentPage < totalPages) {
                     currentPage++;
                     renderOrderList();
                 }
             });
-            
-            // --- Inventory Tab Handlers ---
-            
-            // Inventory Add Form Submission
+
+            // Order List Item Click (Re-attached in renderOrderList, but for initial load too)
+            $('.order-list-item').on('click', handleOrderView);
+
+            // New Order Shortcut Button
+            $('#add-new-order-btn').on('click', function() {
+                bootstrap.Tab.getOrCreateInstance(document.getElementById('new-order-sub-tab')).show();
+            });
+
+            // Order Update/Delete Handlers (Modal)
+            $('#modal-order-update-form').on('submit', function(e) {
+                e.preventDefault();
+                const id = $('#modal-order-hidden-id').val();
+                const order = ORDERS.find(o => o.id === id);
+                if (order) {
+                    order.status = $('#modal-update-status').val();
+                    order.paymentStatus = $('#modal-update-payment').val();
+                    
+                    // If status changes from 'Completed'/'Cancelled' to anything else (or vice-versa), 
+                    // we should update machine status and refresh order dropdowns. 
+                    // Simple logic here: if status is changed, update machine status to 'available' if 'Completed'
+                    if (order.status === 'Completed' || order.status === 'Cancelled') {
+                        // Free up machine if it exists
+                        updateMachineStatus(order.machineId, 'available');
+                    } else if (order.status !== 'Pending' && order.status !== 'Ready for Pickup') {
+                        // Assume machine goes into use if status is Washing/Drying/Folding
+                        updateMachineStatus(order.machineId, 'in-use');
+                    }
+                    
+                    saveOrder(order);
+                    $('#orderDetailModal').modal('hide');
+                    showToast(`Order ${id} updated to ${order.status}.`, 'info');
+                }
+            });
+
+            $('#delete-order-btn').on('click', function() {
+                 if (confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
+                    const order = ORDERS.find(o => o.id === $(this).data('id'));
+                    if (order && order.machineId) {
+                         // Free up machine if it exists
+                        updateMachineStatus(order.machineId, 'available');
+                    }
+                    deleteOrderData(order.id);
+                    $('#orderDetailModal').modal('hide');
+                 }
+            });
+
+            // Inventory Form Submission
             $('#detergent-form').on('submit', function(e) {
                 e.preventDefault();
-                
-                const itemName = $('#detergent-name').val().trim();
-                const inventory = loadLocalData('inventory');
-                
-                // Check if item already exists by name (case-insensitive)
-                const existingItem = Object.values(inventory).find(item => item.name.toLowerCase() === itemName.toLowerCase());
-                
-                const itemData = {
-                    name: itemName,
+                const newItem = {
+                    name: $('#detergent-name').val().trim(),
                     type: $('#detergent-type').val(),
-                    qty: parseFloat($('#detergent-qty').val() || 0),
-                    costPerUnit: parseFloat($('#detergent-cost').val() || 0),
-                    vendor: $('#detergent-vendor').val().trim(),
-                    reorderLevel: 5, // Default reorder level
+                    quantity: $('#detergent-qty').val(),
+                    costPerUnit: $('#detergent-cost').val(),
+                    vendor: $('#detergent-vendor').val().trim()
                 };
+                saveInventoryItem(newItem);
+                $('#detergent-form')[0].reset();
+                $('#detergent-qty').val('1'); // Reset quantity default
+                $('#detergent-cost').val('0.00'); // Reset cost default
                 
-                if (existingItem) {
-                    // Update existing item
-                    itemData.id = existingItem.id;
-                    itemData.qty = parseFloat(existingItem.qty) + itemData.qty; // Add new stock to existing quantity
-                    itemData.reorderLevel = existingItem.reorderLevel; // Keep existing reorder level
-                    showToast(`Adding ${itemData.qty - parseFloat(existingItem.qty)} units to existing stock.`, 'info');
-                } else {
-                    // New item
-                    itemData.id = generateUniqueID('INV');
-                }
-                
-                saveInventoryData(itemData);
-                this.reset();
-                $('#detergent-qty').val('1');
-                $('#detergent-cost').val('0.00');
+                // Switch to view tab
+                bootstrap.Tab.getOrCreateInstance(document.getElementById('inventory-view-tab')).show();
             });
             
-            // Inventory Filter Form Submission
-            $('#inventory-filter-form').on('submit', function(e) {
-                e.preventDefault();
+            // Inventory Filter/Clear
+            $('#inventory-filter-form').on('submit', function(e) { e.preventDefault(); renderInventoryList(); });
+            $('#clear-inventory-filter-btn').on('click', function() { 
+                $('#inventory-filter-form')[0].reset();
                 renderInventoryList();
             });
             
-            // Clear Inventory Filter Button
-            $('#clear-inventory-filter-btn').on('click', function() {
-                $('#filter-name').val('');
-                $('#filter-type').val('');
-                $('#filter-vendor').val('');
-                renderInventoryList();
-            });
-            
-            // Inventory List Item Click (Open Detail Modal)
-            $('#inventory-list').on('click', '.inventory-item-row', function() {
-                const itemId = $(this).data('id');
-                const inventory = loadLocalData('inventory');
-                const item = inventory[itemId];
-                
-                if (!item) {
-                    showToast('Inventory item not found.', 'error');
-                    return;
-                }
-                
-                // Populate Modal Fields
-                $('#modal-inventory-id').val(item.id);
-                $('#modal-inventory-name-display').text(item.name);
-                
-                $('#modal-inventory-name').val(item.name);
-                $('#modal-inventory-type').val(item.type);
-                $('#modal-inventory-qty').val(parseFloat(item.qty));
-                $('#modal-inventory-cost').val(parseFloat(item.costPerUnit).toFixed(2));
-                $('#modal-inventory-vendor').val(item.vendor);
-                $('#modal-inventory-reorder-level').val(parseFloat(item.reorderLevel));
-
-                $('#inventoryDetailModal').modal('show');
-            });
-
-            // Inventory Detail Modal - Save Button
-            $('#inventory-detail-form').on('submit', function(e) {
+            // Inventory Update/Delete Handlers (Modal)
+            $('#modal-inventory-update-form').on('submit', function(e) {
                 e.preventDefault();
-                
-                const updatedItem = {
-                    id: $('#modal-inventory-id').val(),
-                    name: $('#modal-inventory-name').val().trim(),
-                    type: $('#modal-inventory-type').val(),
-                    qty: parseFloat($('#modal-inventory-qty').val() || 0),
-                    costPerUnit: parseFloat($('#modal-inventory-cost').val() || 0),
-                    vendor: $('#modal-inventory-vendor').val().trim(),
-                    reorderLevel: parseFloat($('#modal-inventory-reorder-level').val() || 0),
+                const id = $('#modal-inventory-id').val();
+                const updates = {
+                    quantity: parseFloat($('#modal-inventory-qty').val()),
+                    costPerUnit: parseFloat($('#modal-inventory-cost').val()),
+                    vendor: $('#modal-inventory-vendor').val().trim()
                 };
-                
-                updateInventoryData(updatedItem);
+                updateInventoryItem(id, updates);
                 $('#inventoryDetailModal').modal('hide');
             });
             
-            // Inventory Detail Modal - Delete Button
             $('#delete-inventory-btn').on('click', function() {
                  if (confirm('Are you sure you want to delete this inventory item?')) {
-                    const itemId = $('#modal-inventory-id').val();
-                    deleteInventoryData(itemId);
+                    const itemId = $(this).data('id');
+                    deleteInventoryItem(itemId);
                     $('#inventoryDetailModal').modal('hide');
                  }
             });
-            
-            // --- Machine Tab Handlers ---
-            
-            // Machine Add Form Submission
+
+            // Machine Form Submission
             $('#machine-form').on('submit', function(e) {
                 e.preventDefault();
-                
                 const newMachine = {
-                    id: generateUniqueID('MCH'),
                     name: $('#machine-name').val().trim(),
                     type: $('#machine-type').val(),
-                    capacity: parseFloat($('#machine-capacity').val() || 0),
+                    capacity: parseFloat($('#machine-capacity').val()),
                     purchaseDate: $('#machine-purchase-date').val(),
                     notes: $('#machine-notes').val().trim(),
-                    isUnderMaintenance: $('#machine-under-maintenance').is(':checked'),
+                    status: $('#machine-under-maintenance').prop('checked') ? 'maintenance' : 'available'
                 };
-                
-                saveMachineData(newMachine);
-                this.reset();
+                saveMachine(newMachine);
+                $('#machine-form')[0].reset();
                 $('#machine-capacity').val('10.0');
+                
+                // Switch to view tab
+                bootstrap.Tab.getOrCreateInstance(document.getElementById('machines-view-tab')).show();
+            });
+
+            // Machine Update/Delete Handlers (Modal)
+            $('#modal-machine-update-form').on('submit', function(e) {
+                e.preventDefault();
+                const id = $('#modal-machine-id').val();
+                const updates = {
+                    status: $('#modal-machine-status').val(),
+                    capacity: parseFloat($('#modal-machine-capacity').val()),
+                    notes: $('#modal-machine-notes').val().trim()
+                };
+                saveMachine({ id: id, ...MACHINES.find(m => m.id === id), ...updates });
+                $('#machineDetailModal').modal('hide');
             });
             
-            // Machine Status Toggle Click
-            $('#machines-grid-list').on('click', '.toggle-maintenance-btn', function(e) {
-                 e.preventDefault();
-                 const machineId = $(this).data('id');
-                 const currentStatus = $(this).data('status') === 'true';
-                 
-                 const newStatus = !currentStatus;
-                 updateMachineStatus(machineId, newStatus);
+            $('#delete-machine-btn').on('click', function() {
+                 if (confirm('Are you sure you want to remove this machine record?')) {
+                    const machineId = $(this).data('id');
+                    deleteMachineData(machineId);
+                    $('#machineDetailModal').modal('hide');
+                 }
             });
             
-            // --- Workforce Tab Handlers ---
-            
-            // Workforce Add Form Submission
+            // Workforce Form Submission
             $('#workforce-form').on('submit', function(e) {
                 e.preventDefault();
-                
                 const newEmployee = {
-                    id: generateUniqueID('EMP'),
                     name: $('#employee-name').val().trim(),
                     type: $('#employee-type').val(),
-                    salary: parseFloat($('#employee-salary').val() || 0),
-                    rateType: $('#employee-rate-type').val(),
+                    baseSalary: parseFloat($('#employee-salary').val()),
+                    rateType: $('#employee-rate-type').val()
                 };
-                
-                saveEmployeeData(newEmployee);
-                this.reset();
+                saveEmployee(newEmployee);
+                $('#workforce-form')[0].reset();
                 $('#employee-salary').val('0.00');
             });
             
-            // Workforce List Item Click (Open Detail Modal)
-            $('#workforce-list').on('click', '.workforce-item-row', function() {
-                const employeeId = $(this).data('id');
-                const workforce = loadLocalData('workforce');
-                const employee = workforce[employeeId];
-                
-                if (!employee) {
-                    showToast('Employee not found.', 'error');
-                    return;
-                }
-                
-                // Populate Modal Fields
-                $('#modal-employee-id').val(employee.id);
-                $('#modal-employee-name-display').text(employee.name);
-                
-                $('#modal-employee-name').val(employee.name);
-                $('#modal-employee-type').val(employee.type);
-                $('#modal-employee-salary').val(parseFloat(employee.salary).toFixed(2));
-                $('#modal-employee-rate-type').val(employee.rateType);
-
-                $('#employeeDetailModal').modal('show');
-            });
-
-            // Employee Detail Modal - Save Button
-            $('#employee-detail-form').on('submit', function(e) {
+            // Employee Update/Delete Handlers (Modal)
+            $('#modal-employee-update-form').on('submit', function(e) {
                 e.preventDefault();
-                
-                const updatedEmployee = {
-                    id: $('#modal-employee-id').val(),
-                    name: $('#modal-employee-name').val().trim(),
-                    type: $('#modal-employee-type').val(),
-                    salary: parseFloat($('#modal-employee-salary').val() || 0),
-                    rateType: $('#modal-employee-rate-type').val(),
-                };
-                
-                updateEmployeeData(updatedEmployee);
-                $('#employeeDetailModal').modal('hide');
+                const id = $('#modal-employee-id').val();
+                const employee = WORKFORCE.find(e => e.id === id);
+                if (employee) {
+                    employee.type = $('#modal-employee-type').val();
+                    employee.baseSalary = parseFloat($('#modal-employee-salary').val());
+                    saveEmployee(employee);
+                    $('#employeeDetailModal').modal('hide');
+                }
             });
             
-            // Employee Detail Modal - Delete Button
             $('#delete-employee-btn').on('click', function() {
-                 if (confirm('Are you sure you want to delete this employee record?')) {
-                    const employeeId = $('#modal-employee-id').val();
+                 if (confirm('Are you sure you want to remove this employee record?')) {
+                    const employeeId = $(this).data('id');
                     deleteEmployeeData(employeeId);
                     $('#employeeDetailModal').modal('hide');
                  }
             });
             
-            // --- Customer Tab Handlers ---
-            
-            // Customer Register Form Submission
+            // Customer Form Submission
             $('#customer-form').on('submit', function(e) {
                 e.preventDefault();
-                
                 const newCustomer = {
-                    id: generateUniqueID('CUS'),
-                    uniqueID: generateUniqueID('ID'),
                     name: $('#customer-reg-name').val().trim(),
                     contact: $('#customer-reg-contact').val().trim(),
-                    age: parseInt($('#customer-reg-age').val()) || null,
-                    address: $('#customer-reg-address').val().trim(),
+                    age: $('#customer-reg-age').val(),
+                    address: $('#customer-reg-address').val().trim()
                 };
+                saveCustomer(newCustomer);
+                $('#customer-form')[0].reset();
                 
-                saveCustomerData(newCustomer);
-                this.reset();
+                // Switch to view tab
+                bootstrap.Tab.getOrCreateInstance(document.getElementById('customer-view-tab')).show();
             });
             
-            // Customer List Item Click (Open Detail Modal)
-            $('#customer-list').on('click', '.customer-item-row', function() {
-                const customerId = $(this).data('id');
-                const customers = loadLocalData('customers');
-                const customer = customers[customerId];
-                
-                if (!customer) {
-                    showToast('Customer not found.', 'error');
-                    return;
-                }
-                
-                // Populate Modal Fields
-                $('#modal-customer-id').val(customer.id);
-                $('#modal-customer-name-display-2').text(customer.name);
-                
-                $('#modal-customer-name-2').val(customer.name);
-                $('#modal-customer-contact').val(customer.contact);
-                $('#modal-customer-age').val(customer.age);
-                $('#modal-customer-address').val(customer.address);
-                $('#modal-customer-unique-id').val(customer.uniqueID);
-
-                $('#customerDetailModal').modal('show');
-            });
-            
-            // Customer ID Card Generate Button
-            $('#generate-id-card-btn').on('click', function() {
-                 const customerId = $('#id-customer-select').val();
-                 if (!customerId) {
-                     showToast('Please select a customer first.', 'warning');
-                     $('#id-card-print-area').addClass('d-none');
-                     $('#id-card-print-buttons').addClass('d-none');
-                     return;
-                 }
-                 
-                 const customers = loadLocalData('customers');
-                 const customer = customers[customerId];
-                 renderIDCard(customer);
-            });
-
-
-            // Customer Detail Modal - Save Button
-            $('#customer-detail-form').on('submit', function(e) {
+            // Customer Update/Delete Handlers (Modal)
+            $('#modal-customer-update-form').on('submit', function(e) {
                 e.preventDefault();
-                
-                const updatedCustomer = {
-                    id: $('#modal-customer-id').val(),
-                    uniqueID: $('#modal-customer-unique-id').val(),
-                    name: $('#modal-customer-name-2').val().trim(),
+                const id = $('#modal-customer-id').val();
+                const updates = {
                     contact: $('#modal-customer-contact').val().trim(),
-                    age: parseInt($('#modal-customer-age').val()) || null,
-                    address: $('#modal-customer-address').val().trim(),
+                    address: $('#modal-customer-address').val().trim()
                 };
-                
-                updateCustomerData(updatedCustomer);
+                updateCustomerData(id, updates);
                 $('#customerDetailModal').modal('hide');
-                renderCustomersList();
             });
-
-            // Customer Detail Modal - Delete Button
+            
             $('#delete-customer-btn').on('click', function() {
                  if (confirm('Are you sure you want to delete this customer record?')) {
                     const customerId = $('#modal-customer-id').val();
@@ -2384,6 +2127,36 @@
                  }
             });
 
+            // ID Card Generation Logic
+            $('#id-customer-select').on('change', function() {
+                const customerId = $(this).val();
+                if (customerId) {
+                    $('#generate-id-btn').prop('disabled', false).text('Generate/Preview ID');
+                } else {
+                    $('#generate-id-btn').prop('disabled', true).text('Generate/Preview ID');
+                }
+            });
+            
+            $('#generate-id-btn').on('click', function() {
+                const customerId = $('#id-customer-select').val();
+                const customer = CUSTOMERS.find(c => c.id === customerId);
+                
+                if (customer) {
+                    $('#id-display-name').text(customer.name);
+                    $('#id-display-contact').text(customer.contact || 'N/A');
+                    $('#id-display-address').text(customer.address || 'N/A');
+                    $('#id-display-datereg').text(customer.dateRegistered || 'N/A');
+                    $('#id-display-id').text(customer.id);
+                    
+                    $('#id-card-preview').removeClass('d-none');
+                    $('#id-card-print-area').removeClass('d-none');
+                } else {
+                    $('#id-card-preview').addClass('d-none');
+                    $('#id-card-print-area').addClass('d-none');
+                    showToast('Please select a valid customer.', 'danger');
+                }
+            });
+            
             // Log Out Button
             $('#home-log-out-btn').on('click', function() {
                 if (confirm('Are you sure you want to log out? This will clear local data unless you use Cloud Sync.')) {
@@ -2395,7 +2168,7 @@
                 }
             });
             
-            // Mobile Menu Uncollapse Logic
+            // Mobile Menu Uncollapse Logic 
             $('.navbar-nav a.nav-link').on('click', function () {
                 const navbarCollapse = $('#navbarNav');
                 // Use Bootstrap's native collapse method on the navbarCollapse element
