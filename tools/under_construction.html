@@ -147,6 +147,11 @@
             const $currentScoreDisplay = $('#current-score');
             const $topScoreDisplay = $('#top-score');
 
+            // --- Sound Elements ---
+            const tapSound = document.getElementById('tapSound');
+            const gameOverSound = document.getElementById('gameOverSound');
+            const chaseMusic = document.getElementById('chaseMusic'); 
+
             // --- Constants ---
             const groundHeight = 25; 
             const jumpHeight = 60; 
@@ -167,6 +172,34 @@
             let currentScore = 0;
             let startTime = 0;
 
+            // --- Sound Functions (Volume levels adjusted) ---
+            function playTapSound() {
+                // DECREASED VOLUME FOR TAP EFFECT to 0.3
+                tapSound.volume = 0.3;
+                tapSound.currentTime = 0; 
+                tapSound.play();
+            }
+
+            function playGameOverSound() {
+                // Keep game over sound at full volume
+                gameOverSound.volume = 1.0; 
+                gameOverSound.currentTime = 0;
+                gameOverSound.play();
+            }
+            
+            function startChaseMusic() {
+                // INCREASED BACKGROUND MUSIC VOLUME to 1.0
+                chaseMusic.volume = 1.0; 
+                chaseMusic.currentTime = 0; 
+                chaseMusic.play().catch(e => console.log("Music play failed:", e)); 
+            }
+
+            function stopChaseMusic() {
+                chaseMusic.pause();
+                chaseMusic.currentTime = 0;
+            }
+
+
             // --- Score Logic Functions ---
             function loadTopScore() {
                 const storedScore = localStorage.getItem(STORAGE_KEY);
@@ -182,7 +215,6 @@
             }
 
             function startScoring() {
-                // NEW: Remove blinking, reset score
                 $currentScoreDisplay.removeClass('blinking');
                 currentScore = 0;
                 $currentScoreDisplay.text('Score: 0 ms');
@@ -203,7 +235,6 @@
                     scoreInterval = null;
                     updateTopScore(currentScore);
                     
-                    // NEW: Add blinking class. Score is NOT reset here.
                     $currentScoreDisplay.addClass('blinking');
                 }
             }
@@ -234,6 +265,9 @@
 
             function disableClick() {
                 if (isClickEnabled) {
+                    playGameOverSound();
+                    stopChaseMusic(); 
+                    
                     $koopa.off('click', clickHandler);
                     $koopa.off('dblclick', dblClickHandler);
                     isClickEnabled = false;
@@ -255,6 +289,11 @@
             function startChase() {
                 // Start the score clock when chase begins (i.e., when Koopa moves)
                 startScoring();
+
+                // ONLY START MUSIC IF CHASE IS NOT ALREADY RUNNING
+                if (marioChaseInterval === null) { 
+                    startChaseMusic();
+                }
 
                 if (marioChaseInterval !== null) return;
                 
@@ -293,6 +332,8 @@
                     marioChaseInterval = null;
                 }
                 
+                stopChaseMusic(); 
+                
                 // Stop scoring now that Koopa is back at originalLeft
                 stopScoring();
 
@@ -310,6 +351,8 @@
 
             // --- Double Click Action Function (Slide/Chase) ---
             function dblClickAction() {
+                playTapSound();
+                
                 showMessage("Enjoy our tools. It's totally free");
                 
                 $koopa.stop(true, true); 
@@ -360,6 +403,8 @@
 
             // --- Single Click Action Function (Jump/Chase) ---
             function singleClickAction() {
+                playTapSound();
+
                 showMessage("Sorry princess, the website is still under construction");
                 
                 $koopa.stop(true); 
@@ -429,7 +474,10 @@
     </script>
 </head>
 <body class="pt-16">
-
+    
+    <audio id="tapSound" src="files/tap_effect.mp3" preload="auto"></audio>
+    <audio id="gameOverSound" src="files/game_over.mp3" preload="auto"></audio>
+    <audio id="chaseMusic" src="files/chase_music.mp3" preload="auto" loop></audio> 
     <div class="max-w-xl w-full p-8 text-center bg-white rounded-xl border border-gray-100 shadow-md">
 
         <div class="mb-6 flex justify-center">
