@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Rental Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Professional Color Palette: Deep Blue Theme */
+        :root {
+            --color-primary: #1976D2; /* Deep Blue */
+            --color-secondary: #546E7A; /* Blue Gray */
+            --color-success: #388E3C; /* Dark Green */
+            --color-warning: #FFC107; /* Amber */
+            --color-info: #03A9F4; /* Light Blue */
+            --color-danger: #D32F2F; /* Red */
+            --color-dark-active: #1565C0; /* Darker Blue for Active Background */
+        }
+        body { 
+            background-color: #f4f6f9; 
+            font-family: 'Roboto', sans-serif; 
+            padding-top: 65px;
+        }
+        .container { max-width: 1300px; }
+        .navbar-dark { background-color: var(--color-primary) !important; }
+        
+        /* Menu Tab Styles */
+        .nav-tabs .nav-link { 
+            color: white !important; 
+            border: none !important; 
+            margin: 0 5px; 
+        }
+        .nav-tabs .nav-link:hover { 
+            color: #eee !important; 
+            background-color: rgba(0, 0, 0, 0.1); 
+            border: none !important;
+            border-radius: 5px;
+        }
+        .nav-tabs .nav-link.active { 
+            color: white !important; 
+            background-color: var(--color-dark-active) !important; 
+            font-weight: 600;
+            border: none !important;
+            border-radius: 5px; 
+        }
+        .nav-tabs { 
+            border-bottom: none !important;
+        }
+        
+        /* Sub-tab Styles (in content area) - NON-ACTIVE TABS SET TO BLUE */
+        .tab-pane .nav-tabs { 
+             border-bottom: 1px solid #dee2e6; 
+        }
+        .tab-pane .nav-tabs .nav-link { 
+            color: var(--color-primary) !important; /* Non-selected tab color: Deep Blue (Requested Change) */
+            background-color: transparent !important;
+            border: 1px solid transparent !important;
+        }
+        .tab-pane .nav-tabs .nav-link:hover:not(.active) {
+            color: var(--color-dark-active) !important; 
+            background-color: rgba(25, 118, 210, 0.05) !important; 
+        }
+        .tab-pane .nav-tabs .nav-link.active {
+            color: white !important; 
+            background-color: var(--color-primary) !important; 
+            border-color: var(--color-primary) var(--color-primary) white !important; 
+        }
+
+        /* Card and Button Styles */
+        .card-header { background-color: var(--color-primary); color: white; border-bottom: none; }
+        .btn-primary { background-color: var(--color-primary); border-color: var(--color-primary); }
+        .btn-primary:hover { background-color: #1565C0; border-color: #1565C0; }
+        .btn-success { background-color: var(--color-success); border-color: var(--color-success); }
+        .btn-success:hover { background-color: #2E7D32; border-color: #2E7D32; }
+
+        /* Dashboard Card Styles - Equal height */
+        #statistics-panel { display: flex; flex-wrap: wrap; }
+        .stats-card { height: 100%; border-left: 4px solid var(--color-primary); }
+        .tab-pane { padding-top: 15px; }
+        
+        /* MODAL STYLE FOR SUB-MODALS (Requested Change) */
+        .sub-modal-dialog {
+            margin-top: 80px !important; /* Requested margin top */
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#"><i class="fas fa-house-user me-2"></i>RENTAL MANAGEMENT</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 nav-tabs" id="main-tab-list" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab"><i class="fas fa-chart-line me-1"></i>Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="tenants-tab" data-bs-toggle="tab" data-bs-target="#tenants" type="button" role="tab"><i class="fas fa-users me-1"></i>Tenants</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="property-management-tab" data-bs-toggle="tab" data-bs-target="#property-management" type="button" role="tab"><i class="fas fa-city me-1"></i>Properties</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="expenditures-tab" data-bs-toggle="tab" data-bs-target="#expenditures" type="button" role="tab"><i class="fas fa-receipt me-1"></i>Expenditures</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab"><i class="fas fa-file-alt me-1"></i>Reports</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <button class="btn btn-warning" id="home-log-out-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="tab-content" id="main-tab-content">
+            
+            <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                <h2 class="mb-4 text-primary"><i class="fas fa-tachometer-alt me-2"></i>System Dashboard</h2>
+                <div class="row g-4" id="statistics-panel">
+                    </div>
+            </div>
+            
+            <div class="tab-pane fade" id="tenants" role="tabpanel" aria-labelledby="tenants-tab">
+                <h2 class="text-primary"><i class="fas fa-users me-2"></i>Tenants Management</h2>
+                <ul class="nav nav-tabs" id="tenants-sub-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="view-lists-tab" data-bs-toggle="tab" data-bs-target="#view-lists-pane" type="button" role="tab"><i class="fas fa-list-ul me-1"></i>View Lists</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="new-tenant-tab" data-bs-toggle="tab" data-bs-target="#new-tenant-pane" type="button" role="tab"><i class="fas fa-user-plus me-1"></i>New Tenant</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="process-payments-tab" data-bs-toggle="tab" data-bs-target="#process-payments-pane" type="button" role="tab"><i class="fas fa-dollar-sign me-1"></i>Process Payments</button>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    
+                    <div class="tab-pane fade show active" id="view-lists-pane" role="tabpanel">
+                        <div class="card shadow mt-3">
+                            <div class="card-header bg-secondary text-white"><i class="fas fa-search me-2"></i>Active Tenants List</div>
+                            <div class="card-body">
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="due-date-filter" class="form-label">Filter by Due Date Status</label>
+                                        <select class="form-select" id="due-date-filter" onchange="renderTenantsList()">
+                                            <option value="all">All Tenants</option>
+                                            <option value="due_this_month">Due This Month</option>
+                                            <option value="overdue">Overdue</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover" id="tenants-list-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Contact</th>
+                                                <th>ID Type</th>
+                                                <th>Status / Due Date</th> <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="new-tenant-pane" role="tabpanel">
+                        <div class="card shadow mt-3">
+                            <div class="card-header"><i class="fas fa-user-plus me-2"></i>Register New Tenant</div>
+                            <div class="card-body">
+                                <form id="tenant-form">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3"><label for="tenant-name" class="form-label">Full Name</label><input type="text" class="form-control" id="tenant-name" required></div>
+                                        <div class="col-md-6 mb-3"><label for="tenant-birthdate" class="form-label">Birthdate</label><input type="date" class="form-control" id="tenant-birthdate" required></div>
+                                    </div>
+                                    <div class="mb-3"><label for="tenant-address" class="form-label">Home Address (Permanent)</label><textarea class="form-control" id="tenant-address" rows="2" required></textarea></div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="tenant-id-card" class="form-label">Presented ID Card</label>
+                                            <select class="form-select" id="tenant-id-card" required>
+                                                <option value="" disabled selected>Select ID Type</option>
+                                                <option>UMID ID</option><option>PhilHealth ID</option><option>National ID</option><option>SSS ID</option><option>TIN ID</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3"><label for="tenant-id-number" class="form-label">ID Number</label><input type="text" class="form-control" id="tenant-id-number" required></div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3"><label for="tenant-contact" class="form-label">Contact Number</label><input type="tel" class="form-control" id="tenant-contact" required></div>
+                                        <div class="col-md-6 mb-3"><label for="tenant-email" class="form-label">Email Address (Optional)</label><input type="email" class="form-control" id="tenant-email"></div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save Tenant</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="process-payments-pane" role="tabpanel">
+                        <div class="card shadow mt-3">
+                            <div class="card-header"><i class="fas fa-credit-card me-2"></i>Record New Payment</div>
+                            <div class="card-body">
+                                <form id="payment-form">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="payment-tenant-id" class="form-label">Tenant Name</label>
+                                            <select class="form-select" id="payment-tenant-id" required></select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="payment-room-id" class="form-label">Property / Unit</label>
+                                            <select class="form-select" id="payment-room-id" required></select>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label for="payment-type" class="form-label">Payment Type</label>
+                                            <select class="form-select" id="payment-type" required>
+                                                <option>Monthly Rent</option><option>Security Deposit</option><option>Utility Fee</option><option>Late Fee</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4 mb-3"><label for="payment-amount" class="form-label">Amount Paid (₱)</label><input type="number" step="0.01" class="form-control" id="payment-amount" required></div>
+                                        <div class="col-md-4 mb-3"><label for="payment-date" class="form-label">Payment Date</label><input type="date" class="form-control" id="payment-date" required></div>
+                                    </div>
+                                    <button type="submit" class="btn btn-success"><i class="fas fa-check-circle me-2"></i>Process Payment</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="property-management" role="tabpanel" aria-labelledby="property-management-tab">
+                <h2 class="text-primary"><i class="fas fa-city me-2"></i>Property Management</h2>
+                <ul class="nav nav-tabs" id="property-sub-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="properties-list-tab" data-bs-toggle="tab" data-bs-target="#properties-list-pane" type="button" role="tab"><i class="fas fa-list-alt me-1"></i>Properties</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="new-property-tab" data-bs-toggle="tab" data-bs-target="#new-property-pane" type="button" role="tab"><i class="fas fa-plus-circle me-1"></i>New Property</button>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    
+                    <div class="tab-pane fade show active" id="properties-list-pane" role="tabpanel">
+                        <div class="card shadow mt-3">
+                            <div class="card-header bg-secondary text-white"><i class="fas fa-warehouse me-2"></i>Registered Properties</div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover" id="properties-list-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Building/House Name</th>
+                                                <th>Location</th>
+                                                <th>Total Rooms</th>
+                                                <th>Available</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="new-property-pane" role="tabpanel">
+                        <div class="card shadow mt-3">
+                            <div class="card-header"><i class="fas fa-house-damage me-2"></i>Register New Building/House</div>
+                            <div class="card-body">
+                                <form id="new-property-form">
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3"><label for="property-name" class="form-label">Building/House Name</label><input type="text" class="form-control" id="property-name" required></div>
+                                        <div class="col-md-4 mb-3"><label for="property-location" class="form-label">Location (City/Area)</label><input type="text" class="form-control" id="property-location" required></div>
+                                        <div class="col-md-4 mb-3"><label for="property-zip" class="form-label">Zip Code</label><input type="text" class="form-control" id="property-zip" required></div>
+                                    </div>
+                                    <div class="mb-3"><label for="property-address" class="form-label">Full Address</label><textarea class="form-control" id="property-address" rows="1" required></textarea></div>
+                                    
+                                    <h6 class="mt-4 border-bottom pb-2 text-primary"><i class="fas fa-door-open me-1"></i>Initial Room/Unit Details</h6>
+                                    <div id="initial-room-fields-container">
+                                        </div>
+                                    <button type="button" class="btn btn-sm btn-outline-info me-2" id="add-initial-room-btn"><i class="fas fa-plus"></i> Add Another Room</button>
+                                    <button type="submit" class="btn btn-primary float-end"><i class="fas fa-save me-2"></i>Save Property</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="expenditures" role="tabpanel" aria-labelledby="expenditures-tab">
+                <h2 class="text-primary"><i class="fas fa-receipt me-2"></i>Expenditures Ledger</h2>
+                <div class="card shadow mt-3">
+                    <div class="card-header"><i class="fas fa-plus-circle me-2"></i>Log New Expense</div>
+                    <div class="card-body">
+                        <form id="expenditure-form">
+                            <div class="row">
+                                <div class="col-md-4 mb-3"><label for="expense-date" class="form-label">Date</label><input type="date" class="form-control" id="expense-date" required></div>
+                                <div class="col-md-8 mb-3"><label for="expense-description" class="form-label">Item/Description</label><input type="text" class="form-control" id="expense-description" placeholder="e.g., Plumbing Repair, New Refrigerator" required></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="expense-category" class="form-label">Category</label>
+                                    <select class="form-select" id="expense-category" required>
+                                        <option>Repair/Maintenance</option><option>Furniture/Appliance</option><option>Electric Bills</option><option>Water Bills</option><option>Tax/Fees</option><option>Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="expense-property-id" class="form-label">Property Affected (Optional)</label>
+                                    <select class="form-select" id="expense-property-id">
+                                        <option value="">N/A (General Expense)</option></select>
+                                </div>
+                                <div class="col-md-4 mb-3"><label for="expense-amount" class="form-label">Amount Paid (₱)</label><input type="number" step="0.01" class="form-control" id="expense-amount" required></div>
+                            </div>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Log Expense</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card shadow mt-4">
+                    <div class="card-header bg-secondary text-white"><i class="fas fa-table me-2"></i>Recent Expenditures List</div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped" id="expenditures-list-table">
+                                <thead>
+                                    <tr><th>Date</th><th>Description</th><th>Category</th><th>Property</th><th>Amount (₱)</th></tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
+                <h2 class="text-primary"><i class="fas fa-file-alt me-2"></i>System Reports</h2>
+                
+                <div class="card shadow mt-3 mb-4">
+                    <div class="card-header bg-secondary text-white"><i class="fas fa-filter me-2"></i>Report Filters</div>
+                    <div class="card-body">
+                        <form id="report-filter-form">
+                            <div class="row">
+                                <div class="col-md-3 mb-3"><label for="filter-start-date" class="form-label">Start Date</label><input type="date" class="form-control" id="filter-start-date"></div>
+                                <div class="col-md-3 mb-3"><label for="filter-end-date" class="form-label">End Date</label><input type="date" class="form-control" id="filter-end-date"></div>
+                                <div class="col-md-3 mb-3"><label for="filter-tenant" class="form-label">Tenant Name</label><select class="form-select" id="filter-tenant"></select></div>
+                                <div class="col-md-3 mb-3"><label for="filter-building" class="form-label">Building Name</label><select class="form-select" id="filter-building"></select></div>
+                            </div>
+                            <button type="button" class="btn btn-info" id="apply-filter-btn"><i class="fas fa-search me-2"></i>Apply Filters</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card shadow mb-4">
+                    <div class="card-header"><i class="fas fa-calculator me-2"></i>Summary Panel</div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-4">
+                                <h5 class="text-success">Total Revenue</h5>
+                                <h3 id="report-total-revenue">₱ 0.00</h3>
+                            </div>
+                            <div class="col-md-4">
+                                <h5 class="text-danger">Total Expenses</h5>
+                                <h3 id="report-total-expenses">₱ 0.00</h3>
+                            </div>
+                            <div class="col-md-4">
+                                <h5 class="text-primary">Net Profit</h5>
+                                <h3 id="report-net-profit">₱ 0.00</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow">
+                    <div class="card-header bg-secondary text-white"><i class="fas fa-hand-holding-usd me-2"></i>Tenant Revenue & Status</div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped" id="report-tenants-list">
+                                <thead>
+                                    <tr>
+                                        <th>Tenant</th>
+                                        <th>Property/Unit</th>
+                                        <th>Total Revenue (₱)</th>
+                                        <th>Payment Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="tenantModal" tabindex="-1" aria-labelledby="tenantModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="tenantModalLabel">Update Tenant Information</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="update-tenant-form">
+                        <input type="hidden" id="modal-tenant-id">
+                        <div class="row">
+                            <div class="col-md-6 mb-3"><label for="modal-tenant-name" class="form-label">Full Name</label><input type="text" class="form-control" id="modal-tenant-name" required></div>
+                            <div class="col-md-6 mb-3"><label for="modal-tenant-birthdate" class="form-label">Birthdate</label><input type="date" class="form-control" id="modal-tenant-birthdate" required></div>
+                        </div>
+                        <div class="mb-3"><label for="modal-tenant-address" class="form-label">Home Address</label><textarea class="form-control" id="modal-tenant-address" rows="2" required></textarea></div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3"><label for="modal-tenant-id-card" class="form-label">Presented ID Card</label><select class="form-select" id="modal-tenant-id-card" required><option>UMID ID</option><option>PhilHealth ID</option><option>National ID</option><option>SSS ID</option><option>TIN ID</option></select></div>
+                            <div class="col-md-6 mb-3"><label for="modal-tenant-id-number" class="form-label">ID Number</label><input type="text" class="form-control" id="modal-tenant-id-number" required></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3"><label for="modal-tenant-contact" class="form-label">Contact Number</label><input type="tel" class="form-control" id="modal-tenant-contact" required></div>
+                            <div class="col-md-6 mb-3"><label for="modal-tenant-email" class="form-label">Email Address</label><input type="email" class="form-control" id="modal-tenant-email"></div>
+                        </div>
+                        <button type="submit" class="btn btn-success"><i class="fas fa-save me-2"></i>Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editPropertyModal" tabindex="-1" aria-labelledby="editPropertyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="editPropertyModalLabel">Manage Property: <span id="modal-property-name"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="current-property-id">
+                    <ul class="nav nav-tabs" id="property-modal-sub-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="add-rooms-tab" data-bs-toggle="tab" data-bs-target="#add-rooms-pane" type="button" role="tab"><i class="fas fa-plus-square me-1"></i>Add Rooms</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="room-availability-tab" data-bs-toggle="tab" data-bs-target="#room-availability-pane" type="button" role="tab" onclick="renderRoomAvailabilityTable()"><i class="fas fa-calendar-check me-1"></i>Room Availability</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content mt-3">
+                        <div class="tab-pane fade show active" id="add-rooms-pane" role="tabpanel">
+                            <div class="card shadow">
+                                <div class="card-header bg-secondary text-white">Append New Rooms to this Property</div>
+                                <div class="card-body">
+                                    <form id="add-rooms-form">
+                                        <div id="new-room-fields-container">
+                                            </div>
+                                        <button type="button" class="btn btn-sm btn-outline-info me-2" id="add-new-room-btn"><i class="fas fa-plus"></i> Add Another Room</button>
+                                        <button type="submit" class="btn btn-success float-end"><i class="fas fa-save me-2"></i>Save New Rooms</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="room-availability-pane" role="tabpanel">
+                            <div class="card shadow">
+                                <div class="card-header bg-secondary text-white">Room Assignment and Status</div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <label for="room-type-filter" class="form-label">Filter by Type</label>
+                                            <select class="form-select" id="room-type-filter" onchange="filterRoomAvailability()"><option value="">All Types</option><option>Small</option><option>Medium</option><option>Large</option></select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="room-status-filter" class="form-label">Filter by Status</label>
+                                            <select class="form-select" id="room-status-filter" onchange="filterRoomAvailability()"><option value="">All Status</option><option value="Vacant">Vacant</option><option value="Occupied">Occupied</option></select>
+                                        </div>
+                                    </div>
+
+                                    <div class="table-responsive">
+                                        <table class="table table-striped" id="room-availability-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Room # / ID</th>
+                                                    <th>Floor</th>
+                                                    <th>Type</th>
+                                                    <th>Price</th>
+                                                    <th>Current Tenant</th>
+                                                    <th>Status</th>
+                                                    <th>Action / Assign</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="assignTenantModal" tabindex="-1" aria-labelledby="assignTenantModalLabel" aria-hidden="true">
+        <div class="modal-dialog sub-modal-dialog"> <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="assignTenantModalLabel">Assign Tenant to Room</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Assign tenant to Room ID: <strong id="assign-room-id-display"></strong></p>
+                    <form id="assign-tenant-form">
+                        <input type="hidden" id="assign-room-id">
+                        <input type="hidden" id="assign-property-id">
+                        <div class="mb-3">
+                            <label for="tenant-to-assign" class="form-label">Select Tenant</label>
+                            <select class="form-select" id="tenant-to-assign" required>
+                                <option value="" disabled selected>Select an unassigned tenant</option>
+                                </select>
+                        </div>
+                        <button type="submit" class="btn btn-success"><i class="fas fa-key me-2"></i>Confirm Assignment</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="loginModalLabel">Login / Data Mode Select</h5>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="text-muted">Select your preferred data storage method.</p>
+                    <button id="login-google-firebase-btn" class="btn btn-primary w-100 mb-2">
+                        <i class="fab fa-google me-2"></i>Login with Google (Firebase)
+                    </button>
+                    <button id="login-local-btn" class="btn btn-secondary w-100">
+                        <i class="fas fa-database me-2"></i>Use Local Browser Storage
+                    </button>
+                    <hr>
+                    <p class="text-danger small">Logging out cleared your local data.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto toast-title">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toast-body"></div>
+        </div>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // --- 1. CORE DATA STRUCTURES AND LOCAL/CLOUD STORAGE SIMULATION ---
+        
+        let rentalData = {
+            tenants: [],
+            properties: [],
+            expenditures: [],
+            payments: [], // Renamed from leases for clarity
+            nextRoomId: 101,
+            nextTenantId: 1
+        };
+
+        const generateUniqueId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
+
+        const saveData = (key, data) => {
+            try {
+                localStorage.setItem(`rental_${key}`, JSON.stringify(data));
+                showToast(`Data for ${key} saved locally.`, 'success');
+            } catch (error) {
+                console.error("Local storage error:", error);
+                showToast(`Could not save ${key} data.`, 'danger');
+            }
+        };
+
+        const loadData = (key) => {
+            const storedData = localStorage.getItem(`rental_${key}`);
+            return storedData ? JSON.parse(storedData) : [];
+        };
+
+        const loadInitialData = () => {
+            rentalData.tenants = loadData('tenants');
+            rentalData.properties = loadData('properties');
+            rentalData.expenditures = loadData('expenditures');
+            rentalData.payments = loadData('payments'); // Load payments
+            
+            // Set up a mock initial tenant for testing the filter immediately
+            if (rentalData.tenants.length === 0) {
+                const mockTenant = {
+                    id: 'tenant001',
+                    name: 'Juan Dela Cruz',
+                    birthdate: '1990-01-01',
+                    homeAddress: '123 Main St, Manila',
+                    presentedIdCard: 'National ID',
+                    idNumber: 'NID-9876543210',
+                    contact: '09170000000',
+                    email: 'juan@example.com',
+                    status: 'Active', 
+                    roomAssignment: {
+                        propertyId: generateUniqueId(),
+                        propertyName: 'Mock Building',
+                        roomId: generateUniqueId(),
+                        roomNumber: 101,
+                        // Set assignment date to the 28th of last month to test next month's due date
+                        dateAssigned: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 28).toISOString().split('T')[0]
+                    },
+                    dateRegistered: '2023-01-01'
+                };
+                rentalData.tenants.push(mockTenant);
+                saveData('tenants', rentalData.tenants);
+            }
+            
+            renderAllLists();
+            updateHomeStatistics();
+            populatePaymentDropdowns();
+            populateReportDropdowns();
+        };
+
+        const showToast = (message, type = 'primary') => {
+            const toastElement = $('#liveToast');
+            const toastBody = $('#toast-body');
+            const toastTitle = $('.toast-title');
+            
+            toastBody.html(message);
+            toastTitle.text(type.charAt(0).toUpperCase() + type.slice(1));
+            
+            toastElement.removeClass('text-bg-primary text-bg-success text-bg-danger text-bg-warning text-bg-info text-bg-secondary').addClass(`text-bg-${type}`);
+
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+        };
+
+
+        // --- 2. FORM SUBMISSION HANDLERS ---
+
+        $('#tenant-form').on('submit', function(e) {
+            e.preventDefault();
+            const newTenant = {
+                id: `T${rentalData.nextTenantId++}`,
+                name: $('#tenant-name').val(),
+                birthdate: $('#tenant-birthdate').val(),
+                homeAddress: $('#tenant-address').val(),
+                presentedIdCard: $('#tenant-id-card').val(),
+                idNumber: $('#tenant-id-number').val(),
+                contact: $('#tenant-contact').val(),
+                email: $('#tenant-email').val(),
+                status: 'Active', 
+                roomAssignment: null,
+                dateRegistered: new Date().toISOString().split('T')[0]
+            };
+            
+            rentalData.tenants.push(newTenant);
+            saveData('tenants', rentalData.tenants);
+            
+            $(this)[0].reset();
+            renderTenantsList();
+            populatePaymentDropdowns();
+            populateReportDropdowns();
+            updateHomeStatistics();
+            showToast('New Tenant registered.', 'success');
+        });
+
+        $('#update-tenant-form').on('submit', function(e) {
+            e.preventDefault();
+            const tenantId = $('#modal-tenant-id').val();
+            const tenant = rentalData.tenants.find(t => t.id === tenantId);
+
+            if (tenant) {
+                tenant.name = $('#modal-tenant-name').val();
+                tenant.birthdate = $('#modal-tenant-birthdate').val();
+                tenant.homeAddress = $('#modal-tenant-address').val();
+                tenant.presentedIdCard = $('#modal-tenant-id-card').val();
+                tenant.idNumber = $('#modal-tenant-id-number').val();
+                tenant.contact = $('#modal-tenant-contact').val();
+                tenant.email = $('#modal-tenant-email').val();
+                
+                saveData('tenants', rentalData.tenants);
+                renderTenantsList();
+                populatePaymentDropdowns();
+                populateReportDropdowns();
+                $('#tenantModal').modal('hide');
+                showToast(`Tenant ${tenant.name} updated.`, 'success');
+            }
+        });
+
+        // Property form submission (New Property Tab)
+        $('#new-property-form').on('submit', function(e) {
+            e.preventDefault();
+            const rooms = [];
+            
+            $('#initial-room-fields-container > div').each(function() {
+                rooms.push({
+                    roomId: `R${rentalData.nextRoomId++}`,
+                    roomNumber: $(this).find('.room-number').val(),
+                    type: $(this).find('.room-type').val(),
+                    floor: parseInt($(this).find('.room-floor').val()),
+                    price: parseFloat($(this).find('.room-price').val()),
+                    hasAC: $(this).find('.room-has-ac').is(':checked'),
+                    maxPersons: parseInt($(this).find('.room-max-persons').val()),
+                    isFemaleOnly: $(this).find('.room-female-only').is(':checked'),
+                    isOccupied: false, 
+                    tenantId: null,
+                    tenantName: null
+                });
+            });
+            
+            if (rooms.length === 0) {
+                showToast('Please add at least one room.', 'danger');
+                return;
+            }
+
+            const newProperty = {
+                id: generateUniqueId(),
+                buildingName: $('#property-name').val(),
+                location: $('#property-location').val(),
+                zip: $('#property-zip').val(),
+                address: $('#property-address').val(),
+                rooms: rooms
+            };
+            
+            rentalData.properties.push(newProperty);
+            saveData('properties', rentalData.properties);
+            
+            $(this)[0].reset();
+            $('#initial-room-fields-container').empty();
+            addRoomField('#initial-room-fields-container', 'initial'); 
+            renderPropertiesList();
+            populatePaymentDropdowns();
+            populateReportDropdowns();
+            updateHomeStatistics();
+            showToast(`Property ${newProperty.buildingName} saved with ${rooms.length} rooms!`, 'success');
+        });
+
+        // Add rooms to an existing property from modal
+        $('#add-rooms-form').on('submit', function(e) {
+            e.preventDefault();
+            const propertyId = $('#current-property-id').val();
+            const property = rentalData.properties.find(p => p.id === propertyId);
+            const newRooms = [];
+            
+            $('#new-room-fields-container > div').each(function() {
+                newRooms.push({
+                    roomId: `R${rentalData.nextRoomId++}`,
+                    roomNumber: $(this).find('.new-room-number').val(),
+                    type: $(this).find('.new-room-type').val(),
+                    floor: parseInt($(this).find('.new-room-floor').val()),
+                    price: parseFloat($(this).find('.new-room-price').val()),
+                    hasAC: $(this).find('.new-room-has-ac').is(':checked'),
+                    maxPersons: parseInt($(this).find('.new-room-max-persons').val()),
+                    isFemaleOnly: $(this).find('.new-room-female-only').is(':checked'),
+                    isOccupied: false, 
+                    tenantId: null,
+                    tenantName: null
+                });
+            });
+
+            if (newRooms.length === 0) {
+                showToast('No rooms added.', 'warning');
+                return;
+            }
+            
+            property.rooms.push(...newRooms);
+            saveData('properties', rentalData.properties);
+            $(this)[0].reset();
+            $('#new-room-fields-container').empty();
+            addRoomField('#new-room-fields-container', 'new');
+            
+            renderPropertiesList();
+            renderRoomAvailabilityTable();
+            updateHomeStatistics();
+            showToast(`${newRooms.length} new rooms added to ${property.buildingName}.`, 'success');
+        });
+
+        // Payment form submission
+        $('#payment-form').on('submit', function(e) {
+            e.preventDefault();
+            const tenantId = $('#payment-tenant-id').val();
+            const roomId = $('#payment-room-id').val();
+            
+            const tenant = rentalData.tenants.find(t => t.id === tenantId);
+            
+            if (!tenant || !tenant.roomAssignment) {
+                 showToast('Invalid tenant or unassigned tenant selected.', 'danger');
+                 return;
+            }
+
+            const newPayment = {
+                id: generateUniqueId(),
+                tenantId: tenantId,
+                tenantName: tenant.name,
+                propertyId: tenant.roomAssignment.propertyId,
+                propertyName: tenant.roomAssignment.propertyName,
+                roomId: roomId,
+                type: $('#payment-type').val(),
+                amount: parseFloat($('#payment-amount').val()),
+                date: $('#payment-date').val()
+            };
+
+            rentalData.payments.push(newPayment);
+            saveData('payments', rentalData.payments);
+            
+            $(this)[0].reset();
+            populatePaymentDropdowns(); // Re-populate to reset
+            updateHomeStatistics();
+            showToast('Payment recorded successfully.', 'success');
+        });
+
+        // Expenditure form submission
+        $('#expenditure-form').on('submit', function(e) {
+            e.preventDefault();
+            const newExpenditure = {
+                id: generateUniqueId(),
+                date: $('#expense-date').val(),
+                description: $('#expense-description').val(),
+                category: $('#expense-category').val(),
+                propertyId: $('#expense-property-id').val(),
+                propertyName: $('#expense-property-id option:selected').text().includes('(General') ? 'N/A' : $('#expense-property-id option:selected').text(),
+                amount: parseFloat($('#expense-amount').val())
+            };
+            
+            rentalData.expenditures.push(newExpenditure);
+            saveData('expenditures', rentalData.expenditures);
+            
+            $(this)[0].reset();
+            $('#expense-date').val(new Date().toISOString().split('T')[0]);
+            renderExpendituresList();
+            updateHomeStatistics();
+            showToast('Expenditure logged.', 'success');
+        });
+
+        // Assign tenant form submission
+        $('#assign-tenant-form').on('submit', function(e) {
+            e.preventDefault();
+            const propertyId = $('#assign-property-id').val();
+            const roomId = $('#assign-room-id').val();
+            const tenantId = $('#tenant-to-assign').val();
+            
+            assignTenantToRoom(propertyId, roomId, tenantId);
+            $('#assignTenantModal').modal('hide');
+        });
+
+
+        // --- 3. RENDERING AND UTILITY FUNCTIONS ---
+
+        // HELPER FUNCTION: Calculates the next upcoming due date (same day of the month as assigned) (Requested Logic)
+        const getNextDueDate = (dateAssigned) => {
+            if (!dateAssigned) return null;
+            
+            const assignedDate = new Date(dateAssigned);
+            const assignedDay = assignedDate.getDate();
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // 1. Calculate the target date in the CURRENT month
+            let dueDate = new Date(today.getFullYear(), today.getMonth(), assignedDay);
+            dueDate.setHours(0, 0, 0, 0);
+
+            // 2. If the calculated date is in the past, move to the NEXT month
+            if (dueDate < today) {
+                // Check if the current month is December (11), if so, year increases
+                let nextMonth = today.getMonth() === 11 ? 0 : today.getMonth() + 1;
+                let nextYear = today.getMonth() === 11 ? today.getFullYear() + 1 : today.getFullYear();
+                
+                // Creates a new date object for the next month
+                let nextMonthDueDate = new Date(nextYear, nextMonth, assignedDay);
+                nextMonthDueDate.setHours(0, 0, 0, 0);
+                
+                // Handle month overflow (e.g., trying to set date 31 in Feb)
+                if (nextMonthDueDate.getMonth() !== nextMonth) {
+                     nextMonthDueDate = new Date(nextYear, nextMonth + 1, 0); // Last day of target month
+                }
+                
+                return nextMonthDueDate;
+            }
+            
+            // 3. Otherwise, the due date is this month
+            return dueDate; 
+        };
+
+        const renderTenantsList = () => {
+            const filterValue = $('#due-date-filter').val();
+            const $tbody = $('#tenants-list-table tbody');
+            $tbody.empty();
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Normalize today for comparison
+
+            let filteredTenants = rentalData.tenants.filter(tenant => {
+                if (filterValue === 'all') return true;
+                if (!tenant.roomAssignment || !tenant.roomAssignment.dateAssigned) return false;
+
+                const nextDueDate = getNextDueDate(tenant.roomAssignment.dateAssigned);
+                
+                if (!nextDueDate) return false;
+
+                if (filterValue === 'overdue') {
+                    // Overdue: Due date is strictly in the past
+                    return nextDueDate < today;
+                } else if (filterValue === 'due_this_month') {
+                    // Due This Month: Due date is this month and today or in the future
+                    const isSameMonthAndYear = nextDueDate.getMonth() === today.getMonth() && nextDueDate.getFullYear() === today.getFullYear();
+                    // If the due date is later than today or today's date
+                    const isFutureOrToday = nextDueDate >= today; 
+                    return isSameMonthAndYear && isFutureOrToday;
+                }
+                return true;
+            });
+            
+            if (filteredTenants.length === 0) {
+                 $tbody.append('<tr><td colspan="5" class="text-center text-muted">No tenants match the current filters.</td></tr>');
+            }
+
+
+            filteredTenants.forEach(tenant => {
+                let roomStatusHtml;
+                let dueDateStatusHtml = '';
+
+                if (tenant.roomAssignment && tenant.roomAssignment.dateAssigned) {
+                    const nextDueDate = getNextDueDate(tenant.roomAssignment.dateAssigned);
+                    const timeDiff = nextDueDate.getTime() - today.getTime();
+                    const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+                    
+                    let statusBadgeClass;
+                    let dueDateText = nextDueDate.toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
+
+                    if (daysDiff < 0) {
+                        statusBadgeClass = 'bg-danger';
+                        dueDateText = `OVERDUE (${dueDateText})`;
+                    } else if (daysDiff <= 5) {
+                        statusBadgeClass = 'bg-warning';
+                        dueDateText = `Due Soon (${dueDateText})`;
+                    } else {
+                        statusBadgeClass = 'bg-success';
+                        dueDateText = `On Time (${dueDateText})`;
+                    }
+                    
+                    roomStatusHtml = `<span class="badge bg-primary">Unit ${tenant.roomAssignment.roomNumber}</span>`;
+                    dueDateStatusHtml = `<span class="badge ${statusBadgeClass} mt-1">${dueDateText}</span>`;
+
+                } else {
+                    roomStatusHtml = `<span class="badge bg-warning">Unassigned</span>`;
+                }
+
+                const row = `
+                    <tr>
+                        <td>${tenant.name}</td>
+                        <td>${tenant.contact}</td>
+                        <td>${tenant.presentedIdCard}</td>
+                        <td>${roomStatusHtml}<br>${dueDateStatusHtml}</td>
+                        <td><button class="btn btn-sm btn-info view-tenant-btn" data-tenant-id="${tenant.id}"><i class="fas fa-edit"></i> Edit</button></td>
+                    </tr>
+                `;
+                $tbody.append(row);
+            });
+        };
+        
+        // Handler for opening the Tenant Edit Modal
+        $(document).on('click', '.view-tenant-btn', function() {
+            const tenantId = $(this).data('tenant-id');
+            const tenant = rentalData.tenants.find(t => t.id === tenantId);
+
+            if (tenant) {
+                $('#modal-tenant-id').val(tenant.id);
+                $('#modal-tenant-name').val(tenant.name);
+                $('#modal-tenant-birthdate').val(tenant.birthdate);
+                $('#modal-tenant-address').val(tenant.homeAddress);
+                $('#modal-tenant-id-card').val(tenant.presentedIdCard);
+                $('#modal-tenant-id-number').val(tenant.idNumber);
+                $('#modal-tenant-contact').val(tenant.contact);
+                $('#modal-tenant-email').val(tenant.email);
+
+                $('#tenantModalLabel').text(`Update Tenant: ${tenant.name}`);
+                $('#tenantModal').modal('show');
+            }
+        });
+
+        // Handler for opening the Property Management Modal
+        $(document).on('click', '.edit-property-btn', function() {
+            const propertyId = $(this).data('property-id');
+            const property = rentalData.properties.find(p => p.id === propertyId);
+
+            if (property) {
+                $('#current-property-id').val(propertyId);
+                $('#modal-property-name').text(property.buildingName);
+                
+                // Clear and add one empty room field to the 'Add Rooms' tab
+                $('#new-room-fields-container').empty();
+                addRoomField('#new-room-fields-container', 'new');
+                
+                // Set the active tab back to 'Add Rooms' when opening the modal
+                $('#property-modal-sub-tabs button:first').tab('show');
+                
+                $('#editPropertyModal').modal('show');
+                renderRoomAvailabilityTable(); // Initial render for the availability tab
+            }
+        });
+        
+        // Handler for opening the Assign Tenant Modal
+        $(document).on('click', '.assign-tenant-btn', function() {
+            const roomId = $(this).data('room-id');
+            const propertyId = $(this).data('property-id');
+            
+            $('#assign-room-id').val(roomId);
+            $('#assign-property-id').val(propertyId);
+            $('#assign-room-id-display').text(roomId);
+            
+            // Populate the tenant dropdown with unassigned tenants
+            const $select = $('#tenant-to-assign');
+            $select.empty();
+            $select.append('<option value="" disabled selected>Select an unassigned tenant</option>');
+            
+            rentalData.tenants.filter(t => t.roomAssignment === null).forEach(tenant => {
+                $select.append(`<option value="${tenant.id}">${tenant.name} (${tenant.id})</option>`);
+            });
+            
+            $('#assignTenantModal').modal('show');
+        });
+
+        // Handler for unassigning a tenant
+        $(document).on('click', '.unassign-tenant-btn', function() {
+            if (!confirm('Are you sure you want to unassign this tenant and make the room vacant?')) return;
+            
+            const tenantId = $(this).data('tenant-id');
+            const propertyId = $(this).data('property-id');
+            const roomId = $(this).data('room-id');
+
+            const tenant = rentalData.tenants.find(t => t.id === tenantId);
+            const property = rentalData.properties.find(p => p.id === propertyId);
+            const room = property?.rooms.find(r => r.roomId === roomId);
+            
+            if (tenant && room) {
+                // Update room
+                room.isOccupied = false;
+                room.tenantId = null;
+                room.tenantName = null;
+                
+                // Update tenant
+                tenant.roomAssignment = null;
+
+                saveData('properties', rentalData.properties);
+                saveData('tenants', rentalData.tenants);
+
+                renderRoomAvailabilityTable();
+                renderTenantsList();
+                populatePaymentDropdowns();
+                updateHomeStatistics();
+                showToast(`Tenant ${tenant.name} unassigned successfully.`, 'success');
+            }
+        });
+        
+        const assignTenantToRoom = (propertyId, roomId, tenantId) => {
+            const propIndex = rentalData.properties.findIndex(p => p.id === propertyId);
+            const roomIndex = rentalData.properties[propIndex]?.rooms.findIndex(r => r.roomId === roomId);
+            const tenantIndex = rentalData.tenants.findIndex(t => t.id === tenantId);
+
+            if (propIndex === -1 || roomIndex === -1 || tenantIndex === -1) {
+                showToast('Assignment failed: Data not found.', 'danger');
+                return;
+            }
+
+            const property = rentalData.properties[propIndex];
+            const room = property.rooms[roomIndex];
+            const tenant = rentalData.tenants[tenantIndex];
+
+            // 1. Check if tenant is already assigned (should be filtered out, but check anyway)
+            if (tenant.roomAssignment) {
+                 showToast('Assignment failed: Tenant is already assigned to another room.', 'danger');
+                 return;
+            }
+
+            // 2. Update Room Status
+            room.isOccupied = true;
+            room.tenantId = tenantId;
+            room.tenantName = tenant.name;
+
+            // 3. Update Tenant Assignment (UPDATED: Added dateAssigned)
+            tenant.roomAssignment = { 
+                propertyId: propertyId, 
+                propertyName: property.buildingName,
+                roomId: roomId,
+                roomNumber: room.roomNumber,
+                dateAssigned: new Date().toISOString().split('T')[0] // <<-- NEW: Store the assignment date
+            };
+
+            saveData('properties', rentalData.properties);
+            saveData('tenants', rentalData.tenants);
+            
+            // Re-render relevant sections
+            renderRoomAvailabilityTable();
+            renderTenantsList();
+            populatePaymentDropdowns();
+            updateHomeStatistics();
+            showToast(`Tenant ${tenant.name} assigned to Room ${room.roomNumber} in ${property.buildingName}.`, 'success');
+        };
+        
+        const renderPropertiesList = () => {
+            const $tbody = $('#properties-list-table tbody');
+            $tbody.empty();
+
+            rentalData.properties.forEach(property => {
+                const totalRooms = property.rooms.length;
+                const availableRooms = property.rooms.filter(r => !r.isOccupied).length;
+                const row = `
+                    <tr>
+                        <td>${property.buildingName}</td>
+                        <td>${property.location}</td>
+                        <td>${totalRooms}</td>
+                        <td><span class="badge bg-${availableRooms > 0 ? 'success' : 'danger'}">${availableRooms} Available</span></td>
+                        <td><button class="btn btn-sm btn-primary edit-property-btn" data-property-id="${property.id}"><i class="fas fa-tools"></i> Manage</button></td>
+                    </tr>
+                `;
+                $tbody.append(row);
+            });
+        };
+
+        const renderRoomAvailabilityTable = () => {
+            const propertyId = $('#current-property-id').val();
+            const property = rentalData.properties.find(p => p.id === propertyId);
+            const $tbody = $('#room-availability-table tbody');
+            $tbody.empty();
+            
+            if (!property) return;
+            
+            const typeFilter = $('#room-type-filter').val();
+            const statusFilter = $('#room-status-filter').val();
+
+            let filteredRooms = property.rooms;
+            
+            if (typeFilter) {
+                filteredRooms = filteredRooms.filter(r => r.type === typeFilter);
+            }
+            if (statusFilter) {
+                const isOccupiedFilter = statusFilter === 'Occupied';
+                filteredRooms = filteredRooms.filter(r => r.isOccupied === isOccupiedFilter);
+            }
+
+            if (filteredRooms.length === 0) {
+                 $tbody.append('<tr><td colspan="7" class="text-center text-muted">No rooms match the current filters.</td></tr>');
+            }
+
+
+            filteredRooms.forEach(room => {
+                const isOccupied = room.isOccupied;
+                const statusBadge = `<span class="badge bg-${isOccupied ? 'danger' : 'success'}">${isOccupied ? 'Occupied' : 'Vacant'}</span>`;
+                const tenantDisplay = isOccupied ? `${room.tenantName} (${room.tenantId})` : '-';
+                const actionButton = isOccupied
+                    ? `<button class="btn btn-sm btn-danger unassign-tenant-btn" data-tenant-id="${room.tenantId}" data-room-id="${room.roomId}" data-property-id="${propertyId}"><i class="fas fa-sign-out-alt"></i> Unassign</button>`
+                    : `<button class="btn btn-sm btn-success assign-tenant-btn" data-room-id="${room.roomId}" data-property-id="${propertyId}"><i class="fas fa-key"></i> Assign</button>`;
+                
+                const row = `
+                    <tr>
+                        <td>#${room.roomNumber} (${room.roomId})</td>
+                        <td>${room.floor}</td>
+                        <td>${room.type}</td>
+                        <td>₱ ${room.price.toLocaleString('en-PH')}</td>
+                        <td>${tenantDisplay}</td>
+                        <td>${statusBadge}</td>
+                        <td>${actionButton}</td>
+                    </tr>
+                `;
+                $tbody.append(row);
+            });
+        };
+        
+        const filterRoomAvailability = () => {
+            // This function is called on filter change and simply re-renders the table with current filters.
+            renderRoomAvailabilityTable();
+        };
+
+        const addRoomField = (containerId, typePrefix) => {
+            const container = $(containerId);
+            const index = container.children().length + 1;
+            const uniqueRoomId = `room-${typePrefix}-${index}`;
+            const roomHtml = `
+                <div class="row mb-3 p-2 border rounded shadow-sm bg-light mb-2" id="${uniqueRoomId}">
+                    <div class="col-md-2 mb-3"><label class="form-label">Unit/Room #</label><input type="text" class="form-control ${typePrefix}-room-number" placeholder="${index}" required></div>
+                    <div class="col-md-2 mb-3"><label class="form-label">Floor</label><input type="number" min="1" class="form-control ${typePrefix}-room-floor" value="1" required></div>
+                    <div class="col-md-3 mb-3"><label class="form-label">Type</label><select class="form-select ${typePrefix}-room-type" required><option>Small</option><option>Medium</option><option>Large</option></select></div>
+                    <div class="col-md-3 mb-3"><label class="form-label">Monthly Price (₱)</label><input type="number" step="0.01" class="form-control ${typePrefix}-room-price" value="5000.00" required></div>
+                    <div class="col-md-2 d-flex align-items-center">
+                        <button type="button" class="btn btn-sm btn-danger remove-room-btn" data-target="#${uniqueRoomId}"><i class="fas fa-times"></i> Remove</button>
+                    </div>
+                    <div class="col-md-12">
+                         <div class="form-check form-check-inline">
+                            <input class="form-check-input ${typePrefix}-room-has-ac" type="checkbox" id="${uniqueRoomId}-ac">
+                            <label class="form-check-label" for="${uniqueRoomId}-ac">Has AC</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <label class="form-label me-2">Max Persons:</label>
+                            <input type="number" min="1" max="10" class="form-control form-control-sm d-inline-block w-auto ${typePrefix}-room-max-persons" value="1">
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.append(roomHtml);
+        };
+
+        $(document).on('click', '.remove-room-btn', function() {
+            const target = $(this).data('target');
+            if ($(target).parent().children().length > 1) {
+                $(target).remove();
+            } else {
+                 showToast('A property must have at least one room.', 'danger');
+            }
+        });
+        
+        $('#add-initial-room-btn').on('click', () => addRoomField('#initial-room-fields-container', 'initial'));
+        $('#add-new-room-btn').on('click', () => addRoomField('#new-room-fields-container', 'new'));
+
+        const populatePaymentDropdowns = () => {
+            // Populate Tenant Dropdown for Payments
+            const $tenantSelect = $('#payment-tenant-id');
+            $tenantSelect.empty().append('<option value="" disabled selected>Select Tenant</option>');
+            
+            // Populate Property/Unit Dropdown for Payments
+            const $roomSelect = $('#payment-room-id');
+            $roomSelect.empty().append('<option value="" disabled selected>Select Property / Unit</option>');
+
+            rentalData.tenants.filter(t => t.roomAssignment).forEach(tenant => {
+                $tenantSelect.append(`<option value="${tenant.id}">${tenant.name} (${tenant.roomAssignment.roomNumber} - ${tenant.roomAssignment.propertyName})</option>`);
+                
+                const room = rentalData.properties.find(p => p.id === tenant.roomAssignment.propertyId)
+                    ?.rooms.find(r => r.roomId === tenant.roomAssignment.roomId);
+
+                if (room) {
+                     $roomSelect.append(`<option value="${room.roomId}" data-property-id="${room.propertyId}">${tenant.roomAssignment.propertyName} - Unit ${room.roomNumber} (₱${room.price.toLocaleString('en-PH')})</option>`);
+                }
+            });
+
+            // Populate Expense Property Dropdown
+            const $expensePropSelect = $('#expense-property-id');
+            $expensePropSelect.empty().append('<option value="">N/A (General Expense)</option>');
+            rentalData.properties.forEach(p => {
+                $expensePropSelect.append(`<option value="${p.id}">${p.buildingName}</option>`);
+            });
+        };
+        
+        const populateReportDropdowns = () => {
+             const $tenantSelect = $('#filter-tenant');
+             $tenantSelect.empty().append('<option value="">All Tenants</option>');
+             rentalData.tenants.forEach(t => {
+                 $tenantSelect.append(`<option value="${t.id}">${t.name}</option>`);
+             });
+
+             const $buildingSelect = $('#filter-building');
+             $buildingSelect.empty().append('<option value="">All Buildings</option>');
+             rentalData.properties.forEach(p => {
+                 $buildingSelect.append(`<option value="${p.id}">${p.buildingName}</option>`);
+             });
+        };
+
+        const renderExpendituresList = () => {
+            const $tbody = $('#expenditures-list-table tbody');
+            $tbody.empty();
+            
+            // Sort by date descending
+            const sortedExpenditures = [...rentalData.expenditures].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            sortedExpenditures.forEach(exp => {
+                const row = `
+                    <tr>
+                        <td>${exp.date}</td>
+                        <td>${exp.description}</td>
+                        <td>${exp.category}</td>
+                        <td>${exp.propertyName}</td>
+                        <td>₱ ${exp.amount.toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
+                    </tr>
+                `;
+                $tbody.append(row);
+            });
+        };
+
+        const updateHomeStatistics = () => {
+            const totalTenants = rentalData.tenants.length;
+            const assignedRooms = rentalData.tenants.filter(t => t.roomAssignment).length;
+            const vacantRooms = rentalData.properties.reduce((count, prop) => count + prop.rooms.filter(r => !r.isOccupied).length, 0);
+            const totalRevenue = rentalData.payments.reduce((sum, p) => sum + p.amount, 0);
+            const totalExpenses = rentalData.expenditures.reduce((sum, e) => sum + e.amount, 0);
+            const netProfit = totalRevenue - totalExpenses;
+            
+            const statsHtml = `
+                <div class="col-lg-3 col-md-6">
+                    <div class="card shadow stats-card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-users fa-3x text-primary me-3"></i>
+                                <div><p class="mb-0 text-muted">Total Tenants</p><h4 class="mb-0">${totalTenants}</h4></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="card shadow stats-card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-door-open fa-3x text-success me-3"></i>
+                                <div><p class="mb-0 text-muted">Vacant Units</p><h4 class="mb-0">${vacantRooms}</h4></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="card shadow stats-card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-wallet fa-3x text-success me-3"></i>
+                                <div><p class="mb-0 text-muted">Total Revenue (All Time)</p><h4 class="mb-0 text-success">₱ ${totalRevenue.toLocaleString('en-PH', {minimumFractionDigits: 2})}</h4></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="card shadow stats-card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-chart-bar fa-3x text-danger me-3"></i>
+                                <div><p class="mb-0 text-muted">Net Profit (All Time)</p><h4 class="mb-0 text-${netProfit >= 0 ? 'primary' : 'danger'}">₱ ${netProfit.toLocaleString('en-PH', {minimumFractionDigits: 2})}</h4></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $('#statistics-panel').html(statsHtml);
+        };
+        
+        const renderAllLists = () => {
+            renderTenantsList();
+            renderPropertiesList();
+            renderExpendituresList();
+        };
+
+        // --- 4. REPORTS LOGIC ---
+        
+        $('#apply-filter-btn').on('click', function() {
+            // Simple mock report generation logic for demonstration
+            const startDate = $('#filter-start-date').val();
+            const endDate = $('#filter-end-date').val();
+            const tenantIdFilter = $('#filter-tenant').val();
+            const buildingIdFilter = $('#filter-building').val();
+            
+            let filteredPayments = rentalData.payments.filter(p => {
+                const paymentDate = new Date(p.date);
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                end.setDate(end.getDate() + 1); // Include the end date fully
+                
+                const isDateMatch = (!startDate || paymentDate >= start) && (!endDate || paymentDate < end);
+                const isTenantMatch = !tenantIdFilter || p.tenantId === tenantIdFilter;
+                const isBuildingMatch = !buildingIdFilter || p.propertyId === buildingIdFilter;
+                
+                return isDateMatch && isTenantMatch && isBuildingMatch;
+            });
+            
+            let filteredExpenditures = rentalData.expenditures.filter(e => {
+                const expenseDate = new Date(e.date);
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                end.setDate(end.getDate() + 1);
+                
+                const isDateMatch = (!startDate || expenseDate >= start) && (!endDate || expenseDate < end);
+                const isBuildingMatch = !buildingIdFilter || e.propertyId === buildingIdFilter;
+                
+                return isDateMatch && isBuildingMatch;
+            });
+
+            // Recalculate Summary
+            const totalRev = filteredPayments.reduce((sum, p) => sum + p.amount, 0);
+            const totalExp = filteredExpenditures.reduce((sum, e) => sum + e.amount, 0);
+            const netProf = totalRev - totalExp;
+
+            $('#report-total-revenue').text(`₱ ${totalRev.toLocaleString('en-PH', {minimumFractionDigits: 2})}`);
+            $('#report-total-expenses').text(`₱ ${totalExp.toLocaleString('en-PH', {minimumFractionDigits: 2})}`);
+            $('#report-net-profit').text(`₱ ${netProf.toLocaleString('en-PH', {minimumFractionDigits: 2})}`);
+            
+            // Render Tenant Revenue & Status (Mocking Status for simplicity)
+            const $reportTbody = $('#report-tenants-list tbody');
+            $reportTbody.empty();
+            
+            let tenantRevenue = filteredPayments.reduce((acc, p) => {
+                acc[p.tenantId] = (acc[p.tenantId] || 0) + p.amount;
+                return acc;
+            }, {});
+
+            rentalData.tenants.forEach(tenant => {
+                if (tenantIdFilter && tenant.id !== tenantIdFilter) return;
+
+                const revenue = tenantRevenue[tenant.id] || 0;
+                let statusBadge = `<span class="badge bg-secondary">Unassigned</span>`;
+                let unitName = '-';
+                
+                if (tenant.roomAssignment) {
+                    unitName = `${tenant.roomAssignment.propertyName} - Unit ${tenant.roomAssignment.roomNumber}`;
+                    const nextDueDate = getNextDueDate(tenant.roomAssignment.dateAssigned);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    if (nextDueDate < today) {
+                        statusBadge = `<span class="badge bg-danger">OVERDUE</span>`;
+                    } else if (nextDueDate.getMonth() === today.getMonth() && nextDueDate.getDate() <= today.getDate() + 5) {
+                        statusBadge = `<span class="badge bg-warning">DUE SOON</span>`;
+                    } else {
+                        statusBadge = `<span class="badge bg-success">CURRENT</span>`;
+                    }
+                }
+                
+                // Only show tenants that have a unit or are specifically filtered
+                if (tenant.roomAssignment || tenantIdFilter) {
+                     $reportTbody.append(`
+                        <tr>
+                            <td>${tenant.name}</td>
+                            <td>${unitName}</td>
+                            <td>₱ ${revenue.toLocaleString('en-PH', {minimumFractionDigits: 2})}</td>
+                            <td>${statusBadge}</td>
+                        </tr>
+                    `);
+                }
+            });
+            
+            if ($reportTbody.children().length === 0) {
+                 $reportTbody.append('<tr><td colspan="4" class="text-center text-muted">No tenant data found for the current filters.</td></tr>');
+            }
+
+            showToast('Report data updated.', 'info');
+        });
+
+        // --- 5. INITIALIZATION ---
+
+        const main = () => {
+            // Initial call to add one room field for new property form
+            addRoomField('#initial-room-fields-container', 'initial');
+            addRoomField('#new-room-fields-container', 'new');
+            
+            loadInitialData();
+
+            const today = new Date().toISOString().split('T')[0];
+            $('#expense-date').val(today);
+            $('#payment-date').val(today);
+            $('#filter-start-date').val(today.substring(0, 7) + '-01'); 
+            $('#filter-end-date').val(today);
+            
+            $('#apply-filter-btn').click(); // Run initial report calculation
+            
+            // Log Out Button: Show the Login Modal (UPDATED)
+            $('#home-log-out-btn').on('click', function() {
+                localStorage.clear(); // Clear all local data upon logout
+                showToast('You have been logged out. Local data cleared.', 'warning');
+                const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                loginModal.show();
+            });
+
+            // Handle Login Modal buttons (NEW)
+            $('#login-google-firebase-btn, #login-local-btn').on('click', function() {
+                // For this simulation, we reload the page to restart the app after data mode selection.
+                location.reload(); 
+            });
+            
+            // Mobile Menu Uncollapse Logic 
+            $('.navbar-nav a.nav-link').on('click', function () {
+                const navbarCollapse = $('#navbarNav');
+                if (navbarCollapse.hasClass('show')) {
+                    navbarCollapse.collapse('hide');
+                }
+            });
+        };
+
+        $(document).ready(main);
+    </script>
+</body>
+</html>
