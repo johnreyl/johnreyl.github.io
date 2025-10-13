@@ -67,21 +67,6 @@
             border-color: var(--color-primary) var(--color-primary) white !important; 
         }
 
-        /* MODAL SUB-TAB STYLES (Requested to be blue for consistency in modal) */
-        #editPropertyModal .nav-tabs .nav-link { 
-            color: var(--color-primary) !important; /* Non-selected tab text color */
-            background-color: #e3f2fd !important; /* Light blue background for non-active */
-            border: 1px solid var(--color-primary) !important;
-            border-bottom: 0 !important;
-            margin-right: 2px;
-        }
-        #editPropertyModal .nav-tabs .nav-link.active {
-            color: white !important; 
-            background-color: var(--color-primary) !important; 
-            border-color: var(--color-primary) !important; 
-        }
-
-
         /* Card and Button Styles */
         .card-header { background-color: var(--color-primary); color: white; border-bottom: none; }
         .btn-primary { background-color: var(--color-primary); border-color: var(--color-primary); }
@@ -92,7 +77,6 @@
         /* Dashboard Card Styles - Equal height */
         #statistics-panel { display: flex; flex-wrap: wrap; }
         .stats-card { height: 100%; border-left: 4px solid var(--color-primary); }
-        .stats-card-monthly { height: 100%; border-left: 4px solid var(--color-info); }
         .tab-pane { padding-top: 15px; }
         
         /* MODAL STYLE FOR SUB-MODALS (Requested Change) */
@@ -139,38 +123,8 @@
             
             <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
                 <h2 class="mb-4 text-primary"><i class="fas fa-tachometer-alt me-2"></i>System Dashboard</h2>
-                
-                <div class="row g-4 mb-4" id="statistics-panel">
+                <div class="row g-4" id="statistics-panel">
                     </div>
-
-                <div class="row g-4">
-                    <div class="col-lg-8">
-                        <div class="card shadow" id="monthly-stats-panel">
-                            <div class="card-header"><i class="fas fa-calendar-alt me-2"></i>Monthly Financial Summary</div>
-                            <div class="card-body">
-                                <div class="row g-3">
-                                    </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-lg-4">
-                        <div class="card shadow" id="overdue-tenants-panel">
-                            <div class="card-header bg-danger"><i class="fas fa-exclamation-triangle me-2"></i>Overdue Tenants</div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-sm" id="overdue-tenants-table">
-                                        <thead><tr><th>Name</th><th>Contact</th><th>Unit</th></tr></thead>
-                                        <tbody>
-                                            </tbody>
-                                    </table>
-                                </div>
-                                <p id="no-overdue-message" class="text-center text-muted d-none">🎉 No overdue tenants!</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
             
             <div class="tab-pane fade" id="tenants" role="tabpanel" aria-labelledby="tenants-tab">
@@ -258,46 +212,24 @@
                             <div class="card-body">
                                 <form id="payment-form">
                                     <div class="row">
-                                        
                                         <div class="col-md-6 mb-3">
-                                            <label for="payment-tenant-id" class="form-label">Tenant Name (Search/Select)</label>
-                                            <select class="form-select" id="payment-tenant-id" required>
-                                                <option value="" disabled selected>Select an Assigned Tenant</option>
-                                            </select>
+                                            <label for="payment-tenant-id" class="form-label">Tenant Name</label>
+                                            <select class="form-select" id="payment-tenant-id" required></select>
                                         </div>
                                         <div class="col-md-6 mb-3">
-                                            <label for="payment-building-id" class="form-label">Building Filter</label>
-                                            <select class="form-select" id="payment-building-id">
-                                                <option value="">All Buildings</option>
-                                            </select>
+                                            <label for="payment-room-id" class="form-label">Property / Unit</label>
+                                            <select class="form-select" id="payment-room-id" required></select>
                                         </div>
                                     </div>
-                                    
-                                    <div class="row mb-3 p-3 bg-light rounded border" id="tenant-info-display">
-                                        <div class="col-md-12">
-                                            <p class="mb-1"><strong>Tenant:</strong> <span id="display-tenant-name" class="text-primary">-</span></p>
-                                            <p class="mb-1"><strong>Unit:</strong> <span id="display-room-details">-</span></p>
-                                            <p class="mb-0"><strong>Monthly Price:</strong> <span id="display-room-price" class="text-success">-</span></p>
-                                        </div>
-                                    </div>
-
                                     <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="payment-room-id" class="form-label">Property / Unit (Filtered)</label>
-                                            <select class="form-select" id="payment-room-id" required>
-                                                <option value="" disabled selected>Select Property / Unit</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-4 mb-3">
                                             <label for="payment-type" class="form-label">Payment Type</label>
                                             <select class="form-select" id="payment-type" required>
                                                 <option>Monthly Rent</option><option>Security Deposit</option><option>Utility Fee</option><option>Late Fee</option>
                                             </select>
                                         </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3"><label for="payment-amount" class="form-label">Amount Paid (₱)</label><input type="number" step="0.01" class="form-control" id="payment-amount" required></div>
-                                        <div class="col-md-6 mb-3"><label for="payment-date" class="form-label">Payment Date</label><input type="date" class="form-control" id="payment-date" required></div>
+                                        <div class="col-md-4 mb-3"><label for="payment-amount" class="form-label">Amount Paid (₱)</label><input type="number" step="0.01" class="form-control" id="payment-amount" required></div>
+                                        <div class="col-md-4 mb-3"><label for="payment-date" class="form-label">Payment Date</label><input type="date" class="form-control" id="payment-date" required></div>
                                     </div>
                                     <button type="submit" class="btn btn-success"><i class="fas fa-check-circle me-2"></i>Process Payment</button>
                                 </form>
@@ -696,7 +628,6 @@
             
             renderAllLists();
             updateHomeStatistics();
-            renderHomePanels(); // NEW: Call to render monthly stats and overdue list
             populatePaymentDropdowns();
             populateReportDropdowns();
         };
@@ -742,7 +673,6 @@
             populatePaymentDropdowns();
             populateReportDropdowns();
             updateHomeStatistics();
-            renderHomePanels(); // Rerender home panels
             showToast('New Tenant registered.', 'success');
         });
 
@@ -814,7 +744,6 @@
             populatePaymentDropdowns();
             populateReportDropdowns();
             updateHomeStatistics();
-            renderHomePanels(); // Rerender home panels
             showToast(`Property ${newProperty.buildingName} saved with ${rooms.length} rooms!`, 'success');
         });
 
@@ -855,7 +784,6 @@
             renderPropertiesList();
             renderRoomAvailabilityTable();
             updateHomeStatistics();
-            renderHomePanels(); // Rerender home panels
             showToast(`${newRooms.length} new rooms added to ${property.buildingName}.`, 'success');
         });
 
@@ -888,14 +816,8 @@
             saveData('payments', rentalData.payments);
             
             $(this)[0].reset();
-            // Reset fields
-            $('#payment-tenant-id').val('');
-            $('#payment-building-id').val('');
-            updatePaymentInfoDisplay(null);
-            
             populatePaymentDropdowns(); // Re-populate to reset
             updateHomeStatistics();
-            renderHomePanels(); // Rerender home panels
             showToast('Payment recorded successfully.', 'success');
         });
 
@@ -919,7 +841,6 @@
             $('#expense-date').val(new Date().toISOString().split('T')[0]);
             renderExpendituresList();
             updateHomeStatistics();
-            renderHomePanels(); // Rerender home panels
             showToast('Expenditure logged.', 'success');
         });
 
@@ -1139,7 +1060,6 @@
                 renderTenantsList();
                 populatePaymentDropdowns();
                 updateHomeStatistics();
-                renderHomePanels(); // Rerender home panels
                 showToast(`Tenant ${tenant.name} unassigned successfully.`, 'success');
             }
         });
@@ -1186,7 +1106,6 @@
             renderTenantsList();
             populatePaymentDropdowns();
             updateHomeStatistics();
-            renderHomePanels(); // Rerender home panels
             showToast(`Tenant ${tenant.name} assigned to Room ${room.roomNumber} in ${property.buildingName}.`, 'success');
         };
         
@@ -1304,46 +1223,25 @@
         $('#add-initial-room-btn').on('click', () => addRoomField('#initial-room-fields-container', 'initial'));
         $('#add-new-room-btn').on('click', () => addRoomField('#new-room-fields-container', 'new'));
 
-        // NEW: Helper function to reset the info display
-        const updatePaymentInfoDisplay = (tenant) => {
-            if (tenant) {
-                const roomDetails = rentalData.properties
-                    .flatMap(p => p.rooms)
-                    .find(r => r.roomId === tenant.roomAssignment.roomId);
-
-                $('#display-tenant-name').text(tenant.name);
-                $('#display-room-details').text(`${tenant.roomAssignment.propertyName} - Unit #${tenant.roomAssignment.roomNumber}`);
-                $('#display-room-price').text(`₱ ${roomDetails ? roomDetails.price.toLocaleString('en-PH', {minimumFractionDigits: 2}) : '0.00'}`);
-                $('#payment-amount').val(roomDetails ? roomDetails.price.toFixed(2) : '');
-            } else {
-                $('#display-tenant-name').text('-');
-                $('#display-room-details').text('-');
-                $('#display-room-price').text('-');
-                $('#payment-amount').val('');
-            }
-        };
-
-        // NEW: Core logic for populating payment dropdowns
         const populatePaymentDropdowns = () => {
-            // Filter: Assigned tenants only
-            const assignedTenants = rentalData.tenants.filter(t => t.roomAssignment);
-
-            // Populate Tenant Search Dropdown
+            // Populate Tenant Dropdown for Payments
             const $tenantSelect = $('#payment-tenant-id');
-            $tenantSelect.empty().append('<option value="" disabled selected>Select an Assigned Tenant</option>');
-            assignedTenants.forEach(tenant => {
+            $tenantSelect.empty().append('<option value="" disabled selected>Select Tenant</option>');
+            
+            // Populate Property/Unit Dropdown for Payments
+            const $roomSelect = $('#payment-room-id');
+            $roomSelect.empty().append('<option value="" disabled selected>Select Property / Unit</option>');
+
+            rentalData.tenants.filter(t => t.roomAssignment).forEach(tenant => {
                 $tenantSelect.append(`<option value="${tenant.id}">${tenant.name} (${tenant.roomAssignment.roomNumber} - ${tenant.roomAssignment.propertyName})</option>`);
+                
+                const room = rentalData.properties.find(p => p.id === tenant.roomAssignment.propertyId)
+                    ?.rooms.find(r => r.roomId === tenant.roomAssignment.roomId);
+
+                if (room) {
+                     $roomSelect.append(`<option value="${room.roomId}" data-property-id="${room.propertyId}">${tenant.roomAssignment.propertyName} - Unit ${room.roomNumber} (₱${room.price.toLocaleString('en-PH')})</option>`);
+                }
             });
-            
-            // Populate Building Filter Dropdown
-            const $buildingSelect = $('#payment-building-id');
-            $buildingSelect.empty().append('<option value="">All Buildings</option>');
-            rentalData.properties.forEach(p => {
-                 $buildingSelect.append(`<option value="${p.id}">${p.buildingName}</option>`);
-            });
-            
-            // Initial call to filter the Units
-            filterPaymentUnits();
 
             // Populate Expense Property Dropdown
             const $expensePropSelect = $('#expense-property-id');
@@ -1353,75 +1251,6 @@
             });
         };
         
-        // NEW: Filter the Units based on the Building Filter
-        const filterPaymentUnits = () => {
-            const selectedBuildingId = $('#payment-building-id').val();
-            const $roomSelect = $('#payment-room-id');
-            $roomSelect.empty().append('<option value="" disabled selected>Select Property / Unit</option>');
-            
-            const assignedTenants = rentalData.tenants.filter(t => t.roomAssignment);
-            
-            assignedTenants.forEach(tenant => {
-                if (!selectedBuildingId || tenant.roomAssignment.propertyId === selectedBuildingId) {
-                    const property = rentalData.properties.find(p => p.id === tenant.roomAssignment.propertyId);
-                    const room = property?.rooms.find(r => r.roomId === tenant.roomAssignment.roomId);
-
-                    if (room) {
-                         $roomSelect.append(`<option 
-                            value="${room.roomId}" 
-                            data-tenant-id="${tenant.id}"
-                            data-property-id="${property.id}">
-                            ${property.buildingName} - Unit ${room.roomNumber} (Tenant: ${tenant.name})
-                        </option>`);
-                    }
-                }
-            });
-        };
-        
-        // NEW: Event listener for Building Filter
-        $('#payment-building-id').on('change', function() {
-            // Reset Tenant/Unit selection and info display when building filter changes
-            $('#payment-tenant-id').val(''); 
-            $('#payment-room-id').val('');
-            updatePaymentInfoDisplay(null);
-            filterPaymentUnits();
-        });
-        
-        // NEW: Event listener for Tenant Selection
-        $('#payment-tenant-id').on('change', function() {
-            const selectedTenantId = $(this).val();
-            const tenant = rentalData.tenants.find(t => t.id === selectedTenantId);
-            
-            if (tenant) {
-                updatePaymentInfoDisplay(tenant);
-                
-                // Automatically select the corresponding unit in the unit dropdown
-                const roomOption = $(`#payment-room-id option[data-tenant-id="${selectedTenantId}"]`);
-                if (roomOption.length) {
-                    $('#payment-room-id').val(roomOption.val());
-                }
-            } else {
-                 updatePaymentInfoDisplay(null);
-            }
-        });
-
-        // NEW: Event listener for Unit Selection
-        $('#payment-room-id').on('change', function() {
-            const selectedRoom = $(this).find('option:selected');
-            const tenantId = selectedRoom.data('tenant-id');
-            const tenant = rentalData.tenants.find(t => t.id === tenantId);
-            
-            if (tenant) {
-                 updatePaymentInfoDisplay(tenant);
-                 $('#payment-tenant-id').val(tenantId);
-            } else {
-                updatePaymentInfoDisplay(null);
-                $('#payment-tenant-id').val('');
-            }
-        });
-        
-        // END OF NEW PAYMENT LOGIC
-
         const populateReportDropdowns = () => {
              const $tenantSelect = $('#filter-tenant');
              $tenantSelect.empty().append('<option value="">All Tenants</option>');
@@ -1510,94 +1339,6 @@
             $('#statistics-panel').html(statsHtml);
         };
         
-        // NEW: Function to render the monthly panels
-        const renderHomePanels = () => {
-            const today = new Date();
-            const currentMonth = today.getMonth();
-            const currentYear = today.getFullYear();
-
-            // Calculate dates for filtering
-            const prevMonthStart = new Date(currentYear, currentMonth - 1, 1);
-            const currentMonthStart = new Date(currentYear, currentMonth, 1);
-            const nextMonthStart = new Date(currentYear, currentMonth + 1, 1);
-
-            // Filter payments
-            const paymentsCM = rentalData.payments.filter(p => new Date(p.date) >= currentMonthStart && new Date(p.date) < nextMonthStart);
-            const paymentsPM = rentalData.payments.filter(p => new Date(p.date) >= prevMonthStart && new Date(p.date) < currentMonthStart);
-            
-            // Filter expenditures
-            const expensesCM = rentalData.expenditures.filter(e => new Date(e.date) >= currentMonthStart && new Date(e.date) < nextMonthStart);
-            const expensesPM = rentalData.expenditures.filter(e => new Date(e.date) >= prevMonthStart && new Date(e.date) < currentMonthStart);
-
-            // Calculate totals
-            const revenueCM = paymentsCM.reduce((sum, p) => sum + p.amount, 0);
-            const expenseCM = expensesCM.reduce((sum, e) => sum + e.amount, 0);
-            const profitCM = revenueCM - expenseCM;
-
-            const revenuePM = paymentsPM.reduce((sum, p) => sum + p.amount, 0);
-            const expensePM = expensesPM.reduce((sum, e) => sum + e.amount, 0);
-            const profitPM = revenuePM - expensePM;
-            
-            const formatter = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' });
-            
-            // Render Monthly Statistics
-            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            const currentMonthName = monthNames[currentMonth];
-            const prevMonthName = monthNames[prevMonthStart.getMonth()];
-
-            const monthlyHtml = `
-                <div class="col-md-6">
-                    <h6 class="border-bottom pb-1 text-primary">${currentMonthName} ${currentYear} (Current)</h6>
-                    <div class="row g-2">
-                        <div class="col-12"><div class="card shadow-sm stats-card-monthly p-2"><p class="mb-0 small text-success">Revenue: <strong>${formatter.format(revenueCM)}</strong></p></div></div>
-                        <div class="col-12"><div class="card shadow-sm stats-card-monthly p-2"><p class="mb-0 small text-danger">Expenses: <strong>${formatter.format(expenseCM)}</strong></p></div></div>
-                        <div class="col-12"><div class="card shadow-sm stats-card-monthly p-2"><p class="mb-0 small text-primary">Profit: <strong>${formatter.format(profitCM)}</strong></p></div></div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <h6 class="border-bottom pb-1 text-secondary">${prevMonthName} ${prevMonthStart.getFullYear()} (Previous)</h6>
-                    <div class="row g-2">
-                        <div class="col-12"><div class="card shadow-sm stats-card-monthly p-2"><p class="mb-0 small text-success">Revenue: <strong>${formatter.format(revenuePM)}</strong></p></div></div>
-                        <div class="col-12"><div class="card shadow-sm stats-card-monthly p-2"><p class="mb-0 small text-danger">Expenses: <strong>${formatter.format(expensePM)}</strong></p></div></div>
-                        <div class="col-12"><div class="card shadow-sm stats-card-monthly p-2"><p class="mb-0 small text-primary">Profit: <strong>${formatter.format(profitPM)}</strong></p></div></div>
-                    </div>
-                </div>
-            `;
-            $('#monthly-stats-panel .card-body .row').html(monthlyHtml);
-            
-            // Render Overdue Tenants List
-            const $overdueTbody = $('#overdue-tenants-table tbody');
-            $overdueTbody.empty();
-            let overdueCount = 0;
-            const todayDate = new Date();
-            todayDate.setHours(0, 0, 0, 0);
-
-            rentalData.tenants.forEach(tenant => {
-                if (tenant.roomAssignment && tenant.roomAssignment.dateAssigned) {
-                    const nextDueDate = getNextDueDate(tenant.roomAssignment.dateAssigned);
-                    
-                    if (nextDueDate < todayDate) {
-                        const unitName = `Unit #${tenant.roomAssignment.roomNumber} (${tenant.roomAssignment.propertyName})`;
-                        $overdueTbody.append(`
-                            <tr>
-                                <td>${tenant.name}</td>
-                                <td>${tenant.contact}</td>
-                                <td><span class="badge bg-danger">${unitName}</span></td>
-                            </tr>
-                        `);
-                        overdueCount++;
-                    }
-                }
-            });
-            
-            if (overdueCount === 0) {
-                 $('#no-overdue-message').removeClass('d-none');
-            } else {
-                 $('#no-overdue-message').addClass('d-none');
-            }
-        };
-
-
         const renderAllLists = () => {
             renderTenantsList();
             renderPropertiesList();

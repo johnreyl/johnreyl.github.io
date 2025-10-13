@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codi Dynamic Progress Analyzer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jQuery CDN -->
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <style>
+        /* Base Styling */
+        body {
+            font-family: "Inter", sans-serif;
+            min-height: 120vh;
+            background-color: #f7f7f7;
+        }
+
+        /* Fixed Position Container (Icon remains bottom right) */
+        #codi-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+
+        /* Codi Icon Button (Floating Image) */
+        .codi-icon-btn {
+            width: 70px;
+            height: 70px;
+            padding: 0;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 4px solid #fff;
+            overflow: hidden;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .codi-icon-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        .codi-icon-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        /* Popover Styling (Desktop Default) */
+        .codi-popover {
+            width: 350px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            background-color: #fff;
+            transform-origin: bottom right;
+            transition: transform 0.3s ease-out;
+            transform: scale(0);
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            opacity: 0;
+            z-index: 1050;
+        }
+
+        .popover-visible {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .codi-popover-header {
+            background-color: #4F46E5;
+            color: white;
+            padding: 12px 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+
+        /* DESKTOP POINTER */
+        @media (min-width: 769px) {
+            .codi-popover::after {
+                content: '';
+                position: absolute;
+                bottom: -10px; 
+                right: 20px; 
+                width: 0;
+                height: 0;
+                border-left: 10px solid transparent;
+                border-right: 10px solid transparent;
+                border-top: 10px solid #fff; 
+                z-index: 1051;
+            }
+        }
+
+        /* --- MOBILE-SPECIFIC STYLES --- */
+        @media (max-width: 768px) {
+            .codi-popover::after {
+                display: none;
+            }
+            .codi-popover {
+                width: 90vw;
+                position: fixed; 
+                top: 50%; 
+                left: 50%;
+                transform: translate(-50%, -50%) scale(0); 
+                bottom: auto; 
+                right: auto;
+                z-index: 9999; 
+            }
+            .popover-visible {
+                transform: translate(-50%, -50%) scale(1); 
+                opacity: 1;
+            }
+        }
+        
+        /* Chat message styling */
+        .codi-response-chat {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .codi-avatar {
+            flex-shrink: 0;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .codi-message-bubble {
+            background-color: #DBEAFE; /* Blue-100 */
+            padding: 10px 14px;
+            border-radius: 18px 18px 18px 2px;
+            max-width: 85%;
+            color: #1F2937;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-top: 5px;
+        }
+        
+        /* Dynamic Performance Bubble Styles */
+        .bubble-high { background-color: #D1FAE5; color: #065F46; } /* Green */
+        .bubble-moderate { background-color: #FEF3C7; color: #B45309; } /* Yellow */
+        .bubble-low { background-color: #FEE2E2; color: #991B1B; } /* Red */
+
+        /* Navigation Button Styling */
+        .nav-btn {
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Page Content -->
+    <div class="max-w-4xl mx-auto p-8">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-4">Client Quiz Simulation Page</h1>
+        <p class="text-center text-gray-500 mb-8">Click the Codi icon on the bottom right to view your full progress analysis presentation.</p>
+        
+        <!-- EXTERNAL DATA SOURCE: QUIZ SCORES -->
+        <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+             <h2 class="text-xl font-semibold text-indigo-700 mb-4">Quiz History & Data</h2>
+             <p class="text-sm text-gray-500 mb-4">Codi will analyze the scores in the table below to provide a personalized performance summary.</p>
+             
+             <h4 class="text-sm font-bold text-gray-700 mb-2">Quiz Progress Scores:</h4>
+             <div class="overflow-x-auto text-sm border border-gray-300 rounded-lg">
+                <!-- Data Source Table: Class 'codi-data-source' is mandatory for Codi to read the table -->
+                <table id="external-score-table" class="codi-data-source w-full text-left">
+                    <thead class="bg-gray-100">
+                        <tr><th class="p-2">Quiz</th><th class="p-2">Score</th></tr>
+                    </thead>
+                    <tbody>
+                        <!-- Class 'title' for Quiz Name, Class 'score' for Score value -->
+                        <tr class="border-t"><td class="p-2 title">ICD-10-CM</td><td class="p-2 score text-green-600 font-semibold" data-score="92">92%</td></tr>
+                        <tr class="border-t"><td class="p-2 title">Business of Medicine</td><td class="p-2 score text-yellow-600 font-semibold" data-score="78">78%</td></tr>
+                        <tr class="border-t"><td class="p-2 title">Intro to CPT & Modifiers</td><td class="p-2 score text-red-600 font-semibold" data-score="64">64%</td></tr>
+                        <tr class="border-t"><td class="p-2 title">Integumentary</td><td class="p-2 score text-green-600 font-semibold" data-score="88">88%</td></tr>
+                        <tr class="border-t"><td class="p-2 title">Musculoskeletal</td><td class="p-2 score text-green-600 font-semibold" data-score="90">90%</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CODI FLOATING ASSISTANT CONTAINER -->
+    <div id="codi-container">
+
+        <!-- The Popover/Window -->
+        <div id="codi-popover" class="codi-popover">
+            <div class="codi-popover-header">
+                <span>Codi Progress Analyst 📈</span>
+                <button type="button" class="text-white hover:text-indigo-200 focus:outline-none" id="codi-close-btn">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                </button>
+            </div>
+
+            <div class="codi-popover-body p-4 overflow-y-auto max-h-96">
+                
+                <!-- STAGE 0: WELCOME & MENU (Initial View) -->
+                <div id="stage-0" class="stage-content hidden">
+                    <div class="codi-response-chat">
+                        <div class="codi-avatar">
+                            <!-- Codi avatar inside the popover -->
+                            <img src="https://placehold.co/35x35/4F46E5/ffffff?text=C" onerror="this.onerror=null;this.src='https://placehold.co/35x35/4F46E5/ffffff?text=C'" alt="Codi Avatar">
+                        </div>
+                        <div class="codi-message-bubble bg-indigo-50 text-indigo-800">
+                            <p class="m-0 font-semibold">Hi! I’m Codi, your coding buddy!</p>
+                            <p class="mt-3 font-semibold text-sm">Codi stands for:</p>
+                            <ul class="m-0 mt-1 text-sm list-disc pl-5">
+                                <li>**C**onvenient</li>
+                                <li>**O**n-demand</li>
+                                <li>**D**ata</li>
+                                <li>**I**nsight</li>
+                            </ul>
+                            <p class="m-0 mt-2 text-xs italic text-gray-700">Short, playful, feels like a friend!</p>
+                        </div>
+                    </div>
+                    <!-- Menu/Analysis Button (Only visible in Stage 0) -->
+                    <div class="space-y-3 mt-6">
+                         <!-- Primary Action -->
+                        <button id="start-analysis-btn" class="w-full bg-indigo-600 text-white p-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                            Analyze Score
+                        </button>
+                    </div>
+
+                    <!-- CONCEPT EXPLAINER (LLM Feature 2) -->
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <p class="text-sm font-semibold text-gray-600 mb-2">Ask Codi Anything! (Concept Explainer ✨)</p>
+                        
+                        <!-- LLM Output Area & Loading Spinner for Explainer -->
+                        <div id="concept-explainer-output" class="mb-4">
+                            <!-- Explainer results here -->
+                        </div>
+                        <div id="llm-loading-explainer" class="hidden text-center p-4">
+                            <svg class="animate-spin h-5 w-5 text-indigo-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <p class="text-xs text-gray-500 mt-2">Codi is finding the answer...</p>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <input type="text" id="gemini-concept-input" class="flex-grow p-2 border border-gray-300 rounded-lg text-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="e.g., Explain CPT Modifiers...">
+                            <button id="gemini-concept-btn" class="nav-btn bg-indigo-600 text-white hover:bg-indigo-700 transition">
+                                Ask
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STAGE 1: QUIZ SCORE TABLE + INTRO MESSAGE (Slide 3) -->
+                <div id="stage-1" class="stage-content hidden">
+                    <div class="codi-response-chat">
+                        <div class="codi-avatar">
+                            <img src="https://placehold.co/35x35/4F46E5/ffffff?text=C" onerror="this.onerror=null;this.src='https://placehold.co/35x35/4F46E5/ffffff?text=C'" alt="Codi Avatar">
+                        </div>
+                        <div class="codi-message-bubble bg-indigo-50 text-indigo-800">
+                            <p class="m-0">Great job, Buddy! I can see the effort and focus you put into your work. You’re making excellent progress! Let’s look at your **Progress Data** first.</p>
+                        </div>
+                    </div>
+                    <h4 class="text-sm font-bold text-gray-700 mb-2">Quiz Progress Scores:</h4>
+                    
+                    <!-- CONTAINER WHERE EXTERNAL DATA WILL BE LOADED -->
+                    <div id="score-table-container" class="overflow-x-auto text-xs border border-gray-300 rounded-lg">
+                        <!-- Content will be cloned from the main page here by JS -->
+                    </div>
+                </div>
+
+                <!-- STAGE 2: CONFUSION MATRIX 1 (Gradient Boosting) -->
+                <div id="stage-2" class="stage-content hidden">
+                    <h4 class="text-sm font-bold text-gray-700 mb-2">Confusion Matrix Gradient Boosting:</h4>
+                    <div class="codi-response-chat">
+                        <div class="codi-avatar">
+                            <img src="https://placehold.co/35x35/4F46E5/ffffff?text=C" onerror="this.onerror=null;this.src='https://placehold.co/35x35/4F46E5/ffffff?text=C'" alt="Codi Avatar">
+                        </div>
+                        <div class="codi-message-bubble bg-indigo-50 text-indigo-800">
+                            <p class="m-0 text-sm">This matrix is scaled based on the **Total Records (254)**. The high number of True Negatives (209) gives the darkest blue, representing strong model consistency!</p>
+                        </div>
+                    </div>
+                    <!-- MATRIX LAYOUT (Populated by JS function) -->
+                    <div id="matrix-container-2" class="overflow-x-auto text-xs border border-gray-300 rounded-lg p-2 bg-gray-50">
+                        <table class="w-full text-center">
+                            <thead class="bg-indigo-100">
+                                <tr><th></th><th colspan="2" class="p-2 border-b border-indigo-200">Predicted</th></tr>
+                                <tr><th class="p-2">Actual</th><th class="p-2">Negative</th><th class="p-2">Positive</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-t border-gray-200">
+                                    <td class="p-2 font-semibold bg-gray-100">Negative</td>
+                                    <td id="matrix-2-tn" class="matrix-cell p-2 font-bold transition-colors duration-300"></td> 
+                                    <td id="matrix-2-fp" class="matrix-cell p-2 font-bold transition-colors duration-300"></td>
+                                </tr>
+                                <tr class="border-t border-gray-200">
+                                    <td class="p-2 font-semibold bg-gray-100">Positive</td>
+                                    <td id="matrix-2-fn" class="matrix-cell p-2 font-bold transition-colors duration-300"></td>
+                                    <td id="matrix-2-tp" class="matrix-cell p-2 font-bold transition-colors duration-300"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <!-- Metrics Display -->
+                        <div class="flex justify-between items-center mt-3 text-gray-700 font-medium">
+                            <p class="text-xs">Accuracy: <span id="matrix-2-accuracy" class="font-bold text-green-700"></span></p>
+                            <p class="text-xs">Recall: <span id="matrix-2-recall" class="font-bold text-indigo-700"></span></p>
+                        </div>
+                        <p id="matrix-2-total-quizzes" class="text-xs text-gray-500 mt-2 text-right"></p>
+                    </div>
+
+                    <!-- LLM Feature 3 Area for Matrix 1 -->
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <h5 class="text-base font-bold text-gray-700 mb-3">Matrix Insight & Action Plan ✨</h5>
+                        <div id="matrix-analysis-output-2" class="mb-4"></div>
+                        <div id="llm-loading-matrix-2" class="hidden text-center p-4">
+                            <svg class="animate-spin h-5 w-5 text-indigo-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <p class="text-xs text-gray-500 mt-2">Codi is analyzing the errors...</p>
+                        </div>
+                        <button id="gemini-matrix-btn-2" class="w-full bg-indigo-600 text-white p-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                            ✨ Get Error Diagnosis & Action Plan
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- STAGE 3: CONFUSION MATRIX 2 (Test Results - NEW) -->
+                <div id="stage-3" class="stage-content hidden">
+                    <h4 class="text-sm font-bold text-gray-700 mb-2">Confusion Matrix Test Results:</h4>
+                    <div class="codi-response-chat">
+                        <div class="codi-avatar">
+                            <img src="https://placehold.co/35x35/4F46E5/ffffff?text=C" onerror="this.onerror=null;this.src='https://placehold.co/35x35/4F46E5/ffffff?text=C'" alt="Codi Avatar">
+                        </div>
+                        <div class="codi-message-bubble bg-red-50 text-red-800">
+                            <p class="m-0 text-sm">Caution! While accuracy is decent, the low **Recall (40%)** suggests this model struggles to correctly identify positive instances. This is a crucial area for improvement!</p>
+                        </div>
+                    </div>
+                    <!-- MATRIX LAYOUT (Populated by JS function) -->
+                    <div id="matrix-container-3" class="overflow-x-auto text-xs border border-gray-300 rounded-lg p-2 bg-gray-50">
+                        <table class="w-full text-center">
+                            <thead class="bg-indigo-100">
+                                <tr><th></th><th colspan="2" class="p-2 border-b border-indigo-200">Predicted</th></tr>
+                                <tr><th class="p-2">Actual</th><th class="p-2">Negative</th><th class="p-2">Positive</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-t border-gray-200">
+                                    <td class="p-2 font-semibold bg-gray-100">Negative</td>
+                                    <td id="matrix-3-tn" class="matrix-cell p-2 font-bold transition-colors duration-300"></td> 
+                                    <td id="matrix-3-fp" class="matrix-cell p-2 font-bold transition-colors duration-300"></td>
+                                </tr>
+                                <tr class="border-t border-gray-200">
+                                    <td class="p-2 font-semibold bg-gray-100">Positive</td>
+                                    <td id="matrix-3-fn" class="matrix-cell p-2 font-bold transition-colors duration-300"></td>
+                                    <td id="matrix-3-tp" class="matrix-cell p-2 font-bold transition-colors duration-300"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <!-- Metrics Display -->
+                        <div class="flex justify-between items-center mt-3 text-gray-700 font-medium">
+                            <p class="text-xs">Accuracy: <span id="matrix-3-accuracy" class="font-bold text-green-700"></span></p>
+                            <p class="text-xs">Recall: <span id="matrix-3-recall" class="font-bold text-indigo-700"></span></p>
+                        </div>
+                        <p id="matrix-3-total-quizzes" class="text-xs text-gray-500 mt-2 text-right"></p>
+                    </div>
+
+                    <!-- LLM Feature 3 Area for Matrix 2 -->
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <h5 class="text-base font-bold text-gray-700 mb-3">Matrix Insight & Action Plan ✨</h5>
+                        <div id="matrix-analysis-output-3" class="mb-4"></div>
+                        <div id="llm-loading-matrix-3" class="hidden text-center p-4">
+                            <svg class="animate-spin h-5 w-5 text-indigo-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <p class="text-xs text-gray-500 mt-2">Codi is analyzing the errors...</p>
+                        </div>
+                        <button id="gemini-matrix-btn-3" class="w-full bg-indigo-600 text-white p-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                            ✨ Get Error Diagnosis & Action Plan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STAGE 4 (Removed: Test Results Summary) -->
+                <!-- The flow now jumps from Stage 3 to Stages 5, 6, or 7 -->
+
+                <!-- STAGE 5: STRONG PERFORMANCE MESSAGE (Final Stage) -->
+                <div id="stage-5" class="stage-content hidden">
+                    <div class="codi-response-chat">
+                        <div class="codi-avatar">
+                            <img src="https://placehold.co/35x35/4F46E5/ffffff?text=C" onerror="this.onerror=null;this.src='https://placehold.co/35x35/4F46E5/ffffff?text=C'" alt="Codi Avatar">
+                        </div>
+                        <div class="codi-message-bubble bubble-high">
+                            <p class="m-0 font-semibold text-base">⭐ Strong Performance (Overall Score: <span id="strong-score"></span>)</p>
+                            <p class="m-0 mt-1 text-sm">Congratulations on your excellent results! Your strong performance shows consistent effort and a clear understanding of the subject. I recommend you continue challenging yourself with advanced exercises or practice tests to further sharpen your skills. Keep up the outstanding work!</p>
+                        </div>
+                    </div>
+                    <!-- LLM Study Plan section is intentionally hidden here -->
+                </div>
+
+                <!-- STAGE 6: AVERAGE PERFORMANCE MESSAGE (Final Stage) -->
+                <div id="stage-6" class="stage-content hidden">
+                    <div class="codi-response-chat">
+                        <div class="codi-avatar">
+                            <img src="https://placehold.co/35x35/4F46E5/ffffff?text=C" onerror="this.onerror=null;this.src='https://placehold.co/35x35/4F46E5/ffffff?text=C'" alt="Codi Avatar">
+                        </div>
+                        <div class="codi-message-bubble bubble-moderate">
+                            <p class="m-0 font-semibold text-base">👍 Average Performance (Overall Score: <span id="average-score"></span>)</p>
+                            <p class="m-0 mt-1 text-sm">Well done! Your results show that you have a good grasp of the basics. To strengthen your performance, I recommend focusing more on **ICD-10 Coding Guidelines**. Regular practice and reviewing examples will help you build more confidence. You’re on the right track—keep going!</p>
+                        </div>
+                    </div>
+                    <!-- LLM Study Plan section is visible here -->
+                </div>
+
+                <!-- STAGE 7: NEEDS IMPROVEMENT MESSAGE (Final Stage) -->
+                <div id="stage-7" class="stage-content hidden">
+                    <div class="codi-response-chat">
+                        <div class="codi-avatar">
+                            <img src="https://placehold.co/35x35/4F46E5/ffffff?text=C" onerror="this.onerror=null;this.src='https://placehold.co/35x35/4F46E5/ffffff?text=C'" alt="Codi Avatar">
+                        </div>
+                        <div class="codi-message-bubble bubble-low">
+                            <p class="m-0 font-semibold text-base">📈 Needs Improvement (Overall Score: <span id="low-score"></span>)</p>
+                            <p class="m-0 mt-1 text-sm">Don’t be discouraged. Your results highlight areas that need more attention, especially **ICD-10 coding accuracy**. I recommend reviewing class notes, practicing with case studies, and seeking clarification on topics that feel unclear. With steady effort and consistent practice, you can definitely improve and achieve better results next time.</p>
+                        </div>
+                    </div>
+                    <!-- LLM Study Plan section is visible here -->
+                </div>
+                
+                <!-- LLM STUDY PLAN SECTION (Only for Stages 6, 7) - LLM Feature 1 -->
+                <div id="llm-features-section" class="mt-4 pt-4 border-t border-gray-200 hidden">
+                    <h5 class="text-base font-bold text-gray-700 mb-3">Personalized Study Plan 🎯</h5>
+
+                    <!-- LLM Output Area & Loading Spinner for Study Plan -->
+                    <div id="study-plan-output" class="mb-4">
+                        <!-- Content generated by Gemini will appear here -->
+                    </div>
+                    <div id="llm-loading-plan" class="hidden text-center p-4">
+                        <svg class="animate-spin h-5 w-5 text-yellow-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <p class="text-xs text-gray-500 mt-2">Codi is crafting your custom plan...</p>
+                    </div>
+
+                    <!-- Personalized Study Plan Button (Only visible for Average/Low performance) -->
+                    <button id="gemini-study-plan-btn" class="w-full bg-yellow-500 text-white p-3 rounded-lg font-semibold hover:bg-yellow-600 transition mb-4 hidden">
+                        ✨ Generate Personalized 3-Step Study Plan
+                    </button>
+                </div>
+
+
+                <!-- NAVIGATION CONTROLS (Hidden on Stage 0) -->
+                <div id="nav-controls" class="flex justify-between items-center pt-4 border-t border-gray-200 mt-4 hidden">
+                    <button id="prev-btn" class="nav-btn bg-gray-200 text-gray-700 hover:bg-gray-300 transition" disabled>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        Previous
+                    </button>
+                    
+                    <span id="page-indicator" class="text-sm font-medium text-gray-500">1 of 3</span>
+
+                    <button id="next-btn" class="nav-btn bg-indigo-600 text-white hover:bg-indigo-700 transition">
+                        Next
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- The Codi Icon/Button (Floating Image) -->
+        <button id="codi-toggle-btn" class="codi-icon-btn">
+            <img src="codi.png" onerror="this.onerror=null;this.src='https://placehold.co/70x70/4F46E5/ffffff?text=Codi';" alt="Codi Floating Icon">
+        </button>
+    </div>
+
+    <!-- Custom jQuery Scripting for Logic -->
+    <script>
+        // --- Gemini API Setup ---
+        const API_MODEL_TEXT = "gemini-2.5-flash-preview-05-20";
+        const API_KEY = ""; // Canvas environment will inject the key
+        const BASE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${API_MODEL_TEXT}:generateContent?key=${API_KEY}`;
+        const MAX_RETRIES = 5;
+
+        // Function to handle API call with exponential backoff
+        async function fetchGeminiResponse(payload, isGrounding = false, isStructured = false, stage = 2) {
+            let delay = 1000;
+            for (let i = 0; i < MAX_RETRIES; i++) {
+                try {
+                    const response = await fetch(BASE_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.status === 429 && i < MAX_RETRIES - 1) {
+                        // Rate limit hit, wait and retry
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        delay *= 2; // Exponential backoff
+                        continue;
+                    }
+
+                    if (!response.ok) {
+                        throw new Error(`API call failed with status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    const candidate = result.candidates?.[0];
+
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        const text = candidate.content.parts[0].text;
+                        
+                        // Handle Structured JSON Response
+                        if (isStructured) {
+                            try {
+                                return { text: JSON.parse(text), sources: [] };
+                            } catch (e) {
+                                console.error("Failed to parse JSON response:", e);
+                                return { text: `Error: The model returned unstructured data. Raw: ${text}`, sources: [] };
+                            }
+                        }
+
+                        // Handle Grounded Text Response
+                        if (isGrounding) {
+                            let sources = [];
+                            const groundingMetadata = candidate.groundingMetadata;
+                            if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                                sources = groundingMetadata.groundingAttributions
+                                    .map(attribution => ({
+                                        uri: attribution.web?.uri,
+                                        title: attribution.web?.title,
+                                    }))
+                                    .filter(source => source.uri && source.title); // Ensure sources are valid
+                            }
+                            return { text, sources };
+                        }
+
+                        return { text, sources: [] }; // Standard text response
+
+                    } else {
+                        throw new Error("API response candidate or content part is missing.");
+                    }
+
+                } catch (error) {
+                    console.error(`Attempt ${i + 1} failed:`, error);
+                }
+            }
+            return { text: "I'm sorry, Codi couldn't connect to the AI analyst. Please try again later.", sources: [] };
+        }
+
+        // Function to copy the data from the main page into the Codi popover
+        function loadExternalData() {
+            const externalTable = $('.codi-data-source');
+            const internalContainer = $('#score-table-container');
+
+            if (externalTable.length && internalContainer.length) {
+                const clonedTable = externalTable.clone();
+                clonedTable.removeClass('codi-data-source'); 
+                internalContainer.empty().append(clonedTable);
+            }
+        }
+
+        // Function to close the Codi popover
+        function closeCodi() {
+            $('#codi-popover').removeClass('popover-visible');
+            $('body').removeClass('overflow-hidden');
+        }
+
+        // --- Core Logic: Confusion Matrix Data ---
+
+        // Data source map for different matrices
+        const matrixDataSources = {
+            2: () => { // Stage 2 Matrix (Gradient Boosting)
+                const TN = 209;
+                const TP = 41;
+                const FP = 3;
+                const FN = 1;
+                const TotalQuizzes = TN + TP + FP + FN;
+                const Accuracy = 98.00; 
+                const Recall = 97.62; 
+                return { TN, TP, FP, FN, TotalQuizzes, Accuracy, Recall };
+            },
+            3: () => { // Stage 3 Matrix (Test Results)
+                const TN = 45;
+                const TP = 2;
+                const FP = 1;
+                const FN = 3;
+                const TotalQuizzes = TN + TP + FP + FN; // 51
+                const Accuracy = 92.00;
+                const Recall = 40.00; 
+                return { TN, TP, FP, FN, TotalQuizzes, Accuracy, Recall };
+            }
+        };
+
+        // Function to calculate a blue gradient color based on value and max
+        function getGradientColor(value, max) {
+            if (value === 0) return '#F0F4FF'; // Very light blue/almost white for zero counts
+            
+            // Scale value between 0 and 1
+            const normalized = value / max; 
+            
+            // Use HSL for a blue gradient
+            const HUE = 220;
+            const SATURATION = 80;
+            const minL = 30; // Darkest blue (for max value)
+            const maxL = 95; // Whitish blue (for min non-zero value)
+            
+            // Invert the normalization so high values get darker (lower L)
+            const lightness = maxL - (normalized * (maxL - minL));
+            
+            const color = `hsl(${HUE}, ${SATURATION}%, ${Math.round(lightness)}%)`;
+            
+            // Determine text color for contrast (less than 60% lightness should use white text)
+            const isDark = lightness < 60;
+            
+            return { color, textColor: isDark ? '#fff' : '#1f2937' };
+        }
+        
+        // Function to update the matrix table with calculated data and gradient colors
+        function updateConfusionMatrix(stage) {
+            const matrixData = matrixDataSources[stage]();
+            const maxVal = Math.max(matrixData.TN, matrixData.TP, matrixData.FP, matrixData.FN); // Max of all 4 values
+
+            // NOTE: Matrix ID mapping corresponds to the standard ML layout
+            const cells = {
+                [`#matrix-${stage}-tn`]: matrixData.TN, 
+                [`#matrix-${stage}-fp`]: matrixData.FP, 
+                [`#matrix-${stage}-fn`]: matrixData.FN, 
+                [`#matrix-${stage}-tp`]: matrixData.TP  
+            };
+
+            for (const [selector, value] of Object.entries(cells)) {
+                const $cell = $(selector);
+                $cell.text(value);
+                const { color, textColor } = getGradientColor(value, maxVal);
+                $cell.css({
+                    'background-color': color,
+                    'color': textColor 
+                });
+            }
+
+            $(`#matrix-${stage}-total-quizzes`).text(`Total Records Analyzed: ${matrixData.TotalQuizzes}`);
+            $(`#matrix-${stage}-accuracy`).text(`${matrixData.Accuracy.toFixed(2)}%`);
+            $(`#matrix-${stage}-recall`).text(`${matrixData.Recall.toFixed(2)}%`);
+        }
+
+        $(document).ready(function() {
+            // --- Global State & Constants ---
+            // Stages: 0: Welcome, 1: Scores, 2: Matrix 1, 3: Matrix 2, 5-7: Feedback
+            let currentState = 0; 
+            const MAX_DATA_STAGE = 3; // The final data slide before jumping to feedback (Stage 3 is the last data slide)
+            const LOW_SCORE_THRESHOLD = 75; // Used for identifying weak areas for the study plan
+
+            // --- Score Analysis Logic (for dynamic feedback stages) ---
+            function calculateAverageScore() {
+                const scores = [];
+                $('#external-score-table .score').each(function() {
+                    const score = parseInt($(this).data('score')); 
+                    if (!isNaN(score)) {
+                        scores.push(score);
+                    }
+                });
+
+                if (scores.length === 0) return 0;
+
+                const total = scores.reduce((sum, score) => sum + score, 0);
+                return Math.round(total / scores.length);
+            }
+
+            function getPerformanceTier(averageScore) {
+                // Determine which final stage (5, 6, or 7) to jump to.
+                if (averageScore >= 85) {
+                    return 5; // Strong Performance 
+                } else if (averageScore >= 70) {
+                    return 6; // Average Performance 
+                } else {
+                    return 7; // Needs Improvement 
+                }
+            }
+
+            // --- LLM Feature 1: Personalized Study Plan (Structured Output) ---
+            async function generateStudyPlan() {
+                // Clear previous output and show loading for the study plan area
+                $('#study-plan-output').empty();
+                $('#llm-loading-plan').removeClass('hidden');
+                $('#gemini-study-plan-btn').prop('disabled', true); 
+
+                const avgScore = calculateAverageScore();
+                let lowScores = [];
+
+                // 1. Identify low-scoring quizzes
+                $('#external-score-table tr').each(function() {
+                    const scoreValue = parseInt($(this).find('.score').data('score'));
+                    const title = $(this).find('.title').text().trim();
+
+                    if (!isNaN(scoreValue) && scoreValue < LOW_SCORE_THRESHOLD) { 
+                        lowScores.push(`${title} (${scoreValue}%)`);
+                    }
+                });
+
+                if (lowScores.length === 0) {
+                    $('#study-plan-output').html('<p class="text-sm text-green-700">Great! Based on your scores, you don\'t have critical weak areas right now. Try the concept explainer on the main menu!</p>');
+                    $('#llm-loading-plan').addClass('hidden');
+                    $('#gemini-study-plan-btn').prop('disabled', false);
+                    return;
+                }
+
+                const weakAreas = lowScores.join(', ');
+                const systemPrompt = "You are Codi, an expert medical coding tutor. Based on the user's weak areas, create a highly focused 3-step study plan to help them boost their scores and confidence. The plan must be encouraging and action-oriented. Address the user directly.";
+                const userQuery = `My average score is ${avgScore}%. My lowest scoring quiz modules are: ${weakAreas}. Generate a 3-step study plan to improve my knowledge in these specific areas.`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: userQuery }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                "title": { "type": "STRING", "description": "A short, motivational title for the plan." },
+                                "steps": {
+                                    "type": "ARRAY",
+                                    "description": "Exactly three steps for the study plan.",
+                                    "items": {
+                                        "type": "OBJECT",
+                                        "properties": {
+                                            "stepNumber": { "type": "NUMBER" },
+                                            "action": { "type": "STRING", "description": "A clear, concise, and encouraging action for the student." }
+                                        }
+                                    }
+                                }
+                            },
+                            "propertyOrdering": ["title", "steps"]
+                        }
+                    }
+                };
+
+                const { text: jsonResponse, sources } = await fetchGeminiResponse(payload, false, true);
+
+                $('#llm-loading-plan').addClass('hidden');
+                $('#gemini-study-plan-btn').prop('disabled', false);
+
+                if (typeof jsonResponse === 'string') {
+                    $('#study-plan-output').html(`<p class="text-sm text-red-500">${jsonResponse}</p>`);
+                    return;
+                }
+                
+                // 2. Render the structured plan
+                let html = `<div class="bg-indigo-50 p-4 rounded-lg shadow-md border-t-4 border-indigo-500">
+                                <h5 class="text-lg font-bold text-indigo-700 mb-3">${jsonResponse.title}</h5>
+                                <ul class="space-y-3">`;
+                
+                if (Array.isArray(jsonResponse.steps)) {
+                    jsonResponse.steps.forEach(step => {
+                        html += `<li class="flex items-start">
+                                    <span class="bg-indigo-600 text-white font-bold w-6 h-6 flex items-center justify-center rounded-full mr-3 flex-shrink-0 text-xs">${step.stepNumber}</span>
+                                    <p class="text-sm text-gray-700">${step.action}</p>
+                                </li>`;
+                    });
+                }
+
+                html += `</ul></div>`;
+                $('#study-plan-output').html(html);
+            }
+            
+            // --- LLM Feature 2: Grounded Concept Explainer ---
+            async function explainConcept(query) {
+                // Clear previous output and show loading for the explainer area
+                $('#concept-explainer-output').empty();
+                if (!query.trim()) return;
+
+                $('#llm-loading-explainer').removeClass('hidden');
+                $('#gemini-concept-btn').prop('disabled', true); 
+                $('#gemini-concept-input').prop('disabled', true);
+
+                // IMPORTANT: The system prompt now strictly enforces the medical coding and billing domain.
+                const systemPrompt = "You are Codi, an expert medical coding and billing tutor affiliated with the Healthcare Billing Institute. Your sole purpose is to provide concise, accurate, and professional explanations related ONLY to medical coding (such as CPT, ICD-10, HCPCS), billing, compliance, and related terminology. If a user asks a question on any other topic (e.g., history, science, general knowledge, math, etc.), you MUST politely state, 'I am Codi, an expert in medical coding and billing, and I can only assist with questions related to that specific domain. Please ask me about CPT modifiers, ICD-10 codes, E/M guidelines, or medical billing processes.' Keep the explanation to a maximum of 3-4 short paragraphs.";
+                
+                const payload = {
+                    contents: [{ parts: [{ text: query }] }],
+                    tools: [{ "google_search": {} }], // Enable grounding
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                };
+
+                const { text, sources } = await fetchGeminiResponse(payload, true, false);
+
+                $('#llm-loading-explainer').addClass('hidden');
+                $('#gemini-concept-btn').prop('disabled', false);
+                $('#gemini-concept-input').prop('disabled', false).val(''); // Clear input
+                
+                // 1. Render the response text
+                let html = `<div class="codi-response-chat">
+                                <div class="codi-avatar">
+                                    <img src="https://placehold.co/35x35/4F46E5/ffffff?text=C" onerror="this.onerror=null;this.src='https://placehold.co/35x35/4F46E5/ffffff?text=C'" alt="Codi Avatar">
+                                </div>
+                                <div class="codi-message-bubble bg-green-50 text-green-800">
+                                    <p class="m-0 text-sm whitespace-pre-wrap">${text}</p>`;
+                
+                // 2. Render citations if available
+                if (sources.length > 0) {
+                    html += `<div class="mt-4 pt-2 border-t border-gray-200">
+                                <p class="text-xs font-semibold text-gray-500 mb-1">Sources:</p>
+                                <ul class="list-disc pl-5 space-y-0.5">`;
+                    sources.forEach(source => {
+                        html += `<li class="text-xs text-indigo-600 hover:text-indigo-800">
+                                    <a href="${source.uri}" target="_blank" rel="noopener noreferrer" title="${source.title}">${source.title}</a>
+                                </li>`;
+                    });
+                    html += `</ul></div>`;
+                }
+
+                html += `</div></div>`;
+                $('#concept-explainer-output').html(html);
+            }
+
+            // --- LLM Feature 3: Matrix Analysis & Action Plan ---
+            async function generateMatrixAnalysis(stage) {
+                // Determine which matrix analysis area to use
+                const outputSelector = `#matrix-analysis-output-${stage}`;
+                const loadingSelector = `#llm-loading-matrix-${stage}`;
+                const buttonSelector = `#gemini-matrix-btn-${stage}`;
+                
+                $(outputSelector).empty();
+                $(loadingSelector).removeClass('hidden');
+                $(buttonSelector).prop('disabled', true);
+
+                const matrixData = matrixDataSources[stage]();
+                
+                const systemPrompt = "You are Codi, a medical coding diagnostic expert. Analyze the Confusion Matrix data to diagnose the model's error performance. Generate a summary confirming the accuracy/recall and suggest one highly specific, immediate remedial action focused on eliminating the errors. Keep the response concise and directly address the user.";
+                const userQuery = `My confusion matrix results are based on ${matrixData.TotalQuizzes} records. Key errors are: False Positives (FP): ${matrixData.FP}, False Negatives (FN): ${matrixData.FN}. Accuracy is ${matrixData.Accuracy.toFixed(2)}% and Recall is ${matrixData.Recall.toFixed(2)}%. Summarize the model's reliability and suggest an action to address the errors.`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: userQuery }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                };
+
+                const { text } = await fetchGeminiResponse(payload, false, false, stage);
+
+                $(loadingSelector).addClass('hidden');
+                $(buttonSelector).prop('disabled', false);
+
+                // Render the response
+                const html = `<div class="bg-indigo-100 p-3 rounded-lg border border-indigo-300">
+                                <p class="text-sm text-gray-800 whitespace-pre-wrap">${text}</p>
+                              </div>`;
+                $(outputSelector).html(html);
+            }
+            
+            // --- Core Logic: State Renderer ---
+
+            function updateNavigationButtons() {
+                const isFinalStage = currentState > MAX_DATA_STAGE;
+
+                // Update page indicator: step 1/3, 2/3, 3/3 (final data stage)
+                if (currentState === 0) {
+                    $('#nav-controls').addClass('hidden');
+                    $('#start-analysis-btn').parent().removeClass('hidden');
+                } else {
+                    $('#concept-explainer-output').empty();
+                    $('#start-analysis-btn').parent().addClass('hidden'); 
+                    $('#nav-controls').removeClass('hidden');
+
+                    let currentStep = currentState;
+                    if (isFinalStage) {
+                        currentStep = MAX_DATA_STAGE;
+                    }
+                    
+                    $('#page-indicator').text(`${currentStep} of ${MAX_DATA_STAGE}`); 
+                    $('#prev-btn').prop('disabled', currentState === 1);
+                }
+
+                // Logic for Restart vs. Next button text
+                if (isFinalStage) {
+                    // Feedback Stages (5, 6, or 7)
+                    $('#llm-features-section').removeClass('hidden');
+                    
+                    // Show Study Plan button only for Average/Low performance
+                    if (currentState === 6 || currentState === 7) {
+                        $('#gemini-study-plan-btn').removeClass('hidden');
+                    } else {
+                        $('#gemini-study-plan-btn').addClass('hidden');
+                    }
+
+                    // Change "Next" to "Restart"
+                    $('#next-btn').html('Restart <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0h5m7.582 0l2.257-2.257m0 0L17 5.743m2.839 2.839L17 11.414"></path></svg>');
+                } else {
+                    // Data Stages (1, 2, 3)
+                    $('#llm-features-section').addClass('hidden');
+                    $('#next-btn').html('Next <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>');
+                }
+            }
+
+            function renderState(state) {
+                // Hide all stage content (5, 6, and 7 are mutually exclusive feedback stages)
+                $('.stage-content').addClass('hidden');
+
+                // Show the current stage
+                $(`#stage-${state}`).removeClass('hidden');
+
+                // Special checks for Matrix stages
+                if (state === 2) {
+                    updateConfusionMatrix(2); 
+                } else if (state === 3) {
+                    updateConfusionMatrix(3); 
+                }
+
+                // Update navigation elements visibility/status
+                updateNavigationButtons();
+            }
+            
+            function navigate(direction) {
+                let newState = currentState + direction;
+
+                // If moving back from a final stage (5, 6, or 7), go back to MAX_DATA_STAGE (Stage 3)
+                if (direction === -1 && currentState > MAX_DATA_STAGE) {
+                    currentState = MAX_DATA_STAGE;
+                } 
+                // Normal forward/backward navigation for the data slides (1-3)
+                else if (newState >= 1 && newState <= MAX_DATA_STAGE) {
+                    currentState = newState;
+                }
+                
+                renderState(currentState);
+                // Scroll to the top of the popover body
+                $('.codi-popover-body').scrollTop(0);
+            }
+
+
+            // --- Event Handlers ---
+
+            // Toggle popover visibility - ALWAYS RESET TO STATE 0 ON OPEN
+            $('#codi-toggle-btn').on('click', function(e) {
+                e.stopPropagation(); 
+                const wasOpen = $('#codi-popover').hasClass('popover-visible');
+                
+                if (!wasOpen) {
+                    currentState = 0; // Reset to Welcome/Menu
+                    renderState(currentState);
+                    $('#codi-popover').addClass('popover-visible');
+                    $('#start-analysis-btn').focus();
+                    $('.codi-popover-body').scrollTop(0); // Ensure scroll is reset on open
+                } else {
+                    closeCodi();
+                }
+                
+                // Handle body overflow for mobile centered modal
+                if ($(window).width() <= 768) {
+                    $('body').toggleClass('overflow-hidden', !wasOpen);
+                }
+            });
+
+            // Close popover using the close button
+            $('#codi-close-btn').on('click', closeCodi);
+            
+            // Global click listener to close Codi when clicking outside
+            $(document).on('click', function(e) {
+                const popover = $('#codi-popover');
+                const toggleBtn = $('#codi-toggle-btn');
+
+                if (popover.hasClass('popover-visible') && 
+                    !popover.is(e.target) && 
+                    popover.has(e.target).length === 0 &&
+                    !toggleBtn.is(e.target) &&
+                    toggleBtn.has(e.target).length === 0) {
+                        
+                    closeCodi();
+                }
+            });
+            
+            // Start Analysis Button (Stage 0 -> Stage 1)
+            $('#start-analysis-btn').on('click', function() {
+                // 1. Load the data from the external table into Codi's view
+                loadExternalData();
+                
+                // 2. Start navigation
+                currentState = 1;
+                renderState(currentState);
+                $('.codi-popover-body').scrollTop(0); // Scroll to top on start
+            });
+
+            // Navigation Buttons (Stage 1 -> MAX_DATA_STAGE)
+            $('#prev-btn').on('click', () => navigate(-1));
+            
+            $('#next-btn').on('click', function() {
+                if (currentState === MAX_DATA_STAGE) {
+                    // If on the last data slide (Stage 3), calculate score and jump to feedback
+                    const avgScore = calculateAverageScore();
+                    const finalStage = getPerformanceTier(avgScore);
+                    
+                    // Update score text in the selected final message bubble
+                    $(`#stage-5 #strong-score`).text(`${avgScore}%`);
+                    $(`#stage-6 #average-score`).text(`${avgScore}%`);
+                    $(`#stage-7 #low-score`).text(`${avgScore}%`);
+
+                    currentState = finalStage;
+                    renderState(currentState);
+                } else if (currentState > MAX_DATA_STAGE) {
+                    // Restart/Loop back to the Menu (Stage 0)
+                    currentState = 0;
+                    renderState(currentState);
+                } else {
+                    // Normal forward navigation for stages 1, 2, 3
+                    navigate(1);
+                }
+                $('.codi-popover-body').scrollTop(0); // Scroll to top on next/restart
+            });
+            
+            // --- LLM Feature Event Handlers ---
+            
+            // LLM Feature 1: Trigger Study Plan generation (Available in Stages 6, 7)
+            $('#gemini-study-plan-btn').on('click', generateStudyPlan);
+            
+            // LLM Feature 2: Trigger Concept Explainer generation (Available globally from Stage 0)
+            $('#gemini-concept-btn').on('click', function() {
+                const query = $('#gemini-concept-input').val();
+                explainConcept(query);
+            });
+
+            // LLM Feature 3: Trigger Matrix Analysis for Stage 2
+            $('#gemini-matrix-btn-2').on('click', () => generateMatrixAnalysis(2));
+
+            // LLM Feature 3: Trigger Matrix Analysis for Stage 3
+            $('#gemini-matrix-btn-3').on('click', () => generateMatrixAnalysis(3));
+
+
+            // Allow 'Enter' key to trigger concept explainer
+            $('#gemini-concept-input').on('keypress', function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    $('#gemini-concept-btn').trigger('click');
+                }
+            });
+
+
+            // Initialize the first state (Stage 0)
+            renderState(currentState);
+        });
+    </script>
+
+</body>
+</html>
