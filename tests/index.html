@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Content Loader (AJAX Fetch)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Simple style to make the iframe fill the container */
+        .content-frame {
+            width: 100%;
+            height: calc(100vh - 4rem); /* Full height minus the header/nav height */
+            border: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+    <header class="bg-blue-600 text-white shadow-lg z-10 sticky top-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <h1 class="text-2xl font-bold">Dynamic Site</h1>
+                <nav class="flex space-x-4" id="menu-container">
+                    </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow">
+        <iframe id="content-iframe" class="content-frame bg-white" src="" title="Content Frame"></iframe>
+    </main>
+
+    <script>
+        // 1. Primary data source - Starts blank, populated by AJAX
+        let webIniData = []; 
+
+        // 2. Mock data as the robust fallback source
+        const mockWebIniData = [];
+
+        // 3. Fallback declaration (original requirement)
+        let mockData = []; 
+
+        /**
+         * Helper function to parse the text content of the web.ini file
+         * Format: name/path.html (e.g., codi/codi.html)
+         */
+        function parseIniContent(text) {
+            const data = [];
+            if (!text) return data;
+
+            // Split content by new lines and process each line
+            const lines = text.split('\n');
+
+            lines.forEach(line => {
+                const trimmedLine = line.trim();
+                // Ignore empty lines and lines that look like comments (if implemented)
+                if (trimmedLine) {
+                    // Extract name from the start of the path (e.g., 'codi' from 'codi/codi.html')
+                    const parts = trimmedLine.split('/');
+                    const name = parts[0].charAt(0).toUpperCase() + parts[0].slice(1); // Capitalize first letter
+
+                    data.push({
+                        name: name,
+                        url: trimmedLine
+                    });
+                }
+            });
+            return data;
+        }
+
+        /**
+         * Function to populate webIniData using jQuery AJAX on 'web.ini'.
+         * Returns a Promise that resolves with the parsed data or rejects on failure.
+         */
+        function fetchData() {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: 'web.ini', // Path to the web.ini file
+                    dataType: 'text', // Expect plain text response
+                    success: function(data) {
+                        // 1. Parse the text data into the required JSON array format
+                        const parsedData = parseIniContent(data);
+                        
+                        // 2. Populate the global webIniData variable
+                        webIniData = parsedData; 
+
+                        // Resolve the promise with the new data
+                        if (webIniData.length > 0) {
+                            resolve(webIniData);
+                        } else {
+                            // If the fetch was successful but the file was empty
+                            reject(new Error("web.ini loaded successfully but is empty."));
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        // Reject the promise on network or file-not-found error
+                        reject(new Error(`AJAX Error: ${status} - ${error}`));
+                    }
+                });
+            });
+        }
+
+        /**
+         * Main function to initialize the website
+         */
+        $(document).ready(function() {
+            const $menuContainer = $('#menu-container');
+            const $iframe = $('#content-iframe');
+            let menuItems = [];
+
+            // Attempt to 'fetch' data using AJAX
+            fetchData()
+                .then(data => {
+                    // Success: Use the data fetched from web.ini
+                    menuItems = data;
+                    console.log("Data loaded successfully from web.ini:", menuItems);
+                })
+                .catch(error => {
+                    console.error("Fetch failed, using fallback:", error.message);
+                    
+                    // Failure: Use the mockWebIniData fallback
+                    menuItems = mockWebIniData;
+                })
+                .finally(() => {
+                    if (menuItems.length === 0) {
+                        // If all data sources failed/were empty
+                        $menuContainer.append('<span class="text-white">No content available.</span>');
+                        return;
+                    }
+                    
+                    // Generate Menu Items
+                    menuItems.forEach((item, index) => {
+                        const activeClass = index === 0 ? 'bg-blue-700' : 'hover:bg-blue-500';
+                        const $menuItem = $('<a>')
+                            .attr('href', '#') // Prevent full page reload
+                            .data('url', item.url)
+                            .addClass(`px-3 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out ${activeClass}`)
+                            .text(item.name)
+                            .on('click', function(e) {
+                                e.preventDefault();
+                                // Set active class
+                                $menuContainer.find('a').removeClass('bg-blue-700').addClass('hover:bg-blue-500');
+                                $(this).removeClass('hover:bg-blue-500').addClass('bg-blue-700');
+                                
+                                // Load content into Iframe
+                                const urlToLoad = $(this).data('url');
+                                $iframe.attr('src', urlToLoad);
+                            });
+                        
+                        $menuContainer.append($menuItem);
+                    });
+
+                    // Load the first item's content on page load
+                    if (menuItems.length > 0) {
+                        $iframe.attr('src', menuItems[0].url);
+                    }
+                });
+        });
+    </script>
+</body>
+</html>

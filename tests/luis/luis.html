@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carla - HCBI Assistant</title>
+    <title>Luis - Pinoy BPO Assistant</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
     <style>
@@ -15,15 +15,15 @@
         }
 
         /* Fixed Position Container (Icon remains bottom right) */
-        #carla-container {
+        #luis-container {
             position: fixed;
             bottom: 20px;
             right: 20px;
             z-index: 1050;
         }
 
-        /* Carla Icon Button (Floating Image/Icon) */
-        .carla-icon-btn {
+        /* Luis Icon Button (Floating Image/Icon) */
+        .luis-icon-btn {
             width: 70px;
             height: 70px;
             padding: 0;
@@ -34,15 +34,15 @@
             overflow: hidden;
             cursor: pointer;
             outline: none;
-            background-color: #1f3a9a; /* Deep Blue for HCBI theme */
+            background-color: #007bff; /* Deep Blue for Pinoy BPO theme (Changed from HCBI deep blue) */
         }
-        .carla-icon-btn:hover {
+        .luis-icon-btn:hover {
             transform: scale(1.05);
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
         }
 
         /* Popover Styling */
-        .carla-popover {
+        .luis-popover {
             width: 380px;
             height: 500px; 
             background: white;
@@ -56,53 +56,53 @@
         }
         
         /* Header */
-        .carla-popover-header {
-            background-color: #1f3a9a; /* Deep Blue Header */
+        .luis-popover-header {
+            background-color: #007bff; /* Deep Blue Header (Changed from HCBI deep blue) */
             color: white;
             flex-shrink: 0; 
         }
 
         /* Body (Chat Area) */
-        .carla-popover-body {
+        .luis-popover-body {
             flex-grow: 1;
             /* CRUCIAL FIX: Changed 'auto' to 'scroll' to force the scrollbar to be visible */
             overflow-y: scroll; 
             padding: 1rem;
-            background-color: #f9faff; /* Light blue background for chat */
+            background-color: #f5faff; /* Light blue background for chat (Updated slightly) */
         }
 
         /* ---------------------------------------------------- */
         /* Scrollbar Styling for Navigation */
         /* ---------------------------------------------------- */
-        .carla-popover-body::-webkit-scrollbar {
+        .luis-popover-body::-webkit-scrollbar {
             width: 8px; /* Width of the scrollbar */
         }
-        .carla-popover-body::-webkit-scrollbar-thumb {
+        .luis-popover-body::-webkit-scrollbar-thumb {
             /* Scrollbar handle */
             background-color: #a0a0a0; 
             border-radius: 10px;
-            border: 2px solid #f9faff;
+            border: 2px solid #f5faff;
         }
-        .carla-popover-body::-webkit-scrollbar-thumb:hover {
+        .luis-popover-body::-webkit-scrollbar-thumb:hover {
              background-color: #707070;
         }
-        .carla-popover-body::-webkit-scrollbar-track {
+        .luis-popover-body::-webkit-scrollbar-track {
              /* Scrollbar track */
             background: #f1f1f1;
         }
         /* ---------------------------------------------------- */
 
-        /* Carla Response Bubble */
-        .carla-response-container {
+        /* Luis Response Bubble */
+        .luis-response-container {
              display: flex;
              align-items: flex-start;
              margin-bottom: 1rem;
         }
-        .carla-response-avatar {
+        .luis-response-avatar {
              width: 32px;
              height: 32px;
              min-width: 32px;
-             background-color: #1f3a9a; 
+             background-color: #007bff; /* Deep Blue (Changed from HCBI deep blue) */
              color: white;
              border-radius: 50%;
              display: flex;
@@ -111,7 +111,7 @@
              margin-right: 0.5rem;
              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
-        .carla-response {
+        .luis-response {
             background-color: white;
             padding: 1rem;
             border-radius: 0.75rem;
@@ -131,7 +131,7 @@
              width: 32px;
              height: 32px;
              min-width: 32px;
-             background-color: #6366f1; /* Indigo for user */
+             background-color: #6366f1; /* Indigo for user (Kept as is) */
              color: white;
              border-radius: 50%;
              display: flex;
@@ -143,7 +143,7 @@
         .user-query-content {
              display: inline-block;
              max-width: 85%;
-             background-color: #1f3a9a; /* Deep Blue Bubble */
+             background-color: #007bff; /* Deep Blue Bubble (Changed from HCBI deep blue) */
              color: white;
              padding: 0.75rem;
              border-radius: 0.75rem 0.75rem 0 0.75rem;
@@ -152,7 +152,7 @@
 
 
         /* Input Area */
-        .carla-popover-footer {
+        .luis-popover-footer {
             border-top: 1px solid #e0e0e0;
             padding: 1rem;
             background-color: #ffffff;
@@ -188,107 +188,108 @@
             border-radius: 9999px; /* Pill shape */
             font-size: 0.75rem; /* text-xs for smaller look */
             font-weight: 500;
-            color: #1f3a9a; /* Deep Blue text */
-            background-color: #f0f4ff; /* Very light background */
-            border: 1px solid #c7d2fe; /* Light Indigo border */
+            color: #007bff; /* Deep Blue text (Changed from HCBI deep blue) */
+            background-color: #f0f8ff; /* Very light background (Updated slightly) */
+            border: 1px solid #cce5ff; /* Light Blue border (Updated slightly) */
             cursor: pointer;
             transition: background-color 0.15s, transform 0.1s;
         }
 
         .quick-response-button:hover {
-            background-color: #e0e7ff;
+            background-color: #e6f3ff;
             transform: translateY(-1px);
         }
     </style>
 </head>
 <body>
-
-    <div id="carla-container">
-        <button id="carla-icon-btn" class="carla-icon-btn flex items-center justify-center">
-            <div id="carla-btn-content" class="w-full h-full flex items-center justify-center">
+    <div id="debug-data" class="fixed top-0 left-0 w-80 h-1/2 p-4 bg-gray-100 border border-gray-300 rounded-lg overflow-auto z-50 shadow-lg text-xs">
+        <h3 class="font-bold text-sm mb-2 text-indigo-700">Local Data Debug View:</h3>
+        <pre id="local-data-output" class="whitespace-pre-wrap font-mono"></pre>
+    </div>
+    <div id="luis-container">
+        <button id="luis-icon-btn" class="luis-icon-btn flex items-center justify-center">
+            <div id="luis-btn-content" class="w-full h-full flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 text-white">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H7.5m2.25 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm3.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm3.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-2.625.75L15 15m-4.755-4.245L12 18m-4.245-2.25L7.5 21m-4.625-4.375l2.25 2.25M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
         </button>
 
-        <div id="carla-popover" class="carla-popover absolute bottom-full right-0 mb-3 hidden">
+        <div id="luis-popover" class="luis-popover absolute bottom-full right-0 mb-3 hidden">
             
-            <div class="carla-popover-header p-4 flex justify-between items-center rounded-t-xl">
-                <h2 class="text-lg font-bold">Carla - HCBI Assistant</h2>
-                <button id="carla-close-btn" class="text-white hover:text-gray-200">
+            <div class="luis-popover-header p-4 flex justify-between items-center rounded-t-xl">
+                <h2 class="text-lg font-bold">Luis - Pinoy BPO Assistant</h2>
+                <button id="luis-close-btn" class="text-white hover:text-gray-200">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
             
-            <div id="carla-popover-body" class="carla-popover-body flex flex-col">
-                <div id="carla-initial-response" class="carla-response-container">
-                    <div class="carla-response-avatar">
+            <div id="luis-popover-body" class="luis-popover-body flex flex-col">
+                <div id="luis-initial-response" class="luis-response-container">
+                    <div class="luis-response-avatar">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
                             <path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.065A8.243 8.243 0 0010 18.25a8.236 8.236 0 006.125-2.692 1.23 1.23 0 00.41-1.065A8.236 8.236 0 0010 10.75a8.236 8.236 0 00-6.535 3.743z" />
                         </svg>
                     </div>
-                    <div class="carla-response shadow-md">
-                        <h3 class="font-bold text-xl text-indigo-700 mb-2">Hello, I'm Carla!</h3>
+                    <div class="luis-response shadow-md">
+                        <h3 class="font-bold text-xl text-indigo-700 mb-2">Hello, I'm Luis!</h3>
                         <p class="text-gray-700">
-                            I am your dedicated assistant for the **Healthcare Billing Institute (HCBI)**. I can help answer questions about our courses, certifications, and medical billing industry topics.
+                            I am your dedicated assistant for **Pinoy BPO**. I can help answer questions about BPO jobs, company culture, and the application process in the Philippines.
                         </p>
                         <p class="text-sm text-gray-500 mt-2">
-                            Ask me anything about HCBI! For example: "What certifications do you offer?"
+                            Ask me anything about Pinoy BPO! For example: "What is the starting salary for a call center agent?"
                         </p>
-                        <!-- QUICK RESPONSE BUTTONS ARE NOW INSIDE THE RESPONSE BUBBLE -->
                         <div id="quick-response-buttons" class="mt-2 flex flex-wrap justify-start">
-                            <!-- Buttons go here -->
-                        </div>
+                            </div>
                     </div>
                 </div>
             </div>
 
-            <div class="carla-popover-footer">
+            <div class="luis-popover-footer">
                 <div class="flex items-center space-x-2">
-                    <input type="text" id="carla-input" placeholder="Ask a question..." 
+                    <input type="text" id="luis-input" placeholder="Ask a question..." 
                            class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                     
-                    <button id="carla-ask-btn" class="px-3 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-150 flex items-center justify-center" style="width: 44px; height: 44px;">
+                    <button id="luis-ask-btn" class="px-3 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-150 flex items-center justify-center" style="width: 44px; height: 44px;">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6">
                             <path d="M3.105 2.15A1 1 0 014.28 1.488l14.02 7.01a1 1 0 010 1.764l-14.02 7.01A1 1 0 013.105 17.85L17.85 10l-14.745-7.85z" />
                         </svg>
                     </button>
                 </div>
-                <div id="carla-status" class="text-sm text-center text-gray-500 mt-2 hidden">
-                    Carla is thinking<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>
+                <div id="luis-status" class="text-sm text-center text-gray-500 mt-2 hidden">
+                    Luis is thinking<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>
                 </div>
             </div>
         </div>
     </div>
 
     <script type="module">
-        // --- HCBI .INI CONTENT FALLBACK (Quick Response Buttons) ---
+        // --- Pinoy BPO .INI CONTENT FALLBACK (Quick Response Buttons) ---
         const mockupDataIni = `[menu buttons]`;
 
         /**
-         * Attempts to fetch carla.ini and falls back to mockupDataIni on failure.
+         * Attempts to fetch luis.ini and falls back to mockupDataIni on failure.
          * @returns {Promise<string>} The INI content string.
          */
         async function loadIniContent() {
             try {
                 // Attempt to fetch the external INI file using the simple relative path.
-                const iniUrl = 'carla.ini';
+                const iniUrl = 'luis.ini'; // Filename updated
                 const response = await fetch(iniUrl);
                 
                 // If the response is not OK (e.g., a 404 error), throw an error to trigger the catch block.
                 if (!response.ok) {
-                    throw new Error(`Failed to fetch carla.ini: ${response.statusText}`); 
+                    throw new Error(`Failed to fetch luis.ini: ${response.statusText}`); 
                 }
                 
-                console.log("Successfully loaded carla.ini.");
+                console.log("Successfully loaded luis.ini.");
                 return await response.text();
             } catch (error) {
                 // FALLBACK LOGIC: On any error (network failure, 404 status, etc.), 
                 // the function correctly logs the issue and returns the mockup data.
-                console.error("Error loading carla.ini. Using mockup fallback.", error);
+                console.error("Error loading luis.ini. Using mockup fallback.", error);
                 return mockupDataIni;
             }
         }
@@ -363,8 +364,8 @@
         /**
          * Function to update the chat body with the latest response
          */
-        function updateCarlaResponse(htmlContent, isUser=false) {
-            const body = $('#carla-popover-body');
+        function updateLuisResponse(htmlContent, isUser=false) {
+            const body = $('#luis-popover-body'); // Updated ID
             
             if (isUser) {
                 body.append(`
@@ -379,13 +380,13 @@
                 `);
             } else {
                 body.append(`
-                    <div class="carla-response-container">
-                        <div class="carla-response-avatar">
+                    <div class="luis-response-container">
+                        <div class="luis-response-avatar">
                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
                                 <path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.065A8.243 8.243 0 0010 18.25a8.236 8.236 0 006.125-2.692 1.23 1.23 0 00.41-1.065A8.236 8.236 0 0010 10.75a8.236 8.236 0 00-6.535 3.743z" />
                             </svg>
                         </div>
-                        <div class="carla-response shadow-md">
+                        <div class="luis-response shadow-md">
                             ${htmlContent}
                         </div>
                     </div>
@@ -396,32 +397,236 @@
 
         // Global state for request in progress
         let isRequestInProgress = false;
-
-        // --- Core Application Logic ---
+        
+        // ------------------------------------------------------------------
+        // --- BEGIN MODIFIED LOGIC FOR data.csv LOADING & SEARCHING ---
+        // ------------------------------------------------------------------
 
         // 1. Local Knowledge Base (formerly data.csv)
-        const localData = [
-            {
-                question: "What is HCBI's primary mission?",
-                answer: "The Healthcare Billing Institute (HCBI) is dedicated to providing high-quality training and certification for medical billing and coding professionals.",
-                keywords: ["mission", "purpose", "primary goal", "what is hcbi"]
-            },
-            {
-                question: "Do you offer courses for beginners?",
-                answer: "Yes, HCBI offers comprehensive beginner courses that cover the fundamentals of medical coding and billing, perfect for those new to the field. Check out our 'Medical Billing Specialist' course.",
-                keywords: ["beginner", "new", "start", "entry level", "courses for beginners"]
-            },
-            {
-                question: "Where can I find pricing information?",
-                answer: "For current course pricing and enrollment details, please visit the 'Courses' section on the main Healthcare Billing Institute website (https://healthcarebillinginstitute.com).",
-                keywords: ["price", "cost", "enrollment", "fees", "how much"]
-            },
-            {
-                question: "What certifications do you offer?",
-                answer: "HCBI offers several professional certifications, including the Certified Medical Biller (CMB) and the Certified Medical Coder (CMC), designed to boost your career prospects.",
-                keywords: ["certification", "certifications", "cmb", "cmc", "licensed"]
+        let localData = []; 
+
+        /** A set of common words to ignore during search scoring to improve relevance. */
+        const STOP_WORDS = new Set([
+            'a', 'an', 'the', 'is', 'what', 'are', 'i', 'me', 'my', 'mine', 'we', 'us', 'our', 'ours', 
+            'you', 'your', 'yours', 'he', 'she', 'it', 'they', 'them', 'their', 'of', 'and', 'or', 
+            'to', 'in', 'on', 'at', 'with', 'for', 'from', 'be', 'am', 'was', 'were', 'been', 'do', 
+            'does', 'did', 'have', 'has', 'had', 'will', 'would', 'can', 'could', 'should', 'about',
+            'how', 'long', 'much', 'many', 'this', 'that', 'these', 'those', 'as', 'but', 'by', 's',
+            'm', 'll', 're', 've', 'd', // common contractions
+            'hi', 'hello', 'hey', 'tell', 'me', 'about' // conversational phrases
+        ]);
+
+        /**
+         * Cleans and tokenizes text (splits it into keywords), converting to lowercase and removing stop words.
+         * This function handles the user's request to "study and split the keywords within the user prompt(query)".
+         * @param {string} text - The input string (query or knowledge base entry).
+         * @returns {string[]} An array of cleaned, relevant tokens (keywords).
+         */
+        function getCleanTokens(text) {
+            // Remove punctuation and split by whitespace
+            return text.toLowerCase()
+                .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "") // Remove punctuation
+                .split(/\s+/) // Split by whitespace
+                .filter(token => token.length > 2 && !STOP_WORDS.has(token)); // Filter short words and stop words
+        }
+
+
+        /**
+         * Parses CSV text into the expected array of knowledge objects.
+         */
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            const data = [];
+            
+            // Skip header line
+            if (lines.length <= 1) return [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                // 1. Find the index of the first separator comma (end of Question)
+                const firstCommaIndex = line.indexOf(',');
+                
+                // 2. Find the index of the second separator comma (end of keywords)
+                const secondCommaIndex = line.indexOf(',', firstCommaIndex + 1);
+
+                if (firstCommaIndex === -1 || secondCommaIndex === -1) {
+                    console.warn(`Skipping malformed CSV line (missing 2 separators): ${line}`);
+                    continue; 
+                }
+
+                // Extract fields based on fixed column positions
+                const question = line.substring(0, firstCommaIndex).trim();
+                const rawKeywordsString = line.substring(firstCommaIndex + 1, secondCommaIndex).trim();
+                const rawAnswer = line.substring(secondCommaIndex + 1).trim();
+                
+                // Clean up any double quotes that might wrap the fields (though usually unnecessary)
+                const cleanedQuestion = question.replace(/^"|"$/g, '');
+                const cleanedRawKeywordsString = rawKeywordsString.replace(/^"|"$/g, '');
+                const cleanedRawAnswer = rawAnswer.replace(/^"|"$/g, '');
+
+                if (cleanedQuestion && cleanedRawKeywordsString && cleanedRawAnswer) {
+                    data.push({
+                        question: cleanedQuestion,
+                        answer: cleanedRawAnswer,
+                        // Keywords are pipe-separated in the middle column
+                        keywords: cleanedRawKeywordsString.split('|').map(k => k.trim()).filter(k => k.length > 0),
+                        questionTokens: getCleanTokens(cleanedQuestion),
+                        answerTokens: getCleanTokens(cleanedRawAnswer)
+                    });
+                } else {
+                     console.warn(`Skipping CSV line due to empty content: ${line}`);
+                }
             }
-        ];
+            return data;
+        }
+
+        /**
+         * Loads the local knowledge data via AJAX.
+         */
+        function loadLocalData() {
+            return new Promise(resolve => {
+                $.ajax({
+                    url: "data.csv",
+                    dataType: "text",
+                    success: function(csvText) {
+                        console.log("Successfully loaded data.csv.");
+                        try {
+                            localData = parseCSV(csvText);
+                        } catch (e) {
+                            console.error("Error parsing CSV data. Using blank fallback.", e);
+                            localData = []; 
+                        }
+                        resolve();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(`Error loading data.csv (${status}: ${error}). Using blank fallback.`, xhr);
+                        localData = []; 
+                        resolve();
+                    }
+                });
+            });
+        }
+        
+        /**
+         * Finds the best matching answer based on token overlap within a specific field set.
+         * @param {string[]} queryTokens - The cleaned tokens of the user's query.
+         * @param {Array<Object>} items - The subset of data items to score.
+         * @param {string} tokenKey - The property name on the item containing the tokens to compare against ('questionTokens' or 'answerTokens').
+         * @returns {string|null} The answer of the best match, or null.
+         */
+        function findBestTokenMatch(queryTokens, items, tokenKey) {
+            if (!items || items.length === 0) return null;
+
+            let bestMatchAnswer = null;
+            let highestMatchCount = 0;
+            // Require at least 40% of query tokens, or 1, whichever is greater
+            const MIN_TOKEN_MATCH = Math.max(1, Math.ceil(queryTokens.length * 0.4)); 
+
+            for (const item of items) {
+                const itemTokensSet = new Set(item[tokenKey]);
+                let matchCount = 0;
+
+                for (const qToken of queryTokens) {
+                    if (itemTokensSet.has(qToken)) {
+                        matchCount++;
+                    }
+                }
+
+                if (matchCount >= MIN_TOKEN_MATCH && matchCount > highestMatchCount) {
+                    highestMatchCount = matchCount;
+                    bestMatchAnswer = item.answer;
+                }
+            }
+
+            // Return the best match if it met the minimum threshold
+            return highestMatchCount >= MIN_TOKEN_MATCH ? bestMatchAnswer : null;
+        }
+
+
+        /**
+         * Function to search the local, embedded dataset using the requested three-tier priority (Fast Path).
+         * Priority order: Keywords > Question > Answer
+         * @param {string} query - The user's input query.
+         * @returns {string|null} The answer string if a high-confidence match is found, otherwise null.
+         */
+        function searchLocalData(query) {
+            if (!localData || localData.length === 0) return null; 
+            
+            const lowerQuery = query.toLowerCase();
+            const queryTokens = getCleanTokens(query); // The split keywords from the user's prompt
+            if (queryTokens.length === 0) return null; // No meaningful query
+
+            // --- TIER 1: KEYWORDS (Most precise match) ---
+            // 1a. Filter by keyword inclusion (exact phrase matching using CSV keywords)
+            const keywordMatches = localData.filter(item => 
+                item.keywords.some(keyword => 
+                    // Use simple substring check for keywords, as they are often specific terms
+                    lowerQuery.includes(keyword.toLowerCase())
+                )
+            );
+
+            if (keywordMatches.length === 1) {
+                // Perfect, unique keyword match found. Return immediately for speed.
+                console.log("Local search found unique keyword match (Tier 1 - Exact).");
+                return keywordMatches[0].answer;
+            } else if (keywordMatches.length > 1) {
+                // Multiple keyword matches. Use token overlap on the original question (questionTokens) 
+                // to break the tie and find the best fit.
+                console.log(`Local search found ${keywordMatches.length} keyword matches (Tier 1 - Scored). Scoring to find best fit...`);
+                // Use findBestTokenMatch to score candidates based on queryTokens overlap
+                const bestMatch = findBestTokenMatch(queryTokens, keywordMatches, 'questionTokens');
+                if (bestMatch) return bestMatch;
+            }
+
+
+            // --- TIER 2: QUESTION ---
+            // If no unique keyword match, look for the best token match against the question field.
+            console.log("Local search proceeding to Question tier (Token Match)...");
+            const questionMatches = localData; 
+            const bestQuestionAnswer = findBestTokenMatch(queryTokens, questionMatches, 'questionTokens');
+            
+            if (bestQuestionAnswer) {
+                console.log("Local match found in Question tier.");
+                return bestQuestionAnswer;
+            }
+
+
+            // --- TIER 3: ANSWER ---
+            // If no match in Question, look for the best match in the Answer field.
+            console.log("Local search proceeding to Answer tier (Token Match)...");
+            const answerMatches = localData; 
+            const bestAnswer = findBestTokenMatch(queryTokens, answerMatches, 'answerTokens');
+            
+            if (bestAnswer) {
+                console.log("Local match found in Answer tier.");
+                return bestAnswer;
+            }
+
+            // --- NO MATCH ---
+            console.log("Local search found no suitable match.");
+            return null;
+        }
+
+        // ------------------------------------------------------------------
+        // --- END MODIFIED LOGIC FOR data.csv LOADING & SEARCHING ---
+        // ------------------------------------------------------------------
+
+        /**
+         * Function to update the debug div with the current localData content.
+         */
+        function displayLocalDataForDebug() {
+            const outputElement = $('#local-data-output');
+            if (localData && localData.length > 0) {
+                // Use JSON.stringify for a structured view, indenting for readability
+                const formattedData = JSON.stringify(localData, null, 2);
+                outputElement.text(formattedData);
+            } else {
+                outputElement.text("No data loaded or parsed.");
+            }
+        }
+
 
         /**
          * Formats the localData array into a string representation for the LLM prompt.
@@ -429,38 +634,27 @@
          */
         function formatLocalDataForPrompt() {
             let formattedData = "LOCAL KNOWLEDGE BASE (DATA.CSV):\n";
-            localData.forEach(item => {
-                const keywords = item.keywords.join('|');
-                // Ensure the answer is clean and on one line for the prompt
-                const answer = item.answer.replace(/\s+/g, ' ').trim(); 
-                formattedData += `[${item.question}, ${keywords}, ${answer}]\n`;
-            });
+            // Check if localData is populated before iterating
+            if (localData && localData.length > 0) {
+                 localData.forEach(item => {
+                    const keywords = item.keywords.join('|');
+                    // Ensure the answer is clean and on one line for the prompt
+                    const answer = item.answer.replace(/\s+/g, ' ').trim(); 
+                    formattedData += `[${item.question}, ${keywords}, ${answer}]\n`;
+                });
+            } else {
+                 formattedData += "No local data loaded.\n";
+            }
             return formattedData.trim();
         }
 
-
-        // Function to search the local, embedded dataset (Fast Path)
-        function searchLocalData(query) {
-            const lowerQuery = query.toLowerCase();
-            for (const item of localData) {
-                // Check if the query contains the main question or any of the keywords
-                if (lowerQuery.includes(item.question.toLowerCase()) || 
-                    item.keywords.some(keyword => lowerQuery.includes(keyword))) {
-                    return item.answer;
-                }
-            }
-            return null;
-        }
-
         /**
-         * Function to handle the LLM API call (with Google Search grounding for external HCBI content).
-         * This function includes logic for API call, retries, and source attribution.
-         * Note: API Key must be populated for this to work.
+         * Function to handle the LLM API call (with Google Search grounding for external Pinoy BPO content).
          */
         async function geminiApiCall(userQuery, attempts = 0) {
             const maxRetries = 3;
-            // Updated System Prompt to account for the injected 'LOCAL KNOWLEDGE BASE'
-            const systemPrompt = "You are Carla, an expert assistant for the Healthcare Billing Institute (HCBI). Your goal is to answer questions using both a provided LOCAL KNOWLEDGE BASE (DATA.CSV) and Google Search grounding. 1. If the user's prompt includes a 'LOCAL KNOWLEDGE BASE', prioritize finding the answer there first. 2. If the LOCAL KNOWLEDGE BASE is insufficient or not present, you MUST use Google Search to find information specifically on the HCBI website (https://healthcarebillinginstitute.com) or related external sources. Keep your response professional, friendly, and concise. Only answer questions related to HCBI or medical billing.";
+            // Updated system prompt
+            const systemPrompt = "You are Luis, an expert assistant for Pinoy BPO. Your goal is to answer questions using both a provided LOCAL KNOWLEDGE BASE (DATA.CSV) and Google Search grounding. 1. If the user's prompt includes a 'LOCAL KNOWLEDGE BASE', prioritize finding the answer there first. 2. If the LOCAL KNOWLEDGE BASE is insufficient or not present, you MUST use Google Search to find information specifically on the Pinoy BPO website (https://www.pinoybpo.com) or related external sources. Keep your response professional, friendly, and concise. Only answer questions related to Pinoy BPO, BPO industry in the Philippines, or job applications.";
             const apiKey = "" 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
@@ -516,14 +710,14 @@
                             </div>`;
                     }
 
-                    updateCarlaResponse(`
-                        <h3 class="font-bold text-lg text-indigo-700 mb-2">Carla's Response:</h3>
+                    updateLuisResponse(`
+                        <h3 class="font-bold text-lg text-indigo-700 mb-2">Luis's Response:</h3>
                         <p class="text-gray-700">${text}</p>
                         ${sourceHtml}
                     `);
 
                 } else {
-                     updateCarlaResponse(`
+                     updateLuisResponse(`
                         <h3 class="font-bold text-lg text-red-500 mb-2">Error:</h3>
                         <p class="text-gray-700">I received an empty response. Please try phrasing your question differently.</p>
                     `);
@@ -531,7 +725,7 @@
 
             } catch (error) {
                 console.error("Gemini API Error:", error);
-                 updateCarlaResponse(`
+                 updateLuisResponse(`
                     <h3 class="font-bold text-lg text-red-500 mb-2">Network Error:</h3>
                     <p class="text-gray-700">I encountered an issue connecting to the knowledge base. Please check your connection or try again later.</p>
                 `);
@@ -547,21 +741,21 @@
             if (!query || isRequestInProgress) return;
 
             isRequestInProgress = true;
-            $('#carla-input').prop('disabled', true).val(''); // Clear and disable input
-            $('#carla-ask-btn').prop('disabled', true).addClass('opacity-50');
-            $('#carla-status').removeClass('hidden');
+            $('#luis-input').prop('disabled', true).val(''); // Updated ID
+            $('#luis-ask-btn').prop('disabled', true).addClass('opacity-50'); // Updated ID
+            $('#luis-status').removeClass('hidden'); // Updated ID
 
             // 1. Display user query
-            updateCarlaResponse(query, true);
+            updateLuisResponse(query, true);
 
             // 2. Check Local Knowledge Base (data.csv equivalent)
             const localAnswer = searchLocalData(query);
             
             if (localAnswer) {
-                updateCarlaResponse(`
-                    <h3 class="font-bold text-lg text-indigo-700 mb-2">Carla's Local Response:</h3>
+                updateLuisResponse(`
+                    <h3 class="font-bold text-lg text-indigo-700 mb-2">Luis's Local Response:</h3>
                     <p class="text-gray-700">${localAnswer}</p>
-                    <p class="text-xs text-gray-500 mt-2">This answer was retrieved from Carla's internal knowledge base (fast lookup).</p>
+                    <p class="text-xs text-gray-500 mt-2">This answer was retrieved from Luis's internal knowledge base (fast lookup).</p>
                 `);
             } else {
                 // 3. Call LLM API with Local Data as context
@@ -575,72 +769,73 @@
 
             // 4. Reset state
             isRequestInProgress = false;
-            $('#carla-input').prop('disabled', false).focus();
-            $('#carla-ask-btn').prop('disabled', false).removeClass('opacity-50');
-            $('#carla-status').addClass('hidden');
+            $('#luis-input').prop('disabled', false).focus(); // Updated ID
+            $('#luis-ask-btn').prop('disabled', false).removeClass('opacity-50'); // Updated ID
+            $('#luis-status').addClass('hidden'); // Updated ID
         }
 
         /**
          * Function to handle a prompt button click directly, displaying its value as the response.
-         * This function *bypasses* the full API/search logic, as requested.
          */
         async function handlePromptButton(label, value) {
             if (isRequestInProgress) return;
 
             isRequestInProgress = true;
-            $('#carla-input').prop('disabled', true);
-            $('#carla-ask-btn').prop('disabled', true).addClass('opacity-50');
-            $('#carla-status').removeClass('hidden');
+            $('#luis-input').prop('disabled', true); // Updated ID
+            $('#luis-ask-btn').prop('disabled', true).addClass('opacity-50'); // Updated ID
+            $('#luis-status').removeClass('hidden'); // Updated ID
 
             // 1. Show the button's label as the *intent* of the user
-            updateCarlaResponse(`**User selected Quick Response:** "${label}"`, true);
+            updateLuisResponse(`**User selected Quick Response:** "${label}"`, true);
             
-            // 2. Display the prompt value directly as Carla's response.
-            updateCarlaResponse(`
-                <h3 class="font-bold text-lg text-indigo-700 mb-2">Carla's Quick Reply:</h3>
+            // 2. Display the prompt value directly as Luis's response.
+            updateLuisResponse(`
+                <h3 class="font-bold text-lg text-indigo-700 mb-2">Luis's Quick Reply:</h3>
                 <p class="text-gray-700">${value}</p>
             `);
 
             // 3. Reset state
             isRequestInProgress = false;
-            $('#carla-input').prop('disabled', false).focus();
-            $('#carla-ask-btn').prop('disabled', false).removeClass('opacity-50');
-            $('#carla-status').addClass('hidden');
+            $('#luis-input').prop('disabled', false).focus(); // Updated ID
+            $('#luis-ask-btn').prop('disabled', false).removeClass('opacity-50'); // Updated ID
+            $('#luis-status').addClass('hidden'); // Updated ID
         }
 
 
         // --- Event Handlers and Initialization ---
 
-        // NOTE: The jQuery ready function is now async to await loadIniContent()
         $(document).ready(async function() {
             
-            // --- Carla Image Loading Logic ---
-            const carlaBtnContent = $('#carla-btn-content');
-            const carlaSvg = carlaBtnContent.html(); // Store the default SVG
+            // --- DATA LOADING ---
+            await loadLocalData();
+            console.log(`Local data initialization complete. ${localData.length} records loaded.`);
 
-            // Function to load the image or fall back to SVG
-            const loadCarlaImage = () => {
+            // --- DEBUG DATA DISPLAY (NEW) ---
+            displayLocalDataForDebug();
+
+            // --- Luis Image Loading Logic ---
+            const luisBtnContent = $('#luis-btn-content'); // Updated ID
+            const luisSvg = luisBtnContent.html(); // Store the default SVG
+
+            const loadLuisImage = () => {
+                // Image filename updated
                 const img = new Image();
-                img.src = 'carla.jpg';
-                img.alt = 'Carla Assistant Avatar';
+                img.src = 'luis.jpg'; 
+                img.alt = 'Luis Assistant Avatar';
                 img.className = 'w-full h-full object-cover';
                 
-                // If image loads successfully, replace the SVG
                 img.onload = function() {
-                    carlaBtnContent.empty().append(img);
+                    luisBtnContent.empty().append(img);
                 };
 
-                // If image fails to load, ensure the SVG is displayed (it's the default anyway)
                 img.onerror = function() {
-                    carlaBtnContent.html(carlaSvg); 
+                    luisBtnContent.html(luisSvg); 
                 };
             };
 
-            // Run the image loading logic on initialization
-            loadCarlaImage();
+            loadLuisImage();
             
             // --- Quick Response Button Rendering ---
-            // Load content from external file or use fallback
             const iniContent = await loadIniContent(); 
             const quickResponseButtons = parseIniContent(iniContent);
             renderQuickResponseButtons(quickResponseButtons);
@@ -648,49 +843,42 @@
 
             // --- Popover Toggle and Close ---
             
-            // Toggle Popover visibility (FIX: Ensure display:flex is set after showing)
-            $('#carla-icon-btn, #carla-close-btn').on('click', function(e) {
+            $('#luis-icon-btn, #luis-close-btn').on('click', function(e) { // Updated IDs
                 e.stopPropagation(); 
-                // Use a callback to explicitly set display: flex after the slideDown part of the toggle
-                $('#carla-popover').slideToggle(200, function() {
-                    // Only enforce 'flex' if the element is currently visible (i.e., we just finished showing it)
+                $('#luis-popover').slideToggle(200, function() { // Updated ID
                     if ($(this).is(':visible')) {
                         $(this).css('display', 'flex');
                     }
                 });
             });
 
-            // Close popover when clicking outside the container
             $(document).on('click', function(e) {
-                const container = $('#carla-container');
-                const popover = $('#carla-popover');
-                const iconBtn = $('#carla-icon-btn');
+                const container = $('#luis-container'); // Updated ID
+                const popover = $('#luis-popover'); // Updated ID
+                const iconBtn = $('#luis-icon-btn'); // Updated ID
                 
-                // Check if the popover is visible and the click is outside the container (excluding the icon button itself)
                 if (popover.is(':visible') && !container.is(e.target) && container.has(e.target).length === 0 && !iconBtn.is(e.target) && iconBtn.has(e.target).length === 0) {
                     popover.slideUp(200);
                 }
             });
 
-            // Prevent clicks inside the popover from closing it
-            $('#carla-popover').on('click', function(e) {
+            $('#luis-popover').on('click', function(e) { // Updated ID
                 e.stopPropagation();
             });
 
 
             // --- Input and Ask Button Handlers ---
             
-            // Bind Ask button and Enter key to the main Q&A function
             function handleAsk() {
-                const query = $('#carla-input').val();
+                const query = $('#luis-input').val(); // Updated ID
                 if (query.trim()) {
                     answerQuestion(query);
                 }
             }
             
-            $('#carla-ask-btn').on('click', handleAsk);
+            $('#luis-ask-btn').on('click', handleAsk); // Updated ID
 
-            $('#carla-input').on('keypress', function(e) {
+            $('#luis-input').on('keypress', function(e) { // Updated ID
                 if (e.which === 13) {
                     e.preventDefault();
                     handleAsk();
@@ -704,10 +892,8 @@
                 const label = $(this).data('label'); // Get the label for display purposes
 
                 if (type === 'link') {
-                    // Link is clicked -> Open in new tab
                     window.open(value, '_blank'); 
                 } else if (type === 'prompt') {
-                    // Prompt is clicked -> Trigger the new direct Carla response logic
                     handlePromptButton(label, value);
                 }
             });
@@ -719,4 +905,3 @@
 
 </body>
 </html>
-
