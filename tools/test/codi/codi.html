@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codi Dynamic Progress Analyzer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jQuery CDN -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        /* Base Styling */
+        body {
+            font-family: "Inter", sans-serif;
+            min-height: 120vh;
+            background-color: #f7f7f7;
+        }
+
+        /* Fixed Position Container (Icon remains bottom right) */
+        #codi-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+
+        /* Codi Icon Button (Floating Image) */
+        .codi-icon-btn {
+            width: 70px;
+            height: 70px;
+            padding: 0;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 4px solid #fff;
+            overflow: hidden;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .codi-icon-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        .codi-icon-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        /* Popover Styling (Desktop Default) */
+        .codi-popover {
+            width: 350px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            background-color: #fff;
+            transform-origin: bottom right;
+            transition: transform 0.3s ease-out;
+            transform: scale(0);
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            opacity: 0;
+            z-index: 1050;
+        }
+
+        .popover-visible {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .codi-popover-header {
+            background-color: #4F46E5;
+            color: white;
+            padding: 12px 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+
+        /* DESKTOP POINTER */
+        @media (min-width: 769px) {
+            .codi-popover::after {
+                content: '';
+                position: absolute;
+                bottom: -10px; 
+                right: 20px; 
+                width: 0;
+                height: 0;
+                border-left: 10px solid transparent;
+                border-right: 10px solid transparent;
+                border-top: 10px solid #fff; 
+                z-index: 1051;
+            }
+        }
+
+        /* --- MOBILE-SPECIFIC STYLES --- */
+        @media (max-width: 768px) {
+            .codi-popover::after {
+                display: none;
+            }
+            .codi-popover {
+                width: 90vw;
+                position: fixed; 
+                top: 50%; 
+                left: 50%;
+                transform: translate(-50%, -50%) scale(0); 
+                bottom: auto; 
+                right: auto;
+                z-index: 9999; 
+            }
+            .popover-visible {
+                transform: translate(-50%, -50%) scale(1); 
+                opacity: 1;
+            }
+        }
+        
+        /* Chat message styling */
+        .codi-response-chat {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .codi-avatar {
+            flex-shrink: 0;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .codi-message-bubble {
+            background-color: #DBEAFE; /* Blue-100 */
+            padding: 10px 14px;
+            border-radius: 18px 18px 18px 2px;
+            max-width: 85%;
+            color: #1F2937;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-top: 5px;
+        }
+        
+        /* Dynamic Performance Bubble Styles */
+        .bubble-high { background-color: #D1FAE5; color: #065F46; } /* Green */
+        .bubble-moderate { background-color: #FEF3C7; color: #B45309; } /* Yellow */
+        .bubble-low { background-color: #FEE2E2; color: #991B1B; } /* Red */
+
+        /* Navigation Button Styling */
+        .nav-btn {
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Page Content -->
+    <div class="max-w-4xl mx-auto p-8">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-4">Client Quiz Simulation Page</h1>
+        <p class="text-center text-gray-500 mb-8">Click the Codi icon on the bottom right to view your full progress analysis presentation.</p>
+        
+        <!-- EXTERNAL DATA SOURCE: QUIZ SCORES -->
+        <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+             <h2 class="text-xl font-semibold text-indigo-700 mb-4">Quiz History & Data</h2>
+             <p class="text-sm text-gray-500 mb-4">Codi will analyze the scores in the table below to provide a personalized performance summary.</p>
+             
+             <h4 class="text-sm font-bold text-gray-700 mb-2">Quiz Progress Scores:</h4>
+             <div class="overflow-x-auto text-sm border border-gray-300 rounded-lg">
+                <!-- Data Source Table: Class 'codi-data-source' is mandatory for Codi to read the table -->
+                <table id="external-score-table" class="codi-data-source w-full text-left">
+                    <thead class="bg-gray-100">
+                        <tr><th class="p-2">Quiz</th><th class="p-2">Score</th></tr>
+                    </thead>
+                    <tbody>
+                        <!-- Class 'title' for Quiz Name, Class 'score' for Score value -->
+                        <tr class="border-t"><td class="p-2 title">ICD-10-CM</td><td class="p-2 score text-green-600 font-semibold" data-score="92">92%</td></tr>
+                        <tr class="border-t"><td class="p-2 title">Business of Medicine</td><td class="p-2 score text-yellow-600 font-semibold" data-score="78">78%</td></tr>
+                        <tr class="border-t"><td class="p-2 title">Intro to CPT & Modifiers</td><td class="p-2 score text-red-600 font-semibold" data-score="64">64%</td></tr>
+                        <tr class="border-t"><td class="p-2 title">Integumentary</td><td class="p-2 score text-green-600 font-semibold" data-score="88">88%</td></tr>
+                        <tr class="border-t"><td class="p-2 title">Musculoskeletal</td><td class="p-2 score text-green-600 font-semibold" data-score="90">90%</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CODI FLOATING ASSISTANT CONTAINER -->
+    <div id="codi-container">
+
+        <!-- The Popover/Window -->
+        <div id="codi-popover" class="codi-popover">
+            <div class="codi-popover-header">
+                <span>Codi Progress Analyst 📈</span>
+                <button type="button" class="text-white hover:text-indigo-200 focus:outline-none" id="codi-close-btn">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                </button>
+            </div>
+
+            <div class="codi-popover-body p-4 overflow-y-auto max-h-96">
+                
+                <!-- STAGE 0: WELCOME & MENU (Initial View) -->
+                <div id="stage-0" class="stage-content hidden">
+                    <div class="codi-response-chat">
+                        <div class="codi-avatar">
+                            <!-- Codi avatar inside the popover -->
+                            <img src="https://placehold.co/35x35/4F46E5/ffffff?text=C" onerror="this.onerror=null;this.src='https://placehold.co/35x35/4F46E5/ffffff?text=C'" alt="Codi Avatar">
+                        </div>
+                        <div class="codi-message-bubble bg-indigo-50 text-indigo-800">
+                            <p class="m-0 font-semibold">Hi! I’m Codi, your coding buddy!</p>
+                            <p class="mt-3 font-semibold text-sm">Codi stands for:</p>
+                            <ul class="m-0 mt-1 text-sm list-disc pl-5">
+                                <li>**C**onvenient</li>
+                                <li>**O**n-demand</li>
+                                <li>**D**ata</li>
+                                <li>**I**nsight</li>
+                            </ul>
+                            <p class="m-0 mt-2 text-xs italic text-gray-700">Short, playful, feels like a friend!</p>
+                        </div>
+                    </div>
+                    <!-- Menu/Analysis Button (Only visible in Stage 0) -->
+                    <div class="space-y-3 mt-6">
+                         <!-- Primary Action -->
+                        <button id="start-analysis-btn" class="w-full bg-indigo-600 text-white p-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                            Analyze Score
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STAGE 1: QUIZ SCORE TABLE + INTRO MESSAGE (Slide 3) -->
+                <div id="stage-1" class="stage-content hidden">
+                    <div class="codi-response-chat">
+                        <div class="codi-avatar">
+                            <img src="https://placehold.co/35x35/4F46E5/ffffff?text=C" onerror="this.onerror=null;this.src='https://placehold.co/35x35/4F46E5/ffffff?text=C'" alt="Codi Avatar">
+                        </div>
+                        <div class="codi-message-bubble bg-indigo-50 text-indigo-800">
+                            <p class="m-0">Great job, Buddy! I can see the effort and focus you put into your work. You’re making excellent progress! Let’s look at your **Progress Data** first.</p>
+                        </div>
+                    </div>
+                    <h4 class="text-sm font-bold text-gray-700 mb-2">Quiz Progress Scores:</h4>
+                    
+                    <!-- CONTAINER WHERE EXTERNAL DATA WILL BE LOADED -->
+                    <div id="score-table-container" class="overflow-x-auto text-xs border border-gray-300 rounded-lg">
+                        <!-- Content will be cloned from the main page here by JS -->
+                    </div>
+                </div>
+
+                <!-- STAGE 2: CONFUSION MATRIX (Slide 4) -->
+                <div id="stage-2" class="stage-content hidden">
+                    <h4 class="text-sm font-bold text-gray-700 mb-2">Quiz Performance Breakdown (Confusion Matrix):</h4>
+                    <div class="overflow-x-auto text-xs border border-gray-300 rounded-lg p-2 bg-gray-50">
+                        <p class="text-xs text-gray-500 mb-2">Analyzing correct vs. incorrect classifications for the last 5 quizzes.</p>
+                        <table class="w-full text-center">
+                            <thead class="bg-indigo-100">
+                                <tr><th></th><th colspan="2" class="p-2 border-b border-indigo-200">Actual Category</th></tr>
+                                <tr><th class="p-2">Predicted Category</th><th class="p-2">Correct</th><th class="p-2">Incorrect</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-t border-gray-200"><td class="p-2 font-semibold bg-gray-100">Coded Correctly</td><td class="p-2 text-green-600">85</td><td class="p-2 text-red-600">5</td></tr>
+                                <tr class="border-t border-gray-200"><td class="p-2 font-semibold bg-gray-100">Coded Incorrectly</td><td class="p-2 text-red-600">10</td><td class="p-2 text-green-600">0</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- STAGE 3: TEST RESULTS MATRIX (Slide 5) -->
+                <div id="stage-3" class="stage-content hidden">
+                    <h4 class="text-sm font-bold text-gray-700 mb-2">Test Results Summary (Pending Quizzes):</h4>
+                    <div class="overflow-x-auto text-xs border border-gray-300 rounded-lg p-2 bg-gray-50">
+                        <p class="text-xs text-gray-500 mb-2">*Data will be pegged with passing scores for remaining quizzes.</p>
+                        <table class="w-full text-left">
+                            <thead class="bg-indigo-100">
+                                <tr><th class="p-2">Quiz Module</th><th class="p-2">Target Pass %</th><th class="p-2">Status</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-t"><td class="p-2">Cardiovascular</td><td class="p-2">80%</td><td class="p-2 font-bold text-yellow-600">Pending</td></tr>
+                                <tr class="border-t"><td class="p-2">Digestive</td><td class="p-2">80%</td><td class="p-2 font-bold text-yellow-600">Pending</td></tr>
+                                <tr class="border-t"><td class="p-2">Endocrine and Nervous</td><td class="p-2">85%</td><td class="p-2 font-bold text-yellow-600">Pending</td></tr>
+                                <tr class="border-t"><td class="p-2">Radiology & Lab</td><td class="p-2">75%</td><td class="p-2 font-bold text-yellow-600">Pending</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="codi-response-chat mt-4">
+                        <div class="codi-avatar">
+                            <img src="https://placehold.co/35x35/4F46E5/ffffff?text=C" onerror="this.onerror=null;this.src='https://placehold.co/35x35/4F46E5/ffffff?text=C'" alt="Codi Avatar">
+                        </div>
+                        <div class="codi-message-bubble bg-indigo-50 text-indigo-800">
+                            <p class="m-0">Now that we've reviewed the data, let's see your final performance summary and **personalized recommendations**.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STAGE 4: STRONG PERFORMANCE MESSAGE (Final Stage) -->
+                <div id="stage-4" class="stage-content hidden">
+                    <div class="codi-response-chat">
+                        <div class="codi-avatar">
+                            <img src="https://placehold.co/35x35/4F46E5/ffffff?text=C" onerror="this.onerror=null;this.src='https://placehold.co/35x35/4F46E5/ffffff?text=C'" alt="Codi Avatar">
+                        </div>
+                        <div class="codi-message-bubble bubble-high">
+                            <p class="m-0 font-semibold text-base">⭐ Strong Performance (Overall Score: <span id="strong-score"></span>)</p>
+                            <p class="m-0 mt-1 text-sm">Congratulations on your excellent results! Your strong performance shows consistent effort and a clear understanding of the subject. I recommend you continue challenging yourself with advanced exercises or practice tests to further sharpen your skills. Keep up the outstanding work!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STAGE 5: AVERAGE PERFORMANCE MESSAGE (Final Stage) -->
+                <div id="stage-5" class="stage-content hidden">
+                    <div class="codi-response-chat">
+                        <div class="codi-avatar">
+                            <img src="https://placehold.co/35x35/4F46E5/ffffff?text=C" onerror="this.onerror=null;this.src='https://placehold.co/35x35/4F46E5/ffffff?text=C'" alt="Codi Avatar">
+                        </div>
+                        <div class="codi-message-bubble bubble-moderate">
+                            <p class="m-0 font-semibold text-base">👍 Average Performance (Overall Score: <span id="average-score"></span>)</p>
+                            <p class="m-0 mt-1 text-sm">Well done! Your results show that you have a good grasp of the basics. To strengthen your performance, I recommend focusing more on **ICD-10 Coding Guidelines**. Regular practice and reviewing examples will help you build more confidence. You’re on the right track—keep going!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STAGE 6: NEEDS IMPROVEMENT MESSAGE (Final Stage) -->
+                <div id="stage-6" class="stage-content hidden">
+                    <div class="codi-response-chat">
+                        <div class="codi-avatar">
+                            <img src="https://placehold.co/35x35/4F46E5/ffffff?text=C" onerror="this.onerror=null;this.src='https://placehold.co/35x35/4F46E5/ffffff?text=C'" alt="Codi Avatar">
+                        </div>
+                        <div class="codi-message-bubble bubble-low">
+                            <p class="m-0 font-semibold text-base">📈 Needs Improvement (Overall Score: <span id="low-score"></span>)</p>
+                            <p class="m-0 mt-1 text-sm">Don’t be discouraged. Your results highlight areas that need more attention, especially **ICD-10 coding accuracy**. I recommend reviewing class notes, practicing with case studies, and seeking clarification on topics that feel unclear. With steady effort and consistent practice, you can definitely improve and achieve better results next time.</p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- NAVIGATION CONTROLS (Hidden on Stage 0) -->
+                <div id="nav-controls" class="flex justify-between items-center pt-4 border-t border-gray-200 mt-4 hidden">
+                    <button id="prev-btn" class="nav-btn bg-gray-200 text-gray-700 hover:bg-gray-300 transition" disabled>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        Previous
+                    </button>
+                    
+                    <span id="page-indicator" class="text-sm font-medium text-gray-500">1 of 4</span>
+
+                    <button id="next-btn" class="nav-btn bg-indigo-600 text-white hover:bg-indigo-700 transition">
+                        Next
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- The Codi Icon/Button (Floating Image) -->
+        <button id="codi-toggle-btn" class="codi-icon-btn">
+            <img src="codi.jpg" onerror="this.onerror=null;this.src='https://placehold.co/70x70/4F46E5/ffffff?text=Codi';" alt="Codi Floating Icon">
+        </button>
+    </div>
+
+    <!-- Custom jQuery Scripting for Logic -->
+    <script>
+        // Function to copy the data from the main page into the Codi popover
+        function loadExternalData() {
+            // 1. Find the external table (the source)
+            const externalTable = $('.codi-data-source');
+            
+            // 2. Find the internal container (the destination)
+            const internalContainer = $('#score-table-container');
+
+            if (externalTable.length && internalContainer.length) {
+                // 3. Clone the table (to avoid moving it) and inject it into Codi's popover
+                const clonedTable = externalTable.clone();
+                
+                // Remove the data source class from the cloned version inside Codi
+                clonedTable.removeClass('codi-data-source'); 
+                
+                // Clear old content and append new content
+                internalContainer.empty().append(clonedTable);
+            }
+        }
+
+        // Function to close the Codi popover
+        function closeCodi() {
+            $('#codi-popover').removeClass('popover-visible');
+            $('body').removeClass('overflow-hidden');
+        }
+
+        $(document).ready(function() {
+            // --- Global State & Constants ---
+            let currentState = 0; // 0: Welcome/Menu, 1-3: Data Slides, 4-6: Feedback Slides
+            const PRESENTATION_LENGTH = 5; // Total steps: Scores (1) + Matrix (2) + Results (3) + Feedback (4)
+
+            // --- Score Analysis Logic ---
+            function calculateAverageScore() {
+                // Selector is updated to use the requested class 'score'
+                const scores = [];
+                // Target the cloned table content inside the popover
+                $('#score-table-container .score').each(function() {
+                    // Extract the numeric score from the 'data-score' attribute
+                    const score = parseInt($(this).data('score')); 
+                    if (!isNaN(score)) {
+                        scores.push(score);
+                    }
+                });
+
+                if (scores.length === 0) return 0;
+
+                const total = scores.reduce((sum, score) => sum + score, 0);
+                return Math.round(total / scores.length);
+            }
+
+            function getPerformanceTier(averageScore) {
+                // Determine which final stage (4, 5, or 6) to jump to.
+                if (averageScore >= 85) {
+                    return 4; // Strong Performance
+                } else if (averageScore >= 70) {
+                    return 5; // Average Performance
+                } else {
+                    return 6; // Needs Improvement
+                }
+            }
+            
+            // --- Core Logic: State Renderer ---
+
+            function updateNavigationButtons() {
+                // If in state 0 (Welcome), hide nav controls and show start button
+                if (currentState === 0) {
+                    $('#nav-controls').addClass('hidden');
+                    $('#start-analysis-btn').parent().removeClass('hidden'); // Show menu div
+                } else {
+                    // If in any other state, hide start button and show nav controls
+                    $('#start-analysis-btn').parent().addClass('hidden'); // Hide menu div
+                    $('#nav-controls').removeClass('hidden');
+
+                    // Calculate current step for indicator (1-based index)
+                    // Stages 1, 2, 3 are data slides. 4, 5, 6 is the single final conclusion slide.
+                    let currentStep = currentState;
+                    if (currentState >= 4) {
+                        currentStep = 4; // Treat 4, 5, 6 as the single final step (Step 4 of 4)
+                    }
+                    
+                    // Update page indicator: step 1/4, 2/4, 3/4, 4/4 (final)
+                    $('#page-indicator').text(`${currentStep} of ${PRESENTATION_LENGTH - 1}`); // Total steps is 4 (1 to 4)
+
+                    // Disable/Enable buttons
+                    $('#prev-btn').prop('disabled', currentState === 1);
+                    // The next button is NOT disabled for states >= 4 to allow the loop back to Stage 0.
+                }
+            }
+
+            function renderState(state) {
+                // Hide all stage content (4, 5, and 6 are mutually exclusive)
+                $('.stage-content').addClass('hidden');
+                
+                // Show the current stage
+                $(`#stage-${state}`).removeClass('hidden');
+
+                // Update navigation elements visibility/status
+                updateNavigationButtons();
+                
+                // Custom text and icon for the Next button when on the final slide (loop behavior)
+                if (state >= 4) {
+                    // When on a final feedback slide, change "Next" to "Restart"
+                    $('#next-btn').html('Restart <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0h5m7.582 0l2.257-2.257m0 0L17 5.743m2.839 2.839L17 11.414"></path></svg>');
+                } else {
+                    // Otherwise, show "Next"
+                    $('#next-btn').html('Next <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>');
+                }
+            }
+            
+            function navigate(direction) {
+                let newState = currentState + direction;
+
+                // If moving back from a final stage (4, 5, or 6), go back to Stage 3
+                if (direction === -1 && currentState >= 4) {
+                    currentState = 3;
+                } 
+                // Normal forward/backward navigation for the first few slides
+                else if (newState >= 0 && newState <= 3) {
+                    currentState = newState;
+                }
+                
+                renderState(currentState);
+            }
+
+
+            // --- Event Handlers ---
+
+            // Toggle popover visibility - ALWAYS RESET TO STATE 0 ON OPEN
+            $('#codi-toggle-btn').on('click', function(e) {
+                e.stopPropagation(); // Prevent this click from triggering the document close listener
+                const wasOpen = $('#codi-popover').hasClass('popover-visible');
+                
+                // If it was closed, open it and reset state.
+                if (!wasOpen) {
+                    currentState = 0; // Reset to Welcome/Menu
+                    renderState(currentState);
+                    $('#codi-popover').addClass('popover-visible');
+                    // Focus on the analysis button if it's the main path
+                    $('#start-analysis-btn').focus();
+                } else {
+                    // If it was open, close it
+                    closeCodi();
+                }
+                
+                // Handle body overflow for mobile centered modal
+                if ($(window).width() <= 768) {
+                    $('body').toggleClass('overflow-hidden', !wasOpen);
+                }
+            });
+
+            // Close popover using the close button
+            $('#codi-close-btn').on('click', closeCodi);
+            
+            // Global click listener to close Codi when clicking outside
+            $(document).on('click', function(e) {
+                const popover = $('#codi-popover');
+                const toggleBtn = $('#codi-toggle-btn');
+
+                // Check if the popover is visible AND 
+                // if the click target is NOT the popover itself AND 
+                // if the click target is NOT inside the popover AND
+                // if the click target is NOT the toggle button
+                if (popover.hasClass('popover-visible') && 
+                    !popover.is(e.target) && 
+                    popover.has(e.target).length === 0 &&
+                    !toggleBtn.is(e.target) &&
+                    toggleBtn.has(e.target).length === 0) {
+                        
+                    closeCodi();
+                }
+            });
+            
+            // Start Analysis Button (Stage 0 -> Stage 1)
+            $('#start-analysis-btn').on('click', function() {
+                // 1. Load the data from the external table into Codi's view
+                loadExternalData();
+                
+                // 2. Start navigation
+                currentState = 1;
+                renderState(currentState);
+            });
+
+            // Navigation Buttons (Stage 1 -> MAX_STATE)
+            $('#prev-btn').on('click', () => navigate(-1));
+            
+            $('#next-btn').on('click', function() {
+                if (currentState === 3) {
+                    // If on the last data slide (Stage 3), calculate score and jump to feedback
+                    const avgScore = calculateAverageScore();
+                    const finalStage = getPerformanceTier(avgScore);
+                    
+                    // Update score text in the selected final message bubble
+                    $(`#stage-4 #strong-score`).text(`${avgScore}%`);
+                    $(`#stage-5 #average-score`).text(`${avgScore}%`);
+                    $(`#stage-6 #low-score`).text(`${avgScore}%`);
+
+                    currentState = finalStage;
+                    renderState(currentState);
+                } else if (currentState >= 4) {
+                    // LOGIC CHANGE: Restart/Loop back to the Menu (Stage 0)
+                    currentState = 0;
+                    // loadExternalData() is omitted as it's only needed on the next click of "Analyze Score"
+                    renderState(currentState);
+                } else {
+                    // Normal forward navigation for stages 1 and 2
+                    navigate(1);
+                }
+            });
+
+            // Initialize the first state (Stage 0)
+            renderState(currentState);
+        });
+    </script>
+
+</body>
+</html>

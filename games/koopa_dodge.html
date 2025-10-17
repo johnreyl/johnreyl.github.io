@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Koopa Fireball Dodge (Hard Mode)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <style>
+        /* 1. Global & Font Setup (Full Viewport Size) */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        /* Set HTML and Body to fill the entire viewport */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden; /* Prevents scrollbars */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #2d3748; /* Dark background for the outside area */
+            display: flex; /* Stack scoreboard and game container */
+            flex-direction: column;
+        }
+
+        /* 2. Responsive Font Adjustments */
+        #scoreboard {
+            /* Default Desktop Font Size */
+            font-size: 1.125rem; /* large */
+        }
+        @media (max-width: 640px) {
+            #scoreboard {
+                /* Mobile Font Size */
+                font-size: 0.875rem; /* sm */
+            }
+            #game-over-message {
+                font-size: 2rem !important;
+            }
+        }
+
+        /* Scoreboard Styling - Now full width */
+        #scoreboard {
+            width: 100%;
+            height: 40px; 
+            margin: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center; 
+            background-color: #2d3748; 
+            color: white;
+            padding: 0 12px;
+            border-radius: 0; 
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        #current-score { color: #f9d71c; margin: 0 10px; }
+        #top-score { color: #ed8936; }
+        #triple-jump-cooldown { 
+            font-size: 0.9rem;
+            min-width: 110px;
+            text-align: right;
+            padding-right: 5px;
+        }
+
+        /* Heart SVG Styling */
+        #lives-display { display: flex; align-items: center; gap: 2px; }
+        .heart-icon { width: 16px; height: 16px; fill: #E53E3E; stroke: #A03232; }
+        .empty-heart { fill: none; stroke: #A03232; }
+
+        /* Fullscreen Button Styling */
+        #fullscreen-btn {
+            cursor: pointer;
+            margin-left: 10px;
+            opacity: 0.8;
+            transition: opacity 0.1s;
+        }
+        #fullscreen-btn:hover { opacity: 1; }
+
+        /* 3. Game Container Styling - Now full screen minus scoreboard */
+        #game-container {
+            width: 100%; 
+            height: calc(100vh - 40px); 
+            max-width: none;
+            position: relative;
+            overflow: hidden;
+            margin: 0;
+            background-color: #79a1d1; /* Sky Blue */
+            border: none; 
+            border-radius: 0;
+            box-shadow: none; 
+            cursor: pointer; 
+            transition: transform 0.5s ease; 
+            flex-grow: 1;
+        }
+
+        /* Wiggle Animation for Game Over */
+        @keyframes wiggle {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        .wiggle { animation: wiggle 0.1s ease-in-out 5; }
+        
+        /* Ground with Parallax Adjustment */
+        #game-ground {
+            position: absolute;
+            bottom: 0;
+            left: 0; 
+            height: 35px;
+            background-color: #38703a; 
+            z-index: 5;
+            transition: left 0.1s linear; 
+            background-image: repeating-linear-gradient(
+                45deg,
+                #38703a,
+                #38703a 10px,
+                #346836 10px,
+                #346836 20px
+            );
+        }
+
+        /* Character Base Styling */
+        .character {
+            position: absolute;
+            bottom: 35px;
+            z-index: 10;
+            width: 55px;
+            height: 55px;
+        }
+
+        #koopa {
+            /* Smooth Koopa movement */
+            transition: left 0.1s linear, bottom 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* Visual cue for invincibility (after being hit) */
+        .koopa-invincible {
+            opacity: 0.6;
+            animation: blink-koopa 0.1s infinite alternate;
+        }
+        @keyframes blink-koopa {
+            0% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+
+        /* Fireball Rotation Animation */
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Fireball Styling */
+        .fireball {
+            position: absolute;
+            z-index: 8;
+            transition: opacity 0.2s;
+        }
+        
+        .fireball svg {
+            width: 100%;
+            height: 100%;
+            animation: rotate 1s linear infinite; 
+        }
+        /* Overlay and Button styles (kept the same) */
+        #game-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 20;
+            color: white; text-align: center;
+        }
+        #play-button {
+            background-color: #ed8936; padding: 12px 24px; border-radius: 8px;
+            font-weight: bold; font-size: 1.25rem; cursor: pointer;
+            box-shadow: 0 4px 0 #c06c1c; transition: all 0.1s ease-in-out;
+        }
+        #play-button:hover { background-color: #f6ad55; }
+        #play-button:active { box-shadow: 0 1px 0 #c06c1c; transform: translateY(3px); }
+        #game-over-message { font-size: 2.5rem; font-weight: 900; color: #ff0000; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); margin-bottom: 20px; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+        .blinking { animation: blink 0.5s step-end infinite alternate; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-charcoal': '#2d3748',
+                        'brand-orange': '#ed8936',
+                        'text-gray': '#4a5568',
+                    }
+                }
+            }
+        }
+
+        $(document).ready(function() {
+            // --- Elements ---
+            const $gameContainer = $('#game-container');
+            const $koopa = $('#koopa');
+            const $gameGround = $('#game-ground');
+            const $overlay = $('#game-overlay');
+            const $playButton = $('#play-button');
+            const $gameOverMessage = $('#game-over-message');
+            const $currentScoreDisplay = $('#current-score');
+            const $topScoreDisplay = $('#top-score');
+            const $fireballTemplate = $('#fireball-template');
+            const $fullscreenBtn = $('#fullscreen-btn');
+            const $tripleJumpDisplay = $('#triple-jump-cooldown'); // New element
+
+            // --- Constants ---
+            const GROUND_HEIGHT = 35;
+            const PLAYER_WIDTH = 55;
+            const PLAYER_HEIGHT = 55;
+            const FIREBALL_SIZE = 15;
+            const JUMP_HEIGHT = 100;
+            const JUMP_DURATION = 300; 
+            const MOVE_STEP = 20;
+            const PARALLAX_STEP = 5; 
+            const GROUND_EXTRA_WIDTH = 100; 
+            const FIREBALL_BASE_SPEED = 5;
+            const SPEED_INCREASE_FACTOR = 0.5;
+            const COLLISION_BUFFER = 5; 
+            const MIN_START_DISTANCE = 100;
+            const STORAGE_KEY = 'koopaDodgeTopScore';
+            const JUMP_COOLDOWN = 100;
+            const MAX_JUMPS = 3; // Max number of jumps
+            const TRIPLE_JUMP_COOLDOWN_MS = 40000; // 40 seconds
+
+            // Life System Constants
+            const MAX_LIVES = 5;
+            const INITIAL_LIVES = 3;
+            const HEAL_INTERVAL_MS = 60000; 
+            const DAMAGE_COOLDOWN_MS = 1000; 
+            
+            // Timers
+            const INITIAL_FIREBALL_DELAY = 3000; 
+            const SPEED_INTERVAL_MS = 60000; 
+            const DUPLICATION_INTERVAL_MS = 20000; 
+            const DUPLICATION_DELAY_MS = 2000; 
+            let tjCooldownTimer = null; // Triple jump display timer
+
+            // --- State Management ---
+            let isPlaying = false;
+            let isJumping = false; // True if Koopa is currently mid-animation (up or down)
+            let jumpsRemaining = MAX_JUMPS; // Jumps left before landing
+            let lastJumpTime = 0;
+            let lastDamageTime = 0;
+            let lastTripleJumpTime = 0; // Timestamp of the last triple jump
+            let gameLoopInterval = null;
+            let scoreInterval = null;
+            let speedUpInterval = null;
+            let duplicationInterval = null;
+            let healInterval = null;
+            let currentScore = 0;
+            let currentSpeed = FIREBALL_BASE_SPEED;
+            let koopaLives = INITIAL_LIVES;
+            
+            // Position tracking
+            let koopaX = 0; 
+            let koopaY = GROUND_HEIGHT; // Koopa's base height from the bottom of the container
+            let groundOffsetX = 0; 
+
+            // Dimension tracking
+            let gameContainerWidth = 0;
+            let gameContainerHeight = 0;
+            let groundMaxMovement = 0; 
+
+            // Fireball state
+            let fireballs = []; 
+
+            // --- Fireball Class (To manage multiple instances) ---
+            class Fireball {
+                constructor(x, y, vx, vy, startTime) {
+                    this.x = x;
+                    this.y = y;
+                    this.vx = vx;
+                    this.vy = vy;
+                    this.startTime = startTime;
+                    this.element = this.createElement();
+                    this.isMoving = false;
+                }
+
+                createElement() {
+                    const $el = $fireballTemplate.clone().removeAttr('id').removeClass('hidden').addClass('fireball');
+                    $el.find('svg').css({ width: FIREBALL_SIZE + 'px', height: FIREBALL_SIZE + 'px' });
+                    $el.appendTo($gameContainer);
+                    return $el;
+                }
+
+                updateDOM() {
+                    const now = Date.now();
+                    if (now >= this.startTime) {
+                        this.isMoving = true;
+                        this.element.css({ opacity: 1 });
+                    } else {
+                        this.element.css({ opacity: 0.3 }); 
+                    }
+
+                    this.element.css({
+                        left: this.x + 'px',
+                        bottom: this.y + 'px',
+                        width: FIREBALL_SIZE + 'px',
+                        height: FIREBALL_SIZE + 'px',
+                    });
+                }
+
+                destroy() {
+                    this.element.remove();
+                }
+            }
+            
+            // --- Utilities & Display ---
+
+            function loadTopScore() {
+                const storedScore = localStorage.getItem(STORAGE_KEY);
+                return storedScore ? parseFloat(storedScore) : 0.00;
+            }
+
+            function updateTopScore(newScore) {
+                const currentTopScore = loadTopScore();
+                if (newScore > currentTopScore) {
+                    localStorage.setItem(STORAGE_KEY, newScore.toFixed(2));
+                    $topScoreDisplay.text('Top: ' + newScore.toFixed(2) + 's');
+                }
+            }
+
+            function updateTripleJumpDisplay() {
+                const now = Date.now();
+                const elapsed = now - lastTripleJumpTime;
+                const remainingTime = Math.max(0, TRIPLE_JUMP_COOLDOWN_MS - elapsed);
+                
+                if (remainingTime > 0) {
+                    const seconds = (remainingTime / 1000).toFixed(1);
+                    $tripleJumpDisplay.text(`TJ Cooldown: ${seconds}s`).removeClass('text-yellow-400').addClass('text-red-400');
+                    // Start a timer to update this display every 100ms
+                    if (!tjCooldownTimer) {
+                        tjCooldownTimer = setInterval(updateTripleJumpDisplay, 100);
+                    }
+                } else {
+                    $tripleJumpDisplay.text(`TJ Ready!`).removeClass('text-red-400').addClass('text-yellow-400');
+                    if (tjCooldownTimer) {
+                        clearInterval(tjCooldownTimer);
+                        tjCooldownTimer = null;
+                    }
+                }
+            }
+
+            // --- Score Logic ---
+            function startScoring() {
+                if (scoreInterval) clearInterval(scoreInterval);
+                currentScore = 0;
+                scoreInterval = setInterval(() => {
+                    currentScore += 0.01; 
+                    $currentScoreDisplay.text('Time: ' + currentScore.toFixed(2) + 's');
+                    updateTopScore(currentScore);
+                }, 10); 
+            }
+
+            function stopScoring() {
+                if (scoreInterval) {
+                    clearInterval(scoreInterval);
+                    scoreInterval = null;
+                }
+            }
+            // --- End Score Logic ---
+
+            function updateHeartDisplay() {
+                let html = '';
+                // Standard heart SVG (for size and simplicity)
+                const fullHeartSvg = `<svg class="heart-icon" viewBox="0 0 24 24" fill="#E53E3E" stroke="#A03232" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+                const emptyHeartSvg = `<svg class="heart-icon empty-heart" viewBox="0 0 24 24" fill="none" stroke="#A03232" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+
+                for (let i = 0; i < MAX_LIVES; i++) {
+                    html += i < koopaLives ? fullHeartSvg : emptyHeartSvg;
+                }
+                
+                $('#lives-display').html(html);
+            }
+
+            // --- Ground Parallax ---
+            function updateGroundPosition(direction) {
+                const PARALLAX_LIMIT = groundMaxMovement; 
+                
+                if (direction === 1) { 
+                    groundOffsetX = Math.max(groundOffsetX - PARALLAX_STEP, -PARALLAX_LIMIT);
+                } else if (direction === -1) { 
+                    groundOffsetX = Math.min(groundOffsetX + PARALLAX_STEP, 0); 
+                }
+
+                $gameGround.css('left', groundOffsetX + 'px');
+            }
+
+            // --- Fullscreen Toggle ---
+            function toggleFullscreen() {
+                const element = document.documentElement; 
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                } else if (element.requestFullscreen) {
+                    element.requestFullscreen().catch(err => {
+                        console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                    });
+                }
+            }
+
+            // --- Game Flow ---
+
+            function startHealing() {
+                stopHealing(); 
+                healInterval = setInterval(() => {
+                    if (koopaLives < MAX_LIVES) {
+                        koopaLives++;
+                        updateHeartDisplay();
+                    }
+                }, HEAL_INTERVAL_MS);
+            }
+
+            function stopHealing() {
+                if (healInterval) {
+                    clearInterval(healInterval);
+                    healInterval = null;
+                }
+            }
+
+            function startTimers() {
+                speedUpInterval = setInterval(speedUpFireballs, SPEED_INTERVAL_MS);
+                duplicationInterval = setInterval(duplicateFireball, DUPLICATION_INTERVAL_MS);
+                startHealing(); 
+            }
+
+            function stopTimers() {
+                if (speedUpInterval) clearInterval(speedUpInterval);
+                if (duplicationInterval) clearInterval(duplicationInterval);
+                stopHealing();
+                speedUpInterval = null;
+                duplicationInterval = null;
+            }
+            
+            // Recalculates all dependent dimensions
+            function updateDimensions() {
+                gameContainerWidth = $gameContainer.width();
+                gameContainerHeight = $gameContainer.height();
+
+                // Calculate the total ground width and max parallax movement
+                const newGroundWidth = gameContainerWidth + GROUND_EXTRA_WIDTH;
+                groundMaxMovement = GROUND_EXTRA_WIDTH; 
+
+                // Set ground width
+                $gameGround.css('width', newGroundWidth + 'px');
+                
+                // Ensure Koopa is positioned correctly within the new bounds
+                resetKoopaPosition();
+            }
+
+            function resetKoopaPosition() {
+                gameContainerWidth = $gameContainer.width(); 
+
+                koopaX = (gameContainerWidth / 2) - (PLAYER_WIDTH / 2);
+                koopaY = GROUND_HEIGHT;
+                groundOffsetX = 0; 
+                jumpsRemaining = MAX_JUMPS; // Reset jumps
+                
+                // Update triple jump display 
+                updateTripleJumpDisplay();
+
+                $koopa.css({
+                    left: koopaX + 'px',
+                    bottom: koopaY + 'px',
+                    opacity: 1
+                }).removeClass('koopa-invincible');
+
+                $gameGround.css('left', '0px');
+            }
+            
+            // --- Fireball & Speed Logic (unchanged) ---
+
+            function createFireball(delay = 0) {
+                gameContainerWidth = $gameContainer.width();
+                gameContainerHeight = $gameContainer.height();
+                
+                const koopaCenterX = koopaX + PLAYER_WIDTH / 2;
+                const koopaCenterY = koopaY + PLAYER_HEIGHT / 2;
+                const minFireballY = GROUND_HEIGHT;
+                const maxFireballY = gameContainerHeight - FIREBALL_SIZE;
+                const maxFireballX = gameContainerWidth - FIREBALL_SIZE;
+                
+                let fx, fy, distance;
+
+                let attempts = 0;
+                do {
+                    fx = Math.random() * maxFireballX;
+                    fy = Math.random() * (maxFireballY - minFireballY) + minFireballY;
+
+                    const fireballCenterX = fx + FIREBALL_SIZE / 2;
+                    const fireballCenterY = fy + FIREBALL_SIZE / 2;
+
+                    distance = Math.sqrt(
+                        Math.pow(fireballCenterX - koopaCenterX, 2) + 
+                        Math.pow(fireballCenterY - koopaCenterY, 2)
+                    );
+                    attempts++;
+                    if (attempts > 50) break; 
+                } while (distance < MIN_START_DISTANCE);
+
+                let vx = currentSpeed * (Math.random() < 0.5 ? 1 : -1);
+                let vy = currentSpeed * (Math.random() < 0.5 ? 1 : -1);
+
+                const startTime = Date.now() + delay;
+
+                const newFireball = new Fireball(fx, fy, vx, vy, startTime);
+                fireballs.push(newFireball);
+            }
+
+            function duplicateFireball() {
+                createFireball(DUPLICATION_DELAY_MS);
+            }
+
+            function speedUpFireballs() {
+                currentSpeed += SPEED_INCREASE_FACTOR;
+                fireballs.forEach(fb => {
+                    if (fb.isMoving) {
+                        fb.vx += SPEED_INCREASE_FACTOR * (fb.vx > 0 ? 1 : -1);
+                        fb.vy += SPEED_INCREASE_FACTOR * (fb.vy > 0 ? 1 : -1);
+                    }
+                });
+            }
+            
+            // --- Damage & Collision Logic ---
+
+            function takeDamage() {
+                const now = Date.now();
+                if (now - lastDamageTime < DAMAGE_COOLDOWN_MS) {
+                    return false;
+                }
+                
+                koopaLives--;
+                updateHeartDisplay();
+                lastDamageTime = now;
+                
+                $koopa.addClass('koopa-invincible');
+                setTimeout(() => {
+                    $koopa.removeClass('koopa-invincible');
+                }, DAMAGE_COOLDOWN_MS);
+
+                if (koopaLives <= 0) {
+                    gameOver();
+                }
+                return true;
+            }
+            
+            function checkCollision(fireball) {
+                const kLeft = koopaX + COLLISION_BUFFER;
+                const kRight = koopaX + PLAYER_WIDTH - COLLISION_BUFFER;
+                const kBottom = koopaY + COLLISION_BUFFER;
+                const kTop = koopaY + PLAYER_HEIGHT - COLLISION_BUFFER;
+
+                const fLeft = fireball.x;
+                const fRight = fireball.x + FIREBALL_SIZE;
+                const fBottom = fireball.y;
+                const fTop = fireball.y + FIREBALL_SIZE;
+
+                const overlapX = kLeft < fRight && kRight > fLeft;
+                const overlapY = kBottom < fTop && kTop > fBottom;
+
+                return overlapX && overlapY;
+            }
+
+            // --- Game Loop ---
+            function gameLoop() {
+                if (!isPlaying) {
+                    if (gameLoopInterval) clearInterval(gameLoopInterval);
+                    return;
+                }
+                
+                gameContainerWidth = $gameContainer.width();
+                gameContainerHeight = $gameContainer.height();
+
+                const maxFireballX = gameContainerWidth - FIREBALL_SIZE;
+                const maxFireballY = gameContainerHeight - FIREBALL_SIZE;
+                const minFireballY = GROUND_HEIGHT;
+                
+                let collisionDetected = false;
+                let fireballsToKeep = []; 
+
+                fireballs.forEach(fb => {
+                    fb.updateDOM(); 
+                    
+                    if (!fb.isMoving) {
+                        fireballsToKeep.push(fb);
+                        return; 
+                    }
+
+                    // 1. Fireball Movement & Bounce Logic
+                    fb.x += fb.vx;
+                    fb.y += fb.vy;
+
+                    if (fb.x <= 0) { fb.vx = Math.abs(fb.vx); fb.x = 0; } 
+                    else if (fb.x >= maxFireballX) { fb.vx = -Math.abs(fb.vx); fb.x = maxFireballX; }
+
+                    if (fb.y <= minFireballY) { fb.vy = Math.abs(fb.vy); fb.y = minFireballY; } 
+                    else if (fb.y >= maxFireballY) { fb.vy = -Math.abs(fb.vy); fb.y = maxFireballY; }
+
+                    // 2. Collision Check and Fireball Destruction
+                    if (checkCollision(fb)) {
+                        collisionDetected = true;
+                        fb.destroy(); // Destroy the fireball
+                        // It will not be added to fireballsToKeep, effectively removing it from the array
+                    } else {
+                        fireballsToKeep.push(fb); // Keep the fireball
+                    }
+                });
+                
+                fireballs = fireballsToKeep; // Update the state array
+                
+                if (collisionDetected) {
+                    takeDamage(); 
+                }
+                
+                // Keep the triple jump cooldown display updated
+                if (lastTripleJumpTime > 0) {
+                    updateTripleJumpDisplay();
+                }
+            }
+
+            function wiggleMap() {
+                $gameContainer.addClass('wiggle');
+                setTimeout(() => {
+                    $gameContainer.removeClass('wiggle');
+                }, 500);
+            }
+
+            function setupGame() {
+                updateDimensions();
+
+                isPlaying = false;
+                isJumping = false;
+                $gameOverMessage.text('Koopa Fireball Dodge');
+                $overlay.show();
+                $playButton.text('START');
+                stopScoring();
+                
+                koopaLives = INITIAL_LIVES; 
+                updateHeartDisplay(); 
+                
+                // Clear any existing timer
+                if (tjCooldownTimer) {
+                    clearInterval(tjCooldownTimer);
+                    tjCooldownTimer = null;
+                }
+                lastTripleJumpTime = 0; // Reset TJ cooldown
+                updateTripleJumpDisplay(); // Display 'TJ Ready!'
+                
+                resetKoopaPosition();
+                $topScoreDisplay.text('Top: ' + loadTopScore().toFixed(2) + 's');
+            }
+
+            function startGame() {
+                if (isPlaying) return;
+
+                isPlaying = true;
+                $overlay.hide();
+                currentSpeed = FIREBALL_BASE_SPEED; 
+
+                koopaLives = INITIAL_LIVES;
+                updateHeartDisplay();
+                
+                // Reset cooldowns and positions
+                lastTripleJumpTime = 0; 
+                jumpsRemaining = MAX_JUMPS;
+                updateTripleJumpDisplay();
+                resetKoopaPosition();
+
+                fireballs.forEach(fb => fb.destroy());
+                fireballs = [];
+                
+                createFireball(INITIAL_FIREBALL_DELAY); 
+
+                startScoring();
+                startTimers(); 
+
+                gameLoopInterval = setInterval(gameLoop, 1000 / 60);
+            }
+
+            function gameOver() {
+                isPlaying = false;
+                if (gameLoopInterval) clearInterval(gameLoopInterval);
+                stopScoring();
+                stopTimers();
+                if (tjCooldownTimer) clearInterval(tjCooldownTimer);
+                tjCooldownTimer = null;
+
+                wiggleMap();
+
+                $koopa.css('opacity', 0.5).removeClass('koopa-invincible'); 
+                fireballs.forEach(fb => fb.element.css('opacity', 0.5));
+
+                $gameOverMessage.text('GAME OVER');
+                $overlay.show();
+                $playButton.text('PLAY AGAIN');
+            }
+
+            // --- Koopa Movement and Jump Logic ---
+
+            function moveKoopa(direction) {
+                if (!isPlaying) return;
+
+                let nextX = koopaX + (direction * MOVE_STEP);
+                const maxKoopaX = gameContainerWidth - PLAYER_WIDTH;
+                let oldKoopaX = koopaX;
+
+                koopaX = Math.max(0, Math.min(nextX, maxKoopaX));
+                
+                if (koopaX !== oldKoopaX) {
+                    $koopa.css('left', koopaX + 'px');
+                    
+                    const nearLeftEdge = koopaX < 10 && direction === -1 && groundOffsetX === 0;
+                    const nearRightEdge = koopaX > (maxKoopaX - 10) && direction === 1 && groundOffsetX === -groundMaxMovement;
+
+                    if (!nearLeftEdge && !nearRightEdge) {
+                        updateGroundPosition(direction);
+                    }
+                }
+            }
+
+            function handleJump() {
+                if (!isPlaying) return;
+
+                const now = Date.now();
+                if (now - lastJumpTime < JUMP_COOLDOWN) return; 
+
+                // 1. Landing Check: If Koopa is on the ground, reset the jumps
+                const currentBottom = parseFloat($koopa.css('bottom')) || GROUND_HEIGHT;
+                if (Math.abs(currentBottom - GROUND_HEIGHT) < 5) { // Check if near ground level
+                    jumpsRemaining = MAX_JUMPS;
+                    isJumping = false;
+                }
+
+                if (jumpsRemaining <= 0) return; // No jumps left
+                
+                // 2. Triple Jump Cooldown Check
+                const isTripleJump = (jumpsRemaining === 1);
+                if (isTripleJump) {
+                    if (now - lastTripleJumpTime < TRIPLE_JUMP_COOLDOWN_MS) {
+                        return; // Cooldown not met
+                    }
+                    lastTripleJumpTime = now; // Start cooldown
+                    updateTripleJumpDisplay();
+                }
+                
+                // 3. Execute Jump
+                lastJumpTime = now;
+                jumpsRemaining--;
+                isJumping = true;
+                
+                $koopa.stop(true, true); // Stop current animation for mid-air jump
+
+                let jumpHeight = JUMP_HEIGHT;
+                let jumpDuration = JUMP_DURATION;
+                
+                // Apply jump boost for triple jump
+                if (isTripleJump) {
+                    jumpHeight *= 1.5; 
+                    jumpDuration *= 1.2;
+                } else if (jumpsRemaining === 1) {
+                    // Slight boost for double jump
+                    jumpHeight *= 1.1;
+                }
+
+                // Get Koopa's current 'bottom' position to launch the next jump from there.
+                const newBottom = currentBottom + jumpHeight;
+                const finalLandingHeight = GROUND_HEIGHT;
+
+                // 1. Jump Up (from current height to new peak)
+                $koopa.animate({ 
+                    bottom: newBottom + 'px' 
+                }, jumpDuration * 0.7, 'easeOutQuad', function() {
+                    // 2. Fall Down (from new peak back to the ground)
+                    $koopa.animate({ 
+                        bottom: finalLandingHeight + 'px' 
+                    }, jumpDuration * 1.5, 'easeInQuad', function() {
+                        // 3. Landing: Reset state
+                        isJumping = false;
+                        koopaY = GROUND_HEIGHT; 
+                        jumpsRemaining = MAX_JUMPS; // Reset all jumps upon landing
+                    });
+                });
+            }
+
+
+            // --- Event Handlers (Keyboard and Touch) ---
+
+            function handleKeyDown(e) {
+                const key = e.key.toLowerCase();
+                
+                if (!isPlaying) {
+                    if (key === ' ') {
+                        e.preventDefault();
+                        if (!$overlay.is(':hidden')) startGame();
+                    }
+                    return;
+                }
+
+                switch (key) {
+                    case 'arrowleft':
+                    case 'a': 
+                        e.preventDefault();
+                        moveKoopa(-1);
+                        break;
+                    case 'arrowright':
+                    case 'd': 
+                        e.preventDefault();
+                        moveKoopa(1);
+                        break;
+                    case ' ': 
+                    case 'w':
+                        e.preventDefault();
+                        handleJump();
+                        break;
+                }
+            }
+
+            function handleTouchOrClickMove(e) {
+                if (!isPlaying || $(e.target).closest('#play-button, #game-overlay, #fullscreen-btn').length) return;
+                
+                let clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : null);
+                if (clientX === null) return;
+
+                const containerOffset = $gameContainer.offset().left;
+                const clickX = clientX - containerOffset;
+                const halfWidth = $gameContainer.width() / 2;
+
+                if (clickX < halfWidth) {
+                    moveKoopa(-1);
+                } else {
+                    moveKoopa(1);
+                }
+            }
+            
+            // --- Initialization ---
+
+            function initEvents() {
+                // Keyboard Controls
+                $(document).on('keydown', handleKeyDown);
+                $koopa.on('dblclick', handleJump); 
+                $playButton.on('click', startGame);
+
+                // Fullscreen Button
+                $fullscreenBtn.on('click', toggleFullscreen);
+
+                // Touch/Click Movement Handler
+                $gameContainer.on('mousedown touchstart', function(e) {
+                    if (e.target.closest('#koopa')) return;
+                    handleTouchOrClickMove(e);
+                });
+
+
+                // Re-calculate dimensions on window resize
+                $(window).on('resize', function() {
+                    updateDimensions();
+                    if (!isPlaying) {
+                        resetKoopaPosition();
+                    }
+                }).trigger('resize');
+            }
+
+
+            // Expose utility functions for jQuery easing
+            $.easing.easeOutQuad = function (x, t, b, c, d) { return -c * (t /= d) * (t - 2) + b; };
+            $.easing.easeInQuad = function (x, t, b, c, d) { return c * (t /= d) * t + b; };
+
+            // Initial setup
+            setupGame();
+            initEvents();
+
+        });
+    </script>
+</head>
+<body>
+    
+    <!-- Scoreboard: Fixed height, full width -->
+    <div id="scoreboard">
+        <div class="flex items-center gap-2">
+            <!-- Lives Display -->
+            <div id="lives-display" class="flex items-center gap-1">
+                <!-- Hearts are dynamically rendered here -->
+            </div>
+        </div>
+        
+        <span id="current-score">Time: 0.00s</span>
+
+        <div class="flex items-center">
+            <span id="top-score">Top: 0.00s</span>
+            <!-- Triple Jump Cooldown Display -->
+            <span id="triple-jump-cooldown" class="ml-4 text-red-400 font-normal">TJ Ready!</span>
+            <!-- Fullscreen Button -->
+            <button id="fullscreen-btn" aria-label="Toggle Fullscreen" class="p-1">
+                 <!-- Fullscreen Icon -->
+                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m3 8H3m3-8V3m0 0l-3 3m3 0H3m18 0V3m-3 3h3m0 0l-3-3m3 3V3"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Container: Full screen minus the scoreboard height -->
+    <div id="game-container">
+
+        <!-- Game Overlay: Play/Game Over Screen -->
+        <div id="game-overlay">
+             <h1 id="game-over-message" class="text-3xl font-bold">Koopa Fireball Dodge</h1>
+             <button id="play-button" class="mt-4">START</button>
+             <p class="mt-8 text-sm font-medium">Controls: **Tap Left/Right side of screen** or **WASD/Arrows** to Move, **Space/W** or Double-Click to **Triple Jump**.</p>
+             <div class="mt-4 text-sm text-yellow-300 font-semibold">
+                <p>Fireballs now destroy themselves on collision and speed up every 60s.</p>
+                <p>You have 3 lives (max 5). You recover 1 life every minute!</p>
+                <p class="text-red-300">Triple Jump (3rd jump) has a **40-second cooldown**!</p>
+            </div>
+        </div>
+
+        <!-- Ground with Parallax -->
+        <div id="game-ground"></div>
+        
+        <!-- Koopa Model -->
+        <div id="koopa" class="character">
+            <!-- Koopa SVG -->
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="10" y="26" width="44" height="24" fill="#3CB371"/>
+                <rect x="12" y="28" width="40" height="20" fill="#3CB371"/>
+                <rect x="18" y="30" width="28" height="16" fill="#3CB371"/>
+                <rect x="18" y="32" width="6" height="4" fill="#000000"/>
+                <rect x="40" y="32" width="6" height="4" fill="#000000"/>
+                <rect x="24" y="40" width="6" height="4" fill="#000000"/>
+                <rect x="34" y="40" width="6" height="4" fill="#000000"/>
+
+                <rect x="22" y="8" width="20" height="18" fill="#FFD700"/>
+
+                <rect x="24" y="14" width="4" height="4" fill="#FFFFFF"/>
+                <rect x="36" y="14" width="4" height="4" fill="#FFFFFF"/>
+                <rect x="26" y="16" width="2" height="2" fill="#000000"/>
+                <rect x="38" y="16" width="2" height="2" fill="#000000"/>
+
+                <rect x="26" y="24" width="12" height="2" fill="#8B4513"/>
+
+                <rect x="44" y="34" width="8" height="10" fill="#FFD700"/>
+                <rect x="12" y="34" width="8" height="10" fill="#FFD700"/>
+
+                <rect x="22" y="50" width="8" height ="6" fill="#8B4513"/>
+
+                <rect x="34" y="50" width="8" height="6" fill="#8B4513"/>
+
+                <rect x="22" y="6" width="20" height="2" fill="#8B4513"/>
+            </svg>
+        </div>
+
+        <!-- Fireball Template (Hidden) -->
+        <div id="fireball-template" class="fireball hidden" style="width: 15px; height: 15px;">
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="45" fill="#FF4500"/>
+                <circle cx="55" cy="45" r="20" fill="#FFD700"/>
+                <circle cx="40" cy="60" r="10" fill="#FFFFFF" opacity="0.8"/>
+            </svg>
+        </div>
+    </div>
+
+</body>
+</html>
