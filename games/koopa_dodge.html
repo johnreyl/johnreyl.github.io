@@ -59,7 +59,140 @@
             background-color: #79a1d1;
             border-bottom: 15px solid #2d3748;
             box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5);
+            /* Ensure smooth animation properties */
+            will-change: transform;
         }
+
+        /* 4. Map Wiggle Animation (New) */
+        @keyframes shake {
+            0%, 100% {
+                transform: translate(0, 0);
+            }
+
+            10% {
+                transform: translate(-2px, -2px);
+            }
+
+            20% {
+                transform: translate(3px, 3px);
+            }
+
+            30% {
+                transform: translate(-4px, -1px);
+            }
+
+            40% {
+                transform: translate(1px, 4px);
+            }
+
+            50% {
+                transform: translate(-3px, 2px);
+            }
+
+            60% {
+                transform: translate(2px, -3px);
+            }
+
+            70% {
+                transform: translate(-1px, 4px);
+            }
+
+            80% {
+                transform: translate(3px, -2px);
+            }
+
+            90% {
+                transform: translate(-4px, 1px);
+            }
+        }
+
+        /* Intense Wiggle (for 8 seconds) */
+        @keyframes intense-wiggle-animation {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0);
+            }
+
+            10% {
+                transform: translate(-8px, -8px) rotate(-2deg);
+            }
+
+            20% {
+                transform: translate(8px, 8px) rotate(2deg);
+            }
+
+            30% {
+                transform: translate(-10px, -10px) rotate(-3deg);
+            }
+
+            40% {
+                transform: translate(10px, 10px) rotate(3deg);
+            }
+
+            50% {
+                transform: translate(-8px, -8px) rotate(-2deg);
+            }
+
+            60% {
+                transform: translate(8px, 8px) rotate(2deg);
+            }
+
+            70% {
+                transform: translate(-10px, -10px) rotate(-3deg);
+            }
+
+            80% {
+                transform: translate(10px, 10px) rotate(3deg);
+            }
+
+            90% {
+                transform: translate(-5px, -5px) rotate(-1deg);
+            }
+        }
+
+        .is-intense-wiggling {
+            /* Extremely fast cycle for maximum shaking intensity */
+            animation: intense-wiggle-animation 30ms infinite;
+        }
+
+        /* Medium Wiggle (for 5 seconds) */
+        @keyframes medium-wiggle-animation {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0);
+            }
+
+            25% {
+                transform: translate(-3px, -3px) rotate(-0.5deg);
+            }
+
+            50% {
+                transform: translate(3px, 3px) rotate(0.5deg);
+            }
+
+            75% {
+                transform: translate(-3px, -3px) rotate(-0.5deg);
+            }
+        }
+
+        .is-medium-wiggling {
+            /* Medium fast cycle */
+            animation: medium-wiggle-animation 50ms infinite;
+        }
+
+        .map-wiggle {
+            /* Base class to apply the animation */
+            animation-name: shake;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+
+        .wiggle-long {
+            animation-duration: 1.3s;
+        }
+
+        .wiggle-short {
+            animation-duration: 0.5s;
+        }
+
 
         /* CSS for the Animated Mario World Ground */
         #mario-world-ground {
@@ -103,11 +236,10 @@
             will-change: transform, left, bottom;
         }
 
-        /* NEW: Fireball Styling */
+        /* NEW: Fireball Styling (Modified) */
         .fireball {
             position: absolute;
-            width: 23px;
-            height: 23px;
+            /* width and height are now set by JS on creation */
             background: radial-gradient(circle at 70% 30%, #ffd700, #ff4500, #8b0000);
             border-radius: 50%;
             box-shadow: 0 0 10px #ff4500, 0 0 20px #ff0000;
@@ -115,6 +247,20 @@
             will-change: transform, left, bottom;
             animation: spin 0.5s linear infinite;
         }
+
+        /* Custom styles for medium fireball (8x) */
+        .fireball-medium {
+            box-shadow: 0 0 25px #ff8c00, 0 0 50px #ff4500;
+            border: 2px solid #ffaa00;
+        }
+
+        /* Custom styles for super fireball (16x) */
+        .fireball-super {
+            background: radial-gradient(circle at 70% 30%, #fffacd, #ff6347, #ff0000);
+            box-shadow: 0 0 30px #ff0000, 0 0 60px #8b0000;
+            border: 5px solid #ff0000;
+        }
+
 
         @keyframes spin {
             from {
@@ -210,6 +356,63 @@
             background-color: #8b0000; /* Dark Red */
             border: 8px solid #ff4500; /* Orange Red */
         }
+
+        /* === POWER-UP AND INVINCIBILITY STYLES (NEW) === */
+        @keyframes powerup-blink {
+            0%, 100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        @keyframes powerup-rotate {
+            0% {
+                transform: translateY(0px) rotateY(0deg);
+            }
+
+            50% {
+                transform: translateY(-5px) rotateY(180deg);
+            }
+
+            100% {
+                transform: translateY(0px) rotateY(360deg);
+            }
+        }
+
+        .power-up {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            z-index: 10;
+            cursor: pointer;
+            /* Slow blinking/rotating effect */
+            animation: powerup-rotate 1.5s linear infinite, powerup-blink 1s step-end infinite;
+        }
+
+        @keyframes koopa-blink-red {
+            0%, 100% {
+                filter: brightness(1) drop-shadow(0 0 2px rgba(255, 255, 255, 0)); /* Default filter state */
+            }
+
+            25% {
+                filter: brightness(2) drop-shadow(0 0 10px #ff0000); /* Red Flash */
+            }
+
+            50% {
+                filter: brightness(1) drop-shadow(0 0 5px #ffd700); /* Gold Flash */
+            }
+
+            75% {
+                filter: brightness(2) drop-shadow(0 0 10px #ff0000); /* Red Flash */
+            }
+        }
+
+        .koopa-invincible {
+            animation: koopa-blink-red 0.1s linear infinite; 
+        }
     </style>
     <script>
         tailwind.config = {
@@ -224,25 +427,25 @@
         }
 
         const KOOPA_SVG = `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="10" y="26" width="44" height="24" fill="#3CB371"/>
-                        <rect x="12" y="28" width="40" height="20" fill="#3CB371"/>
-                        <rect x="18" y="30" width="28" height="16" fill="#3CB371"/>
-                        <rect x="18" y="32" width="6" height="4" fill="#000000"/>
-                        <rect x="40" y="32" width="6" height="4" fill="#000000"/>
-                        <rect x="24" y="40" width="6" height="4" fill="#000000"/>
-                        <rect x="34" y="40" width="6" height="4" fill="#000000"/>
-                        <rect x="22" y="8" width="20" height="18" fill="#FFD700"/>
-                        <rect x="24" y="14" width="4" height="4" fill="#FFFFFF"/>
-                        <rect x="36" y="14" width="4" height="4" fill="#FFFFFF"/>
-                        <rect x="26" y="16" width="2" height="2" fill="#000000"/>
-                        <rect x="38" y="16" width="2" height="2" fill="#000000"/>
-                        <rect x="26" y="24" width="12" height="2" fill="#8B4513"/>
-                        <rect x="44" y="34" width="8" height="10" fill="#FFD700"/>
-                        <rect x="12" y="34" width="8" height="10" fill="#FFD700"/>
-                        <rect x="22" y="50" width="8" height ="6" fill="#8B4513"/>
-                        <rect x="34" y="50" width="8" height="6" fill="#8B4513"/>
-                        <rect x="22" y="6" width="20" height="2" fill="#8B4513"/>
-                    </svg>`;
+                                <rect x="10" y="26" width="44" height="24" fill="#3CB371"/>
+                                <rect x="12" y="28" width="40" height="20" fill="#3CB371"/>
+                                <rect x="18" y="30" width="28" height="16" fill="#3CB371"/>
+                                <rect x="18" y="32" width="6" height="4" fill="#000000"/>
+                                <rect x="40" y="32" width="6" height="4" fill="#000000"/>
+                                <rect x="24" y="40" width="6" height="4" fill="#000000"/>
+                                <rect x="34" y="40" width="6" height="4" fill="#000000"/>
+                                <rect x="22" y="8" width="20" height="18" fill="#FFD700"/>
+                                <rect x="24" y="14" width="4" height="4" fill="#FFFFFF"/>
+                                <rect x="36" y="14" width="4" height="4" fill="#FFFFFF"/>
+                                <rect x="26" y="16" width="2" height="2" fill="#000000"/>
+                                <rect x="38" y="16" width="2" height="2" fill="#000000"/>
+                                <rect x="26" y="24" width="12" height="2" fill="#8B4513"/>
+                                <rect x="44" y="34" width="8" height="10" fill="#FFD700"/>
+                                <rect x="12" y="34" width="8" height="10" fill="#FFD700"/>
+                                <rect x="22" y="50" width="8" height ="6" fill="#8B4513"/>
+                                <rect x="34" y="50" width="8" height="6" fill="#8B4513"/>
+                                <rect x="22" y="6" width="20" height="2" fill="#8B4513"/>
+                            </svg>`;
 
         // NEW: Character Data Structure
         const CHARACTER_DATA = {
@@ -253,36 +456,36 @@
             goomba: {
                 name: "Goomba",
                 svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <rect x="15" y="15" width="34" height="40" rx="17" fill="#8B4513"/>
-                                    <rect x="25" y="55" width="14" height="6" fill="#654321"/>
-                                    <circle cx="25" cy="30" r="5" fill="white"/>
-                                    <circle cx="39" cy="30" r="5" fill="white"/>
-                                    <circle cx="25" cy="30" r="2" fill="black"/>
-                                    <circle cx="39" cy="30" r="2" fill="black"/>
-                                    <path d="M22 45 C25 48, 39 48, 42 45" stroke="#333333" stroke-width="2" stroke-linecap="round" fill="none"/>
-                                </svg>`,
+                                            <rect x="15" y="15" width="34" height="40" rx="17" fill="#8B4513"/>
+                                            <rect x="25" y="55" width="14" height="6" fill="#654321"/>
+                                            <circle cx="25" cy="30" r="5" fill="white"/>
+                                            <circle cx="39" cy="30" r="5" fill="white"/>
+                                            <circle cx="25" cy="30" r="2" fill="black"/>
+                                            <circle cx="39" cy="30" r="2" fill="black"/>
+                                            <path d="M22 45 C25 48, 39 48, 42 45" stroke="#333333" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                        </svg>`,
             },
             lakitu: {
                 name: "Lakitu",
                 svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <rect x="10" y="42" width="44" height="15" rx="7" fill="#87CEEB"/>
-                                    <path d="M10 50 C15 45, 49 45, 54 50" stroke="#87CEEB" stroke-width="5" stroke-linecap="round" fill="none"/>
-                                    <circle cx="32" cy="20" r="18" fill="#FFD700"/>
-                                    <circle cx="32" cy="20" r="15" fill="#FFFFFF"/>
-                                    <rect x="18" y="32" width="28" height="10" rx="5" fill="#FFD700"/>
-                                    <rect x="24" y="36" width="16" height="4" fill="#696969"/>
-                                    <circle cx="25" cy="18" r="3" fill="#000000"/>
-                                    <circle cx="39" cy="18" r="3" fill="#000000"/>
-                                </svg>`,
+                                            <rect x="10" y="42" width="44" height="15" rx="7" fill="#87CEEB"/>
+                                            <path d="M10 50 C15 45, 49 45, 54 50" stroke="#87CEEB" stroke-width="5" stroke-linecap="round" fill="none"/>
+                                            <circle cx="32" cy="20" r="18" fill="#FFD700"/>
+                                            <circle cx="32" cy="20" r="15" fill="#FFFFFF"/>
+                                            <rect x="18" y="32" width="28" height="10" rx="5" fill="#FFD700"/>
+                                            <rect x="24" y="36" width="16" height="4" fill="#696969"/>
+                                            <circle cx="25" cy="18" r="3" fill="#000000"/>
+                                            <circle cx="39" cy="18" r="3" fill="#000000"/>
+                                        </svg>`,
             },
             ghost: {
                 name: "Ghost",
                 svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M32 5 C50 5, 50 40, 50 40 L50 40 L32 55 L14 40 L14 40 C14 40, 14 5, 32 5 Z" fill="white" stroke="#333333" stroke-width="2"/>
-                                    <path d="M28 40 L30 45 L34 45 L36 40" fill="#000000"/>
-                                    <circle cx="25" cy="25" r="4" fill="#000000"/>
-                                    <circle cx="39" cy="25" r="4" fill="#000000"/>
-                                </svg>`,
+                                            <path d="M32 5 C50 5, 50 40, 50 40 L50 40 L32 55 L14 40 L14 40 C14 40, 14 5, 32 5 Z" fill="white" stroke="#333333" stroke-width="2"/>
+                                            <path d="M28 40 L30 45 L34 45 L36 40" fill="#000000"/>
+                                            <circle cx="25" cy="25" r="4" fill="#000000"/>
+                                            <circle cx="39" cy="25" r="4" fill="#000000"/>
+                                        </svg>`,
             }
         };
 
@@ -331,6 +534,15 @@
             const FULL_HEART = '❤️';
             const EMPTY_HEART = '🤍';
 
+            // --- NEW POWER-UP VARIABLES ---
+            let isInvincible = false;
+            let invincibilityTimer = 0;
+            const powerUpLocations = { left: false, right: false }; // Tracks if a power-up exists on each side
+            let powerUpCreationInterval;
+            const POWERUP_CHECK_INTERVAL_MS = 30000; // Create a new power-up every ___ seconds
+            const INVINCIBILITY_DURATION = 8000; // Invincibility duration in ms
+            const GROUND_OFFSET = 30; // Power-up float height above ground
+
             // Panel Constants
             const PANEL_WIDTH = 150;
             const PANEL_HEIGHT = 8;
@@ -338,12 +550,14 @@
             const PANEL_START_Y = groundHeight + KOOPA_HEIGHT + PANEL_SPACING_Y;
             const PANEL_SPEED = 2;
 
-            // NEW: Fireball Constants
-            const FIREBALL_SIZE = 23; // Updated size
+            // UPDATED: Fireball Constants
+            const FIREBALL_NORMAL_SIZE = 23; // Base size
+            const FIREBALL_MEDIUM_SIZE = FIREBALL_NORMAL_SIZE * 8; // 8x normal
+            const FIREBALL_SUPER_SIZE = FIREBALL_NORMAL_SIZE * 16; // 16x normal
             const FIREBALL_BASE_SPEED = 5; // Vertical speed
             const FIREBALL_ANGULAR_VELOCITY_MAX = 2; // Max horizontal speed (scattering)
             const INVULNERABILITY_DURATION = 1500; // 1.5 seconds of invulnerability
-            // NEW: Fireball Count Options
+            // Fireball Count Options
             const FIREBALL_COUNT_OPTIONS = [0, 5, 10]; // Available initial drop counts
 
             // --- Physics & Movement Constants ---
@@ -371,7 +585,8 @@
             let selectedCharacterId = 'koopa';
 
             // Fireball State
-            let fireballData = []; // Stores { $el, posX, posY, velY, velX }
+            // Stores { $el, posX, posY, velY, velX, width, height, type }
+            let fireballData = [];
             let fireballSpeedMultiplier = 1;
             let fireballTimeoutId = null; // Used to hold the ID of the recursive timeout
 
@@ -392,18 +607,133 @@
             let isInvulnerable = false;
             let invulnerableTimeout = null;
 
+            // NEW: Ground Obstacle State
+            let groundObstacleSetting = 'default'; // 'default' or 'enable'
+
+            // NEW: Wiggle State
+            let wiggleTimeoutId = null;
+
+
+            // --- Map Wiggle Functions (NEW) ---
+            function applyIntenseWiggle() {
+                const target = document.getElementById('mario-world-container');
+                const duration = 8000; // 8 seconds
+
+                // Ensure no other wiggle is running
+                target.classList.remove('is-medium-wiggling');
+
+                // Apply the intense wiggle class
+                target.classList.add('is-intense-wiggling');
+                console.log(`Intense wiggle started for ${duration / 1000} seconds.`);
+
+                // Remove the class after the duration
+                setTimeout(() => {
+                    target.classList.remove('is-intense-wiggling');
+                    console.log('Intense wiggle ended.');
+                }, duration);
+            }
+
+            /**
+             * Applies a medium screen shake to the game container for 5 seconds.
+             */
+            function applyMediumWiggle() {
+                const target = document.getElementById('mario-world-container');
+                const duration = 5000; // 5 seconds
+
+                // Ensure no other wiggle is running
+                target.classList.remove('is-intense-wiggling');
+
+                // Apply the medium wiggle class
+                target.classList.add('is-medium-wiggling');
+                console.log(`Medium wiggle started for ${duration / 1000} seconds.`);
+
+                // Remove the class after the duration
+                setTimeout(() => {
+                    target.classList.remove('is-medium-wiggling');
+                    console.log('Medium wiggle ended.');
+                }, duration);
+            }
+
+            function longMapWiggle() {
+                $gameContainer.addClass('map-wiggle wiggle-long');
+                setTimeout(() => {
+                    $gameContainer.removeClass('map-wiggle wiggle-long');
+                }, 1300); // 1.3 seconds
+            }
+
+            function shortMapWiggle() {
+                $gameContainer.addClass('map-wiggle wiggle-short');
+                setTimeout(() => {
+                    $gameContainer.removeClass('map-wiggle wiggle-short');
+                }, 500); // 0.5 seconds
+            }
+
+            // Recursive Wiggle Timer
+            function startWiggleTimer() {
+                // Stop if paused or setting is disabled
+                if (isPaused || groundObstacleSetting !== 'enable') {
+                    clearTimeout(wiggleTimeoutId);
+                    wiggleTimeoutId = null;
+                    return;
+                }
+
+                // Random delay between 8000ms (8s) and 20000ms (20s)
+                const minDelay = 8000;
+                const maxDelay = 20000;
+                const delay = Math.random() * (maxDelay - minDelay) + minDelay;
+
+                // Schedule the next wiggle
+                wiggleTimeoutId = setTimeout(() => {
+                    // Choose between long (30% chance) and short (70% chance)
+                    if (Math.random() < 0.3) {
+                        applyIntenseWiggle()//longMapWiggle();
+                    } else {
+                        applyMediumWiggle()//shortMapWiggle();
+                    }
+                    // Immediately schedule the next call to maintain the random loop
+                    startWiggleTimer();
+                }, delay);
+            }
+
+
             // --- Fireball Management Functions (UPDATED FOR CONTINUOUS RAPID GENERATION) ---
 
+            /**
+             * Creates a new fireball with a random type (Normal, Medium, or Super).
+             */
             function createFireball() {
                 const containerWidth = $gameContainer.width();
                 const containerHeight = $gameContainer.height();
 
-                // Random X position across the entire width
-                const initialX = Math.random() * (containerWidth - FIREBALL_SIZE);
-                // Start position Y is just off the top of the screen
-                const initialY = containerHeight + FIREBALL_SIZE;
+                let size = FIREBALL_NORMAL_SIZE;
+                let type = 'normal';
+                const chance = Math.random();
 
-                const $fireball = $(`<div class="fireball" style="bottom: ${initialY}px; left: ${initialX}px;"></div>`);
+                // 3% chance for Super Fireball (0.00 to 0.03)
+                if (chance < 0.03) {
+                    size = FIREBALL_SUPER_SIZE;
+                    type = 'super';
+                }
+                // 15% chance for Medium Fireball (0.03 to 0.18)
+                else if (chance < 0.18) {
+                    size = FIREBALL_MEDIUM_SIZE;
+                    type = 'medium';
+                }
+                // Else, Normal Fireball
+                // size = FIREBALL_NORMAL_SIZE;
+                // type = 'normal';
+
+
+                // Random X position across the entire width, ensuring it fits
+                const initialX = Math.random() * (containerWidth - size);
+                // Start position Y is just off the top of the screen
+                const initialY = containerHeight + size;
+
+                // Dynamically set CSS class based on size for visual distinction
+                const fireballClass = `fireball fireball-${type}`;
+
+                // Inject dynamic size and initial position
+                const $fireball = $(`<div class="${fireballClass}" style="bottom: ${initialY}px; left: ${initialX}px; width: ${size}px; height: ${size}px;"></div>`);
                 $gameContainer.append($fireball);
 
                 // Random horizontal direction and speed, ensuring it's never perfectly horizontal (velX=0)
@@ -418,7 +748,10 @@
                     posY: initialY,
                     // Velocity is negative because it's moving downwards
                     velY: -FIREBALL_BASE_SPEED * fireballSpeedMultiplier,
-                    velX: velX
+                    velX: velX,
+                    width: size, // NEW: Store width/height for collision
+                    height: size, // NEW: Store width/height for collision
+                    type: type // NEW: Store type for ground impact logic
                 };
 
                 fireballData.push(fireball);
@@ -474,11 +807,6 @@
                     fireballSpeedMultiplier = 5.0;
                 }
 
-                // NEW: Create initial fireballs simultaneously
-                //for (let i = 0; i < initialFireballCount; i++) {
-                //    createFireball();
-                //}
-
                 // Start the continuous, random-delay generation loop
                 startFireballMicroLoop();
             }
@@ -497,14 +825,22 @@
                     // Check for ground collision (disappear) - Fireball's bottom position (posY) vs. ground top position (groundY)
                     if (fireball.posY <= groundY) {
                         fireballsToRemove.push(index);
+
+                        // NEW: Trigger map wiggle based on fireball type
+                        if (fireball.type === 'super') {
+                            longMapWiggle(); // Call longMapWiggle() for superFireball
+                        } else if (fireball.type === 'medium') {
+                            shortMapWiggle(); // Call shortMapWiggle() for mediumFireball
+                        }
+
                         // Optional: snap to ground for one frame before removing
                         fireball.posY = groundY;
                     }
 
                     // Check for horizontal bounds (bounce off side walls)
-                    if (fireball.posX <= 0 || fireball.posX + FIREBALL_SIZE >= containerWidth) {
+                    if (fireball.posX <= 0 || fireball.posX + fireball.width >= containerWidth) { // Use fireball.width
                         fireball.velX *= -1; // Reverse horizontal direction
-                        fireball.posX = Math.max(0, Math.min(fireball.posX, containerWidth - FIREBALL_SIZE));
+                        fireball.posX = Math.max(0, Math.min(fireball.posX, containerWidth - fireball.width)); // Use fireball.width
                     }
 
                     // Apply visual update
@@ -672,6 +1008,7 @@
                 $ground.css('animation-play-state', 'paused');
                 chaseMusic.pause();
                 clearFireballs(); // This now stops the continuous generation loop
+                clearTimeout(wiggleTimeoutId); // NEW: Stop the wiggle timer
                 $koopa.css('animation', 'none'); // Stop running bob
                 $gameOverModal.removeClass('hidden');
 
@@ -717,6 +1054,21 @@
                 });
             }
 
+            // NEW: Update function for Ground Obstacle buttons
+            function updateGroundObstacleDisplay() {
+                const $groundObstacleButtons = $('.ground-obstacle-btn');
+                $groundObstacleButtons.each(function () {
+                    const state = $(this).data('state');
+                    $(this).removeClass('bg-green-600 bg-gray-500 hover:bg-green-700 hover:bg-gray-600 ring-2 ring-green-400 font-extrabold font-bold');
+
+                    if (state === groundObstacleSetting) {
+                        $(this).addClass('bg-green-600 ring-2 ring-green-400 font-extrabold');
+                    } else {
+                        $(this).addClass('bg-gray-500 hover:bg-gray-600 font-bold');
+                    }
+                });
+            }
+
 
             // Character Visual Update Logic
             function updateKoopaVisual(charId) {
@@ -751,9 +1103,9 @@
                     const isSelected = charId === selectedCharacterId;
 
                     const $button = $(`<div class="char-btn text-white text-sm" data-char-id="${charId}">
-                                    ${charData.svg}
-                                    <span>${charData.name}</span>
-                                </div>`);
+                                            ${charData.svg}
+                                            <span>${charData.name}</span>
+                                        </div>`);
 
                     const $cardPanel = $(`<div class="char-card"></div>`);
                     $cardPanel.append($button);
@@ -861,9 +1213,9 @@
                     fireballData.forEach((fireball, index) => {
                         const fireballBounds = {
                             posX: fireball.posX,
-                            posY: fireball.posY - FIREBALL_SIZE, // Fireball position is bottom, need top for collision
-                            width: FIREBALL_SIZE,
-                            height: FIREBALL_SIZE
+                            posY: fireball.posY,// - fireball.height, // Fireball position is bottom, need top for collision. Use fireball.height
+                            width: fireball.width, // Use fireball.width
+                            height: fireball.height // Use fireball.height
                         };
                         if (checkCollision(koopaBounds, fireballBounds)) {
                             fireballsHit.push(index);
@@ -914,6 +1266,10 @@
                 } else {
                     if (!isJumping && !currentPlatform) $koopa.css('animation', 'none');
                 }
+
+                // --- Power-up Checks (NEW) ---
+                checkPowerUpCollisions();
+                //handleInvincibility();
             }
 
             // --- Core Game State Functions ---
@@ -943,6 +1299,7 @@
                 disableInteraction();
                 chaseMusic.pause();
                 clearTimeout(invulnerableTimeout);
+                clearTimeout(wiggleTimeoutId); // NEW: Clear the wiggle timer on init
 
                 // Reset states
                 koopaLives = INITIAL_LIVES;
@@ -950,6 +1307,7 @@
                 koopaPosY = groundHeight;
                 $koopa.css({ left: koopaPosX + 'px', bottom: koopaPosY + 'px' });
                 $koopa.removeClass('invulnerable');
+                $gameContainer.removeClass('map-wiggle wiggle-long wiggle-short'); // NEW: Remove wiggle class
                 $ground.css('animation-play-state', 'paused');
                 koopaVelY = 0;
                 koopaVelX = 0;
@@ -976,12 +1334,142 @@
                 updateDifficultyDisplay();
                 // NEW: Update fireball count display
                 updateFireballCountDisplay();
+                updateGroundObstacleDisplay(); // Initialize ground obstacle display
                 updateKoopaVisual(selectedCharacterId);
 
                 // Start physics loop if not running
                 if (!physicsUpdateInterval) {
                     physicsUpdateInterval = setInterval(updatePhysics, PHYSICS_TICK_RATE);
                 }
+            }
+
+            // --- NEW FUNCTION: createPowerup ---
+            function createPowerup() {
+                const availableSides = [];
+                if (!powerUpLocations.left) {
+                    availableSides.push('left');
+                }
+                if (!powerUpLocations.right) {
+                    availableSides.push('right');
+                }
+
+                // Stop if both sides have powerups
+                if (availableSides.length === 0) {
+                    return;
+                }
+
+                // Determine location
+                let locationToUse = availableSides[Math.floor(Math.random() * availableSides.length)];
+
+                // Randomly select power-up type
+                const type = Math.random() < 0.5 ? 'heart' : 'star';
+                const symbol = type === 'heart' ? '❤️' : '⭐';
+                const className = type === 'heart' ? 'text-red-500' : 'text-yellow-300 drop-shadow-lg';
+
+                // Create the element
+                const POWERUP_SIZE = 20;
+                const $powerUp = $(`<div class="power-up ${className} text-xl" data-type="${type}" data-location="${locationToUse}" style="width:${POWERUP_SIZE}px; height:${POWERUP_SIZE}px; line-height:${POWERUP_SIZE}px; text-align:center;position:absolute;">${symbol}</div>`);
+
+                const worldWidth = $gameContainer.width();
+
+                // Calculate position: lower left or lower right (GROUND_OFFSET px above ground)
+                let leftPosition;
+                const PADDING_PERCENT = 0.05;
+
+                if (locationToUse === 'left') {
+                    // Lower left: 5% from left
+                    leftPosition = worldWidth * PADDING_PERCENT;
+                    powerUpLocations.left = true;
+                } else {
+                    // Lower right: 5% from right, accounting for powerup width
+                    leftPosition = worldWidth - (worldWidth * PADDING_PERCENT) - POWERUP_SIZE;
+                    powerUpLocations.right = true;
+                }
+
+                $powerUp.css({
+                    left: `${leftPosition}px`,
+                    bottom: `${GROUND_OFFSET}px`, // 5px above ground
+                });
+
+                $gameContainer.append($powerUp);
+            }
+
+            function pickupPowerUp($powerUp, type) {
+                $powerUp.remove();
+
+                // 1. Update powerUpLocations state
+                const location = $powerUp.data('location');
+                if (location === 'left') {
+                    powerUpLocations.left = false;
+                } else if (location === 'right') {
+                    powerUpLocations.right = false;
+                }
+
+                // 2. Apply effect
+                if (type === 'heart') {
+                    koopaLives ++;
+                    updateLivesDisplay();
+                } else if (type === 'star') {
+                    // Make Koopa blink red and invincible for 10 seconds
+                    if (!isInvincible) {
+                        isInvincible = true;
+
+                        $koopa.addClass('koopa-invincible');
+
+                        isInvulnerable = true;
+                        $koopa.addClass('invulnerable');
+
+                        setInterval(removeInvulnerableState, INVINCIBILITY_DURATION)
+                    } else {
+
+                    }
+                }
+            }
+
+            function checkPowerUpCollisions() {
+                if (!$koopa || $koopa.length === 0) return;
+
+                const koopaRect = {
+                    left: koopaPosX,
+                    right: koopaPosX + $koopa.width(),
+                    top: $gameContainer.height() - (koopaPosY + $koopa.height()), // Convert bottom Y to top Y
+                    bottom: $gameContainer.height() - koopaPosY
+                };
+
+                $('.power-up').each(function () {
+                    const $powerUp = $(this);
+                    const powerUpSize = $powerUp.width();
+                    const powerUpLeft = parseFloat($powerUp.css('left'));
+                    const powerUpBottom = parseFloat($powerUp.css('bottom'));
+
+                    const powerUpRect = {
+                        left: powerUpLeft,
+                        right: powerUpLeft + powerUpSize,
+                        top: $gameContainer.height() - (powerUpBottom + powerUpSize),
+                        bottom: $gameContainer.height() - powerUpBottom
+                    };
+
+                    // AABB collision check
+                    if (koopaRect.left < powerUpRect.right &&
+                        koopaRect.right > powerUpRect.left &&
+                        koopaRect.top < powerUpRect.bottom &&
+                        koopaRect.bottom > powerUpRect.top) {
+
+                        // Collision detected!
+                        const type = $powerUp.data('type');
+                        pickupPowerUp($powerUp, type);
+                        // Stop checking after one pickup per frame
+                        return false;
+                    }
+                });
+            }
+
+            function removeInvulnerableState() {
+                isInvincible = false;
+                $koopa.removeClass('koopa-invincible');
+
+                isInvulnerable = false;
+                $koopa.removeClass('invulnerable');
             }
 
             function startGame() {
@@ -997,6 +1485,13 @@
                 chaseMusic.play();
                 startScoring();
                 restoreKoopaAnimation();
+
+                // NEW: Start map wiggle timer if setting is enabled
+                if (groundObstacleSetting === 'enable') {
+                    startWiggleTimer();
+                }
+
+                powerUpCreationInterval = setInterval(createPowerup, POWERUP_CHECK_INTERVAL_MS);
             }
 
             function togglePause() {
@@ -1008,12 +1503,17 @@
                     chaseMusic.pause();
                     $menuModal.removeClass('hidden');
                     showPanel('#pause-menu-panel');
+                    clearTimeout(wiggleTimeoutId); // NEW: Pause the wiggle timer
                 } else {
                     $ground.css('animation-play-state', 'running');
                     chaseMusic.play();
                     $menuModal.addClass('hidden');
                     // If resuming, restart the micro-loop which handles the 'isPaused' check
                     startFireballMicroLoop();
+                    // NEW: Resume the wiggle timer
+                    if (groundObstacleSetting === 'enable') {
+                        startWiggleTimer();
+                    }
                 }
             }
 
@@ -1125,6 +1625,7 @@
 
             // Settings Buttons
             $('#more-settings-button').on('click', () => {
+                updateGroundObstacleDisplay(); // Call new display update when opening settings
                 showPanel('#settings-menu-panel');
             });
 
@@ -1144,6 +1645,19 @@
             $fireballCountButtons.on('click', function () {
                 initialFireballCount = parseInt($(this).data('count'));
                 updateFireballCountDisplay();
+            });
+
+            // NEW: Ground Obstacle Button Handlers
+            $('.ground-obstacle-btn').on('click', function () {
+                groundObstacleSetting = $(this).data('state');
+                updateGroundObstacleDisplay();
+                // When toggling, ensure the timer is cleared if setting is disabled
+                if (groundObstacleSetting === 'default') {
+                    clearTimeout(wiggleTimeoutId);
+                    $gameContainer.removeClass('map-wiggle wiggle-long wiggle-short');
+                } else if (!isPaused) {
+                    startWiggleTimer(); // If enabling during gameplay, start immediately
+                }
             });
 
 
@@ -1215,13 +1729,12 @@
                         <button id="difficulty-hard" data-difficulty="hard" class="difficulty-btn px-4 py-2 text-white rounded-lg transition duration-150">Hard</button>
                     </div>
 
-                    <!--<h3 class="text-white/90 text-xl font-bold pt-4">Initial Fireballs</h3>
-                    <p class="text-sm text-gray-400">The number of fireballs present at the start of the game.</p>
-                    <div class="flex justify-between space-x-2">
-                        <button data-count="0" class="fireball-count-btn px-4 py-2 text-white rounded-lg transition duration-150 w-full">0</button>
-                        <button data-count="5" class="fireball-count-btn px-4 py-2 text-white rounded-lg transition duration-150 w-full">5</button>
-                        <button data-count="10" class="fireball-count-btn px-4 py-2 text-white rounded-lg transition duration-150 w-full">10</button>
-                    </div>-->
+                    <h3 class="text-white/90 text-xl font-bold pt-4">Ground Obstacles</h3>
+                    <p class="text-sm text-gray-400">Enables random map wiggles to throw off your control.</p>
+                    <div class="flex justify-between space-x-2" id="ground-obstacle-settings">
+                        <button id="ground-obstacle-default" data-state="default" class="ground-obstacle-btn px-4 py-2 text-white rounded-lg transition duration-150 w-full bg-green-600 ring-2 ring-green-400 font-extrabold">Default</button>
+                        <button id="ground-obstacle-enable" data-state="enable" class="ground-obstacle-btn px-4 py-2 text-white rounded-lg transition duration-150 w-full bg-gray-500 hover:bg-gray-600 font-bold">Enable</button>
+                    </div>
                     <div class="text-xs text-left text-gray-500 pt-2">
                         <p>**Easy:** Slow fireballs, few platforms.</p>
                         <p>**Medium:** 2.3x speed, 1 platform, rapid fireballs.</p>
