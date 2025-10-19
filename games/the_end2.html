@@ -456,6 +456,8 @@
       "bgmusic1": "sounds\\bgmusic1.mp3",
       "bgmusic2": "sounds\\bgmusic2.mp3",
       "char-damage": "sounds\\char-damage.mp3",
+      "char-damage1": "sounds\\char-damage1.mp3",
+        "earthquake": "sounds\\earthquake.mp3",
       "fireball-collision-super": "sounds\\fireball-collision-super.wav",
       "fireball-collision": "sounds\\fireball-collision.mp3",
       //"fireball-ping": "sounds\\fireball-ping.mp3",
@@ -1218,6 +1220,29 @@ function getRandomDeathMessage() {
             let wiggleTimeoutId = null;
 
 
+function setupVisibilityControl() {
+    document.addEventListener("visibilitychange", function() {
+        if (document.hidden) {
+            // Tab is minimized, backgrounded, or switched away from
+            if (GAME_STATE.currentBGM) {
+                // Pause the audio, but DO NOT clear the reference yet
+                GAME_STATE.currentBGM.pause();
+                console.log("⏸️ Game tab minimized. Background music paused.");
+            }
+        } else {
+            // Tab is visible again
+            if (GAME_STATE.currentBGM && GAME_STATE.SOUND_ON) {
+                // Try to resume the audio
+                GAME_STATE.currentBGM.play().then(() => {
+                    console.log("▶️ Game tab restored. Background music resumed.");
+                }).catch(error => {
+                    console.warn("Autoplay resume prevented by browser.", error);
+                    // You might need to prompt the user to click to resume sound here.
+                });
+            }
+        }
+    });
+}
             // Assume this is your game's audio manager/library function
 function loadSoundAsset(key, path) {
     // In a real game, this would initiate the actual loading process
@@ -1283,62 +1308,49 @@ async function preloadGameAssets() {
  * Stops any current music before starting the new track.
  * @param {string} path The file path to the audio asset.
  */
+
 function playBackgroundMusic(path) {
     if (!GAME_STATE.SOUND_ON) {
-        alert("🚫 Cannot play background music: SOUND_ON is false.");
+        console.log("🚫 Cannot play background music: SOUND_ON is false.");
         return;
     }
 
-    // A. **STOP EXISTING MUSIC**
-    // This is the key change to prevent duplicates.
+    // CRITICAL: Stop the current track before starting a new one.
     stopBackgroundMusic(); 
 
     console.log(`🎵 Attempting to play background music: ${path}`);
-    
-    // ------------------------------------------------------------------
-    // *** REPLACE THIS SECTION WITH YOUR GAME ENGINE/AUDIO API ***
-    // ------------------------------------------------------------------
-    
-    // Example using the native HTML5 Audio Element:
     
     try {
         const audio = new Audio(path);
         audio.loop = true;
         audio.volume = 0.5;
         
-        // B. **STORE REFERENCE**
+        // Store the new audio reference immediately
         GAME_STATE.currentBGM = audio; 
 
-        // C. **START PLAYBACK**
         audio.play().then(() => {
             console.log("Background music started successfully.");
         }).catch(error => {
-            console.warn("Autoplay was prevented by the browser. Prompt user for interaction.", error);
-            // On failure, clear the reference since it didn't start.
+            console.warn("Autoplay was prevented by the browser.", error);
+            // Clear the reference if playback failed to start
             GAME_STATE.currentBGM = null; 
         });
 
     } catch (e) {
         console.error("Failed to initialize audio playback.", e);
-        // On critical failure, ensure the reference is cleared.
         GAME_STATE.currentBGM = null;
     }
-    
-    // ------------------------------------------------------------------
 }
             
-       function stopBackgroundMusic() {
+       // Function to stop BGM (ensures it's available for the event listener)
+function stopBackgroundMusic() {
     if (GAME_STATE.currentBGM) {
         GAME_STATE.currentBGM.pause();
-        // Reset the playback time to the beginning for the next play
         GAME_STATE.currentBGM.currentTime = 0; 
-        // Remove the reference
         GAME_STATE.currentBGM = null;
         console.log("⏹️ Background music stopped.");
-    } else {
-        console.log("No background music is currently playing.");
     }
-}     
+}
 
 /**
  * Plays a short sound effect for an in-game event (button click, damage, collision, etc.).
@@ -1406,6 +1418,7 @@ function playSoundEffect(soundKey, volume = 1.0) {
                     target.classList.remove('is-intense-wiggling');
                     console.log('Intense wiggle ended.');
                 }, duration);
+                playSoundEffect('earthquake');
             }
 
             /**
@@ -1427,6 +1440,7 @@ function playSoundEffect(soundKey, volume = 1.0) {
                     target.classList.remove('is-medium-wiggling');
                     console.log('Medium wiggle ended.');
                 }, duration);
+                playSoundEffect('earthquake');
             }
 
             function longMapWiggle() {
@@ -1495,7 +1509,8 @@ function playSoundEffect(soundKey, volume = 1.0) {
                     size = FIREBALL_MEDIUM_SIZE;
                     type = 'medium';
                     //playSoundEffect('fireball-start');
-                }else
+                }
+else
                     {
                         //playSoundEffect('fireball-start');
                     }
@@ -1613,7 +1628,8 @@ function playSoundEffect(soundKey, volume = 1.0) {
                         } else if (fireball.type === 'medium') {
                             playSoundEffect('fireball-collision');
                             shortMapWiggle(); // Call shortMapWiggle() for mediumFireball
-                        }else {
+                        }
+else {
                             playSoundEffect('fireball-collision', 0.3);
                         }
 
@@ -2027,7 +2043,8 @@ function playSoundEffect(soundKey, volume = 1.0) {
 
                     if (fireballsHit.length > 0) {
                         changeLives(-1); // Reduce life
-playSoundEffect('char-damage');
+
+playSoundEffect('char-damage1');
                         if (isPaused) {
                             return; // Exit physics loop immediately if game is over
                         }
@@ -2120,6 +2137,7 @@ function playSoundEffect(soundKey, volume = 1.0) {
 
             function initializeGame() {
                 // Stop all loops and sounds
+                setupVisibilityControl();
                 initializeAssets();
                 if (physicsUpdateInterval) { clearInterval(physicsUpdateInterval); physicsUpdateInterval = null; }
                 stopScoring();
@@ -2621,7 +2639,8 @@ function playSoundEffect(soundKey, volume = 1.0) {
     <div id="game-over-modal" class="fixed inset-0 flex items-center justify-center p-4 hidden">
         <div id="game-over-content" class="p-10 rounded-xl shadow-2xl max-w-md w-full text-center">
             <h2 class="text-6xl font-black text-yellow-300 uppercase mb-4 animate-pulse">Game Over</h2>
-            <!-- <p class="text-white text-xl mb-6">You Died!</p>-->
+            <!-- <p class="text-white text-xl mb-6">You Died!</p>
+-->
             
             <div id='death-message-display' class="w-full h-auto max-h-40 overflow-y-auto border border-gray-300 p-2 text-white"></div>
             <p class="text-white text-lg font-semibold mb-8">Time Survived: <span id="final-score-display" class="text-red-300 font-extrabold">0.00 seconds</span></p>
