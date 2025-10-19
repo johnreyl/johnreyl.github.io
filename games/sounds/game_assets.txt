@@ -1,0 +1,13 @@
+[sounds]
+bgmusic1,sounds\bgmusic1.mp3
+bgmusic2,sounds\bgmusic2.mp3
+char-damage,sounds\char-damage.mp3
+fireball-collision-super,sounds\fireball-collision-super.wav
+fireball-collision,sounds\fireball-collision.mp3
+fireball-ping,sounds\fireball-ping.mp3
+fireball-start.wav,sounds\fireball-start.wav
+menu-music,sounds\menu-music.mp3
+restart-button,sounds\restart-button.wav
+start-button,sounds\start-button.wav
+
+
