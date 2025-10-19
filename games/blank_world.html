@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Koopa's Physics Sandbox v2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* 1. Global & Fullscreen Setup */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 2. Scoreboard Styling - Fixed at Top */
+        #scoreboard {
+            flex-shrink: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2d3748;
+            color: white;
+            padding: 10px 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+            z-index: 20;
+        }
+
+        /* Styling for the hearts */
+        #koopa-lives {
+            font-size: 1.25rem;
+            line-height: 1;
+            margin-left: 10px;
+        }
+
+        .heart-icon {
+            display: inline-block;
+            margin: 0 1px;
+        }
+
+        /* 3. Game Container - Takes remaining height */
+        #mario-world-container {
+            flex-grow: 1;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            background-color: #79a1d1;
+            border-bottom: 15px solid #2d3748;
+            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5);
+        }
+
+        /* CSS for the Animated Mario World Ground */
+        #mario-world-ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 300%;
+            height: 25px;
+            /* Green grass and brown dirt pattern */
+            background: repeating-linear-gradient(90deg, #5aa85d, #5aa85d 20px, #61b365 20px, #61b365 40px), repeating-linear-gradient(90deg, #965a3c, #965a3c 20px, #a06341 20px, #a06341 40px);
+            background-size: 100% 5px, 100% 20px;
+            background-position: 0 0, 0 5px;
+            background-repeat: repeat-x;
+            animation-name: scroll-ground;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+            animation-duration: 1.5s;
+            animation-play-state: paused;
+        }
+
+        @keyframes scroll-ground {
+            from {
+                background-position: 0 0, 0 5px;
+            }
+
+            to {
+                background-position: -40px 0, -40px 5px;
+            }
+        }
+
+        /* Character Base Styling */
+        .character {
+            position: absolute;
+            z-index: 10;
+            width: 55px;
+            height: 55px;
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.4));
+            will-change: transform, left, bottom;
+            transition: transform 0.1s; /* For flip animation */
+        }
+
+        /* Koopa Character */
+        #koopa {
+            left: 50px;
+            animation: run-bob 0.4s infinite alternate;
+        }
+
+        @keyframes run-bob {
+            from {
+                transform: translateY(0px);
+            }
+
+            to {
+                transform: translateY(2px);
+            }
+        }
+
+        /* Class to flip Koopa horizontally when moving left */
+        .flipped {
+            transform: scaleX(-1);
+        }
+
+        /* Styling for the Character Selection Buttons (New Card Structure) */
+        .char-card {
+            /* Outer container for margin/padding on the grid */
+            @apply p-1;
+        }
+
+        .char-btn {
+            /* Inner container for border and selection style */
+            @apply p-2 rounded-xl border-4 transition-all duration-200 cursor-pointer w-24 h-28 flex flex-col items-center justify-center;
+        }
+
+        .char-btn-selected {
+            @apply border-yellow-400 bg-gray-800/50 scale-105;
+        }
+
+        .char-btn-unselected {
+            @apply border-gray-600 bg-gray-700/50 hover:border-white/50 hover:bg-gray-600/50;
+        }
+
+        .char-btn svg {
+            /* MODIFIED: Set fixed width and height to 50px */
+            width: 50px;
+            height: 50px;
+            @apply mb-1;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-charcoal': '#2d3748',
+                        'brand-orange': '#ed8936',
+                    }
+                }
+            }
+        }
+
+        const KOOPA_SVG = `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="10" y="26" width="44" height="24" fill="#3CB371"/>
+                <rect x="12" y="28" width="40" height="20" fill="#3CB371"/>
+                <rect x="18" y="30" width="28" height="16" fill="#3CB371"/>
+                <rect x="18" y="32" width="6" height="4" fill="#000000"/>
+                <rect x="40" y="32" width="6" height="4" fill="#000000"/>
+                <rect x="24" y="40" width="6" height="4" fill="#000000"/>
+                <rect x="34" y="40" width="6" height="4" fill="#000000"/>
+                <rect x="22" y="8" width="20" height="18" fill="#FFD700"/>
+                <rect x="24" y="14" width="4" height="4" fill="#FFFFFF"/>
+                <rect x="36" y="14" width="4" height="4" fill="#FFFFFF"/>
+                <rect x="26" y="16" width="2" height="2" fill="#000000"/>
+                <rect x="38" y="16" width="2" height="2" fill="#000000"/>
+                <rect x="26" y="24" width="12" height="2" fill="#8B4513"/>
+                <rect x="44" y="34" width="8" height="10" fill="#FFD700"/>
+                <rect x="12" y="34" width="8" height="10" fill="#FFD700"/>
+                <rect x="22" y="50" width="8" height ="6" fill="#8B4513"/>
+                <rect x="34" y="50" width="8" height="6" fill="#8B4513"/>
+                <rect x="22" y="6" width="20" height="2" fill="#8B4513"/>
+            </svg>`;
+
+        // NEW: Character Data Structure
+        const CHARACTER_DATA = {
+            koopa: {
+                name: "Koopa",
+                svg: KOOPA_SVG,
+            },
+            goomba: {
+                name: "Goomba",
+                svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="15" y="15" width="34" height="40" rx="17" fill="#8B4513"/>
+                            <rect x="25" y="55" width="14" height="6" fill="#654321"/>
+                            <circle cx="25" cy="30" r="5" fill="white"/>
+                            <circle cx="39" cy="30" r="5" fill="white"/>
+                            <circle cx="25" cy="30" r="2" fill="black"/>
+                            <circle cx="39" cy="30" r="2" fill="black"/>
+                            <path d="M22 45 C25 48, 39 48, 42 45" stroke="#333333" stroke-width="2" stroke-linecap="round" fill="none"/>
+                        </svg>`,
+            },
+            lakitu: {
+                name: "Lakitu",
+                svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="10" y="42" width="44" height="15" rx="7" fill="#87CEEB"/>
+                            <path d="M10 50 C15 45, 49 45, 54 50" stroke="#87CEEB" stroke-width="5" stroke-linecap="round" fill="none"/>
+                            <circle cx="32" cy="20" r="18" fill="#FFD700"/>
+                            <circle cx="32" cy="20" r="15" fill="#FFFFFF"/>
+                            <rect x="18" y="32" width="28" height="10" rx="5" fill="#FFD700"/>
+                            <rect x="24" y="36" width="16" height="4" fill="#696969"/>
+                            <circle cx="25" cy="18" r="3" fill="#000000"/>
+                            <circle cx="39" cy="18" r="3" fill="#000000"/>
+                        </svg>`,
+            },
+            ghost: {
+                name: "Ghost",
+                svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M32 5 C50 5, 50 40, 50 40 L50 40 L32 55 L14 40 L14 40 C14 40, 14 5, 32 5 Z" fill="white" stroke="#333333" stroke-width="2"/>
+                            <path d="M28 40 L30 45 L34 45 L36 40" fill="#000000"/>
+                            <circle cx="25" cy="25" r="4" fill="#000000"/>
+                            <circle cx="39" cy="25" r="4" fill="#000000"/>
+                        </svg>`,
+            }
+        };
+
+        $(document).ready(function () {
+            // --- DOM References ---
+            const $koopa = $('#koopa');
+            const $currentScoreDisplay = $('#current-score');
+            const $topScoreDisplay = $('#top-score');
+            const $livesDisplay = $('#koopa-lives');
+            const $ground = $('#mario-world-ground');
+            const $gameContainer = $('#mario-world-container');
+
+            // UI Elements
+            const $fullscreenBtn = $('#fullscreen-btn');
+            const $fullscreenIconPath = $('#fullscreen-path');
+            const $pauseBtn = $('#pause-btn');
+            const $menuModal = $('#game-menu-modal');
+            const $mainMenuPanel = $('#main-menu-panel');
+            const $pauseMenuPanel = $('#pause-menu-panel');
+            const $settingsMenuPanel = $('#settings-menu-panel');
+            const $charSelectPanel = $('#character-select-panel');
+            const $difficultyButtons = $('.difficulty-btn');
+            const $characterList = $('#character-list');
+
+            // Current Selection Card DOM elements
+            const $selectedCharDisplay = $('#selected-char-display');
+            const $selectedCharName = $('#selected-char-name');
+
+            // --- Sound Elements (Mocked) ---
+            const tapSound = { play: () => { }, currentTime: 0, volume: 0.3 };
+            const chaseMusic = { play: () => { }, pause: () => { }, currentTime: 0, volume: 0.5 };
+
+            // --- Game Constants ---
+            const groundHeight = 25;
+            const KOOPA_HEIGHT = 55;
+            const originalLeft = 50;
+            const STORAGE_KEY = 'koopaTopScore';
+            const PHYSICS_TICK_RATE = 1000 / 60;
+            // Life Constants
+            const INITIAL_LIVES = 5;
+            const MAX_LIVES = 7;
+            const FULL_HEART = '❤️';
+            const EMPTY_HEART = '🤍';
+
+            // --- Physics & Movement Constants ---
+            const GRAVITY = 0.8;
+            const JUMP_VELOCITY = Math.sqrt(2 * GRAVITY * (KOOPA_HEIGHT * 1.8));
+            const KOOPA_SPEED = 6;
+            const KOOPA_FRICTION = 0.9;
+            const MIN_VEL_THRESHOLD = 0.5;
+
+            // --- SVG Icon Paths ---
+            const ENTER_FS_PATH = 'M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z';
+            const EXIT_FS_PATH = 'M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm8 11h2v-3h3v-2h-5v5zM17 5h-2v5h5V8h-3V5z';
+
+            // --- State Variables (Global) ---
+            let scoreInterval = null;
+            let physicsUpdateInterval = null;
+            let currentScore = 0;
+            let startTime = 0;
+            let isPaused = true;
+            let koopaLives = INITIAL_LIVES;
+            let gameDifficulty = 'easy';
+            let selectedCharacterId = 'koopa';
+
+            // --- Koopa State ---
+            let koopaPosX = originalLeft;
+            let koopaPosY = groundHeight;
+            let koopaVelY = 0;
+            let koopaVelX = 0;
+            let isJumping = false;
+            let jumpCount = 0;
+            let isMovingLeft = false;
+            let isMovingRight = false;
+            let isJumpKeyPressed = false;
+
+
+            // --- Score & Life Functions ---
+            function loadTopScore() {
+                const storedScore = localStorage.getItem(STORAGE_KEY);
+                return storedScore ? parseInt(storedScore) : 0;
+            }
+
+            function updateTopScore(newScore) {
+                const currentTopScore = loadTopScore();
+                if (newScore > currentTopScore) {
+                    localStorage.setItem(STORAGE_KEY, newScore);
+                    $topScoreDisplay.text('Top Time: ' + (newScore / 1000).toFixed(2) + ' s');
+                }
+            }
+
+            function startScoring() {
+                currentScore = 0;
+                $currentScoreDisplay.text('Time: 0.00 s');
+                if (scoreInterval) return;
+                startTime = Date.now();
+                scoreInterval = setInterval(() => {
+                    if (!isPaused) {
+                        currentScore = Date.now() - startTime;
+                        $currentScoreDisplay.text('Time: ' + (currentScore / 1000).toFixed(2) + ' s');
+                    }
+                }, 100);
+            }
+
+            function stopScoring() {
+                if (scoreInterval) {
+                    clearInterval(scoreInterval);
+                    scoreInterval = null;
+                    updateTopScore(currentScore);
+                }
+            }
+
+            function updateLivesDisplay() {
+                let heartIcons = '';
+                for (let i = 0; i < koopaLives; i++) {
+                    heartIcons += `<span class="heart-icon">${FULL_HEART}</span>`;
+                }
+                for (let i = 0; i < (MAX_LIVES - koopaLives); i++) {
+                    heartIcons += `<span class="heart-icon">${EMPTY_HEART}</span>`;
+                }
+                $livesDisplay.html(heartIcons);
+            }
+
+            function changeLives(amount) {
+                koopaLives += amount;
+                if (koopaLives < 0) koopaLives = 0;
+                if (koopaLives > MAX_LIVES) koopaLives = MAX_LIVES;
+                updateLivesDisplay();
+                if (koopaLives === 0) { /* Game Over logic */ }
+            }
+
+            // --- Menu Management Functions ---
+
+            function showPanel(panelElement) {
+                $mainMenuPanel.addClass('hidden');
+                $pauseMenuPanel.addClass('hidden');
+                $settingsMenuPanel.addClass('hidden');
+                $charSelectPanel.addClass('hidden');
+
+                $(panelElement).removeClass('hidden');
+            }
+
+            function updateDifficultyDisplay() {
+                $difficultyButtons.each(function () {
+                    const difficulty = $(this).data('difficulty');
+                    $(this).removeClass('bg-green-600 bg-gray-500 hover:bg-green-700 hover:bg-gray-600 ring-2 ring-green-400 font-extrabold font-bold');
+
+                    if (difficulty === gameDifficulty) {
+                        $(this).addClass('bg-green-600 ring-2 ring-green-400 font-extrabold');
+                    } else {
+                        $(this).addClass('bg-gray-500 hover:bg-gray-600 font-bold');
+                    }
+                });
+            }
+
+            // Character Visual Update Logic
+            function updateKoopaVisual(charId) {
+                const charData = CHARACTER_DATA[charId];
+                if (charData) {
+                    $koopa.html(charData.svg);
+                    selectedCharacterId = charId;
+
+                    // Update the current selection card display
+                    $selectedCharDisplay.html(charData.svg);
+                    $selectedCharName.text(charData.name);
+
+                    // Update selection style in the menu if it's visible
+                    $('.char-btn').each(function () {
+                        const id = $(this).data('char-id');
+                        $(this).removeClass('char-btn-selected char-btn-unselected');
+                        if (id === charId) {
+                            $(this).addClass('char-btn-selected');
+                        } else {
+                            $(this).addClass('char-btn-unselected');
+                        }
+                    });
+                }
+            }
+
+            // Renders the character selection buttons within the new card panel
+            function renderCharacterSelection() {
+                $characterList.empty(); // Clear previous buttons
+
+                Object.keys(CHARACTER_DATA).forEach(charId => {
+                    const charData = CHARACTER_DATA[charId];
+                    const isSelected = charId === selectedCharacterId;
+
+                    // Create the inner button/content container
+                    const $button = $(`<div class="char-btn text-white text-sm" data-char-id="${charId}">
+                            ${charData.svg}
+                            <span>${charData.name}</span>
+                        </div>`);
+
+                    // Wrap the button in a card panel for proper padding/margin/alignment
+                    const $cardPanel = $(`<div class="char-card"></div>`);
+                    $cardPanel.append($button);
+
+                    $button.addClass(isSelected ? 'char-btn-selected' : 'char-btn-unselected');
+
+                    // Attach the click handler to the button
+                    $button.on('click', function () {
+                        updateKoopaVisual(charId); // Select and update visual
+                    });
+
+                    $characterList.append($cardPanel); // Append the card panel
+                });
+            }
+
+
+            // --- Physics Loop ---
+            function updatePhysics() {
+                if (isPaused) return;
+
+                // 1. Horizontal Movement & Friction
+                if (isMovingLeft) {
+                    koopaVelX = -KOOPA_SPEED;
+                } else if (isMovingRight) {
+                    koopaVelX = KOOPA_SPEED;
+                } else if (koopaPosY <= groundHeight) {
+                    koopaVelX *= KOOPA_FRICTION;
+                    if (Math.abs(koopaVelX) < MIN_VEL_THRESHOLD) koopaVelX = 0;
+                }
+
+                // 2. Vertical Movement & Gravity
+                if (koopaPosY > groundHeight) {
+                    koopaVelY -= GRAVITY;
+                    isJumping = true;
+                } else {
+                    koopaVelY = 0;
+                    isJumping = false;
+                    koopaPosY = groundHeight;
+                    jumpCount = 0;
+                }
+
+                // 3. Update Positions
+                koopaPosX += koopaVelX;
+                koopaPosY += koopaVelY;
+
+                // 4. World Boundaries Check
+                const containerWidth = $gameContainer.width();
+                const koopaWidth = 55;
+
+                if (koopaPosX < 0) {
+                    koopaPosX = 0;
+                    koopaVelX = 0;
+                } else if (koopaPosX > (containerWidth - koopaWidth)) {
+                    koopaPosX = (containerWidth - koopaWidth);
+                    koopaVelX = 0;
+                }
+
+                // 5. Apply Visual Updates
+                $koopa.css({
+                    bottom: koopaPosY + 'px',
+                    left: koopaPosX + 'px'
+                });
+
+                // Set flip class based on direction
+                if (koopaVelX < -MIN_VEL_THRESHOLD) {
+                    $koopa.addClass('flipped');
+                    restoreKoopaAnimation();
+                } else if (koopaVelX > MIN_VEL_THRESHOLD) {
+                    $koopa.removeClass('flipped');
+                    restoreKoopaAnimation();
+                } else {
+                    if (!isJumping) $koopa.css('animation', 'none');
+                }
+            }
+
+            // --- Core Game State Functions ---
+            function enableInteraction() {
+                $(document).on('keydown', handleKeydown);
+                $(document).on('keyup', handleKeyup);
+                $gameContainer.on('mousedown touchstart', handleTouchOrClick);
+                $gameContainer.on('mouseup touchend', handleTouchEnd);
+                $pauseBtn.show();
+            }
+
+            function disableInteraction() {
+                $(document).off('keydown', handleKeydown);
+                $(document).off('keyup', handleKeyup);
+                $gameContainer.off('mousedown touchstart', handleTouchOrClick);
+                $gameContainer.off('mouseup touchend', handleTouchEnd);
+            }
+
+            function restoreKoopaAnimation() {
+                $koopa.css('animation', 'run-bob 0.4s infinite alternate');
+            }
+
+            function initializeGame() {
+                // Stop all loops and sounds
+                if (physicsUpdateInterval) { clearInterval(physicsUpdateInterval); physicsUpdateInterval = null; }
+                stopScoring();
+                disableInteraction();
+                chaseMusic.pause();
+
+                // Reset states
+                koopaLives = INITIAL_LIVES;
+                koopaPosX = originalLeft;
+                koopaPosY = groundHeight;
+                $koopa.css({ left: koopaPosX + 'px', bottom: koopaPosY + 'px' });
+                $ground.css('animation-play-state', 'paused');
+                koopaVelY = 0;
+                koopaVelX = 0;
+                isJumping = false;
+                jumpCount = 0;
+                isMovingLeft = false;
+                isMovingRight = false;
+                isPaused = true;
+                isJumpKeyPressed = false;
+
+                // UI Setup: Show Main Menu
+                $pauseBtn.hide();
+                $menuModal.removeClass('hidden');
+                showPanel('#main-menu-panel');
+
+                $topScoreDisplay.text('Top Time: ' + (loadTopScore() / 1000).toFixed(2) + ' s');
+                $currentScoreDisplay.text('Time: 0.00 s');
+                updateLivesDisplay();
+                updateDifficultyDisplay();
+                updateKoopaVisual(selectedCharacterId); // Ensures the character SVG is loaded and the selection card is initialized
+
+                // Start physics loop if not running
+                if (!physicsUpdateInterval) {
+                    physicsUpdateInterval = setInterval(updatePhysics, PHYSICS_TICK_RATE);
+                }
+            }
+
+            function startGame() {
+                $menuModal.addClass('hidden');
+                isPaused = false;
+                enableInteraction();
+                $ground.css('animation-play-state', 'running');
+                chaseMusic.play();
+                startScoring();
+                restoreKoopaAnimation(); // Ensure animation starts
+            }
+
+            function togglePause() {
+                if ($mainMenuPanel.is(':visible') || $settingsMenuPanel.is(':visible') || $charSelectPanel.is(':visible')) return;
+
+                isPaused = !isPaused;
+                if (isPaused) {
+                    $ground.css('animation-play-state', 'paused');
+                    chaseMusic.pause();
+                    $menuModal.removeClass('hidden');
+                    showPanel('#pause-menu-panel');
+                } else {
+                    $ground.css('animation-play-state', 'running');
+                    chaseMusic.play();
+                    $menuModal.addClass('hidden');
+                }
+            }
+
+            function jumpAction() {
+                if (isPaused) return;
+                if (jumpCount >= 2) return;
+                tapSound.play();
+                $koopa.css('animation', 'none');
+                koopaVelY = JUMP_VELOCITY;
+                koopaPosY += koopaVelY;
+                jumpCount++;
+            }
+
+            function toggleFullscreen() {
+                const doc = document.documentElement;
+                if (!document.fullscreenElement) {
+                    doc.requestFullscreen ? doc.requestFullscreen() : doc.webkitRequestFullscreen ? doc.webkitRequestFullscreen() : doc.msRequestFullscreen ? doc.msRequestFullscreen() : null;
+                } else {
+                    document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen ? document.webkitExitFullscreen() : document.msExitFullscreen ? document.msExitFullscreen() : null;
+                }
+            }
+
+            function handleFullscreenChange() {
+                $fullscreenIconPath.attr('d', document.fullscreenElement ? EXIT_FS_PATH : ENTER_FS_PATH);
+            }
+
+
+            // --- INPUT HANDLERS ---
+            function handleKeydown(e) {
+                if (isPaused) return;
+                const key = e.key.toLowerCase();
+                if (key === 'a' || key === 'arrowleft') {
+                    isMovingLeft = true;
+                    isMovingRight = false;
+                } else if (key === 'd' || key === 'arrowright') {
+                    isMovingRight = true;
+                    isMovingLeft = false;
+                } else if (key === ' ' || key === 'w' || key === 'arrowup') {
+                    e.preventDefault();
+                    if (!isJumpKeyPressed) {
+                        jumpAction();
+                        isJumpKeyPressed = true;
+                    }
+                }
+            }
+
+            function handleKeyup(e) {
+                if (isPaused) return;
+                const key = e.key.toLowerCase();
+                if (key === 'a' || key === 'arrowleft') {
+                    isMovingLeft = false;
+                } else if (key === 'd' || key === 'arrowright') {
+                    isMovingRight = false;
+                } else if (key === ' ' || key === 'w' || key === 'arrowup') {
+                    isJumpKeyPressed = false;
+                }
+            }
+
+            function handleTouchOrClick(e) {
+                if (isPaused) return;
+                e.preventDefault();
+                const rect = $gameContainer[0].getBoundingClientRect();
+                const clientX = e.originalEvent.touches ? e.originalEvent.touches[0].clientX : e.clientX;
+                const clientY = e.originalEvent.touches ? e.originalEvent.touches[0].clientY : e.clientY;
+                const relX = clientX - rect.left;
+                const relY = clientY - rect.top;
+                const containerWidth = rect.width;
+                const containerHeight = rect.height;
+
+                // 1. Jump (Upper 50% of screen)
+                if (relY < containerHeight / 2) {
+                    jumpAction();
+                }
+                // 2. Movement (Lower 50% of screen)
+                else {
+                    if (relX < containerWidth / 2) {
+                        isMovingLeft = true;
+                        isMovingRight = false;
+                    } else {
+                        isMovingRight = true;
+                        isMovingLeft = false;
+                    }
+                }
+            }
+
+            function handleTouchEnd(e) {
+                if (isPaused) return;
+                isMovingLeft = false;
+                isMovingRight = false;
+            }
+
+            // --- Event Listeners ---
+
+            // Menu Navigation
+            $('#start-game-button').on('click', startGame);
+            $('#resume-game-button').on('click', togglePause);
+
+            // Shared Back to Menu Logic
+            const goToMainMenu = () => { initializeGame(); showPanel('#main-menu-panel'); };
+            $('#back-to-menu-button').on('click', goToMainMenu);
+            $('#back-from-settings-button').on('click', goToMainMenu);
+            $('#back-from-char-select-button').on('click', goToMainMenu);
+
+            // Settings Buttons
+            $('#more-settings-button').on('click', () => {
+                showPanel('#settings-menu-panel');
+            });
+
+            // Character Selection Buttons
+            $('#character-select-button').on('click', () => {
+                renderCharacterSelection();
+                showPanel('#character-select-panel');
+            });
+
+            // Difficulty Button Handlers
+            $difficultyButtons.on('click', function () {
+                gameDifficulty = $(this).data('difficulty');
+                updateDifficultyDisplay();
+            });
+
+            // General UI
+            $fullscreenBtn.on('click', toggleFullscreen);
+            $pauseBtn.on('click', togglePause);
+            document.addEventListener('fullscreenchange', handleFullscreenChange);
+            document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.addEventListener('msfullscreenchange', handleFullscreenChange);
+
+            // Initial setup
+            initializeGame();
+        });
+    </script>
+</head>
+<body>
+    <div id="game-menu-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
+        <div class="bg-brand-charcoal p-10 rounded-xl shadow-2xl max-w-lg w-full text-center border-4 border-brand-orange/50">
+            <h1 class="text-4xl font-extrabold text-white mb-4 uppercase tracking-widest">Koopa's Sandbox</h1>
+
+            <p class="text-white/80 mb-6">
+                Practice Koopa's moves! Master the new controls in this physics environment.
+            </p>
+            <div id="main-menu-panel" class="flex flex-col md:flex-row gap-6">
+                <div class="md:w-1/2 text-left">
+                    <div class="text-left text-sm bg-gray-700 p-3 rounded-md mb-6 text-yellow-300">
+                        <p class="font-bold mb-1">Controls:</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li>**Jump (Max 2):** W, Up Arrow, or tap top half of the screen.</li>
+                            <li>**Move Left:** A, Left Arrow, or tap lower-left quadrant.</li>
+                            <li>**Move Right:** D, Right Arrow, or tap lower-right quadrant.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="md:w-1/2 flex flex-col space-y-3">
+                    <button id="start-game-button" class="w-full px-8 py-3 bg-red-600 text-white text-xl font-black uppercase tracking-wider rounded-lg shadow-xl hover:bg-red-700 transition duration-200 ring-4 ring-red-400 focus:outline-none">
+                        Start World
+                    </button>
+                    <button id="character-select-button" class="w-full px-8 py-2 bg-indigo-600 text-white text-base font-black uppercase tracking-wider rounded-lg shadow-xl hover:bg-indigo-700 transition duration-200 focus:outline-none">
+                        Character
+                    </button>
+                    <button id="more-settings-button" class="w-full px-8 py-2 bg-gray-600 text-white text-base font-black uppercase tracking-wider rounded-lg shadow-xl hover:bg-gray-700 transition duration-200 focus:outline-none">
+                        Settings
+                    </button>
+                </div>
+            </div>
+
+            <div id="pause-menu-panel" class="hidden">
+                <h2 class="text-3xl font-extrabold text-white mb-6">Game Paused</h2>
+                <div class="space-y-4">
+                    <button id="resume-game-button" class="w-full px-8 py-3 bg-green-600 text-white text-xl font-black uppercase tracking-wider rounded-lg shadow-xl hover:bg-green-700 transition duration-200 focus:outline-none">
+                        Resume
+                    </button>
+                    <button id="back-to-menu-button" class="w-full px-8 py-3 bg-blue-600 text-white text-xl font-black uppercase tracking-wider rounded-lg shadow-xl hover:bg-blue-700 transition duration-200 focus:outline-none">
+                        Main Menu
+                    </button>
+                </div>
+            </div>
+
+            <div id="settings-menu-panel" class="hidden">
+                <h2 class="text-3xl font-extrabold text-white mb-6">Settings</h2>
+                <div class="space-y-4 w-64 mx-auto">
+                    <h3 class="text-white/90 text-xl font-bold">Difficulty</h3>
+                    <div class="flex justify-between space-x-2">
+                        <button id="difficulty-easy" data-difficulty="easy" class="difficulty-btn px-4 py-2 text-white rounded-lg transition duration-150">Easy</button>
+                        <button id="difficulty-medium" data-difficulty="medium" class="difficulty-btn px-4 py-2 text-white rounded-lg transition duration-150">Medium</button>
+                        <button id="difficulty-hard" data-difficulty="hard" class="difficulty-btn px-4 py-2 text-white rounded-lg transition duration-150">Hard</button>
+                    </div>
+                </div>
+                <button id="back-from-settings-button" class="w-full mt-6 px-8 py-3 bg-blue-600 text-white text-xl font-black uppercase tracking-wider rounded-lg shadow-xl hover:bg-blue-700 transition duration-200 focus:outline-none">
+                    Back to Menu
+                </button>
+            </div>
+
+            <div id="character-select-panel" class="hidden max-w-lg w-full">
+                <h2 class="text-3xl font-extrabold text-white mb-6">Select Character</h2>
+
+                <div id="current-selection-card" class="bg-gray-800 p-4 rounded-xl mb-6 flex items-center justify-center space-x-4 border-2 border-yellow-400 shadow-lg">
+                    <h3 class="text-xl font-bold text-white tracking-wider">Selected:</h3>
+                    <div id="selected-char-display" class="w-12 h-12 text-white">
+                    </div>
+                    <span id="selected-char-name" class="text-2xl font-black text-yellow-300">Koopa</span>
+                </div>
+                <div id="character-list" class="flex flex-wrap justify-center gap-4 p-4 bg-gray-900 rounded-xl max-h-80 overflow-y-auto border-4 border-gray-700">
+                </div>
+
+                <button id="back-from-char-select-button" class="w-full mt-6 px-8 py-3 bg-blue-600 text-white text-xl font-black uppercase tracking-wider rounded-lg shadow-xl hover:bg-blue-700 transition duration-200 focus:outline-none">
+                    Done
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div id="scoreboard" class="select-none">
+        <div id="score-group" class="flex gap-4 items-center">
+            <div id="koopa-lives" class="text-brand-orange"></div>
+            <span id="current-score">Score: 0.00 s</span>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <span id="top-score" class="text-gray-300">Top Score: 0.00 s</span>
+            <button id="fullscreen-btn" class="text-white p-1 rounded-full bg-black/30 hover:bg-black/50 transition duration-150" title="Toggle Full Screen">
+                <svg id="fullscreen-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path id="fullscreen-path" d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div id="mario-world-container" class="relative">
+        <button id="pause-btn" class="absolute top-4 right-4 text-white p-2 rounded-full bg-black/30 hover:bg-black/50 transition duration-150 shadow-lg z-30 hidden" title="Pause Game">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+            </svg>
+        </button>
+
+        <div id="mario-world-ground"></div>
+
+        <div id="koopa" class="character">
+        </div>
+    </div>
+</body>
+</html>
