@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Container-Relative Lightning Strike Demo</title>
+    <!-- Load Tailwind CSS for utility classes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* General Setup */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1f2937;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 1. CSS Variables (ALL PREFIXED) */
+        :root {
+            --lightning-bolt-height-pct: 100%; /* UPDATED */
+            --lightning-bolt-width: 20px;     /* UPDATED */
+            --lightning-core-color: #ffffff;  /* UPDATED */
+            --lightning-glow-color: #00ffff;  /* UPDATED */
+            --lightning-pre-strike-duration: 1.2s; /* UPDATED */
+            --lightning-strike-duration: 0.3s; /* UPDATED */
+            --lightning-static-delay: 0.1s;    /* UPDATED */
+            --lightning-static-duration: 0.8s; /* UPDATED */
+            --lightning-total-strike-ms: 1200ms; /* UPDATED */
+            --lightning-hitbox-delay-ms: 1300; /* UPDATED */
+            --lightning-hitbox-duration-ms: 200; /* UPDATED */
+        }
+
+        /* 2. Demonstration Container (The "Game World") */
+        #LightningStage {
+            position: relative;
+            width: 80%;
+            max-width: 600px;
+            height: 400px; 
+            background-color: #050a0f; 
+            border: 4px solid #374151;
+            border-radius: 0.75rem;
+            overflow: hidden; 
+            margin-top: 1.5rem;
+        }
+
+        /* 3. Lightning Elements */
+        
+        /* The main jagged bolt (20px width) - VISUAL ELEMENT */
+        .LightningBolt {
+            position: absolute;
+            top: 0;
+            transform-origin: center top;
+            width: var(--lightning-bolt-width); /* USING NEW VAR */
+            height: var(--lightning-bolt-height-pct); /* USING NEW VAR */
+            background-color: var(--lightning-core-color); /* USING NEW VAR */
+            
+            /* Hiding the element initially */
+            opacity: 0; 
+            transform: translate(-50%, -100%); 
+            
+            transition: border 0.1s; 
+            /* Jagged shape via clip-path */
+            clip-path: polygon(
+                50% 0%, 65% 10%, 45% 20%, 60% 30%, 40% 40%, 55% 50%,
+                35% 60%, 50% 70%, 30% 80%, 45% 90%, 50% 100%,
+                60% 90%, 80% 80%, 65% 70%, 85% 60%, 70% 50%,
+                90% 40%, 75% 30%, 90% 20%, 75% 10%
+            );
+        }
+
+        /* MOVING DAMAGE AREA ELEMENT - FUNCTIONAL HITBOX */
+        .LightningDamageArea {
+            position: absolute;
+            top: 0;
+            width: var(--lightning-bolt-width); /* USING NEW VAR */
+            height: var(--lightning-bolt-height-pct); /* USING NEW VAR */
+            background-color: transparent;
+            opacity: 0; 
+            transform: translate(-50%, -100%); 
+            transition: border 0.1s; 
+            z-index: 15;
+        }
+
+
+        /* GROUND HITBOX - FUNCTIONAL HITBOX */
+        .LightningImpactHitbox {
+            position: absolute;
+            bottom: 0;
+            width: 30px;
+            height: 50px; 
+            transform: translate(-50%, 0); 
+            background-color: transparent;
+            opacity: 0; 
+            transition: border 0.1s;
+            z-index: 20;
+        }
+
+
+        /* 4. DEBUG BORDER CLASS - Only used when toggle is active */
+        .LightningDebugBorder {
+            border: 2px solid red;
+            box-sizing: border-box; 
+            opacity: 1 !important; 
+        }
+
+        /* 5. Ground Static Residue (POST-STRIKE) */
+        .LightningGroundStatic {
+            position: absolute;
+            bottom: 0; 
+            width: 80px; 
+            height: 10px;
+            background: radial-gradient(ellipse at center, var(--lightning-glow-color) 0%, transparent 70%); /* USING NEW VAR */
+            opacity: 0;
+            border-radius: 50%;
+            filter: blur(3px);
+            z-index: 10;
+        }
+        
+        /* 6. Pre-Strike Flickering Area */
+        .LightningPreStrikeStatic {
+            position: absolute;
+            bottom: 0; 
+            width: 150px; 
+            height: 15px;
+            background: radial-gradient(ellipse at center, var(--lightning-glow-color) 0%, transparent 80%); /* USING NEW VAR */
+            opacity: 0;
+            border-radius: 50%;
+            filter: blur(4px);
+            z-index: 5;
+            transform: translate(-50%, 0);
+        }
+
+        /* 7. Keyframe Animations */
+        @keyframes pre-strike-flicker {
+            0% { opacity: 0.1; }
+            10%, 30%, 50%, 70%, 90% { opacity: 0.4; transform: translate(-50%, 0) scaleX(1.1); }
+            20%, 40%, 60%, 80% { opacity: 0.7; transform: translate(-50%, 0) scaleX(1); }
+            100% { opacity: 0; }
+        }
+        
+        .LightningPreStrikeActive {
+            animation: pre-strike-flicker var(--lightning-pre-strike-duration) steps(6, start) forwards; /* USING NEW VAR */
+        }
+
+        /* VISUAL BOLT ANIMATION - INCLUDES GLOW AND BRIGHTNESS */
+        @keyframes single-strike-drop {
+            0% { opacity: 0; transform: translate(-50%, -100%); }
+            10% { opacity: 1; transform: translate(-50%, 0%); filter: brightness(3.5); box-shadow: 0 0 15px var(--lightning-glow-color), 0 0 50px var(--lightning-glow-color); } /* USING NEW VAR */
+            12% { opacity: 1; transform: translate(-50%, 100%); }
+            15% { opacity: 0; box-shadow: none;}
+            100% { opacity: 0; transform: translate(-50%, 100%);}
+        }
+        
+        .LightningStrikeActiveSingle {
+             animation: single-strike-drop var(--lightning-strike-duration) linear forwards; /* USING NEW VAR */
+        }
+
+        /* DAMAGE AREA ANIMATION - ONLY INCLUDES MOVEMENT, NO GLOW/SHADOW */
+        @keyframes damage-area-drop {
+            0% { opacity: 0; transform: translate(-50%, -100%); }
+            10% { opacity: 0; transform: translate(-50%, 0%); } 
+            12% { opacity: 0; transform: translate(-50%, 100%); }
+            15% { opacity: 0; }
+            100% { opacity: 0; transform: translate(-50%, 100%);}
+        }
+        
+        .LightningDamageAreaActive {
+             animation: damage-area-drop var(--lightning-strike-duration) linear forwards; /* USING NEW VAR */
+        }
+
+        @keyframes ground-static-flicker {
+            0% { opacity: 0; transform: translate(-50%, 0) scaleX(0.5); }
+            10% { opacity: 0.5; transform: translate(-50%, 0) scaleX(1); } 
+            20%, 40%, 60%, 80% { opacity: 0.7; }
+            30%, 50%, 70%, 90% { opacity: 0.4; }
+            95% { opacity: 0.1; }
+            100% { opacity: 0; }
+        }
+
+        .LightningStaticActive {
+             animation: ground-static-flicker var(--lightning-static-duration) var(--lightning-static-delay) ease-out forwards; /* USING NEW VARS */
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1 class="text-3xl font-bold text-white mb-2">Lightning Strike Demo (Fully Prefixed)</h1>
+    <p class="text-gray-400 mb-6">All CSS variables are now prefixed with `--lightning-`.</p>
+
+    <!-- Controls Container -->
+    <div class="flex items-center space-x-4 mb-6">
+        <!-- Single Strike Button -->
+        <button id="TriggerLightningSingle" class="p-3 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-xl shadow-lg transition duration-200">
+            ⚡ Single Strike (Delayed)
+        </button>
+
+        <!-- Multi-Strike Button -->
+        <button id="TriggerLightningMulti" class="p-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition duration-200">
+            ⚡ Multi-Strike (5x Random)
+        </button>
+
+        <!-- Debug Toggle Checkbox -->
+        <label class="flex items-center space-x-2 text-white">
+            <input type="checkbox" id="DebugLightningToggle" class="form-checkbox h-5 w-5 text-red-600 rounded">
+            <span>Show Debug Border</span>
+        </label>
+    </div>
+    
+    <!-- Lightning Container -->
+    <div id="LightningStage">
+        <!-- Elements created dynamically here -->
+    </div>
+    
+    <p class="text-gray-500 text-sm mt-4">
+        Debug mode will show the **Jagged Bolt**, the **Moving Damage Area**, and the **Ground Hitbox**.
+    </p>
+
+    <script type="text/javascript">
+        // GLOBAL/ELEMENT VARIABLES (Prefixed)
+        const LightningStage = document.getElementById('LightningStage');
+        const TriggerLightningSingleBtn = document.getElementById('TriggerLightningSingle');
+        const TriggerLightningMultiBtn = document.getElementById('TriggerLightningMulti');
+        const DebugLightningToggle = document.getElementById('DebugLightningToggle'); 
+        
+        // CONSTANTS (Prefixed)
+        const LIGHTNING_PRE_STRIKE_DELAY_MS = 1200;
+        const LIGHTNING_TOTAL_STRIKE_MS = 1200;
+        const LIGHTNING_FULL_ANIMATION_MS = LIGHTNING_PRE_STRIKE_DELAY_MS + LIGHTNING_TOTAL_STRIKE_MS;
+        const LIGHTNING_HITBOX_START_DELAY_MS = 1300;
+        const LIGHTNING_HITBOX_DURATION_MS = 200; 
+        
+        const LIGHTNING_STRIKE_COUNT = 5;
+        const LIGHTNING_STRIKE_SPACING_MS = 200;
+
+        // FUNCTION (Prefixed)
+        function resetLightningAnimations() {
+            console.log("Old elements cleared.");
+        }
+
+        // FUNCTION (Prefixed)
+        function applyLightningDebugBorder(element) {
+            if (DebugLightningToggle.checked) {
+                element.classList.add('LightningDebugBorder');
+            }
+        }
+        
+        /**
+         * CORE LOGIC: Triggers a single lightning strike at a specific X position.
+         * @param {number} positionX - Horizontal position (0-100%) for the strike center.
+         */
+        // FUNCTION (Prefixed)
+        function triggerSingleLightningStrike(positionX) {
+            // 1. Create VISUAL elements (start pre-strike immediately)
+            const preStrikeStatic = document.createElement('div');
+            preStrikeStatic.className = 'LightningPreStrikeStatic';
+            preStrikeStatic.style.left = `${positionX}%`;
+            
+            const bolt = document.createElement('div');
+            bolt.className = 'LightningBolt';
+            bolt.style.left = `${positionX}%`;
+
+            const groundStatic = document.createElement('div');
+            groundStatic.className = 'LightningGroundStatic';
+            groundStatic.style.left = `${positionX}%`;
+
+            // 2. Create FUNCTIONAL elements
+            const damageArea = document.createElement('div');
+            damageArea.className = 'LightningDamageArea';
+            damageArea.style.left = `${positionX}%`;
+
+            // Apply debug border to all strik-related elements
+            applyLightningDebugBorder(bolt);
+            applyLightningDebugBorder(damageArea);
+
+            // Append all elements immediately
+            LightningStage.appendChild(preStrikeStatic);
+            LightningStage.appendChild(bolt);
+            LightningStage.appendChild(damageArea);
+            LightningStage.appendChild(groundStatic);
+            
+            // Start pre-strike flicker immediately
+            preStrikeStatic.classList.add('LightningPreStrikeActive');
+
+            // 3. Main Visual & Moving Damage Strike (after 1.2s delay)
+            setTimeout(() => {
+                // Visual bolt uses the glowing animation
+                bolt.classList.add('LightningStrikeActiveSingle'); 
+                
+                // Damage area uses the non-glowing movement animation
+                damageArea.classList.add('LightningDamageAreaActive'); 
+                
+                groundStatic.classList.add('LightningStaticActive'); 
+            }, LIGHTNING_PRE_STRIKE_DELAY_MS);
+            
+            // 4. GROUND HITBOX Action (after 1.3s delay)
+            let impactHitbox;
+            
+            setTimeout(() => {
+                impactHitbox = document.createElement('div');
+                impactHitbox.className = 'LightningImpactHitbox';
+                impactHitbox.style.left = `${positionX}%`;
+                
+                applyLightningDebugBorder(impactHitbox);
+                LightningStage.appendChild(impactHitbox);
+
+                // Hitbox cleanup (removes hitbox after a short, sharp duration)
+                setTimeout(() => {
+                    if (impactHitbox) {
+                        impactHitbox.remove();
+                    }
+                }, LIGHTNING_HITBOX_DURATION_MS);
+
+            }, LIGHTNING_HITBOX_START_DELAY_MS);
+            
+            // 5. Cleanup all elements after the full sequence completes
+            setTimeout(() => {
+                [bolt, damageArea, preStrikeStatic, groundStatic].forEach(el => el.remove());
+            }, LIGHTNING_FULL_ANIMATION_MS);
+        }
+
+        /**
+         * Triggers the original single, centered, delayed strike.
+         */
+        // FUNCTION (Prefixed)
+        function triggerDelayedLightningStrike() {
+            TriggerLightningSingleBtn.disabled = true;
+            TriggerLightningSingleBtn.textContent = "BUILDING ENERGY...";
+            TriggerLightningSingleBtn.classList.remove('bg-cyan-600', 'hover:bg-cyan-700');
+            TriggerLightningSingleBtn.classList.add('bg-orange-500');
+            
+            TriggerLightningMultiBtn.disabled = true;
+
+            triggerSingleLightningStrike(50); // Trigger strike at 50% (center)
+            
+            // Reset button state after the sequence
+            setTimeout(() => {
+                TriggerLightningSingleBtn.disabled = false;
+                TriggerLightningSingleBtn.textContent = "⚡ Single Strike (Delayed)";
+                TriggerLightningSingleBtn.classList.remove('bg-orange-500');
+                TriggerLightningSingleBtn.classList.add('bg-cyan-600', 'hover:bg-cyan-700');
+                
+                TriggerLightningMultiBtn.disabled = false;
+            }, LIGHTNING_FULL_ANIMATION_MS);
+        }
+
+        /**
+         * Triggers multiple lightning strikes at random X positions.
+         */
+        // FUNCTION (Prefixed)
+        function triggerMultipleLightningStrikes() {
+            TriggerLightningSingleBtn.disabled = true;
+            TriggerLightningMultiBtn.disabled = true;
+            TriggerLightningMultiBtn.textContent = "STRIKING...";
+            TriggerLightningMultiBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+            TriggerLightningMultiBtn.classList.add('bg-red-600');
+            
+            for (let i = 0; i < LIGHTNING_STRIKE_COUNT; i++) {
+                const randomX = 10 + Math.random() * 80; 
+                const delay = i * LIGHTNING_STRIKE_SPACING_MS;
+                
+                setTimeout(() => {
+                    triggerSingleLightningStrike(randomX);
+                }, delay);
+            }
+            
+            const totalDuration = (LIGHTNING_STRIKE_COUNT * LIGHTNING_STRIKE_SPACING_MS) + LIGHTNING_FULL_ANIMATION_MS;
+
+            // Reset button state after all strikes are complete
+            setTimeout(() => {
+                TriggerLightningSingleBtn.disabled = false;
+                TriggerLightningMultiBtn.disabled = false;
+                TriggerLightningMultiBtn.textContent = "⚡ Multi-Strike (5x Random)";
+                TriggerLightningMultiBtn.classList.remove('bg-red-600');
+                TriggerLightningMultiBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+            }, totalDuration);
+        }
+
+        window.onload = function() {
+            TriggerLightningSingleBtn.addEventListener('click', triggerDelayedLightningStrike);
+            TriggerLightningMultiBtn.addEventListener('click', triggerMultipleLightningStrikes);
+            
+            // Global listener to update currently active elements when debug is toggled
+            DebugLightningToggle.addEventListener('change', () => {
+                // Selects all three functional/visual elements
+                const allElements = LightningStage.querySelectorAll('.LightningBolt, .LightningDamageArea, .LightningImpactHitbox');
+                allElements.forEach(el => {
+                    if (DebugLightningToggle.checked) {
+                        el.classList.add('LightningDebugBorder');
+                    } else {
+                        el.classList.remove('LightningDebugBorder');
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>
