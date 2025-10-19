@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Koopa's Physics Sandbox v3</title>
+    <title>The End</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
@@ -998,6 +998,75 @@
             },
 
         };
+    
+    const deathMessage = [
+  "Pulverized by a celestial inconvenience after archiving the forecast under 'Future Worries.'",
+  "Nap ended by a space rock; you muted the 'Planetary Impact Imminent' alert for sleep sounds.",
+  "Cosmos claimed you mid-debate on terrible socks, ranking 'socks' above 'doom evasion protocols.'",
+  "Your final wish was lost to impact; you procrastinated on buying the 'Quick-Wish' upgrade pack.",
+  "Only regret: not enough pickles. The jar's scarcity overshadowed the impending extinction event.",
+  "Never finished that high-stakes game. You died capturing a perfect screenshot for a forum post.",
+  "Narrator noted a lack of self-preservation: leaning out for an 'unobstructed visual' of death.",
+  "Stuck on the universe's riddle, you paused your grand reveal to find a more appropriate pen.",
+  "You died convinced it was a big, noisy pigeon, rooted in your deep-seated avian phobia.",
+  "Fiery descent unexpected; you miscalculated trajectory using a diagram with an ugly font.",
+  "Final thought: where did she leave the keys? A direct result of no labeled organization system.",
+  "A cosmic audit finalized your life: failure to review evacuation procedures was willful negligence.",
+  "Your last word, 'Oopsie-daisy!', showed your inability to grasp the concept of irreversible consequence.",
+  "Poor soul focused on re-tying a dusty shoelace, prioritizing aesthetics over situational awareness.",
+  "Tragically, the hero decided the gazebo was the ideal location for a dramatic farewell monologue.",
+  "The universe answered your existence while you wrote a 14-page complaint to the bunker door company.",
+  "Final words: 'That's just typical, isn't it?' Forgot the can opener for your emergency rations.",
+  "Dramatically unprepared; your philosophy: catastrophic global events only happen to other people.",
+  "Ended precisely at 'Here Be Dragons,' interpreting the warning as a personalized invitation.",
+  "Modest account balance unchanged, confirming your fear: dying before spiting your successful neighbor.",
+  "Poor time to be staring at the ground; you died meticulously searching for a dropped penny.",
+  "Mistook the planetoid for an interesting cloud, refusing to heed pleas as a 'celestial expert.'",
+  "Fate sealed by a space pebble you dismissed as 'too small to actually matter,' a colossal misjudgment.",
+  "You finally learned to wear hard hats, but too late, having ignored the mandatory induction video.",
+  "Cosmic precision ended your life; you were standing outside for a better angle for your photo project.",
+  "Dull Tuesday became eventful; you argued with a chatbot about a billing error on space cable.",
+  "Perished after forgetting her life's true password, solving that instead of the meteor strike.",
+  "Final thought: 'This is going to sting a bit,' minimizing a catastrophic impact with casual remarks.",
+  "Pulverized with your phone, confirming social media validation outranked biological imperative.",
+  "Ignored the eviction notice, certain you had filed the extension papers for your terrestrial lease.",
+  "Missed the signs of 'Extraterrestrial Mass' because you needed quiet time for contemplation.",
+  "You didn't grasp the force because you threw out the physics textbook for a minimalist color scheme.",
+  "The only lesson learned was to look up, a basic, obvious piece of advice that finally clicked.",
+  "Absorbed back into cosmic materials; you secured your fragile porcelain figurines before running.",
+  "Profoundly rearranged, directly attributable to reinforcing your shelter with duct tape and infomercial promises.",
+  "Character ran *toward* the impact zone, convinced the 'epic visual' was worth disintegration.",
+  "Unscheduled meeting with destiny: insisted on waiting for the bus system's rigid schedule to supersede physics.",
+  "Left with a faint scent of burnt toast; mistook the fuel shut-off valve for the 'extra crispy' setting.",
+  "Should have listened to your mother about meteors, dismissing her detailed warnings as 'paranoia.'",
+  "Life flashed: a torrent of awkward moments, focusing on past social failures at the final microsecond.",
+  "Heavens reviewed your life: 'Two stars, would not recommend,' frustrating you more than disintegration.",
+  "Final prayer unanswered; you wasted twenty minutes composing a witty 'I told you so' tweet to skeptics.",
+  "Succumbed to a large, fast object; you were trying to remember the catchy jingle for 'take cover.'",
+  "Stopped the riddle mid-syllable, purely out of spite; if you die, no one gets the satisfying answer.",
+  "Space rock did not respect boundaries; you tried to protest by drawing a 'No Trespassing' sign.",
+  "Primary cause: 'Sheer idiocy of standing in the center of the bullseye, holding a sign: *Prove It!*'",
+  "Vanished, leaving boots; you wasted time trying to recall a line dance for miraculous invulnerability.",
+  "Caught in light galactic debris, having argued the 'safe zone' was outside the legally permitted perimeter.",
+  "Story stopped with an audible *CRUNCH*; you dismissed the sound as merely a neighbor's loud leaf blower.",
+  "Died mid-scroll, distracted by a silly meme, a consequence of your fatal addiction to low-effort humor."
+];
+
+/**
+ * Returns a randomly selected death message from the array.
+ * @returns {string} The randomly selected death message.
+ */
+function getRandomDeathMessage() {
+  const randomIndex = Math.floor(Math.random() * deathMessage.length);
+  return deathMessage[randomIndex];
+}
+
+// Example usage:
+// const messageDiv = document.getElementById('death-message-display');
+// if (messageDiv) {
+//   messageDiv.textContent = getRandomDeathMessage();
+// }
+
 
         $(document).ready(function () {
             // --- DOM References ---
@@ -1022,6 +1091,7 @@
             // NEW: Fireball Count Buttons
             const $fireballCountButtons = $('.fireball-count-btn');
             const $characterList = $('#character-list');
+            const $messageDiv = $('#death-message-display');
 
             // Current Selection Card DOM elements
             const $selectedCharDisplay = $('#selected-char-display');
@@ -1525,6 +1595,10 @@
 
                 // Update final score display on Game Over modal
                 $('#final-score-display').text((currentScore / 1000).toFixed(2) + ' seconds');
+                
+                if ($messageDiv) {
+                    $messageDiv.text(getRandomDeathMessage());
+                }
             }
 
             // --- Menu Management Functions ---
@@ -2308,7 +2382,9 @@
     <div id="game-over-modal" class="fixed inset-0 flex items-center justify-center p-4 hidden">
         <div id="game-over-content" class="p-10 rounded-xl shadow-2xl max-w-md w-full text-center">
             <h2 class="text-6xl font-black text-yellow-300 uppercase mb-4 animate-pulse">Game Over</h2>
-            <p class="text-white text-xl mb-6">Koopa ran out of lives!</p>
+            <!-- <p class="text-white text-xl mb-6">You Died!</p>-->
+            
+            <div id='death-message-display' class="w-full h-auto max-h-40 overflow-y-auto border border-gray-300 p-2 text-white"></div>
             <p class="text-white text-lg font-semibold mb-8">Time Survived: <span id="final-score-display" class="text-red-300 font-extrabold">0.00 seconds</span></p>
             <div class="space-y-4">
                 <button id="restart-game-button" class="w-full px-8 py-3 bg-green-600 text-white text-xl font-black uppercase tracking-wider rounded-lg shadow-xl hover:bg-green-700 transition duration-200 focus:outline-none">
