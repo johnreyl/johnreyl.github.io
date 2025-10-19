@@ -413,6 +413,30 @@
         .koopa-invincible {
             animation: koopa-blink-red 0.1s linear infinite; 
         }
+        /* Custom CSS to style the scrollbar dark blue */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px; /* Adjust the width as needed */
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #2d3748; /* A dark color for the track, e.g., gray-800 from Tailwind */
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2d3748; /* Dark Blue for the scrollbar thumb */
+            border-radius: 10px;
+        }
+
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: #965a3c; /* A slightly lighter blue on hover */
+            }
+
+        /* Optional: For Firefox (Requires the parent to use 'scrollbar-width: thin' and 'scrollbar-color') */
+        .custom-scrollbar {
+            scrollbar-width: thin; /* Firefox */
+            scrollbar-color: #2d3748 #965a3c; /* thumb color and track color for Firefox */
+        }
     </style>
     <script>
         tailwind.config = {
@@ -1675,7 +1699,7 @@
 </head>
 <body>
     <div id="game-menu-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm hidden">
-        <div class="bg-brand-charcoal p-10 rounded-xl shadow-2xl max-w-lg w-full text-center border-4 border-brand-orange/50">
+        <div class="bg-brand-charcoal p-10 rounded-xl shadow-2xl max-w-lg w-full text-center border-4 border-brand-orange/50 max-h-[80vh] overflow-y-auto custom-scrollbar">
             <h1 class="text-4xl font-extrabold text-white mb-4 uppercase tracking-widest">Koopa's Sandbox</h1>
 
             <p class="text-white/80 mb-6">
