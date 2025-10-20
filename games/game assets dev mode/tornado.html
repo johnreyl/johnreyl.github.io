@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tornado Suction Simulator</title>
+    <!-- Load Tailwind CSS for utility classes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* General Setup: Center everything on the page */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0c10;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* 1. Outer Container (The "Map/Frame") */
+        #TornadoFrame {
+            width: 600px; /* Map size */
+            height: 400px;
+            background-color: #1a202c; /* Stormy gray map background */
+            border: 4px solid #4a5568;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+            position: relative; 
+            margin-top: 1rem;
+        }
+
+        /* 2. Character Styling */
+        #Character {
+            position: absolute;
+            z-index: 10; /* Ensure it's above tornadoes */
+            /* Initial position (top edge at 0, left edge at center) */
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%); /* Horizontal centering */
+            transition: left 0.05s linear, top 0.05s linear;
+        }
+
+        /* 3. Base Tornado CSS (Applied to dynamically created elements) */
+        .tornado-instance {
+            position: absolute;
+            bottom: 0; 
+            z-index: 5; /* Below character */
+            opacity: 0; 
+            transform: scale(1); /* Initial state for shrink animation */
+            transform-origin: bottom center; 
+            box-sizing: border-box; 
+            
+            /* Apply transitions to the outer element (Movement, Fade, Shrink) */
+            transition: 
+                left 5s linear,             
+                opacity 1s 4s,              
+                transform 5s ease-out;      
+        }
+
+        /* 3.1: Tornado Visual (The image and rotation target) */
+        .tornado-visual {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            
+            background-image: url('https://img.freepik.com/premium-psd/tornado-transparent-background_679658-32341.jpg');
+            background-size: 100% 100%; 
+            background-repeat: no-repeat;
+            background-position: center bottom; 
+            
+            transform-origin: bottom center; /* Important for rotation */
+            transition: transform 5s ease-out;
+        }
+        
+        /* 4. Tornado Damage Area Wrapper - FULL HEIGHT */
+        .tornado-damage-area-box {
+            position: absolute;
+            bottom: 0; 
+            height: 100%; /* 100% HEIGHT */
+            left: 50%;
+            transform: translateX(-50%);
+            /* Transitions for size changes as the tornado shrinks */
+            transition: width 5s ease-out; 
+            z-index: 3; /* Behind tornado image (5) */
+        }
+        
+        /* 5. DEBUG VISUALIZATION for Damage Area */
+        .debug-damage-area {
+            border: 2px dashed rgba(255, 0, 0, 0.8);
+            background-color: rgba(255, 0, 0, 0.1); /* Subtle red tint */
+            box-sizing: border-box;
+        }
+
+
+        /* 6. Ground Effect Styling (Inner Div inside .tornado-instance) */
+        .tornado-ground-effect {
+            position: absolute;
+            bottom: -5px; 
+            left: 10%; 
+            width: 80%; 
+            height: 5px; 
+            border-radius: 50%; 
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 
+                0 0 10px 5px rgba(255, 255, 255, 0.9),
+                0 0 30px 10px rgba(192, 192, 192, 0.6); 
+            opacity: 1;
+            /* Ensure the ground effect is centered even when visual is flipped */
+            transform-origin: bottom 50%;
+        }
+
+        /* 7. Ground Effect Blinking Keyframe */
+        @keyframes blink-fade {
+            0%   { opacity: 1; }
+            5%   { opacity: 0.7; }
+            10%  { opacity: 1; }
+            50%  { opacity: 0.9; }
+            75%  { opacity: 0.6; }
+            100% { opacity: 0; }
+        }
+
+        /* 8. Vertical Spin Keyframe */
+        @keyframes vertical-spin {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
+        }
+
+        /* 9. Ground Effect Animation Class */
+        .ground-effect-active {
+            animation: blink-fade 5s ease-out forwards; 
+        }
+
+        /* 10. Vertical Spin Class (Applied dynamically to .tornado-visual) */
+        .vertical-spin-active {
+            /* Duration set via JS based on speed setting */
+            animation: vertical-spin linear infinite; 
+        }
+    </style>
+</head>
+<body>
+
+    <h1 class="text-3xl font-bold text-white mb-2">Tornado Suction Simulator</h1>
+    <p class="text-gray-400 mb-6">Tornado image now spins on its axis without affecting the damage area visualization.</p>
+
+    <!-- Controls Container -->
+    <div class="flex flex-wrap justify-center items-center space-x-4 mb-6">
+        <label class="flex items-center space-x-2 text-white p-2 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition mb-2">
+            <input type="checkbox" id="DebugToggle" class="form-checkbox h-5 w-5 text-red-500 rounded focus:ring-red-500">
+            <span>Show **Damage Area Border (1.5x Width)**</span>
+        </label>
+
+        <label class="flex items-center space-x-2 text-white p-2 bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-600 transition mb-2">
+            <input type="checkbox" id="VerticalRotateToggle" class="form-checkbox h-5 w-5 text-green-500 rounded focus:ring-green-500">
+            <span>Enable **Vertical Rotation**</span>
+        </label>
+        
+        <button id="CreateTornadoBtn" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-150 mb-2">
+            Create Tornado
+        </button>
+    </div>
+
+    <!-- Outer Frame (The Map) -->
+    <div id="TornadoFrame">
+        <!-- The SVG Character -->
+        <div id="Character" style="width: 50px; height: 50px;">
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="5" y="5" width="90" height="90" rx="15" fill="#facc15" stroke="#92400e" stroke-width="6"/>
+                <path d="M 30 50 L 50 20 L 70 50 L 60 50 L 60 80 L 40 80 L 40 50 Z" fill="#4b5563"/>
+                <circle cx="50" cy="50" r="10" fill="#dc2626"/>
+                <text x="50" y="55" font-family="Arial" font-size="20" fill="white" text-anchor="middle">?</text>
+            </svg>
+        </div>
+        <!-- Tornado instances will be appended here dynamically -->
+    </div>
+    
+    <p class="text-gray-500 text-sm mt-4">
+        Tornado Pull Force (Lower is stronger): **<span id="PullForceDisplay">2.5</span>** | Damage Area Multiplier: **1.5x** | Rotation Speed: **<span id="RotationSpeedDisplay">1000</span> deg/1000ms**
+    </p>
+
+    <script type="text/javascript">
+        window.onload = function() {
+            const debugToggle = document.getElementById('DebugToggle');
+            const rotateToggle = document.getElementById('VerticalRotateToggle');
+            const createTornadoBtn = document.getElementById('CreateTornadoBtn');
+            const tornadoFrame = document.getElementById('TornadoFrame');
+            const characterElement = document.getElementById('Character');
+            
+            // --- Global Constants ---
+            const MAP_WIDTH = 600;
+            const MAP_HEIGHT = 400;
+            const CHARACTER_SIZE = 50; 
+            const EFFECT_DURATION_MS = 5000;
+            const MIN_HEIGHT = 200;
+            const MAX_HEIGHT = 400;
+            
+            // --- Simulation Variables ---
+            const HORIZONTAL_MOVE_RANGE = 400; 
+            const FINAL_SCALE = 0.75; 
+            
+            // --- PULL MECHANICS ---
+            const TORNADO_DAMAGE_MULTIPLIER = 1.5; // Damage box is 1.5x the tornado's current width
+            const TORNADO_PULL_FORCE = 2.5; 
+            
+            // --- ROTATION MECHANICS (Updated Global Variable) ---
+            const TORNADO_ROTATION_SPEED_DEG_PER_MS = 0.5; // 1000 degrees per 1000ms (1 deg/ms)
+            const FULL_ROTATION_DEG = 360; // Total degrees for one cycle
+            // Time for one full 360 spin: 360 / 1 = 360ms
+            const ROTATION_DURATION_MS = FULL_ROTATION_DEG / TORNADO_ROTATION_SPEED_DEG_PER_MS; 
+            
+            let tornadoCounter = 0;
+            
+            // Initial character position (top-left corner of the element)
+            let characterPos = {
+                x: MAP_WIDTH / 2 - CHARACTER_SIZE / 2, // Center X
+                y: MAP_HEIGHT - CHARACTER_SIZE // BOTTOM of the map
+            };
+            
+            // Set initial character position
+            characterElement.style.left = `${characterPos.x}px`;
+            characterElement.style.top = `${characterPos.y}px`;
+
+            document.getElementById('PullForceDisplay').textContent = TORNADO_PULL_FORCE;
+            document.getElementById('RotationSpeedDisplay').textContent = 1000; 
+
+            /**
+             * Handles the cleanup and removal of a specific tornado element.
+             * @param {HTMLElement} element The tornado element to remove.
+             */
+            function removeTornado(element) {
+                element.remove();
+            }
+
+            /**
+             * Creates a new tornado element and starts its animation.
+             */
+            function createTornado() {
+                // 1. Calculate Random Dimensions
+                const tornadoHeight = Math.floor(Math.random() * (MAX_HEIGHT - MIN_HEIGHT + 1)) + MIN_HEIGHT;
+                const tornadoWidth = Math.round(tornadoHeight / 2); 
+                const MAX_POS_X = MAP_WIDTH - tornadoWidth;
+
+                // 2. Determine Start Position (Left Edge or Right Edge)
+                const isStartingLeft = Math.random() > 0.5;
+                const startPos = isStartingLeft ? 0 : MAX_POS_X;
+
+                // 3. Determine Movement Direction (Moves INWARD from the start edge)
+                const direction = isStartingLeft ? 1 : -1; // 1 = Right, -1 = Left
+                
+                // 4. Calculate End Position
+                const movementDistance = HORIZONTAL_MOVE_RANGE + Math.random() * 100; 
+                let endPos = startPos + (movementDistance * direction);
+
+                if (isStartingLeft) {
+                    endPos = Math.min(endPos, MAX_POS_X);
+                } else {
+                    endPos = Math.max(endPos, 0);
+                }
+
+                // 5. Create the new element (The main tornado container)
+                const tornadoElement = document.createElement('div');
+                tornadoElement.classList.add('tornado-instance');
+                const id = `tornado-${++tornadoCounter}`;
+                tornadoElement.id = id;
+
+                // Store dynamic properties for simulation
+                tornadoElement.dataset.width = tornadoWidth;
+                tornadoElement.dataset.height = tornadoHeight;
+                tornadoElement.dataset.startPos = startPos;
+                tornadoElement.dataset.endPos = endPos;
+                tornadoElement.dataset.startTime = performance.now();
+                tornadoElement.dataset.direction = direction; 
+
+                // NEW: Create the visual element wrapper
+                const tornadoVisual = document.createElement('div');
+                tornadoVisual.classList.add('tornado-visual');
+
+                // Create the DAMAGE AREA visualization box
+                const damageAreaBox = document.createElement('div');
+                damageAreaBox.classList.add('tornado-damage-area-box');
+                damageAreaBox.dataset.initialWidth = tornadoWidth * TORNADO_DAMAGE_MULTIPLIER;
+                
+                // The damage area box also needs to shrink horizontally with the tornado
+                damageAreaBox.style.width = `${damageAreaBox.dataset.initialWidth}px`;
+                damageAreaBox.style.transition = 'width 5s ease-out'; // Match tornado shrink transition
+
+                // Create the ground effect element
+                const groundEffect = document.createElement('div');
+                groundEffect.classList.add('tornado-ground-effect');
+                
+                // Append elements
+                tornadoElement.appendChild(damageAreaBox); // Damage box (z-index 3)
+                tornadoElement.appendChild(groundEffect); // Ground effect 
+                tornadoElement.appendChild(tornadoVisual); // Visual image (z-index 5 via parent)
+                
+                // Set dynamic dimensions for tornado image container
+                tornadoElement.style.height = `${tornadoHeight}px`;
+                tornadoElement.style.width = `${tornadoWidth}px`;
+
+                // 6. Apply Directional Flip (If moving left)
+                let initialVisualTransform = '';
+                if (direction === -1) {
+                    initialVisualTransform = 'scaleX(-1)';
+                }
+
+                // 7. Apply Rotation Animation if toggle is checked
+                if (rotateToggle.checked) {
+                    tornadoVisual.classList.add('vertical-spin-active');
+                    // Set the animation duration based on the global speed variable
+                    tornadoVisual.style.animationDuration = `${ROTATION_DURATION_MS}ms`;
+                }
+                
+                // Apply debug class if the toggle is checked
+                if (debugToggle.checked) {
+                    damageAreaBox.classList.add('debug-damage-area');
+                }
+                
+                // 8. Apply Initial State (Instantaneous, via 'none' transition)
+                tornadoElement.style.transition = 'none';
+                tornadoElement.style.left = `${startPos}px`;
+                tornadoElement.style.opacity = '1'; 
+                
+                // Apply initial container transform (only scale=1 for shrink)
+                tornadoElement.style.transform = `scale(1)`; 
+                
+                // Apply the directional flip to the visual element
+                tornadoVisual.style.transform = initialVisualTransform;
+
+                // 9. Add element to the map
+                tornadoFrame.appendChild(tornadoElement);
+                
+                // 10. Start Animation (Must be done after a reflow)
+                setTimeout(() => {
+                    // Start the blinking ground effect animation
+                    groundEffect.classList.add('ground-effect-active');
+
+                    // Re-apply transitions
+                    tornadoElement.style.transition = 'left 5s linear, opacity 1s 4s, transform 5s ease-out';
+                    
+                    // Apply final state which triggers the 5s transition
+                    tornadoElement.style.left = `${endPos}px`;
+                    tornadoElement.style.opacity = '0';
+                    
+                    // Apply final container transform (only final scale)
+                    const finalScaleTransform = `scale(${FINAL_SCALE})`;
+                    tornadoElement.style.transform = finalScaleTransform;
+                    
+                    // The visual element maintains its flip state but its rotation is handled by CSS animation.
+                    tornadoVisual.style.transform = initialVisualTransform; 
+                    
+                    // Apply final width to damage area box to trigger its shrink
+                    damageAreaBox.style.width = `${parseFloat(damageAreaBox.dataset.initialWidth) * FINAL_SCALE}px`;
+                    
+                    // Set a timeout to remove the element when the animation is finished
+                    setTimeout(() => removeTornado(tornadoElement), EFFECT_DURATION_MS);
+
+                }, 50); 
+            }
+            
+            /**
+             * Calculates the current position and scale of a transitioning tornado.
+             */
+            function getCurrentTornadoState(tornado, currentTime) {
+                const startTime = parseFloat(tornado.dataset.startTime);
+                const startX = parseFloat(tornado.dataset.startPos);
+                const endX = parseFloat(tornado.dataset.endPos);
+                const duration = EFFECT_DURATION_MS;
+                const tornadoWidth = parseFloat(tornado.dataset.width);
+
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(1, elapsed / duration);
+                
+                const currentX = startX + (endX - startX) * progress;
+                const currentScale = 1 - (1 - FINAL_SCALE) * progress;
+                const scaledWidth = tornadoWidth * currentScale;
+
+                // Center of the tornado (horizontally)
+                const centerX = currentX + scaledWidth / 2;
+                // Damage radius is half the scaled damage box width
+                const damageRadius = (scaledWidth * TORNADO_DAMAGE_MULTIPLIER) / 2; 
+                
+                return { centerX, scaledWidth, currentScale, damageRadius };
+            }
+
+            /**
+             * The main simulation loop that runs every frame.
+             */
+            function updateSimulation(currentTime) {
+                let totalPullX = 0;
+
+                // Character center position
+                const charCenterX = characterPos.x + CHARACTER_SIZE / 2;
+                
+                // 1. Iterate over all active tornadoes
+                const tornadoes = tornadoFrame.querySelectorAll('.tornado-instance');
+                tornadoes.forEach(tornado => {
+                    const { centerX, currentScale, damageRadius } = getCurrentTornadoState(tornado, currentTime);
+                    
+                    // Horizontal distance from character center to tornado center
+                    const dx = centerX - charCenterX;
+                    const horizontalDistance = Math.abs(dx);
+                    
+                    // Check if character is within the damage area
+                    if (horizontalDistance < damageRadius) {
+                        
+                        // Distance from the character to the EDGE of the damage area (how close to being outside)
+                        const distanceToEdge = damageRadius - horizontalDistance;
+                        
+                        // Normalized distance (0 at edge, 1 at center)
+                        const normalizedDistance = distanceToEdge / damageRadius;
+                        
+                        // Force is proportional to normalized distance (strongest at center)
+                        const forceFactor = Math.pow(normalizedDistance, 2); 
+
+                        // Apply the pull force. The total force is capped by TORNADO_PULL_FORCE.
+                        const forceMagnitude = forceFactor * (5 / TORNADO_PULL_FORCE) * currentScale; 
+                        
+                        // Apply the force vector (dx determines direction)
+                        totalPullX += Math.sign(dx) * forceMagnitude;
+                    }
+                });
+
+                // 2. Apply Total Horizontal Pull Force
+                if (totalPullX !== 0) {
+                    
+                    const MAX_PULL_SPEED = 8; 
+                    let pullSpeed = Math.abs(totalPullX); 
+                    
+                    // Clamp max pull speed
+                    pullSpeed = Math.min(pullSpeed, MAX_PULL_SPEED);
+
+                    // Apply movement to the character's top-left X coordinate
+                    characterPos.x += Math.sign(totalPullX) * pullSpeed;
+
+                    // 3. Boundary Check for Character (keep it on the map)
+                    const minX = 0;
+                    const maxX = MAP_WIDTH - CHARACTER_SIZE;
+
+                    characterPos.x = Math.max(minX, Math.min(maxX, characterPos.x));
+                    
+                    // Y position remains fixed at the bottom
+                    characterPos.y = MAP_HEIGHT - CHARACTER_SIZE;
+                }
+                
+                // 4. Update Character Visual Position
+                characterElement.style.left = `${characterPos.x}px`;
+                characterElement.style.top = `${characterPos.y}px`;
+
+                requestAnimationFrame(updateSimulation);
+            }
+            
+            // --- Event Listeners ---
+            
+            createTornadoBtn.addEventListener('click', createTornado);
+
+            // Listener for the Debug Toggle
+            debugToggle.addEventListener('change', (event) => {
+                const isChecked = event.target.checked;
+                // Apply or remove the debug border on the DAMAGE AREA BOX (child element)
+                tornadoFrame.querySelectorAll('.tornado-instance').forEach(el => {
+                    const damageBox = el.querySelector('.tornado-damage-area-box');
+                    if (damageBox) {
+                        if (isChecked) {
+                            damageBox.classList.add('debug-damage-area');
+                        } else {
+                            damageBox.classList.remove('debug-damage-area');
+                        }
+                    }
+                });
+            });
+
+            // Listener for the Rotation Toggle
+            rotateToggle.addEventListener('change', (event) => {
+                const isChecked = event.target.checked;
+                // Apply or remove the rotation animation for all current tornadoes on the VISUAL ELEMENT
+                tornadoFrame.querySelectorAll('.tornado-visual').forEach(el => {
+                    if (isChecked) {
+                        el.classList.add('vertical-spin-active');
+                        el.style.animationDuration = `${ROTATION_DURATION_MS}ms`;
+                    } else {
+                        el.classList.remove('vertical-spin-active');
+                        el.style.animationDuration = ''; // Reset duration
+                    }
+                });
+            });
+            
+            // Start the first one automatically for immediate demonstration
+            createTornado();
+            
+            // Start the continuous simulation loop
+            requestAnimationFrame(updateSimulation);
+        }
+    </script>
+</body>
+</html>
