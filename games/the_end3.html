@@ -2021,7 +2021,7 @@
                 // Schedule the next fireball attempt
                 fireballTimeoutId = setTimeout(startFireballMicroLoop, delay);
 
-                $speedMultiplier.text(fireballSpeedMultiplier+'x');
+                $speedMultiplier.text('⏩ '+fireballSpeedMultiplier.toFixed(1)+'x');
             }
 
 
@@ -2195,19 +2195,19 @@
                 const currentTopScore = loadTopScore();
                 if (newScore > currentTopScore) {
                     localStorage.setItem(STORAGE_KEY, newScore);
-                    $topScoreDisplay.text('Top Time: ' + (newScore / 1000).toFixed(2) + ' s');
+                    $topScoreDisplay.text('Top: ' + (newScore / 1000).toFixed(1) + 's');
                 }
             }
 
             function startScoring() {
                 currentScore = 0;
-                $currentScoreDisplay.text('Time: 0.00 s');
+                $currentScoreDisplay.text('⏱️ 0.0s');
                 if (scoreInterval) return;
                 startTime = Date.now();
                 scoreInterval = setInterval(() => {
                     if (!isPaused) {
                         currentScore = Date.now() - startTime;
-                        $currentScoreDisplay.text('Time: ' + (currentScore / 1000).toFixed(2) + ' s');
+                        $currentScoreDisplay.text('⏱️ ' + (currentScore / 1000).toFixed(1) + 's');
                     }
                 }, 100);
             }
@@ -2758,8 +2758,8 @@
                 $menuModal.removeClass('hidden');
                 showPanel('#main-menu-panel');
 
-                $topScoreDisplay.text('Top Time: ' + (loadTopScore() / 1000).toFixed(2) + ' s');
-                $currentScoreDisplay.text('Time: 0.00 s');
+                $topScoreDisplay.text('Top: ' + (loadTopScore() / 1000).toFixed(1) + 's');
+                $currentScoreDisplay.text('⏱️ 0.0s');
                 updateLivesDisplay();
                 updateDifficultyDisplay();
                 // NEW: Update fireball count display
@@ -3365,14 +3365,15 @@
     </div>
 
     <div id="scoreboard" class="select-none">
-        <div id="score-group" class="flex gap-4 items-center">
+        <div id="score-group" class="flex items-center">
             <div id="koopa-lives" class="text-brand-orange"></div>
-            <span id="current-score">Score: 0.00 s</span>
+            
         </div>
 
         <div class="flex items-center space-x-4">
-            <span id="speed-multiplier" class="text-yellow-300">1x</span>
-            <span id="top-score" class="text-gray-300">Top Time: 0.00 s</span>
+            <span id="speed-multiplier" class="text-white text-sm p-2">1x</span>
+           <span id="current-score" class="text-sm">⏱️ 0.0s</span>
+            <span id="top-score" class="text-gray-300 text-sm">Top 0.0s</span>
             <button id="fullscreen-btn" class="text-white p-1 rounded-full bg-black/30 hover:bg-black/50 transition duration-150" title="Toggle Full Screen">
                 <svg id="fullscreen-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path id="fullscreen-path" d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
@@ -3382,6 +3383,7 @@
     </div>
 
     <div id="mario-world-container" class="relative">
+         
         <button id="pause-btn" class="absolute top-4 right-4 text-white p-2 rounded-full bg-black/30 hover:bg-black/50 transition duration-150 shadow-lg z-30 hidden" title="Pause Game">
             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
