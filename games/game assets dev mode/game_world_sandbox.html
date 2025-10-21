@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Pixel Craft World Map</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Font Awesome for the character icon and menu icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Custom CSS */
+        body {
+            background-color: #1a202c;
+            font-family: monospace; 
+            display: flex;
+            flex-direction: column; 
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden; 
+            /* Ensure the body is focusable for key events */
+            outline: none; 
+        }
+
+        .map-container-iso {
+            perspective: 1000px;
+            transform-style: preserve-3d;
+            position: relative;
+            width: 90vw; 
+            max-width: 800px;
+            height: 70vh;
+            max-height: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .map-base-plane {
+            position: absolute;
+            transform-style: preserve-3d;
+            transition: box-shadow 0.5s ease;
+            cursor: grab; 
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            transform: rotateX(40deg) rotateZ(-45deg);
+        }
+        
+        .map-base-plane.panning {
+            cursor: all-scroll; 
+        }
+
+
+        .tile {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            transform: rotateX(-90deg) rotateY(0deg); 
+            transform-origin: top left;
+            border-right: 1px solid rgba(0,0,0,0.1);
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            transition: background-color 0.1s;
+        }
+
+        /* Color definitions */
+        .grass { background-color: #6c9940; } 
+        .sand { background-color: #e6c384; } 
+        .water { background-color: #4a7ab3; } 
+        .mountain { background-color: #8b837c; } 
+        .forest { background-color: #4f772d; } 
+        .structure { background-color: #c9b199; } 
+
+        .char-icon {
+            position: absolute;
+            width: 40px; 
+            height: 40px;
+            font-size: 24px;
+            line-height: 40px;
+            text-align: center;
+            z-index: 100;
+            cursor: pointer;
+            text-shadow: 0 0 5px #000;
+            transition: transform 0.3s; 
+            margin-left: -20px; 
+            margin-top: -20px;
+        }
+
+        /* Menu Styles - Smaller and responsive */
+        .menu-card {
+            background-color: #2d3748; /* bg-gray-700 */
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            max-width: 95vw; /* nearly full width on small screens */
+            width: 320px; /* Reduced fixed width */
+            min-height: 200px; 
+        }
+
+        .menu-button {
+            width: 100%;
+            margin-bottom: 0.75rem; /* Reduced margin */
+            padding: 0.5rem 1rem; /* Reduced padding */
+            font-size: 1rem; /* Reduced font size */
+            font-weight: bold;
+            color: white;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        .menu-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Utility for managing views */
+        .view {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .lives-display {
+            /* Position relative to .char-icon (which is 'relative') */
+            /* Z-index high to ensure visibility above other elements */
+            z-index: 50; 
+            /* Ensure the text is readable */
+            pointer-events: none;
+        }
+
+        /* Tailwind checkbox override for better visibility */
+        input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            height: 1.25rem;
+            width: 1.25rem;
+            background-color: #4a5568; /* bg-gray-600 */
+            border-radius: 0.25rem;
+            border: 1px solid #718096; /* border-gray-500 */
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        input[type="checkbox"]:checked {
+            background-color: #6366f1; /* indigo-500 */
+            border-color: #6366f1;
+            /* Simple checkmark icon using border property */
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 00-1.414 0L7 8.586 4.207 5.793a1 1 0 00-1.414 1.414l3.5 3.5a1 1 0 001.414 0l5-5a1 1 0 000-1.414z'/%3e%3c/svg%3e");
+            background-size: 100% 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+    </style>
+</head>
+<body tabindex="0"> <!-- Make body focusable for key events -->
+
+    <!-- Main Application Container -->
+    <div id="app" class="flex flex-col items-center justify-center w-full h-full p-4">
+
+        <!-- --- 1. Main Menu View --- -->
+        <div id="mainMenu" class="view">
+            <div class="menu-card text-white text-center">
+                <h1 class="text-4xl font-extrabold text-indigo-400 mb-6">Pixel Craft World</h1>
+                <button id="startGameBtn" class="menu-button bg-green-600 hover:bg-green-500">
+                    <i class="fas fa-play mr-2"></i> START GAME
+                </button>
+                <button id="settingsBtn" class="menu-button bg-indigo-600 hover:bg-indigo-500">
+                    <i class="fas fa-cog mr-2"></i> SETTINGS
+                </button>
+            </div>
+        </div>
+
+        <!-- --- 2. Settings View --- -->
+        <div id="settingsView" class="view hidden">
+            <div class="menu-card text-white p-6">
+                <h2 class="text-2xl font-bold text-pink-400 mb-6 text-center">Controls & Settings</h2>
+                
+                
+                
+                <div class="space-y-3 text-sm text-gray-300 mt-4">
+                    <p><strong>Game Objective:</strong> Summon a Character and observe the traveler navigate the randomly generated isometric world.</p>
+                    <hr class="border-gray-600">
+                    <p class="font-bold text-base text-indigo-300">Camera Controls:</p>
+                    <ul class="list-disc list-inside ml-4 space-y-1">
+                        <li>**WASD / Arrow Keys:** Pan the camera view (moves the map origin).</li>
+                        <li>**Mouse Scroll:** Zooms the camera in and out.</li>
+                        <li>**Shift-Drag:** Pans the camera view (moves the map origin).</li>
+                        <li>**Mouse Drag:** Rotates the map's isometric angle.</li>
+                        <li>**R Key:** Resets the camera pan, zoom, and rotation to default.</li>
+                    </ul>
+                </div>
+                <button id="backToMenuFromSettingsBtn" class="menu-button bg-gray-600 hover:bg-gray-500 mt-8">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Main Menu
+                </button>
+            </div>
+        </div>
+
+        <!-- --- 3. Game View (The actual map and UI) --- -->
+        <div id="gameView" class="view hidden flex-col">
+
+            <!-- Top Control Panel -->
+            <div id="gameControlsPanel" class="flex justify-between items-center w-full p-2 bg-gray-900 text-white shadow-lg fixed top-0 left-0 z-30">
+
+    <button id="menuBtn" class="text-indigo-400 hover:text-indigo-300 transition duration-200 p-2 rounded-lg hover:bg-gray-800" title="Back to Main Menu">
+        <i class="fas fa-home text-xl"></i>
+    </button>
+
+    <div id="infoPanel" class="text-center text-sm text-gray-400 p-1 md:p-2 mx-4 flex-grow flex justify-center items-center" title="Current Game Status">
+        <i class="fas fa-info-circle text-lg"></i>
+    </div>
+
+    <div class="flex items-center space-x-2 sm:space-x-4">
+        <div class="flex items-center text-gray-400 p-2 hover:text-indigo-400 transition duration-200" title="Toggle Character HP Display">
+            <label for="livesToggle" class="cursor-pointer">
+                <i class="fas fa-heart text-xl"></i>
+            </label>
+            <input type="checkbox" id="livesToggle" class="sr-only"> </div>
+
+        <button id="summonBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold w-10 h-10 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105 shadow-md" title="Summon Character">
+            <i class="fas fa-plus text-lg"></i>
+        </button>
+    </div>
+</div>
+            
+            <!-- Map Container -->
+            <div id="mapContainer" class="map-container-iso">
+                <div id="mapBasePlane" class="map-base-plane">
+                    <!-- Map tiles will be generated here -->
+                    <div id="characterLayer" class="absolute w-full h-full pointer-events-none" style="transform-style: preserve-3d; z-index: 10;">
+                        <!-- Characters will be placed here -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+<script>
+const CHARACTER_DATA = {
+        astra: {
+            name: "Astra",
+            description: "The Comet Runner, a fast and witty scout pilot.",
+            features: "Youthful, energetic expression; asymmetrical haircut; sleek silver flight suit.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="18" r="10" fill="#FCECDD"/> <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#FFC300"/> <rect x="26" y="28" width="12" height="16" fill="#A8DADC"/> <rect x="20" y="28" width="6" height="12" fill="#A8DADC"/> <rect x="38" y="28" width="6" height="12" fill="#A8DADC"/> <circle cx="23" cy="42" r="3" fill="#FCECDD"/>
+    <circle cx="41" cy="42" r="3" fill="#FCECDD"/>
+    <rect x="27" y="44" width="4" height="14" fill="#457B9D"/> <rect x="33" y="44" width="4" height="14" fill="#457B9D"/> <rect x="26" y="58" width="6" height="4" fill="#457B9D"/>
+    <rect x="32" y="58" width="6" height="4" fill="#457B9D"/>
+    <circle cx="29" cy="16" r="1.5" fill="#1D3557"/>
+    <circle cx="35" cy="16" r="1.5" fill="#1D3557"/>
+    <path d="M30 20 Q 32 21, 34 20" stroke="#1D3557" stroke-width="1"/>
+</svg>`,
+        },
+        cygnus: {
+            name: "Cygnus",
+            description: "The Starfall Captain, a wise and stoic fleet commander.",
+            features: "Mature, commanding presence; subtle glowing lines on the jawline; high-collared navy uniform.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="32" cy="18" rx="10" ry="11" fill="#D4A373"/> <path d="M24 8 Q 32 2, 40 8 L 40 20 Q 32 24, 24 20 Z" fill="#3A3A3A"/>
+    <rect x="24" y="29" width="16" height="20" fill="#1D3557"/> <path d="M24 29 L 20 34 L 24 34 Z M40 29 L 44 34 L 40 34 Z" fill="#A8DADC"/>
+    <rect x="18" y="30" width="6" height="16" fill="#1D3557"/> <rect x="40" y="30" width="6" height="16" fill="#1D3557"/> <circle cx="21" cy="48" r="3.5" fill="#D4A373"/>
+    <circle cx="43" cy="48" r="3.5" fill="#D4A373"/>
+    <rect x="26" y="49" width="5" height="10" fill="#1D3557"/> <rect x="33" y="49" width="5" height="10" fill="#1D3557"/> <rect x="25" y="59" width="7" height="3" fill="#457B9D"/> <rect x="32" y="59" width="7" height="3" fill="#457B9D"/>
+    <circle cx="29" cy="16" r="1.8" fill="#F1FAEE"/>
+    <circle cx="35" cy="16" r="1.8" fill="#F1FAEE"/>
+    <path d="M32 19 L 32 21" stroke="#3A3A3A" stroke-width="1"/> <path d="M30 23 Q 32 24, 34 23" stroke="#3A3A3A" stroke-width="1"/> </svg>`,
+        },
+        nova: {
+            name: "Nova",
+            description: "The Stardust Dancer, a graceful zero-G performer with a flowing suit.",
+            features: "Slender build, long flowing hair, iridescent fabric on her suit.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="16" r="9" fill="#FCECDD"/>
+    <path d="M26 10 Q 32 4, 38 10 Q 36 24, 32 26 Q 28 24, 26 10 Z" fill="#90EE90"/>
+    <rect x="28" y="25" width="8" height="18" fill="#FF69B4"/>
+    <rect x="20" y="27" width="8" height="14" fill="#FF69B4"/>
+    <rect x="36" y="27" width="8" height="14" fill="#FF69B4"/>
+    <circle cx="23" cy="41" r="3" fill="#FCECDD"/>
+    <circle cx="41" cy="41" r="3" fill="#FCECDD"/>
+    <rect x="29" y="43" width="3" height="12" fill="#8A2BE2"/>
+    <rect x="32" y="43" width="3" height="12" fill="#8A2BE2"/>
+    <rect x="28" y="55" width="4" height="3" fill="#8A2BE2"/>
+    <rect x="32" y="55" width="4" height="3" fill="#8A2BE2"/>
+    <circle cx="29" cy="14" r="1.5" fill="#1D3557"/>
+    <circle cx="35" cy="14" r="1.5" fill="#1D3557"/>
+    <path d="M30 18 Q 32 19, 34 18" stroke="#1D3557" stroke-width="1"/>
+</svg>`,
+        },
+        zenith: {
+            name: "Zenith",
+            description: "The Deep Space Scholar, a studious researcher with cybernetic optical implants.",
+            features: "Calm, thoughtful expression, glowing blue lines around eyes, simple robe.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="18" r="10" fill="#D4A373"/>
+    <rect x="26" y="28" width="12" height="20" fill="#283747"/>
+    <rect x="20" y="28" width="6" height="16" fill="#283747"/>
+    <rect x="38" y="28" width="6" height="16" fill="#283747"/>
+    <circle cx="23" cy="46" r="3.5" fill="#D4A373"/>
+    <circle cx="41" cy="46" r="3.5" fill="#D4A373"/>
+    <rect x="28" y="48" width="4" height="12" fill="#283747"/>
+    <rect x="32" y="48" width="4" height="12" fill="#283747"/>
+    <rect x="27" y="60" width="5" height="3" fill="#4B0082"/>
+    <rect x="32" y="60" width="5" height="3" fill="#4B0082"/>
+    <circle cx="29" cy="16" r="2" fill="#00BFFF"/>
+    <circle cx="35" cy="16" r="2" fill="#00BFFF"/>
+    <path d="M30 20 Q 32 21, 34 20" stroke="#FFFFFF" stroke-width="1"/>
+</svg>`,
+        },
+        ion: {
+            name: "Ion",
+            description: "The Plasma Guardian, a strong protector with a radiant energy field.",
+            features: "Muscular build, short spiky hair, glowing accents on armor.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="16" r="10" fill="#A0522D"/>
+    <path d="M26 10 Q 32 4, 38 10 Q 36 24, 32 26 Q 28 24, 26 10 Z" fill="#DAA520"/>
+    <rect x="25" y="26" width="14" height="22" fill="#FF4500"/>
+    <rect x="18" y="28" width="7" height="18" fill="#FF4500"/>
+    <rect x="39" y="28" width="7" height="18" fill="#FF4500"/>
+    <circle cx="21" cy="48" r="4" fill="#A0522D"/>
+    <circle cx="43" cy="48" r="4" fill="#A0522D"/>
+    <rect x="27" y="48" width="5" height="14" fill="#FFA07A"/>
+    <rect x="32" y="48" width="5" height="14" fill="#FFA07A"/>
+    <rect x="26" y="62" width="7" height="2" fill="#FFA07A"/>
+    <rect x="31" y="62" width="7" height="2" fill="#FFA07A"/>
+    <circle cx="29" cy="14" r="1.5" fill="#FFFFFF"/>
+    <circle cx="35" cy="14" r="1.5" fill="#FFFFFF"/>
+    <path d="M30 18 Q 32 19, 34 18" stroke="#FFFFFF" stroke-width="1"/>
+</svg>`,
+        },
+        aurora: {
+            name: "Aurora",
+            description: "The Celestial Healer, radiating warmth and compassion.",
+            features: "Soft, kind eyes; gentle smile; attire that shimmers like nebulae.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="18" r="10" fill="#FCECDD"/>
+    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#ADD8E6"/>
+    <rect x="26" y="28" width="12" height="18" fill="#FFD700"/>
+    <rect x="20" y="28" width="6" height="14" fill="#FFD700"/>
+    <rect x="38" y="28" width="6" height="14" fill="#FFD700"/>
+    <circle cx="23" cy="44" r="3" fill="#FCECDD"/>
+    <circle cx="41" cy="44" r="3" fill="#FCECDD"/>
+    <rect x="29" y="46" width="3" height="12" fill="#ADFF2F"/>
+    <rect x="32" y="46" width="3" height="12" fill="#ADFF2F"/>
+    <rect x="28" y="58" width="4" height="3" fill="#ADFF2F"/>
+    <rect x="32" y="58" width="4" height="3" fill="#ADFF2F"/>
+    <circle cx="29" cy="16" r="1.5" fill="#1D3557"/>
+    <circle cx="35" cy="16" r="1.5" fill="#1D3557"/>
+    <path d="M30 20 Q 32 21, 34 20" stroke="#1D3557" stroke-width="1"/>
+</svg>`,
+        },
+        atlas: {
+            name: "Atlas",
+            description: "The Planetary Cartographer, mapping uncharted worlds with powerful sensors.",
+            features: "Rugged beard, keen eyes, carrying intricate holographic maps.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="18" r="10" fill="#D4A373"/>
+    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#8B4513"/>
+    <rect x="26" y="28" width="12" height="20" fill="#6A5ACD"/>
+    <rect x="20" y="28" width="6" height="16" fill="#6A5ACD"/>
+    <rect x="38" y="28" width="6" height="16" fill="#6A5ACD"/>
+    <circle cx="23" cy="46" r="3.5" fill="#D4A373"/>
+    <circle cx="41" cy="46" r="3.5" fill="#D4A373"/>
+    <rect x="28" y="48" width="4" height="12" fill="#708090"/>
+    <rect x="32" y="48" width="4" height="12" fill="#708090"/>
+    <rect x="27" y="60" width="5" height="3" fill="#708090"/>
+    <rect x="32" y="60" width="5" height="3" fill="#708090"/>
+    <circle cx="29" cy="16" r="1.8" fill="#1D3557"/>
+    <circle cx="35" cy="16" r="1.8" fill="#1D3557"/>
+    <path d="M30 23 Q 32 24, 34 23" stroke="#8B4513" stroke-width="1"/>
+</svg>`,
+        },
+        lyra: {
+            name: "Lyra",
+            description: "The Astro-Minstrel, serenading distant galaxies with a cosmic lute.",
+            features: "Long, dark hair; expressive hands; ornate, star-themed clothing.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="18" r="10" fill="#FCECDD"/>
+    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#4B0082"/>
+    <rect x="26" y="28" width="12" height="18" fill="#8A2BE2"/>
+    <rect x="20" y="28" width="6" height="14" fill="#8A2BE2"/>
+    <rect x="38" y="28" width="6" height="14" fill="#8A2BE2"/>
+    <circle cx="23" cy="44" r="3" fill="#FCECDD"/>
+    <circle cx="41" cy="44" r="3" fill="#FCECDD"/>
+    <rect x="29" y="46" width="3" height="12" fill="#4B0082"/>
+    <rect x="32" y="46" width="3" height="12" fill="#4B0082"/>
+    <rect x="28" y="58" width="4" height="3" fill="#4B0082"/>
+    <rect x="32" y="58" width="4" height="3" fill="#4B0082"/>
+    <circle cx="29" cy="16" r="1.5" fill="#1D3557"/>
+    <circle cx="35" cy="16" r="1.5" fill="#1D3557"/>
+    <path d="M30 20 Q 32 21, 34 20" stroke="#1D3557" stroke-width="1"/>
+</svg>`,
+        },
+        pulsar: {
+            name: "Pulsar",
+            description: "The Temporal Courier, delivering messages across time and space.",
+            features: "Fast-paced demeanor, sleek goggles, uniform with glowing stripes.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="18" r="10" fill="#D4A373"/>
+    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#FF8C00"/>
+    <rect x="26" y="28" width="12" height="16" fill="#00CED1"/>
+    <rect x="20" y="28" width="6" height="12" fill="#00CED1"/>
+    <rect x="38" y="28" width="6" height="12" fill="#00CED1"/>
+    <circle cx="23" cy="42" r="3" fill="#D4A373"/>
+    <circle cx="41" cy="42" r="3" fill="#D4A373"/>
+    <rect x="27" y="44" width="4" height="14" fill="#4682B4"/>
+    <rect x="33" y="44" width="4" height="14" fill="#4682B4"/>
+    <rect x="26" y="58" width="6" height="4" fill="#4682B4"/>
+    <rect x="32" y="58" width="6" height="4" fill="#4682B4"/>
+    <rect x="28" y="14" width="8" height="4" fill="#FFD700"/>
+    <circle cx="29" cy="16" r="1.5" fill="#1D3557"/>
+    <circle cx="35" cy="16" r="1.5" fill="#1D3557"/>
+    <path d="M30 20 Q 32 21, 34 20" stroke="#1D3557" stroke-width="1"/>
+</svg>`,
+        },
+        solaris: {
+            name: "Solaris",
+            description: "The Starship Engineer, maintaining vital systems with unwavering focus.",
+            features: "Grease smudges, tool belt, strong practical hands.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="18" r="10" fill="#A0522D"/>
+    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#696969"/>
+    <rect x="26" y="28" width="12" height="20" fill="#8B4513"/>
+    <rect x="20" y="28" width="6" height="16" fill="#8B4513"/>
+    <rect x="38" y="28" width="6" height="16" fill="#8B4513"/>
+    <circle cx="23" cy="46" r="3.5" fill="#A0522D"/>
+    <circle cx="41" cy="46" r="3.5" fill="#A0522D"/>
+    <rect x="28" y="48" width="4" height="12" fill="#696969"/>
+    <rect x="32" y="48" width="4" height="12" fill="#696969"/>
+    <rect x="27" y="60" width="5" height="3" fill="#696969"/>
+    <rect x="32" y="60" width="5" height="3" fill="#696969"/>
+    <circle cx="29" cy="16" r="1.8" fill="#1D3557"/>
+    <circle cx="35" cy="16" r="1.8" fill="#1D3557"/>
+    <path d="M30 23 Q 32 24, 34 23" stroke="#1D3557" stroke-width="1"/>
+</svg>`,
+        },
+        nebula: {
+            name: "Nebula",
+            description: "The Galactic Artist, capturing cosmic beauty on canvas.",
+            features: "Dreamy eyes, colorful smudges on hands, flowing artistic attire.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="18" r="10" fill="#FCECDD"/>
+    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#FFC0CB"/>
+    <rect x="26" y="28" width="12" height="18" fill="#FF69B4"/>
+    <rect x="20" y="28" width="6" height="14" fill="#FF69B4"/>
+    <rect x="38" y="28" width="6" height="14" fill="#FF69B4"/>
+    <circle cx="23" cy="44" r="3" fill="#FCECDD"/>
+    <circle cx="41" cy="44" r="3" fill="#FCECDD"/>
+    <rect x="29" y="46" width="3" height="12" fill="#9370DB"/>
+    <rect x="32" y="46" width="3" height="12" fill="#9370DB"/>
+    <rect x="28" y="58" width="4" height="3" fill="#9370DB"/>
+    <rect x="32" y="58" width="4" height="3" fill="#9370DB"/>
+    <circle cx="29" cy="16" r="1.5" fill="#1D3557"/>
+    <circle cx="35" cy="16" r="1.5" fill="#1D3557"/>
+    <path d="M30 20 Q 32 21, 34 20" stroke="#1D3557" stroke-width="1"/>
+</svg>`,
+        },
+        comet: {
+            name: "Comet",
+            description: "The Interstellar Racer, swift and daring, always seeking the next challenge.",
+            features: "Dynamic pose, streamlined helmet, racing stripes on jumpsuit.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="18" r="10" fill="#D4A373"/>
+    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#FFD700"/>
+    <rect x="26" y="28" width="12" height="16" fill="#FF4500"/>
+    <rect x="20" y="28" width="6" height="12" fill="#FF4500"/>
+    <rect x="38" y="28" width="6" height="12" fill="#FF4500"/>
+    <circle cx="23" cy="42" r="3" fill="#D4A373"/>
+    <circle cx="41" cy="42" r="3" fill="#D4A373"/>
+    <rect x="27" y="44" width="4" height="14" fill="#FF6347"/>
+    <rect x="33" y="44" width="4" height="14" fill="#FF6347"/>
+    <rect x="26" y="58" width="6" height="4" fill="#FF6347"/>
+    <rect x="32" y="58" width="6" height="4" fill="#FF6347"/>
+    <circle cx="29" cy="16" r="1.5" fill="#1D3557"/>
+    <circle cx="35" cy="16" r="1.5" fill="#1D3557"/>
+    <path d="M30 20 Q 32 21, 34 20" stroke="#1D3557" stroke-width="1"/>
+</svg>`,
+        },
+        equinox: {
+            name: "Equinox",
+            description: "The Diplomatic Envoy, mediating peace across starfaring civilizations.",
+            features: "Calm demeanor, formal elegant uniform, symbols of unity.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="18" r="10" fill="#FCECDD"/>
+    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#ADD8E6"/>
+    <rect x="26" y="28" width="12" height="20" fill="#B0C4DE"/>
+    <rect x="20" y="28" width="6" height="16" fill="#B0C4DE"/>
+    <rect x="38" y="28" width="6" height="16" fill="#B0C4DE"/>
+    <circle cx="23" cy="46" r="3.5" fill="#FCECDD"/>
+    <circle cx="41" cy="46" r="3.5" fill="#FCECDD"/>
+    <rect x="28" y="48" width="4" height="12" fill="#778899"/>
+    <rect x="32" y="48" width="4" height="12" fill="#778899"/>
+    <rect x="27" y="60" width="5" height="3" fill="#778899"/>
+    <rect x="32" y="60" width="5" height="3" fill="#778899"/>
+    <circle cx="29" cy="16" r="1.8" fill="#1D3557"/>
+    <circle cx="35" cy="16" r="1.8" fill="#1D3557"/>
+    <path d="M30 23 Q 32 24, 34 23" stroke="#1D3557" stroke-width="1"/>
+</svg>`,
+        },
+        quasar: {
+            name: "Quasar",
+            description: "The Hyper-Trader, dealing in rare and exotic goods across the cosmos.",
+            features: "Shrewd eyes, elaborate space cloak, pouches and gadgets.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="18" r="10" fill="#D4A373"/>
+    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#8B4513"/>
+    <rect x="26" y="28" width="12" height="20" fill="#5F9EA0"/>
+    <rect x="20" y="28" width="6" height="16" fill="#5F9EA0"/>
+    <rect x="38" y="28" width="6" height="16" fill="#5F9EA0"/>
+    <circle cx="23" cy="46" r="3.5" fill="#D4A373"/>
+    <circle cx="41" cy="46" r="3.5" fill="#D4A373"/>
+    <rect x="28" y="48" width="4" height="12" fill="#2F4F4F"/>
+    <rect x="32" y="48" width="4" height="12" fill="#2F4F4F"/>
+    <rect x="27" y="60" width="5" height="3" fill="#2F4F4F"/>
+    <rect x="32" y="60" width="5" height="3" fill="#2F4F4F"/>
+    <circle cx="29" cy="16" r="1.8" fill="#1D3557"/>
+    <circle cx="35" cy="16" r="1.8" fill="#1D3557"/>
+    <path d="M30 23 Q 32 24, 34 23" stroke="#8B4513" stroke-width="1"/>
+</svg>`,
+        },
+        meridian: {
+            name: "Meridian",
+            description: "The Stellar Navigator, guiding ships through treacherous asteroid fields.",
+            features: "Focused expression, navigational tools on gauntlets, balanced posture.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="18" r="10" fill="#FCECDD"/>
+    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#40E0D0"/>
+    <rect x="26" y="28" width="12" height="16" fill="#008B8B"/>
+    <rect x="20" y="28" width="6" height="12" fill="#008B8B"/>
+    <rect x="38" y="28" width="6" height="12" fill="#008B8B"/>
+    <circle cx="23" cy="42" r="3" fill="#FCECDD"/>
+    <circle cx="41" cy="42" r="3" fill="#FCECDD"/>
+    <rect x="27" y="44" width="4" height="14" fill="#20B2AA"/>
+    <rect x="33" y="44" width="4" height="14" fill="#20B2AA"/>
+    <rect x="26" y="58" width="6" height="4" fill="#20B2AA"/>
+    <rect x="32" y="58" width="6" height="4" fill="#20B2AA"/>
+    <circle cx="29" cy="16" r="1.5" fill="#1D3557"/>
+    <circle cx="35" cy="16" r="1.5" fill="#1D3557"/>
+    <path d="M30 20 Q 32 21, 34 20" stroke="#1D3557" stroke-width="1"/>
+</svg>`,
+        },
+        umbra: {
+            name: "Umbra",
+            description: "The Shadow Agent, master of stealth and infiltration in deep space.",
+            features: "Hooded figure, minimalist dark clothing, concealed weaponry.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="18" r="10" fill="#C0C0C0"/>
+    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#2F4F4F"/>
+    <rect x="26" y="28" width="12" height="20" fill="#4B0082"/>
+    <rect x="20" y="28" width="6" height="16" fill="#4B0082"/>
+    <rect x="38" y="28" width="6" height="16" fill="#4B0082"/>
+    <circle cx="23" cy="46" r="3.5" fill="#C0C0C0"/>
+    <circle cx="41" cy="46" r="3.5" fill="#C0C0C0"/>
+    <rect x="28" y="48" width="4" height="12" fill="#191970"/>
+    <rect x="32" y="48" width="4" height="12" fill="#191970"/>
+    <rect x="27" y="60" width="5" height="3" fill="#191970"/>
+    <rect x="32" y="60" width="5" height="3" fill="#191970"/>
+    <circle cx="29" cy="16" r="1.8" fill="#F1FAEE"/>
+    <circle cx="35" cy="16" r="1.8" fill="#F1FAEE"/>
+    <path d="M30 23 Q 32 24, 34 23" stroke="#F1FAEE" stroke-width="1"/>
+</svg>`,
+        },
+        vortex: {
+            name: "Vortex",
+            description: "The Galactic Nomad, wandering the cosmic currents, seeking ancient artifacts.",
+            features: "Tattered cloak, staff, wise and weary expression.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="18" r="10" fill="#D4A373"/>
+    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#8B4513"/>
+    <rect x="26" y="28" width="12" height="20" fill="#696969"/>
+    <rect x="20" y="28" width="6" height="16" fill="#696969"/>
+    <rect x="38" y="28" width="6" height="16" fill="#696969"/>
+    <circle cx="23" cy="46" r="3.5" fill="#D4A373"/>
+    <circle cx="41" cy="46" r="3.5" fill="#D4A373"/>
+    <rect x="28" y="48" width="4" height="12" fill="#2F4F4F"/>
+    <rect x="32" y="48" width="4" height="12" fill="#2F4F4F"/>
+    <rect x="27" y="60" width="5" height="3" fill="#2F4F4F"/>
+    <rect x="32" y="60" width="5" height="3" fill="#2F4F4F"/>
+    <circle cx="29" cy="16" r="1.8" fill="#1D3557"/>
+    <circle cx="35" cy="16" r="1.8" fill="#1D3557"/>
+    <path d="M30 23 Q 32 24, 34 23" stroke="#8B4513" stroke-width="1"/>
+</svg>`,
+        },
+        celeste: {
+            name: "Celeste",
+            description: "The Stellar Cartographer, charting new constellations and cosmic phenomena.",
+            features: "Observant eyes, intricate holographic map on a wrist device, neat uniform.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="18" r="10" fill="#FCECDD"/>
+    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#B0E0E6"/>
+    <rect x="26" y="28" width="12" height="18" fill="#6A5ACD"/>
+    <rect x="20" y="28" width="6" height="14" fill="#6A5ACD"/>
+    <rect x="38" y="28" width="6" height="14" fill="#6A5ACD"/>
+    <circle cx="23" cy="44" r="3" fill="#FCECDD"/>
+    <circle cx="41" cy="44" r="3" fill="#FCECDD"/>
+    <rect x="29" y="46" width="3" height="12" fill="#7B68EE"/>
+    <rect x="32" y="46" width="3" height="12" fill="#7B68EE"/>
+    <rect x="28" y="58" width="4" height="3" fill="#7B68EE"/>
+    <rect x="32" y="58" width="4" height="3" fill="#7B68EE"/>
+    <circle cx="29" cy="16" r="1.5" fill="#1D3557"/>
+    <circle cx="35" cy="16" r="1.5" fill="#1D3557"/>
+    <path d="M30 20 Q 32 21, 34 20" stroke="#1D3557" stroke-width="1"/>
+</svg>`,
+        },
+        quasar_prime: { 
+            name: "Prime",
+            description: "The Galactic Commander, leading vast fleets through cosmic battles.",
+            features: "Authoritative stance, elaborate uniform, piercing gaze.",
+            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="32" cy="18" rx="10" ry="11" fill="#D4A373"/>
+    <path d="M24 8 Q 32 2, 40 8 L 40 20 Q 32 24, 24 20 Z" fill="#00008B"/>
+    <rect x="24" y="29" width="16" height="20" fill="#0000CD"/>
+    <path d="M24 29 L 20 34 L 24 34 Z M40 29 L 44 34 L 40 34 Z" fill="#C0C0C0"/>
+    <rect x="18" y="30" width="6" height="16" fill="#0000CD"/>
+    <rect x="40" y="30" width="6" height="16" fill="#0000CD"/>
+    <circle cx="21" cy="48" r="3.5" fill="#D4A373"/>
+    <circle cx="43" cy="48" r="3.5" fill="#D4A373"/>
+    <rect x="26" y="49" width="5" height="10" fill="#4169E1"/>
+    <rect x="33" y="49" width="5" height="10" fill="#4169E1"/>
+    <rect x="25" y="59" width="7" height="3" fill="#4169E1"/>
+    <rect x="32" y="59" width="7" height="3" fill="#4169E1"/>
+    <circle cx="29" cy="16" r="1.8" fill="#F1FAEE"/>
+    <circle cx="35" cy="16" r="1.8" fill="#F1FAEE"/>
+    <path d="M32 19 L 32 21" stroke="#3A3A3A" stroke-width="1"/>
+    <path d="M30 23 Q 32 24, 34 23" stroke="#3A3A3A" stroke-width="1"/>
+</svg>`,
+        },
+    };
+
+    // --- Global Configuration ---
+    const TILE_SIZE = 50; // px
+    const MAP_WIDTH = 12; // 12 tiles wide
+    const MAP_HEIGHT = 12; // 12 tiles high
+    const MAX_X_COORD = MAP_WIDTH * TILE_SIZE;
+    const MAX_Y_COORD = MAP_HEIGHT * TILE_SIZE;
+
+    const CHARACTER_Z_OFFSET = 15; 
+
+    const MOVEMENT_SPEED = 1.0; // px per frame
+    const WANDER_INTERVAL = 120; // Frames to keep a direction axis dominant
+    const occupiedPositions = new Set(); 
+    
+    // --- Add default stats to all characters ---
+    Object.keys(CHARACTER_DATA).forEach(key => {
+        // Set initial lives and team
+        CHARACTER_DATA[key].lives = 5;
+        // Assign a default team
+        CHARACTER_DATA[key].team = 'Alpha'; 
+    });
+
+    // --- DOM Elements ---
+    const mapBasePlane = document.getElementById('mapBasePlane');
+    const mapContainer = document.getElementById('mapContainer');
+    const characterLayer = document.getElementById('characterLayer');
+    const summonBtn = document.getElementById('summonBtn');
+    const infoPanel = document.getElementById('infoPanel');
+    
+    // Menu Buttons
+    const startGameBtn = document.getElementById('startGameBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const menuBtn = document.getElementById('menuBtn');
+    const backToMenuFromSettingsBtn = document.getElementById('backToMenuFromSettingsBtn');
+    const livesToggle = document.getElementById('livesToggle');
+
+
+    // --- State Variables ---
+    let rotationX = 40; 
+    let rotationZ = -45;
+    let isDragging = false;
+    let isPanningMode = false; 
+    let lastX, lastY;
+    let mapTileData = []; 
+
+    // CAMERA CONTROL STATE
+    let cameraTranslateX = 0; 
+    let cameraTranslateY = 0; 
+    let zoomScale = 1.0; 
+    const ZOOM_SPEED = 0.05;
+    const PAN_SPEED = 3.0; 
+    let isKeyboardPanning = false; 
+    let keysPressed = {}; 
+    
+    // UI/Game State
+    let showLives = false; 
+    
+    // --- New Character Drag State ---
+    let activeCharacterState = null; // The character that is currently moving (wandering)
+    let heldCharacterState = null; // The character currently being dragged by the user
+    let isCharacterHeld = false; // Flag to indicate a character is in hand
+
+    // --- Game Loop State ---
+    let frameCount = 0;
+    let lastTime = 0;
+    const MAX_FRAME_DURATION = 1000 / 20; 
+
+    // --- View Management ---
+    function showView(viewName) {
+        document.querySelectorAll('.view').forEach(view => {
+            view.classList.add('hidden');
+        });
+
+        const targetView = document.getElementById(viewName);
+        if (targetView) {
+            targetView.classList.remove('hidden');
+        }
+
+        // Specific actions when entering the game
+        if (viewName === 'gameView') {
+            // If the map hasn't been generated yet, do it now
+            if (mapTileData.length === 0) {
+                generateMap();
+                updateMapTransform();
+            }
+            // Ensure the body is focused for keyboard input
+            document.body.focus(); 
+            document.body.scrollIntoView(); 
+        } else {
+            // When leaving game view, release focus
+            keysPressed = {};
+        }
+    }
+
+
+    // --- Helper Functions ---
+
+    function gridToPixel(x, y) {
+        // Converts grid coordinates (0,0, 1,0, etc.) to the center pixel coordinates of that tile
+        const centerX = x * TILE_SIZE + (TILE_SIZE / 2);
+        const centerY = y * TILE_SIZE + (TILE_SIZE / 2);
+        return { px: centerX, py: centerY };
+    }
+
+    function pixelToGrid(px, py) {
+        // Converts pixel coordinates to grid coordinates
+        const gridX = Math.floor(px / TILE_SIZE);
+        const gridY = Math.floor(py / TILE_SIZE);
+        return { gridX, gridY };
+    }
+
+    function getIsoTransform(x, y) {
+        const translateZ = CHARACTER_Z_OFFSET; 
+        const inverseTransform = `rotateX(${-rotationX}deg) rotateZ(${-rotationZ}deg)`;
+        return `translate3d(${x}px, ${y}px, ${translateZ}px) ${inverseTransform}`;
+    }
+
+    function updateMapTransform() {
+        mapBasePlane.style.transform = 
+            `translateX(${cameraTranslateX}px) 
+             translateY(${cameraTranslateY}px) 
+             rotateX(${rotationX}deg) 
+             rotateZ(${rotationZ}deg)
+             scale(${zoomScale})`;
+        
+        updateCharacterTransforms();
+    }
+    
+    function generateMap() {
+        if (mapTileData.length > 0) return; // Prevent re-generation
+
+        const types = ['grass', 'grass', 'grass', 'sand', 'water', 'mountain', 'forest', 'structure'];
+        
+        for (let j = 0; j < MAP_HEIGHT; j++) {
+            for (let i = 0; i < MAP_WIDTH; i++) {
+                const type = types[Math.floor(Math.random() * types.length)];
+                const x = i * TILE_SIZE;
+                const y = j * TILE_SIZE;
+
+                const tileElement = document.createElement('div');
+                tileElement.className = `tile ${type}`;
+                tileElement.style.width = `${TILE_SIZE}px`;
+                tileElement.style.height = `${TILE_SIZE}px`;
+                // Note: The tile rotation is relative to the mapBasePlane's coordinate system
+                tileElement.style.transform = `translateX(${x}px) translateY(${y}px) rotateX(-0deg)`; 
+                tileElement.style.transformOrigin = '0 0';
+                tileElement.dataset.gridX = i;
+                tileElement.dataset.gridY = j;
+
+                mapBasePlane.appendChild(tileElement);
+                
+                mapTileData.push({ x, y, type, gridX: i, gridY: j, element: tileElement });
+
+                // Add minimal visual feedback for hover
+                tileElement.addEventListener('mouseover', () => {
+                    if (!isDragging && !isCharacterHeld) tileElement.style.filter = 'brightness(1.2)';
+                    // Highlight the target square if holding a character
+                    if (isCharacterHeld) {
+                        tileElement.style.boxShadow = '0 0 10px 5px rgba(0, 255, 0, 0.7)';
+                    }
+                });
+                tileElement.addEventListener('mouseout', () => {
+                    tileElement.style.filter = 'none';
+                    tileElement.style.boxShadow = 'none';
+                });
+            }
+        }
+
+        mapBasePlane.style.width = `${MAX_X_COORD}px`;
+        mapBasePlane.style.height = `${MAX_Y_COORD}px`;
+        
+        mapContainer.style.justifyContent = 'flex-start';
+        mapContainer.style.alignItems = 'flex-start';
+    }
+
+
+    function getTileAt(x, y) {
+        const { gridX, gridY } = pixelToGrid(x, y);
+        
+        if (gridX >= 0 && gridX < MAP_WIDTH && gridY >= 0 && gridY < MAP_HEIGHT) {
+            return mapTileData.find(t => t.gridX === gridX && t.gridY === gridY);
+        }
+        return null;
+    }
+
+    function changeDirection(forceChange = false) {
+        if (!activeCharacterState) return;
+
+        if (forceChange || frameCount >= activeCharacterState.nextDirChange) {
+            
+            const primaryAxis = Math.floor(Math.random() * 2);
+
+            const dirX = Math.random() < 0.5 ? -1 : 1;
+            const dirY = Math.random() < 0.5 ? -1 : 1;
+
+            let vx, vy;
+            const primaryFactor = 0.85; 
+            const secondaryFactor = 0.5; 
+
+            if (primaryAxis === 0) { 
+                vx = dirX * MOVEMENT_SPEED * primaryFactor;
+                vy = dirY * MOVEMENT_SPEED * secondaryFactor;
+            } else { 
+                vx = dirX * MOVEMENT_SPEED * secondaryFactor;
+                vy = dirY * MOVEMENT_SPEED * primaryFactor;
+            }
+            
+            activeCharacterState.vx = vx;
+            activeCharacterState.vy = vy;
+            activeCharacterState.nextDirChange = frameCount + WANDER_INTERVAL;
+        }
+    }
+    
+    function updateCharacterPosition(deltaTime) {
+        if (!activeCharacterState || isCharacterHeld) return; // Don't move if held
+        
+        const char = activeCharacterState;
+        const dt = deltaTime / (1000 / 60); 
+
+        changeDirection(false); 
+
+        let nextX = char.x + char.vx * dt;
+        let nextY = char.y + char.vy * dt;
+        
+        // Effective boundaries are TILE_SIZE/2 to MAX_COORD - TILE_SIZE/2
+        const effectiveMaxX = MAX_X_COORD - TILE_SIZE/2;
+        const effectiveMaxY = MAX_Y_COORD - TILE_SIZE/2;
+        const effectiveMin = TILE_SIZE/2;
+
+        let reversed = false;
+
+        // Boundary checks
+        if (nextX < effectiveMin || nextX > effectiveMaxX) {
+            char.vx *= -1; 
+            nextX = char.x + char.vx * dt; 
+            reversed = true;
+        }
+        if (nextY < effectiveMin || nextY > effectiveMaxY) {
+            char.vy *= -1; 
+            nextY = char.y + char.vy * dt; 
+            reversed = true;
+        }
+        
+        if (reversed) changeDirection(true); 
+
+        const tileAtNewPos = getTileAt(nextX, nextY);
+        const obstacleTypes = ['water', 'mountain', 'structure'];
+
+        if (tileAtNewPos && obstacleTypes.includes(tileAtNewPos.type)) {
+            // Simple obstacle avoidance: reverse both axes
+            char.vx *= -1;
+            char.vy *= -1;
+            changeDirection(true); 
+
+            nextX = char.x + char.vx * dt;
+            nextY = char.y + char.vy * dt;
+        }
+        
+        // Update grid position for occupancy tracking
+        const { gridX: newGridX, gridY: newGridY } = pixelToGrid(nextX, nextY);
+        if (newGridX !== char.gridX || newGridY !== char.gridY) {
+            occupiedPositions.delete(`${char.gridX},${char.gridY}`);
+            occupiedPositions.add(`${newGridX},${newGridY}`);
+            char.gridX = newGridX;
+            char.gridY = newGridY;
+            char.element.dataset.gridX = newGridX;
+            char.element.dataset.gridY = newGridY;
+        }
+
+        char.x = nextX;
+        char.y = nextY;
+
+        char.element.style.transform = getIsoTransform(char.x, char.y);
+    }
+    
+    function gameLoop(timestamp) {
+        requestAnimationFrame(gameLoop);
+
+        const deltaTime = timestamp - lastTime;
+        lastTime = timestamp;
+
+        // Only update character movement if we are in the game view
+        if (document.getElementById('gameView').classList.contains('hidden')) {
+            return;
+        }
+
+        if (activeCharacterState) {
+            const clampedDeltaTime = Math.min(deltaTime, MAX_FRAME_DURATION); 
+            frameCount++; 
+            updateCharacterPosition(clampedDeltaTime);
+        }
+    }
+
+
+    function updateCharacterTransforms() {
+        // This function ensures all characters (active and inactive) are rotated correctly 
+        // when the map is rotated/panned/zoomed.
+        characterLayer.querySelectorAll('.char-icon').forEach(charElement => {
+            
+            // Skip the held character, its position is updated by the mousemove handler
+            if (isCharacterHeld && charElement === heldCharacterState.element) return; 
+            
+            let char;
+            // Check if this is the active character whose position is managed by activeCharacterState
+            if (activeCharacterState && charElement === activeCharacterState.element) {
+                char = activeCharacterState;
+            } else {
+                // If it's an inactive character, use its data attributes for position
+                const gridX = parseInt(charElement.dataset.gridX);
+                const gridY = parseInt(charElement.dataset.gridY);
+                const { px, py } = gridToPixel(gridX, gridY);
+                char = { x: px, y: py };
+            }
+            
+            charElement.style.transform = getIsoTransform(char.x, char.y);
+        });
+    }
+
+    function findRandomUnoccupiedPosition() {
+        const maxAttempts = 100;
+        for (let i = 0; i < maxAttempts; i++) {
+            const x = Math.floor(Math.random() * MAP_WIDTH); 
+            const y = Math.floor(Math.random() * MAP_HEIGHT);
+            const key = `${x},${y}`;
+            
+            if (!occupiedPositions.has(key)) {
+                occupiedPositions.add(key);
+                return { x, y };
+            }
+        }
+        
+        if (occupiedPositions.size === MAP_WIDTH * MAP_HEIGHT) {
+            infoPanel.innerHTML = '<span class="text-red-400 font-bold">MAP FULL!</span>';
+        }
+        
+        return null;
+    }
+    
+    function updateLivesVisibility() {
+        document.querySelectorAll('.lives-display').forEach(el => {
+            el.classList.toggle('hidden', !showLives);
+        });
+    }
+
+    // --- NEW: Character Drag & Drop Functions ---
+    
+    function pickupCharacter(charState) {
+        if (isDragging) return; // Prevent pickup while map is dragging/rotating
+        
+        // Remove old occupied position key if it was the active character
+        if (charState === activeCharacterState) {
+            occupiedPositions.delete(`${activeCharacterState.gridX},${activeCharacterState.gridY}`);
+            // Stop the character from moving
+            activeCharacterState = null; 
+        }
+
+        heldCharacterState = charState;
+        isCharacterHeld = true;
+        heldCharacterState.element.style.zIndex = '200'; // Bring to front
+        heldCharacterState.element.classList.add('shadow-lg', 'scale-125');
+
+        infoPanel.innerHTML = `<span class="text-yellow-400 font-bold">PICKED UP:</span> ${charState.charData.name}. Drag and drop onto an unoccupied tile!`;
+
+        // Temporarily adjust map cursor to indicate a character is held
+        mapBasePlane.style.cursor = 'crosshair';
+    }
+    
+    function dropCharacter(mapCoordX, mapCoordY) {
+        if (!isCharacterHeld) return;
+
+        // Convert map pixel coordinates to grid and then back to center pixel
+        const { gridX, gridY } = pixelToGrid(mapCoordX, mapCoordY);
+        
+        const newPosKey = `${gridX},${gridY}`;
+        const tileAtDrop = getTileAt(mapCoordX, mapCoordY);
+        
+        let validDrop = false;
+        if (tileAtDrop && !occupiedPositions.has(newPosKey) && 
+            !['water', 'mountain'].includes(tileAtDrop.type)) {
+            
+            // Valid drop: update position and occupancy
+            const { px, py } = gridToPixel(gridX, gridY);
+            
+            heldCharacterState.x = px;
+            heldCharacterState.y = py;
+            heldCharacterState.gridX = gridX;
+            heldCharacterState.gridY = gridY;
+            heldCharacterState.element.dataset.gridX = gridX;
+            heldCharacterState.element.dataset.gridY = gridY;
+            occupiedPositions.add(newPosKey);
+            validDrop = true;
+            
+            // Re-activate as the wandering character
+            activeCharacterState = heldCharacterState;
+            changeDirection(true); // Give a new direction to start moving
+            
+            infoPanel.innerHTML = `<span class="text-green-400 font-bold">DROPPED:</span> ${heldCharacterState.charData.name} at (${gridX}, ${gridY}). Now wandering.`;
+        } else {
+            // Invalid drop (occupied or obstacle), remove character from map
+            heldCharacterState.element.remove();
+            infoPanel.innerHTML = `<span class="text-red-400 font-bold">LOST:</span> ${heldCharacterState.charData.name} was lost in space! (Dropped on an invalid tile or off map) `;
+        }
+        
+        // Reset state
+        heldCharacterState.element.style.zIndex = '100';
+        heldCharacterState.element.classList.remove('shadow-lg', 'scale-125');
+        heldCharacterState = null;
+        isCharacterHeld = false;
+        
+        // Restore map cursor
+        mapBasePlane.style.cursor = 'grab';
+        
+        // Clear any temporary tile highlights
+        mapTileData.forEach(t => t.element.style.boxShadow = 'none');
+        
+        // Update transform to apply final position
+        updateCharacterTransforms(); 
+    }
+
+    // --- Camera Control Functions ---
+
+    // ... (handleZoom, keyboardPanLoop remain the same) ...
+
+    function handleZoom(e) {
+        if (document.getElementById('gameView').classList.contains('hidden')) return;
+        
+        e.preventDefault(); 
+        const direction = e.deltaY < 0 ? 1 : -1; 
+        
+        zoomScale += direction * ZOOM_SPEED;
+        zoomScale = Math.max(0.5, Math.min(3.0, zoomScale)); 
+        
+        updateMapTransform();
+    }
+
+    function keyboardPanLoop() {
+        if (document.getElementById('gameView').classList.contains('hidden')) {
+            isKeyboardPanning = false;
+            return;
+        }
+
+        let moved = false;
+        
+        if (keysPressed['w'] || keysPressed['arrowup']) {
+            cameraTranslateY += PAN_SPEED; // Moving the camera up shifts the map down
+            moved = true;
+        }
+        if (keysPressed['s'] || keysPressed['arrowdown']) {
+            cameraTranslateY -= PAN_SPEED; // Moving the camera down shifts the map up
+            moved = true;
+        }
+        if (keysPressed['a'] || keysPressed['arrowleft']) {
+            cameraTranslateX += PAN_SPEED; // Moving the camera left shifts the map right
+            moved = true;
+        }
+        if (keysPressed['d'] || keysPressed['arrowright']) {
+            cameraTranslateX -= PAN_SPEED; // Moving the camera right shifts the map left
+            moved = true;
+        }
+
+        if (moved) {
+            updateMapTransform();
+            requestAnimationFrame(keyboardPanLoop); 
+        } else {
+            isKeyboardPanning = false; 
+        }
+    }
+
+
+    function setupEventListeners() {
+        // --- View Switching Buttons ---
+        startGameBtn.addEventListener('click', () => showView('gameView'));
+        settingsBtn.addEventListener('click', () => showView('settingsView'));
+        menuBtn.addEventListener('click', () => showView('mainMenu'));
+        backToMenuFromSettingsBtn.addEventListener('click', () => showView('mainMenu'));
+        
+        // --- Settings Toggle ---
+        livesToggle.checked = showLives;
+        livesToggle.addEventListener('change', (e) => {
+            showLives = e.target.checked;
+            updateLivesVisibility();
+        });
+
+
+        // --- 1. Zoom (Mouse Wheel) ---
+        document.addEventListener('wheel', handleZoom, { passive: false });
+        
+        // --- 2. Drag (Rotation / Panning) ---
+        
+        document.addEventListener('mousedown', (e) => {
+            if (document.getElementById('gameView').classList.contains('hidden')) return;
+            // Check if the click is on a control button or held character
+            if (e.target.closest('#gameControlsPanel') || isCharacterHeld) return;
+            // Only respond to left button (0)
+            if (e.button !== 0) return; 
+            
+            // Check if a character was clicked
+            const charElement = e.target.closest('.char-icon');
+            if (charElement) {
+                // --- FIX: Stop propagation to allow the dedicated 'click' listener to fire later ---
+                // We use the mousedown event to *start* the pickup state.
+                e.stopPropagation(); 
+                
+                // Find the character state associated with this element
+                let charStateToPickUp = null;
+                if (activeCharacterState && activeCharacterState.element === charElement) {
+                    charStateToPickUp = activeCharacterState;
+                } else {
+                    // This is the logic to re-create a state for non-active/untracked characters
+                    const gridX = parseInt(charElement.dataset.gridX);
+                    const gridY = parseInt(charElement.dataset.gridY);
+                    const name = charElement.classList[1].replace('char-type-', '');
+                    const charData = Object.values(CHARACTER_DATA).find(c => c.name.toLowerCase().includes(name.split('-')[1]));
+                    
+                    if (!charData) return; // Should not happen
+                    
+                    const { px, py } = gridToPixel(gridX, gridY);
+                    
+                    charStateToPickUp = {
+                        x: px, 
+                        y: py, 
+                        vx: 0, 
+                        vy: 0,
+                        element: charElement,
+                        livesElement: charElement.querySelector('.lives-display'),
+                        charData: charData, 
+                        nextDirChange: 0,
+                        gridX: gridX,
+                        gridY: gridY,
+                        lives: charData.lives, 
+                        team: charData.team
+                    };
+                }
+                
+                pickupCharacter(charStateToPickUp);
+                return;
+            }
+
+            // If no character was clicked, start map drag
+            isDragging = true;
+            lastX = e.clientX;
+            lastY = e.clientY;
+
+            // Shift key activates Panning mode, otherwise it's rotation mode
+            isPanningMode = e.shiftKey; 
+            
+            if (isPanningMode) {
+                mapBasePlane.classList.add('panning');
+                mapBasePlane.style.cursor = 'all-scroll';
+            } else {
+                mapBasePlane.classList.add('dragging');
+                mapBasePlane.style.cursor = 'grabbing';
+            }
+            
+            e.preventDefault(); 
+        });
+
+        document.addEventListener('mouseup', (e) => {
+            if (isCharacterHeld) {
+                // Drop the character at the mouse position relative to the mapBasePlane's parent
+                const rect = mapBasePlane.getBoundingClientRect();
+                const mapX = (e.clientX - rect.left) / zoomScale - cameraTranslateX;
+                const mapY = (e.clientY - rect.top) / zoomScale - cameraTranslateY;
+                
+                dropCharacter(mapX, mapY);
+                return;
+            }
+            
+            // End map drag
+            isDragging = false;
+            isPanningMode = false;
+            mapBasePlane.classList.remove('dragging', 'panning');
+            mapBasePlane.style.cursor = 'grab'; 
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isCharacterHeld) {
+                // Get the position of the map container relative to the viewport
+                const rect = mapContainer.getBoundingClientRect();
+                
+                // Calculate the mouse position relative to the map container center
+                const containerCenterX = rect.left + rect.width / 2;
+                const containerCenterY = rect.top + rect.height / 2;
+                
+                // Mouse delta relative to map container center
+                const deltaX = e.clientX - containerCenterX;
+                const deltaY = e.clientY - containerCenterY;
+
+                // The held character should follow the mouse in 2D screen space
+                heldCharacterState.element.style.transform = 
+                    `translate3d(${deltaX}px, ${deltaY}px, 50px) scale(1.2)`;
+                    
+                heldCharacterState.element.style.zIndex = '300';
+                
+                // Stop map rotation/pan
+                isDragging = false;
+                
+                return;
+            }
+
+            if (!isDragging) return;
+
+            const deltaX = e.clientX - lastX;
+            const deltaY = e.clientY - lastY;
+
+            if (isPanningMode) {
+                cameraTranslateX += deltaX;
+                cameraTranslateY += deltaY;
+            } else {
+                rotationZ += deltaX * 0.2; 
+                rotationX -= deltaY * 0.2; 
+                rotationX = Math.max(10, Math.min(60, rotationX)); 
+            }
+
+            updateMapTransform();
+
+            lastX = e.clientX;
+            lastY = e.clientY;
+        });
+        
+        mapBasePlane.addEventListener('contextmenu', (e) => e.preventDefault());
+
+        // --- 3. Keyboard Controls (WASD/Arrows/Reset) ---
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('gameView').classList.contains('hidden')) return;
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            const key = e.key.toLowerCase();
+            keysPressed[key] = true; 
+
+            // R: Reset View
+            if (key === 'r') {
+                cameraTranslateX = 0;
+                cameraTranslateY = 0;
+                zoomScale = 1.0;
+                rotationX = 40;
+                rotationZ = -45;
+                updateMapTransform();
+                return;
+            }
+
+            const isMovementKey = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key);
+            
+            if (isMovementKey) {
+                e.preventDefault(); 
+                if (!isKeyboardPanning) {
+                    isKeyboardPanning = true;
+                    requestAnimationFrame(keyboardPanLoop);
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keysPressed[e.key.toLowerCase()] = false; 
+        });
+        
+        // --- Summon Button Listener ---
+        summonBtn.addEventListener('click', summonCharacter);
+    }
+
+    // --- Character Management (Updated to use new info panel and lives) ---
+    
+    function summonCharacter() {
+        const keys = Object.keys(CHARACTER_DATA);
+        if (keys.length === 0) return;
+        const randomKey = keys[Math.floor(Math.random() * keys.length)];
+        const charData = CHARACTER_DATA[randomKey];
+        placeCharacter(charData);
+    }
+    
+    function placeCharacter(charData) {
+        // Clear previous active character for simplicity
+        /*if (activeCharacterState) {
+            occupiedPositions.delete(`${activeCharacterState.gridX},${activeCharacterState.gridY}`);
+            activeCharacterState.element.remove();
+            activeCharacterState = null;
+        }*/
+
+        const pos = findRandomUnoccupiedPosition();
+        
+        if (!pos) return;
+        
+        const { px, py } = gridToPixel(pos.x, pos.y);
+        
+        // --- 1. Character Icon Element ---
+        const charElement = document.createElement('div');
+        // 'relative' is needed for absolute positioning of lives/tooltip children
+        // 'group' is needed for Tailwind's group-hover utility
+        charElement.className = 'char-icon relative group'; 
+        charElement.innerHTML = charData.svg; 
+        charElement.style.transform = getIsoTransform(px, py);
+        charElement.dataset.gridX = pos.x;
+        charElement.dataset.gridY = pos.y;
+        charElement.classList.add(`char-type-${charData.name.toLowerCase().replace(/\s/g, '-')}`);
+
+        // --- 2. Lives Display Element ---
+        const livesDisplay = document.createElement('div');
+        livesDisplay.className = `lives-display absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full text-xs font-bold text-red-300 bg-red-900 px-1 rounded-sm shadow-lg pointer-events-none z-50 transition-opacity ${showLives ? '' : 'hidden'}`;
+        livesDisplay.textContent = `HP: ${charData.lives}`;
+        
+        // --- 3. Name/Description Hover Panel (Tooltip) ---
+        const hoverTooltip = document.createElement('div');
+        hoverTooltip.className = 'absolute bottom-full left-1/2 transform -translate-x-1/2 p-2 mb-2 bg-gray-900 border border-gray-700 text-white text-xs whitespace-nowrap rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-50 w-auto min-w-40';
+        hoverTooltip.innerHTML = `<span class="font-bold text-pink-400">${charData.name} (Team ${charData.team})</span><br>${charData.description}`;
+        
+        charElement.appendChild(livesDisplay);
+        charElement.appendChild(hoverTooltip);
+        
+        
+        // Create the state object
+        const newCharState = {
+            x: px, 
+            y: py, 
+            vx: 0, 
+            vy: 0,
+            element: charElement,
+            livesElement: livesDisplay,
+            charData: charData, 
+            nextDirChange: 0,
+            gridX: pos.x,
+            gridY: pos.y,
+            lives: charData.lives, 
+            team: charData.team
+        };
+        
+        // --- 4. Event Listeners (for hover) ---
+        // Mouseover/out for info panel
+        charElement.addEventListener('mouseover', function() {
+            if (!isCharacterHeld) {
+                console.log('!isCharacterHeld');
+                infoPanel.innerHTML = 
+                    `<span class="text-pink-400 font-bold">${charData.name} (Team ${charData.team})</span>: ${charData.description}`;
+            }
+        });
+
+        charElement.addEventListener('mouseout', function() {
+            if (!isCharacterHeld) {
+                console.log('!isCharacterHeld');
+                // Restore default message when mouse leaves
+                infoPanel.innerHTML = 'Click an icon or Summon a Character.';
+                
+                // If the character is still the active one, update to show its active status
+                if (activeCharacterState && charElement === activeCharacterState.element) {
+                    infoPanel.innerHTML = `<span class="text-green-400 font-bold">ACTIVE:</span> ${activeCharacterState.charData.name} at (${activeCharacterState.gridX}, ${activeCharacterState.gridY})`;
+                }
+            }
+        });
+        
+        // Click listener for persistent status update
+        charElement.addEventListener('click', function(event) {
+            if (isDragging || isCharacterHeld) return;
+                console.log('isCharacterHeld');
+            event.stopPropagation();
+             infoPanel.innerHTML = 
+                `<span class="text-pink-400 font-bold">${charData.name} (Team ${charData.team})</span>: ${charData.description}`;
+        });
+
+
+        characterLayer.appendChild(charElement);
+        
+        activeCharacterState = newCharState;
+        changeDirection(true);
+
+        infoPanel.innerHTML = 
+            `<span class="text-green-400 font-bold">SUMMONED:</span> ${charData.name} on Team ${charData.team} at (${pos.x}, ${pos.y})!`;
+    }
+
+
+    // --- Initialization ---
+
+    function init() {
+        setupEventListeners();
+        showView('mainMenu'); // Start on the main menu
+        requestAnimationFrame(gameLoop); // Start the character movement loop
+    }
+    
+    // Run Initialization on load
+    window.onload = init;
+</script>
+</body>
