@@ -227,7 +227,7 @@
             <div id="mapContainer" class="map-container-iso">
                 <div id="mapBasePlane" class="map-base-plane">
                     <!-- Map tiles will be generated here -->
-                    <div id="characterLayer" class="absolute w-full h-full pointer-events-none" style="transform-style: preserve-3d; z-index: 10;">
+                    <div id="characterLayer" class="absolute w-full h-full" style="transform-style: preserve-3d; z-index: 10;">
                         <!-- Characters will be placed here -->
                     </div>
                 </div>
@@ -1334,7 +1334,7 @@ const CHARACTER_DATA = {
         hoverTooltip.innerHTML = `<span class="font-bold text-pink-400">${charData.name} (Team ${charData.team})</span><br>${charData.description}`;
         
         charElement.appendChild(livesDisplay);
-        charElement.appendChild(hoverTooltip);
+        //charElement.appendChild(hoverTooltip);
         
         
         // Create the state object
@@ -1357,7 +1357,6 @@ const CHARACTER_DATA = {
         // Mouseover/out for info panel
         charElement.addEventListener('mouseover', function() {
             if (!isCharacterHeld) {
-                console.log('!isCharacterHeld');
                 infoPanel.innerHTML = 
                     `<span class="text-pink-400 font-bold">${charData.name} (Team ${charData.team})</span>: ${charData.description}`;
             }
@@ -1365,7 +1364,6 @@ const CHARACTER_DATA = {
 
         charElement.addEventListener('mouseout', function() {
             if (!isCharacterHeld) {
-                console.log('!isCharacterHeld');
                 // Restore default message when mouse leaves
                 infoPanel.innerHTML = 'Click an icon or Summon a Character.';
                 
@@ -1379,7 +1377,6 @@ const CHARACTER_DATA = {
         // Click listener for persistent status update
         charElement.addEventListener('click', function(event) {
             if (isDragging || isCharacterHeld) return;
-                console.log('isCharacterHeld');
             event.stopPropagation();
              infoPanel.innerHTML = 
                 `<span class="text-pink-400 font-bold">${charData.name} (Team ${charData.team})</span>: ${charData.description}`;
