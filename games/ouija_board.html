@@ -663,6 +663,176 @@
         #card-arc, #card-meaning {
             color: #1a0808;
         }
+
+        /* --- Mobile Responsive Styles --- */
+        @media (max-width: 768px) {
+            /* 1. Adjust Game Container for scrolling/full height */
+            #notebook.active {
+                /* Overrides the desktop size/position to ensure center on mobile */
+                position: absolute;
+                top: 250%!important;
+                left: -150%!important;   
+                width: 90vw; /* **New: Use viewport width for large size** */
+                height: 80vh; /* **New: Use viewport height for large size** */
+                transform: translate(-50%, -50%) scale(1) !important; 
+                z-index: 111;
+                box-shadow: 0 0 50px rgba(255,0,0,0.8);
+                cursor: default;
+                background-color: transparent; 
+                border: none;
+            }
+
+            #page-controls {
+                position: fixed; /* Must be fixed, like the notebook, to stay in viewport */
+                top: 50%;
+                left: 50%;
+                /* The size must match the active notebook size for relative positioning */
+                width: 90vw; 
+                height: 80vh; 
+                transform: translate(-50%, -50%);
+                pointer-events: none;
+                z-index: 112; /* Higher than the notebook */
+            }
+
+            .page-control-btn {
+                /* Use larger buttons for easier tapping on mobile */
+                padding: 1rem;
+                font-size: 1.5rem; 
+                opacity: 0.8;
+            }
+
+            /* Position controls relative to the new #page-controls size */
+            #prev-page-btn { 
+                left: -10px; /* Closer to the edge */
+            }
+            #next-page-btn { 
+                right: -10px; /* Closer to the edge */
+            }
+
+            #close-notebook-btn {
+                top: -30px; /* Keep it outside the notebook body */
+                right: 0;
+                padding: 5px 15px; /* Slightly larger target area */
+                font-size: 1.2rem;
+            }
+
+            #notebook.active .leaf-content{
+                font-size: 20px;
+            }
+
+            #game-container {
+                overflow-y: auto; /* Allow scrolling */
+                height: auto;
+                min-height: 100vh;
+                /* Add padding at the bottom for fixed input area */
+                padding-bottom: 100px; 
+            }
+            
+            /* 2. Adjust Board/Table to stack content */
+            #game-table {
+                width: 100%;
+                max-width: none;
+                height: auto;
+                max-height: none;
+                flex-direction: column; /* Stacks the decor row and the board */
+                padding: 1rem 0.5rem;
+                box-shadow: none;
+            }
+            
+            /* 3. Adjust Ouija Board to be full width and set height */
+            #ouija-board {
+                width: 98%; /* Full width */
+                max-width: 98%;
+                height: 300px; /* **NEW: Set fixed height for mobile view** */
+                aspect-ratio: auto; /* Override the desktop aspect ratio */
+                margin: 10px auto;
+            }
+            
+            /* 4. Decorations and Candle to the top and smaller (via the new wrapper) */
+            #mobile-decor-row {
+                /* **NEW CONTAINER STYLES** */
+                position: static;
+                display: flex; /* Makes the children (candle/decorations) a row */
+                justify-content: space-around;
+                align-items: flex-end; /* Aligns them nicely at the bottom */
+                width: 100%;
+                margin-top: 60px; /* Space below top-bar */
+                margin-bottom: 20px;
+                order: -1; /* Pushes the entire row to the top of #game-table */
+            }
+
+            #candle-container {
+                position: static;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                transform: scale(0.7); /* **NEW: Scale down the whole candle item** */
+                margin: 0;
+            }
+            
+            #left-decorations {
+                position: static;
+                width: auto;
+                flex-direction: row; /* Layout notebook/cards side-by-side */
+                justify-content: center;
+                gap: 10px;
+                margin: 0;
+                transform: scale(0.7); /* **NEW: Scale down the whole decorations item** */
+            }
+
+            /* 5. Adjust user response panel (#input-area) - Ensure one line */
+            #input-area {
+                padding: 0.5rem;
+                min-height: auto;
+            }
+            
+            /* The outer flex container reverts to a single row (default) */
+            #input-area > .flex { 
+                flex-direction: row; 
+                gap: 0.5rem; /* Revert to default space-x-4 */
+                max-width: 100%;
+                /* Ensures all children are on the same line (Back button, Input/Ask/Mic Group) */
+            }
+            
+            /* Ensure the Back button is treated as a normal flex item */
+            #input-area #back-to-menu-btn {
+                width: auto; 
+                order: 0; 
+                flex-shrink: 0;
+            }
+            
+            /* Ensure the inner group expands as necessary */
+            #input-area .flex-grow.space-x-2 {
+                width: auto;
+                flex-direction: row; 
+                gap: 0.5rem; /* Revert to default space-x-2 */
+            }
+            
+            /* Ensure input and buttons use proper flex sizing for the single line */
+            #question-input {
+                flex-grow: 1; /* Input takes up available space */
+                width: auto;
+            }
+
+            #ask-btn, #mic-btn {
+                flex-shrink: 0;
+                width: auto;
+            }
+            
+            /* Restore rounding */
+            #question-input {
+                border-radius: 0.5rem 0 0 0.5rem; 
+            }
+            
+            #ask-btn {
+                border-radius: 0 0.5rem 0.5rem 0; 
+            }
+            
+            #mic-btn {
+                border-radius: 0.5rem;
+                margin-left: 0.5rem !important; /* Adjust margin if needed */
+            }
+        }
     </style>
 </head>
 <body>
@@ -685,68 +855,70 @@
                 style="top: 50%; left: 50%; width: 1px; height: 1px;">
             </div>
         </div>
-        <div id="candle-container">
-            <div class="candle">
-                <div class="flame"></div>
+        <div id="mobile-decor-row">
+            <div id="candle-container">
+                <div class="candle">
+                    <div class="flame"></div>
+                </div>
+                <div class="candle-base"></div>
             </div>
-            <div class="candle-base"></div>
-        </div>
-        <div id="left-decorations">
-            <div id="notebook" class="notebook">
-                <div id="notebook-cover-title">Ritual</div>
-                
-                <div class="notebook-spiral"></div>
-                <div class="notebook-line" style="top: 20px;"></div>
+            <div id="left-decorations">
+                <div id="notebook" class="notebook">
+                    <div id="notebook-cover-title">Ritual</div>
+                    
+                    <div class="notebook-spiral"></div>
+                    <div class="notebook-line" style="top: 20px;"></div>
 
-                <div id="active-notebook-view" class="hidden absolute top-0 left-0 w-full h-full flex flex-row">
-                    <div id="left-leaf" class="notebook-leaf">
-                        <h3 class="leaf-title"></h3> <div id="left-leaf-content" class="leaf-content"></div>
-                        <div id="left-page-number" class="page-number"></div>
-                    </div>
-                    <div id="right-leaf" class="notebook-leaf">
-                        <h3 class="leaf-title"></h3> <div id="right-leaf-content" class="leaf-content"></div>
-                        <div id="right-page-number" class="page-number"></div>
-                    </div>
+                    <div id="active-notebook-view" class="hidden absolute top-0 left-0 w-full h-full flex flex-row">
+                        <div id="left-leaf" class="notebook-leaf">
+                            <h3 class="leaf-title"></h3> <div id="left-leaf-content" class="leaf-content"></div>
+                            <div id="left-page-number" class="page-number"></div>
+                        </div>
+                        <div id="right-leaf" class="notebook-leaf">
+                            <h3 class="leaf-title"></h3> <div id="right-leaf-content" class="leaf-content"></div>
+                            <div id="right-page-number" class="page-number"></div>
+                        </div>
 
-                    <div id="page-flip-right" class="page-flip-container hidden">
-                        <div class="flip-front">
-                            <h3 class="leaf-title"></h3> <div id="flip-front-content-right" class="leaf-content"></div>
-                            <div id="flip-front-number-right" class="page-number"></div>
+                        <div id="page-flip-right" class="page-flip-container hidden">
+                            <div class="flip-front">
+                                <h3 class="leaf-title"></h3> <div id="flip-front-content-right" class="leaf-content"></div>
+                                <div id="flip-front-number-right" class="page-number"></div>
+                            </div>
+                            <div class="flip-back">
+                                <h3 class="leaf-title"></h3> <div id="flip-back-content-right" class="leaf-content"></div>
+                                <div id="flip-back-number-right" class="page-number"></div>
+                            </div>
                         </div>
-                        <div class="flip-back">
-                            <h3 class="leaf-title"></h3> <div id="flip-back-content-right" class="leaf-content"></div>
-                            <div id="flip-back-number-right" class="page-number"></div>
-                        </div>
-                    </div>
 
-                    <div id="page-flip-left" class="page-flip-container hidden">
-                        <div class="flip-front">
-                            <h3 class="leaf-title"></h3> <div id="flip-front-content-left" class="leaf-content"></div>
-                            <div id="flip-front-number-left" class="page-number"></div>
-                        </div>
-                        <div class="flip-back">
-                            <h3 class="leaf-title"></h3> <div id="flip-back-content-left" class="leaf-content"></div>
-                            <div id="flip-back-number-left" class="page-number"></div>
+                        <div id="page-flip-left" class="page-flip-container hidden">
+                            <div class="flip-front">
+                                <h3 class="leaf-title"></h3> <div id="flip-front-content-left" class="leaf-content"></div>
+                                <div id="flip-front-number-left" class="page-number"></div>
+                            </div>
+                            <div class="flip-back">
+                                <h3 class="leaf-title"></h3> <div id="flip-back-content-left" class="leaf-content"></div>
+                                <div id="flip-back-number-left" class="page-number"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div id="zodiac-deck" class="deck-of-cards">
-                <div class="card-stack card-1"></div>
-                <div class="card-stack card-2"></div>
-                <div class="card-stack card-3"></div>
-                <div class="card-stack card-4"></div>
-                <div class="card-stack card-5"></div>
-                <div class="card-stack card-6"></div>
-                <div class="card-stack card-7"></div>
-                <div class="card-stack card-8"></div>
-                <div class="card-stack card-9"></div>
-                <div class="card-stack card-10"></div>
-                <div class="card-stack card-11"></div>
-                <div class="card-stack card-12"></div>
-                
-                <i class="fas fa-star zodiac-symbol"></i>
+                <div id="zodiac-deck" class="deck-of-cards">
+                    <div class="card-stack card-1"></div>
+                    <div class="card-stack card-2"></div>
+                    <div class="card-stack card-3"></div>
+                    <div class="card-stack card-4"></div>
+                    <div class="card-stack card-5"></div>
+                    <div class="card-stack card-6"></div>
+                    <div class="card-stack card-7"></div>
+                    <div class="card-stack card-8"></div>
+                    <div class="card-stack card-9"></div>
+                    <div class="card-stack card-10"></div>
+                    <div class="card-stack card-11"></div>
+                    <div class="card-stack card-12"></div>
+                    
+                    <i class="fas fa-star zodiac-symbol"></i>
+                </div>
             </div>
         </div>
     </div>
