@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>The Whispering Board</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<!-- Firebase Imports -->
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import { getFirestore, setDoc, doc, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import { setLogLevel } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+// Firebase Initialization and Authentication
+
+window.initFirebase = async () => {
+
+try {
+
+// Global variables from the environment
+
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+
+const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+
+if (!firebaseConfig) {
+
+console.error("Firebase config is missing.");
+
+return { db: null, auth: null, userId: 'anon' };
+
+}
+
+
+const app = initializeApp(firebaseConfig);
+
+const db = getFirestore(app);
+
+const auth = getAuth(app);
+
+// setLogLevel('Debug'); // Enable Firestore logging
+
+
+let userId = null;
+
+
+const authPromise = new Promise(resolve => {
+
+const unsubscribe = onAuthStateChanged(auth, async (user) => {
+
+if (user) {
+
+userId = user.uid;
+
+} else {
+
+// Sign in anonymously if no token is provided or if token is invalid
+
+if (initialAuthToken) {
+
+try {
+
+await signInWithCustomToken(auth, initialAuthToken);
+
+userId = auth.currentUser.uid;
+
+} catch (error) {
+
+console.error("Error signing in with custom token:", error);
+
+await signInAnonymously(auth);
+
+userId = auth.currentUser.uid;
+
+}
+
+} else {
+
+await signInAnonymously(auth);
+
+userId = auth.currentUser.uid;
+
+}
+
+}
+
+unsubscribe();
+
+resolve({ db, auth, userId });
+
+});
+
+});
+
+
+return authPromise;
+
+
+} catch (error) {
+
+console.error("Firebase setup error:", error);
+
+return { db: null, auth: null, userId: 'anon' };
+
+}
+
+};
+
+</script>
+
+<style>
+
+/* 1. Global & Fullscreen Setup */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Creepster&display=swap');
+
+
+body {
+
+font-family: 'Inter', sans-serif;
+
+background-color: #0d0a0b; /* Deep Black/Brown */
+
+margin: 0;
+
+padding: 0;
+
+width: 100vw;
+
+height: 100vh;
+
+overflow: hidden;
+
+display: flex;
+
+flex-direction: column;
+
+}
+
+
+/* 2. Modal Styling */
+
+.gm-modal-overlay {
+
+position: fixed;
+
+top: 0;
+
+left: 0;
+
+width: 100%;
+
+height: 100%;
+
+background: rgba(0, 0, 0, 0.9);
+
+display: flex;
+
+justify-content: center;
+
+align-items: center;
+
+z-index: 100;
+
+}
+
+
+.gm-modal-content {
+
+background: #2a0c0c; /* Dark, bloody red-brown */
+
+color: #f1e7d0; /* Off-white text */
+
+padding: 3rem;
+
+border-radius: 1rem;
+
+box-shadow: 0 0 40px rgba(255, 0, 0, 0.4), 0 0 20px rgba(0, 0, 0, 0.8);
+
+text-align: center;
+
+max-width: 90%;
+
+border: 3px solid #5a0f0f;
+
+min-width: 350px; 
+
+}
+
+
+.gm-modal-content h1, .gm-modal-content h2 {
+
+font-family: 'Creepster', cursive;
+
+color: #ff3333;
+
+letter-spacing: 2px;
+
+text-shadow: 0 0 5px #000;
+
+}
+
+
+/* 3. Game Container / Ouija Board */
+
+#game-container {
+
+flex-grow: 1;
+
+display: flex;
+
+justify-content: center;
+
+align-items: center;
+
+padding-top: 50px; /* Space for the top bar */
+
+padding-bottom: 120px; /* Space for the input bar */
+
+position: relative;
+
+box-sizing: border-box;
+
+}
+
+#ouija-board {
+
+max-width: 900px;
+
+width: 95%;
+
+aspect-ratio: 16/9;
+
+background-color: #5a3c20; /* Board wood color */
+
+border: 15px solid #1a0808;
+
+border-radius: 1rem;
+
+box-shadow: 0 0 30px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(0, 0, 0, 0.5);
+
+position: relative;
+
+padding: 2% 4%;
+
+margin: auto; /* Center the board vertically and horizontally */
+
+}
+
+
+.board-element {
+
+position: absolute;
+
+font-family: 'Creepster', cursive;
+
+color: #f1e7d0;
+
+font-size: 3vmin;
+
+text-shadow: 1px 1px 2px #000;
+
+cursor: default;
+
+}
+
+
+/* Responsive Letter Grid - Simplified */
+
+#letter-grid {
+
+display: grid;
+
+grid-template-columns: repeat(13, 1fr);
+
+gap: 1vmin;
+
+width: 90%;
+
+margin: 0 auto;
+
+position: absolute;
+
+top: 25%;
+
+left: 5%;
+
+}
+
+
+#number-grid {
+
+display: grid;
+
+grid-template-columns: repeat(10, 1fr);
+
+gap: 1vmin;
+
+width: 75%;
+
+margin: 0 auto;
+
+position: absolute;
+
+bottom: 20%;
+
+left: 12.5%;
+
+}
+
+
+.grid-item {
+
+text-align: center;
+
+font-size: 4vmin;
+
+font-weight: bold;
+
+}
+
+
+/* Spelled Answer Display - HORRIFYING STYLE */
+
+#answer-display {
+
+position: absolute;
+
+top: 50%;
+
+left: 50%;
+
+transform: translate(-50%, -50%);
+
+background: rgba(0, 0, 0, 0.7); /* Dark background */
+
+padding: 1rem 2rem;
+
+border-radius: 0.5rem;
+
+text-align: center;
+
+font-family: 'Creepster', cursive;
+
+color: #ff3333; /* Horrifying Red */
+
+font-size: 5vmin;
+
+font-weight: black;
+
+letter-spacing: 3px;
+
+text-shadow: 0 0 15px rgba(255, 51, 51, 0.8), 0 0 5px #000;
+
+border: 3px solid #5a0f0f;
+
+white-space: nowrap; /* Prevent wrapping */
+
+z-index: 60;
+
+}
+
+
+/* 4. Planchette (The Glass) - Positioned relative to the board */
+
+#planchette {
+
+position: absolute;
+
+width: 6vmin;
+
+height: 6vmin;
+
+background-color: rgba(255, 255, 255, 0.1);
+
+border: 2px solid rgba(255, 255, 255, 0.4);
+
+border-radius: 50%;
+
+box-shadow: 0 0 15px rgba(255, 255, 255, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.8);
+
+pointer-events: none; /* Ignore mouse events */
+
+transform: translate(-50%, -50%); /* Center the element on its calculated position */
+
+transition: all 1.5s cubic-bezier(0.2, 0.8, 0.6, 1.0); /* Smooth, organic movement */
+
+z-index: 50;
+
+}
+
+#planchette::after {
+
+content: '';
+
+position: absolute;
+
+top: 50%;
+
+left: 50%;
+
+transform: translate(-50%, -50%);
+
+width: 1vmin;
+
+height: 1vmin;
+
+background-color: #ff3333;
+
+border-radius: 50%;
+
+box-shadow: 0 0 5px #ff3333;
+
+}
+
+
+/* Input area styling */
+
+#input-area {
+
+position: fixed; /* Use fixed to keep it at the bottom */
+
+bottom: 0;
+
+left: 0;
+
+width: 100%;
+
+background: rgba(0, 0, 0, 0.9);
+
+padding: 0.75rem 1rem; /* Reduced padding */
+
+box-sizing: border-box;
+
+display: flex;
+
+flex-direction: column;
+
+align-items: center;
+
+z-index: 50;
+
+min-height: 100px; /* Set minimum height to ensure board visibility */
+
+}
+
+/* Top Bar Styling */
+
+#top-bar {
+
+position: fixed;
+
+top: 0;
+
+left: 0;
+
+width: 100%;
+
+padding: 0.5rem 1rem;
+
+display: flex;
+
+justify-content: space-between;
+
+align-items: center;
+
+background: rgba(0, 0, 0, 0.9);
+
+color: #f1e7d0;
+
+z-index: 50;
+
+min-height: 50px;
+
+}
+
+
+/* Custom Toggle Switch for Settings */
+
+.toggle {
+
+position: relative;
+
+display: inline-block;
+
+width: 60px;
+
+height: 34px;
+
+}
+
+.toggle input {
+
+opacity: 0;
+
+width: 0;
+
+height: 0;
+
+}
+
+.slider {
+
+position: absolute;
+
+cursor: pointer;
+
+top: 0;
+
+left: 0;
+
+right: 0;
+
+bottom: 0;
+
+background-color: #ccc;
+
+transition: .4s;
+
+border-radius: 34px;
+
+}
+
+.slider:before {
+
+position: absolute;
+
+content: "";
+
+height: 26px;
+
+width: 26px;
+
+left: 4px;
+
+bottom: 4px;
+
+background-color: white;
+
+transition: .4s;
+
+border-radius: 50%;
+
+}
+
+input:checked + .slider {
+
+background-color: #ff3333;
+
+}
+
+input:checked + .slider:before {
+
+transform: translateX(26px);
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+<div id="game-container" class="relative hidden">
+
+<!-- TOP BAR: User ID, Ritual Status, Timer -->
+
+<div id="top-bar" class="absolute top-0 left-0 w-full p-2 flex justify-between items-center bg-black/90 shadow-2xl z-50">
+
+<p id="user-id-display" class="text-xs text-gray-400">User ID: Loading...</p>
+
+<p id="ritual-status" class="text-white text-lg font-bold text-center flex-grow">Ask your question...</p>
+
+<p id="playtime-timer" class="text-sm text-red-500 font-mono">Time: 00:00</p>
+
+</div>
+
+
+<div id="ouija-board">
+
+<!-- YES / NO -->
+
+<div id="yes-target" class="board-element" style="top: 5%; left: 10%;">YES</div>
+
+<div id="no-target" class="board-element" style="top: 5%; right: 10%;">NO</div>
+
+<!-- Letter Grid (A-Z) -->
+
+<div id="letter-grid">
+
+<!-- A-M (13 letters) -->
+
+</div>
+
+<!-- Number Grid (0-9) -->
+
+<div id="number-grid">
+
+<!-- 0-9 (10 numbers) -->
+
+</div>
+
+
+<!-- Goodbye -->
+
+<div id="goodbye-target" class="board-element" style="bottom: 5%; right: 45%;">GOODBYE</div>
+
+
+<!-- Spelled Answer Display -->
+
+<div id="answer-display" class="hidden"></div>
+
+
+<!-- Planchette (Now inside the board) -->
+
+<div id="planchette"></div>
+
+</div>
+
+<!-- User Input Area (Minimized) -->
+
+<div id="input-area">
+
+<!-- New flex container for all bottom controls -->
+
+<div class="flex items-center w-full max-w-2xl space-x-4">
+
+<!-- Back to Menu Button (Icon Only) -->
+
+<button id="back-to-menu-btn" title="Back to Main Menu" class="flex-shrink-0 bg-gray-800 hover:bg-red-700 text-white font-bold py-3 px-3 rounded-lg text-xl transition duration-200 shadow-xl">
+
+<i class="fas fa-undo"></i> 
+
+</button>
+
+
+<!-- Input and Ask/Mic Buttons -->
+
+<div class="flex flex-grow space-x-2">
+
+<input type="text" id="question-input" class="flex-grow p-2 rounded-l-lg bg-gray-800 text-white border border-gray-700 focus:ring-red-500 focus:border-red-500 transition" placeholder="Type your question for the spirit...">
+
+<button id="ask-btn" class="flex-shrink-0 bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-r-lg transition duration-200 disabled:opacity-50">
+
+<i class="fas fa-hand-pointer"></i> Ask
+
+</button>
+
+<button id="mic-btn" class="flex-shrink-0 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+
+<i class="fas fa-microphone"></i>
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- Conjuration Script Modal -->
+
+<div id="conjuration-modal-overlay" class="gm-modal-overlay hidden">
+
+<div class="gm-modal-content w-full max-w-xl">
+
+<h2 class="text-6xl font-black uppercase mb-4 text-red-500">The Summoning</h2>
+
+<p class="text-xl mb-6 text-red-300">Read this script aloud to begin the ritual.</p>
+
+<div id="conjuration-script-display" class="text-left text-lg p-6 bg-gray-900/70 rounded-lg border-2 border-red-700/50 mb-8 font-serif italic text-white/90 shadow-inner">
+
+Loading script...
+
+</div>
+
+
+<button id="proceed-to-game-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-8 rounded-lg text-2xl uppercase transition duration-300 shadow-xl">
+
+Conjure the Spirit
+
+</button>
+
+</div>
+
+</div>
+
+
+<!-- Main Menu Modal Overlay -->
+
+<div id="gm-modal-overlay" class="gm-modal-overlay hidden">
+
+<div class="gm-modal-content">
+
+<div id="gm-loading-section">
+
+<h1 class="text-4xl">Preparing the Ritual...</h1>
+
+<div class="gm-progress-bar-container w-full h-3 bg-gray-700 rounded-full mt-4">
+
+<div id="gm-loading-progress-bar" class="h-3 bg-red-600 rounded-full transition-all duration-500" style="width: 0%;"></div>
+
+</div>
+
+<p id="gm-loading-text" class="mt-2">0% Initialized</p>
+
+</div>
+
+
+<div id="gm-ready-section" style="display: none;">
+
+<h2 class="text-6xl font-black uppercase mb-4">The Whispering Board</h2>
+
+<p class="text-xl mb-6">A Gemini-powered communication ritual.</p>
+
+<div class="text-left text-sm p-4 bg-gray-900/50 rounded-lg border border-red-500/30 mb-6">
+
+<p class="mb-2 font-bold text-red-300">Instructions:</p>
+
+<ul class="list-disc list-inside space-y-1">
+
+<li>Focus the ritual by typing your question below or using the microphone.</li>
+
+<li>The spirit will move the planchette to spell out the answer one character at a time.</li>
+
+<li>Listen closely and read the board. **Do not** break the connection until the spell is complete.</li>
+
+</ul>
+
+</div>
+
+<div class="flex flex-col space-y-4">
+
+<button id="start-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-8 rounded-lg text-2xl uppercase transition duration-300 shadow-xl">
+
+Begin Ritual
+
+</button>
+
+<button id="settings-btn" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-8 rounded-lg text-lg uppercase transition duration-300">
+
+<i class="fas fa-cog"></i> Spirit Rules
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- Settings Modal -->
+
+<div id="settings-modal-overlay" class="gm-modal-overlay hidden">
+
+<div class="gm-modal-content w-full max-w-lg">
+
+<h2 class="text-4xl font-black uppercase mb-6">Spirit Rules Configuration</h2>
+
+<div class="text-left space-y-6">
+
+<!-- Rule: Forced Response Reversal (NO -> APPLE) -->
+
+<div class="flex justify-between items-center p-3 bg-gray-900/50 rounded-lg border border-red-500/30">
+
+<label for="toggle-reverse-no" class="text-lg text-red-300 flex-grow pr-4">
+
+<i class="fas fa-skull-crossbones mr-2"></i> **If 'NO' is intended, substitute the answer with 'APPLE'.**
+
+</label>
+
+<label class="toggle">
+
+<input type="checkbox" id="toggle-reverse-no">
+
+<span class="slider"></span>
+
+</label>
+
+</div>
+
+<!-- Rule: Specific Word Count -->
+
+<div class="p-3 bg-gray-900/50 rounded-lg border border-red-500/30">
+
+<p class="text-lg font-bold text-red-300 mb-3"><i class="fas fa-text-width mr-2"></i> Specific Word Count Constraint:</p>
+
+<div id="word-count-options" class="flex justify-around flex-wrap gap-2">
+
+<label class="inline-flex items-center space-x-2 text-white">
+
+<input type="radio" name="maxWords" value="0" class="form-radio text-red-500">
+
+<span>Default (Max 20)</span>
+
+</label>
+
+<label class="inline-flex items-center space-x-2 text-white">
+
+<input type="radio" name="maxWords" value="1" checked class="form-radio text-red-500">
+
+<span>1 Word</span>
+
+</label>
+
+<label class="inline-flex items-center space-x-2 text-white">
+
+<input type="radio" name="maxWords" value="2" class="form-radio text-red-500">
+
+<span>2 Words</span>
+
+</label>
+
+<label class="inline-flex items-center space-x-2 text-white">
+
+<input type="radio" name="maxWords" value="3" class="form-radio text-red-500">
+
+<span>3 Words</span>
+
+</label>
+
+</div>
+
+</div>
+
+</div>
+
+
+<button id="close-settings-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-8 rounded-lg text-lg uppercase transition duration-300 mt-6">
+
+<i class="fas fa-save"></i> Save and Close
+
+</button>
+
+</div>
+
+</div>
+
+
+<script>
+
+// --- Configuration ---
+
+const API_MODEL = "gemini-2.5-flash-preview-09-2025";
+
+const API_KEY = ""; // Canvas runtime provides this key
+
+const CHARACTER_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+
+const conjurationScripts = [
+
+"O spirits of the deep, who dwell beyond the veil, we invite your presence. Grant us passage and speak your truth through this humble vessel.",
+
+"By the flicker of this ancient light, we call upon the nameless, the watchers of the shadow. Cross the divide and offer us guidance.",
+
+"Hear our voices, entities unseen. We seek communion and knowledge from the other side. Let the planchette move and the answers be known.",
+
+"From silence we call you; from darkness we conjure you. If you are near, touch this board and announce your presence to the living.",
+
+"Venture forth, shadow walker, and share your desolate wisdom. We have questions that only the departed can answer. Move the glass.",
+
+"Mighty energy, residing between the breaths, we invoke your identity. Reveal your name and your purpose through the sacred alphabet.",
+
+];
+
+
+// --- Global State ---
+
+let db, auth, userId;
+
+let isMoving = false;
+
+let recognition = null;
+
+const planchette = document.getElementById('planchette');
+
+const answerDisplay = document.getElementById('answer-display');
+
+const ritualStatus = document.getElementById('ritual-status');
+
+let timerInterval = null;
+
+let secondsElapsed = 0;
+
+
+// Spirit Rules State - DEFAULTED TO 1 WORD
+
+let spiritRules = {
+
+maxWords: 1, 
+
+reverseNo: false 
+
+};
+
+
+// --- Timer Functions ---
+
+const formatTime = (totalSeconds) => {
+
+const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+
+const seconds = String(totalSeconds % 60).padStart(2, '0');
+
+return `Time: ${minutes}:${seconds}`;
+
+};
+
+
+const startTimer = () => {
+
+if (timerInterval) stopTimer(); // Clear any existing interval
+
+const timerDisplay = document.getElementById('playtime-timer');
+
+timerDisplay.textContent = formatTime(secondsElapsed);
+
+timerInterval = setInterval(() => {
+
+secondsElapsed++;
+
+timerDisplay.textContent = formatTime(secondsElapsed);
+
+}, 1000);
+
+};
+
+
+const stopTimer = () => {
+
+if (timerInterval) {
+
+clearInterval(timerInterval);
+
+timerInterval = null;
+
+}
+
+};
+
+
+
+// --- Utility Functions ---
+
+
+/** Retries a promise function with exponential backoff. */
+
+const retry = async (fn, maxRetries = 5, delay = 1000) => {
+
+for (let i = 0; i < maxRetries; i++) {
+
+try {
+
+return await fn();
+
+} catch (error) {
+
+if (i === maxRetries - 1) throw error;
+
+console.warn(`Request failed, retrying in ${delay}ms...`);
+
+await new Promise(resolve => setTimeout(resolve, delay));
+
+delay *= 2;
+
+}
+
+}
+
+};
+
+
+/** Converts character to a valid element ID on the board. */
+
+const charToId = (char) => {
+
+const c = char.toUpperCase();
+
+if (CHARACTER_MAP.includes(c)) return c;
+
+if (c === ' ') return 'SPACE';
+
+if (c === 'Y') return 'YES';
+
+if (c === 'N') return 'NO';
+
+if (c === 'G') return 'GOODBYE'; 
+
+if (c === 'A') return 'A'; 
+
+return 'UNKNOWN'; 
+
+};
+
+
+/** * Gets the position of a board element relative to the Ouija board container.
+
+* This ensures correct planchette placement regardless of screen scroll/size.
+
+*/
+
+const getTargetPosition = (id) => {
+
+let targetEl = null;
+
+const boardEl = document.getElementById('ouija-board');
+
+const boardRect = boardEl.getBoundingClientRect();
+
+
+if (id === 'YES' || id === 'NO' || id === 'GOODBYE' || id === 'APPLE') {
+
+if (id === 'APPLE') {
+
+// Aim for the YES target
+
+targetEl = document.getElementById('yes-target');
+
+} else {
+
+targetEl = document.getElementById(`${id.toLowerCase()}-target`);
+
+}
+
+} else if (id === 'SPACE' || id === 'UNKNOWN') {
+
+// Default to board center relative to board
+
+return { x: boardRect.width / 2, y: boardRect.height / 2 };
+
+} else {
+
+targetEl = document.getElementById(`char-${id}`);
+
+}
+
+
+if (targetEl) {
+
+const rect = targetEl.getBoundingClientRect();
+
+return {
+
+// Calculate center position relative to the board's top-left corner
+
+x: (rect.left + rect.width / 2) - boardRect.left,
+
+y: (rect.top + rect.height / 2) - boardRect.top
+
+};
+
+}
+
+// Fallback to center if element not found
+
+return { x: boardRect.width / 2, y: boardRect.height / 2 };
+
+};
+
+
+/** Animates the planchette to a target character position. */
+
+const movePlanchette = (targetId) => {
+
+return new Promise(resolve => {
+
+const targetPos = getTargetPosition(targetId);
+
+planchette.style.left = `${targetPos.x}px`;
+
+planchette.style.top = `${targetPos.y}px`;
+
+
+const moveDuration = 1500; 
+
+// Wait for the CSS transition to complete
+
+setTimeout(resolve, moveDuration);
+
+});
+
+};
+
+
+// --- UI Control Functions ---
+
+const showMenu = () => {
+
+stopTimer();
+
+document.getElementById('gm-modal-overlay').classList.remove('hidden');
+
+document.getElementById('game-container').classList.add('hidden');
+
+document.getElementById('gm-ready-section').style.display = 'block';
+
+document.getElementById('settings-modal-overlay').classList.add('hidden');
+
+document.getElementById('conjuration-modal-overlay').classList.add('hidden');
+
+document.getElementById('ritual-status').textContent = 'Ask your question...';
+
+};
+
+
+// Step 2: Show Conjuration Script
+
+const showConjurationScript = () => {
+
+document.getElementById('gm-modal-overlay').classList.add('hidden');
+
+document.getElementById('conjuration-modal-overlay').classList.remove('hidden');
+
+const randomIndex = Math.floor(Math.random() * conjurationScripts.length);
+
+document.getElementById('conjuration-script-display').textContent = conjurationScripts[randomIndex];
+
+};
+
+
+// Step 3: Start Game Implementation
+
+const startGameImpl = () => {
+
+document.getElementById('conjuration-modal-overlay').classList.add('hidden');
+
+document.getElementById('game-container').classList.remove('hidden');
+
+startTimer();
+
+};
+
+
+
+const showSettings = () => {
+
+document.getElementById('gm-modal-overlay').classList.add('hidden');
+
+document.getElementById('settings-modal-overlay').classList.remove('hidden');
+
+// Ensure UI reflects current state when opening
+
+document.getElementById('toggle-reverse-no').checked = spiritRules.reverseNo;
+
+document.querySelector(`input[name="maxWords"][value="${spiritRules.maxWords}"]`).checked = true;
+
+};
+
+
+const closeSettings = () => {
+
+showMenu();
+
+};
+
+
+// --- Settings Logic ---
+
+
+const updateSpiritRules = (e) => {
+
+const target = e.target;
+
+if (target.id === 'toggle-reverse-no') {
+
+spiritRules.reverseNo = target.checked;
+
+} else if (target.name === 'maxWords') {
+
+spiritRules.maxWords = parseInt(target.value, 10);
+
+}
+
+console.log("Updated Spirit Rules:", spiritRules);
+
+};
+
+
+
+// --- Core Game Logic ---
+
+
+/** Initializes the letter/number grids dynamically for responsive positioning. */
+
+const initializeBoard = () => {
+
+const letterGrid = document.getElementById('letter-grid');
+
+const numberGrid = document.getElementById('number-grid');
+
+const boardEl = document.getElementById('ouija-board');
+
+
+// 1. Letters (A-Z)
+
+const letters = CHARACTER_MAP.slice(0, 26).split('');
+
+letterGrid.innerHTML = letters.map(char => 
+
+`<div id="char-${char}" class="grid-item">${char}</div>`
+
+).join('');
+
+
+// 2. Numbers (1-9, 0)
+
+const numbers = '1234567890'.split('');
+
+numberGrid.innerHTML = numbers.map(num => 
+
+`<div id="char-${num}" class="grid-item">${num}</div>`
+
+).join('');
+
+
+// 3. Initial Planchette Position (Board Center, relative to board)
+
+setTimeout(() => {
+
+planchette.style.left = `${boardEl.clientWidth / 2}px`;
+
+planchette.style.top = `${boardEl.clientHeight / 2}px`;
+
+planchette.classList.remove('hidden');
+
+}, 50);
+
+
+
+// Update planchette position on window resize
+
+window.addEventListener('resize', () => {
+
+if (!document.getElementById('game-container').classList.contains('hidden') && !isMoving) {
+
+// Recenter planchette on the board center when resizing if not moving
+
+planchette.style.left = `${boardEl.clientWidth / 2}px`;
+
+planchette.style.top = `${boardEl.clientHeight / 2}px`;
+
+}
+
+});
+
+};
+
+
+/** Calls the Gemini API to get a spooky response. */
+
+async function getSpiritAnswer(question) {
+
+ritualStatus.textContent = '...The spirit is gathering its strength...';
+
+answerDisplay.textContent = '';
+
+answerDisplay.classList.add('hidden');
+
+// DYNAMICALLY CONSTRUCT SYSTEM PROMPT BASED ON SETTINGS
+
+let wordConstraint = "";
+
+if (spiritRules.maxWords > 0) {
+
+// Enforce the simple/short rule
+
+wordConstraint = `The response MUST be exactly ${spiritRules.maxWords} word(s) long, short and simple.`;
+
+} else {
+
+wordConstraint = `Keep the response concise, under 20 words.`;
+
+}
+
+
+let reverseNoRule = "";
+
+if (spiritRules.reverseNo) {
+
+// Modified rule logic: if 'NO' is intended, substitute with 'APPLE'
+
+reverseNoRule = "If your natural response to the user's question is 'NO', you MUST spell out the word 'APPLE' instead of 'NO'. You MUST do this substitution for any 'NO' response.";
+
+}
+
+
+const systemPrompt = `You are a cryptic, ancient spirit summoned through a Ouija board. Your responses must be chilling and mysterious. 
+
+Only use letters (A-Z), numbers (0-9), YES, or NO. Do not use punctuation or special characters. 
+
+${wordConstraint}
+
+${reverseNoRule}`;
+
+const userQuery = question;
+
+
+const payload = {
+
+contents: [{ parts: [{ text: userQuery }] }],
+
+tools: [{ "google_search": {} }],
+
+systemInstruction: { parts: [{ text: systemPrompt }] },
+
+};
+
+
+const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${API_MODEL}:generateContent?key=${API_KEY}`;
+
+try {
+
+const response = await retry(async () => {
+
+const res = await fetch(apiUrl, {
+
+method: 'POST',
+
+headers: { 'Content-Type': 'application/json' },
+
+body: JSON.stringify(payload)
+
+});
+
+if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+return res.json();
+
+});
+
+
+const text = response.candidates?.[0]?.content?.parts?.[0]?.text;
+
+if (!text) throw new Error("Could not retrieve text from spirit.");
+
+
+// Clean and format the text
+
+let cleanedText = text.toUpperCase()
+
+.replace(/[^A-Z0-9\s]/g, '') 
+
+.replace(/\s+/g, ' ') 
+
+.trim();
+
+
+// Add "GOODBYE" to the end of the response for planchette movement
+
+return cleanedText + " GOODBYE";
+
+
+} catch (error) {
+
+console.error("Gemini API Error:", error);
+
+ritualStatus.textContent = 'The connection was severed! Try again.';
+
+return 'NO ANSWER GOODBYE';
+
+}
+
+}
+
+
+/** Main function to orchestrate the ritual/animation. */
+
+async function runRitual(question) {
+
+if (isMoving || !question) return;
+
+
+isMoving = true;
+
+document.getElementById('ask-btn').disabled = true;
+
+document.getElementById('mic-btn').disabled = true;
+
+document.getElementById('back-to-menu-btn').disabled = true;
+
+
+planchette.classList.remove('opacity-100');
+
+answerDisplay.classList.add('hidden');
+
+answerDisplay.textContent = '';
+
+
+const rawAnswer = await getSpiritAnswer(question);
+
+const answerChars = rawAnswer.split(''); 
+
+let spelledAnswer = '';
+
+let isGoodbyeSequence = false;
+
+
+ritualStatus.textContent = 'The planchette moves...';
+
+for (let i = 0; i < answerChars.length; i++) {
+
+let char = answerChars[i];
+
+let targetId = charToId(char);
+
+
+// --- GOODBYE Detection ---
+
+if (!isGoodbyeSequence && rawAnswer.substring(i, i + 7) === 'GOODBYE') {
+
+isGoodbyeSequence = true;
+
+// Move planchette to the GOODBYE target
+
+await movePlanchette('GOODBYE');
+
+i += 6; // Skip the rest of the letters in "GOODBYE"
+
+break;
+
+}
+
+
+// Special case: "APPLE" substitution (dramatic pause at YES)
+
+if (char === 'A' && rawAnswer.substring(i, i + 5) === 'APPLE' && spiritRules.reverseNo) {
+
+await movePlanchette('YES'); // Move to YES spot dramatically
+
+await new Promise(resolve => setTimeout(resolve, 500)); // Pause briefly
+
+ritualStatus.textContent = 'A strange reversal occurs...';
+
+}
+
+
+// --- Normal Character Movement ---
+
+await movePlanchette(targetId);
+
+if (targetId === 'UNKNOWN') continue;
+
+
+// Only append to display if not in the GOODBYE sequence
+
+if (!isGoodbyeSequence && char !== ' ') {
+
+spelledAnswer += char;
+
+answerDisplay.textContent = spelledAnswer;
+
+answerDisplay.classList.remove('hidden');
+
+}
+
+}
+
+// 3. Conclude Ritual - RESTORED STATUS MESSAGE
+
+ritualStatus.textContent = isGoodbyeSequence ? 'Ritual Complete. The spirit has departed.' : 'Ritual Complete. The connection is severed.';
+
+isMoving = false;
+
+document.getElementById('ask-btn').disabled = false;
+
+document.getElementById('mic-btn').disabled = false;
+
+document.getElementById('back-to-menu-btn').disabled = false;
+
+}
+
+
+// --- Event Handlers ---
+
+
+/** Sets up Speech Recognition for mic input. */
+
+const setupSpeechRecognition = () => {
+
+const micBtn = document.getElementById('mic-btn');
+
+if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+
+micBtn.disabled = true;
+
+micBtn.title = "Speech recognition not supported in this browser.";
+
+return;
+
+}
+
+
+recognition = new (window.webkitSpeechRecognition || window.SpeechRecognition)();
+
+recognition.continuous = false;
+
+recognition.interimResults = false;
+
+recognition.lang = 'en-US';
+
+
+recognition.onstart = () => {
+
+micBtn.innerHTML = '<i class="fas fa-microphone-alt animate-pulse"></i> Listening...';
+
+micBtn.classList.remove('bg-gray-600');
+
+micBtn.classList.add('bg-red-500');
+
+micBtn.disabled = true; 
+
+ritualStatus.textContent = 'Speak your question now...';
+
+};
+
+
+recognition.onresult = (event) => {
+
+const transcript = event.results[0][0].transcript;
+
+document.getElementById('question-input').value = transcript;
+
+runRitual(transcript);
+
+};
+
+
+recognition.onerror = (event) => {
+
+console.error("Speech Recognition Error:", event.error);
+
+micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+
+micBtn.classList.add('bg-gray-600');
+
+micBtn.classList.remove('bg-red-500');
+
+micBtn.disabled = false;
+
+ritualStatus.textContent = 'Mic input failed. Try typing your question.';
+
+};
+
+
+recognition.onend = () => {
+
+micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+
+micBtn.classList.add('bg-gray-600');
+
+micBtn.classList.remove('bg-red-500');
+
+micBtn.disabled = false;
+
+};
+
+
+micBtn.addEventListener('click', () => {
+
+if (isMoving) return;
+
+recognition.start();
+
+});
+
+};
+
+
+/** Handles the 'Ask' button click. */
+
+const handleAsk = () => {
+
+const question = document.getElementById('question-input').value.trim();
+
+if (question) {
+
+runRitual(question);
+
+} else {
+
+ritualStatus.textContent = 'You must ask a question to begin the ritual!';
+
+}
+
+};
+
+
+// --- Initialization on Window Load ---
+
+
+window.onload = async () => {
+
+let loadProgress = 0;
+
+const progressBar = document.getElementById('gm-loading-progress-bar');
+
+const loadingText = document.getElementById('gm-loading-text');
+
+
+const updateProgress = (step, text) => {
+
+loadProgress += step;
+
+progressBar.style.width = `${loadProgress}%`;
+
+loadingText.textContent = `${Math.min(loadProgress, 100).toFixed(0)}% ${text}`;
+
+};
+
+// 1. Firebase/Auth
+
+updateProgress(30, 'Authenticating user and connecting to spirit realm...');
+
+const firebaseData = await window.initFirebase();
+
+db = firebaseData.db;
+
+auth = firebaseData.auth;
+
+userId = firebaseData.userId;
+
+if (userId) {
+
+document.getElementById('user-id-display').textContent = `User ID: ${userId}`;
+
+}
+
+
+updateProgress(30, 'Constructing the board...');
+
+// 2. Board Setup
+
+initializeBoard();
+
+
+updateProgress(30, 'Awaiting spirit connection...');
+
+// 3. Event Listeners
+
+// Step 1: Click "Begin Ritual" -> show Conjuration Script
+
+document.getElementById('start-btn').addEventListener('click', showConjurationScript); 
+
+// Step 2: Click "Conjure the Spirit" -> start Game
+
+document.getElementById('proceed-to-game-btn').addEventListener('click', startGameImpl); 
+
+document.getElementById('settings-btn').addEventListener('click', showSettings);
+
+document.getElementById('close-settings-btn').addEventListener('click', closeSettings);
+
+document.getElementById('back-to-menu-btn').addEventListener('click', showMenu);
+
+document.getElementById('ask-btn').addEventListener('click', handleAsk);
+
+document.getElementById('question-input').addEventListener('keypress', (e) => {
+
+if (e.key === 'Enter') handleAsk();
+
+});
+
+
+// Settings Listeners
+
+document.getElementById('toggle-reverse-no').addEventListener('change', updateSpiritRules);
+
+document.getElementById('word-count-options').addEventListener('change', updateSpiritRules);
+
+
+updateProgress(10, 'Ritual ready.');
+
+// 4. Ready State: Show Main Menu
+
+setTimeout(() => {
+
+document.getElementById('gm-loading-section').style.display = 'none';
+
+document.getElementById('gm-ready-section').style.display = 'block';
+
+document.getElementById('gm-modal-overlay').classList.remove('hidden');
+
+}, 500);
+
+
+// 5. Speech Recognition
+
+setupSpeechRecognition();
+
+};
+
+</script>
+
+</body>
+
+</html>
+
