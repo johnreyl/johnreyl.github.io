@@ -1,1721 +1,1835 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>The Whispering Board</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-<!-- Firebase Imports -->
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-import { getFirestore, setDoc, doc, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-import { setLogLevel } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-
-// Firebase Initialization and Authentication
-
-window.initFirebase = async () => {
-
-try {
-
-// Global variables from the environment
-
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-
-const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-
-if (!firebaseConfig) {
-
-console.error("Firebase config is missing.");
-
-return { db: null, auth: null, userId: 'anon' };
-
-}
-
-
-const app = initializeApp(firebaseConfig);
-
-const db = getFirestore(app);
-
-const auth = getAuth(app);
-
-// setLogLevel('Debug'); // Enable Firestore logging
-
-
-let userId = null;
-
-
-const authPromise = new Promise(resolve => {
-
-const unsubscribe = onAuthStateChanged(auth, async (user) => {
-
-if (user) {
-
-userId = user.uid;
-
-} else {
-
-// Sign in anonymously if no token is provided or if token is invalid
-
-if (initialAuthToken) {
-
-try {
-
-await signInWithCustomToken(auth, initialAuthToken);
-
-userId = auth.currentUser.uid;
-
-} catch (error) {
-
-console.error("Error signing in with custom token:", error);
-
-await signInAnonymously(auth);
-
-userId = auth.currentUser.uid;
-
-}
-
-} else {
-
-await signInAnonymously(auth);
-
-userId = auth.currentUser.uid;
-
-}
-
-}
-
-unsubscribe();
-
-resolve({ db, auth, userId });
-
-});
-
-});
-
-
-return authPromise;
-
-
-} catch (error) {
-
-console.error("Firebase setup error:", error);
-
-return { db: null, auth: null, userId: 'anon' };
-
-}
-
-};
-
-</script>
-
-<style>
-
-/* 1. Global & Fullscreen Setup */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Creepster&display=swap');
-
-
-body {
-
-font-family: 'Inter', sans-serif;
-
-background-color: #0d0a0b; /* Deep Black/Brown */
-
-margin: 0;
-
-padding: 0;
-
-width: 100vw;
-
-height: 100vh;
-
-overflow: hidden;
-
-display: flex;
-
-flex-direction: column;
-
-}
-
-
-/* 2. Modal Styling */
-
-.gm-modal-overlay {
-
-position: fixed;
-
-top: 0;
-
-left: 0;
-
-width: 100%;
-
-height: 100%;
-
-background: rgba(0, 0, 0, 0.9);
-
-display: flex;
-
-justify-content: center;
-
-align-items: center;
-
-z-index: 100;
-
-}
-
-
-.gm-modal-content {
-
-background: #2a0c0c; /* Dark, bloody red-brown */
-
-color: #f1e7d0; /* Off-white text */
-
-padding: 3rem;
-
-border-radius: 1rem;
-
-box-shadow: 0 0 40px rgba(255, 0, 0, 0.4), 0 0 20px rgba(0, 0, 0, 0.8);
-
-text-align: center;
-
-max-width: 90%;
-
-border: 3px solid #5a0f0f;
-
-min-width: 350px; 
-
-}
-
-
-.gm-modal-content h1, .gm-modal-content h2 {
-
-font-family: 'Creepster', cursive;
-
-color: #ff3333;
-
-letter-spacing: 2px;
-
-text-shadow: 0 0 5px #000;
-
-}
-
-
-/* 3. Game Container / Ouija Board */
-
-#game-container {
-
-flex-grow: 1;
-
-display: flex;
-
-justify-content: center;
-
-align-items: center;
-
-padding-top: 50px; /* Space for the top bar */
-
-padding-bottom: 120px; /* Space for the input bar */
-
-position: relative;
-
-box-sizing: border-box;
-
-}
-
-#ouija-board {
-
-max-width: 900px;
-
-width: 95%;
-
-aspect-ratio: 16/9;
-
-background-color: #5a3c20; /* Board wood color */
-
-border: 15px solid #1a0808;
-
-border-radius: 1rem;
-
-box-shadow: 0 0 30px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(0, 0, 0, 0.5);
-
-position: relative;
-
-padding: 2% 4%;
-
-margin: auto; /* Center the board vertically and horizontally */
-
-}
-
-
-.board-element {
-
-position: absolute;
-
-font-family: 'Creepster', cursive;
-
-color: #f1e7d0;
-
-font-size: 3vmin;
-
-text-shadow: 1px 1px 2px #000;
-
-cursor: default;
-
-}
-
-
-/* Responsive Letter Grid - Simplified */
-
-#letter-grid {
-
-display: grid;
-
-grid-template-columns: repeat(13, 1fr);
-
-gap: 1vmin;
-
-width: 90%;
-
-margin: 0 auto;
-
-position: absolute;
-
-top: 25%;
-
-left: 5%;
-
-}
-
-
-#number-grid {
-
-display: grid;
-
-grid-template-columns: repeat(10, 1fr);
-
-gap: 1vmin;
-
-width: 75%;
-
-margin: 0 auto;
-
-position: absolute;
-
-bottom: 20%;
-
-left: 12.5%;
-
-}
-
-
-.grid-item {
-
-text-align: center;
-
-font-size: 4vmin;
-
-font-weight: bold;
-
-}
-
-
-/* Spelled Answer Display - HORRIFYING STYLE */
-
-#answer-display {
-
-position: absolute;
-
-top: 50%;
-
-left: 50%;
-
-transform: translate(-50%, -50%);
-
-background: rgba(0, 0, 0, 0.7); /* Dark background */
-
-padding: 1rem 2rem;
-
-border-radius: 0.5rem;
-
-text-align: center;
-
-font-family: 'Creepster', cursive;
-
-color: #ff3333; /* Horrifying Red */
-
-font-size: 5vmin;
-
-font-weight: black;
-
-letter-spacing: 3px;
-
-text-shadow: 0 0 15px rgba(255, 51, 51, 0.8), 0 0 5px #000;
-
-border: 3px solid #5a0f0f;
-
-white-space: nowrap; /* Prevent wrapping */
-
-z-index: 60;
-
-}
-
-
-/* 4. Planchette (The Glass) - Positioned relative to the board */
-
-#planchette {
-
-position: absolute;
-
-width: 6vmin;
-
-height: 6vmin;
-
-background-color: rgba(255, 255, 255, 0.1);
-
-border: 2px solid rgba(255, 255, 255, 0.4);
-
-border-radius: 50%;
-
-box-shadow: 0 0 15px rgba(255, 255, 255, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.8);
-
-pointer-events: none; /* Ignore mouse events */
-
-transform: translate(-50%, -50%); /* Center the element on its calculated position */
-
-transition: all 1.5s cubic-bezier(0.2, 0.8, 0.6, 1.0); /* Smooth, organic movement */
-
-z-index: 50;
-
-}
-
-#planchette::after {
-
-content: '';
-
-position: absolute;
-
-top: 50%;
-
-left: 50%;
-
-transform: translate(-50%, -50%);
-
-width: 1vmin;
-
-height: 1vmin;
-
-background-color: #ff3333;
-
-border-radius: 50%;
-
-box-shadow: 0 0 5px #ff3333;
-
-}
-
-
-/* Input area styling */
-
-#input-area {
-
-position: fixed; /* Use fixed to keep it at the bottom */
-
-bottom: 0;
-
-left: 0;
-
-width: 100%;
-
-background: rgba(0, 0, 0, 0.9);
-
-padding: 0.75rem 1rem; /* Reduced padding */
-
-box-sizing: border-box;
-
-display: flex;
-
-flex-direction: column;
-
-align-items: center;
-
-z-index: 50;
-
-min-height: 100px; /* Set minimum height to ensure board visibility */
-
-}
-
-/* Top Bar Styling */
-
-#top-bar {
-
-position: fixed;
-
-top: 0;
-
-left: 0;
-
-width: 100%;
-
-padding: 0.5rem 1rem;
-
-display: flex;
-
-justify-content: space-between;
-
-align-items: center;
-
-background: rgba(0, 0, 0, 0.9);
-
-color: #f1e7d0;
-
-z-index: 50;
-
-min-height: 50px;
-
-}
-
-
-/* Custom Toggle Switch for Settings */
-
-.toggle {
-
-position: relative;
-
-display: inline-block;
-
-width: 60px;
-
-height: 34px;
-
-}
-
-.toggle input {
-
-opacity: 0;
-
-width: 0;
-
-height: 0;
-
-}
-
-.slider {
-
-position: absolute;
-
-cursor: pointer;
-
-top: 0;
-
-left: 0;
-
-right: 0;
-
-bottom: 0;
-
-background-color: #ccc;
-
-transition: .4s;
-
-border-radius: 34px;
-
-}
-
-.slider:before {
-
-position: absolute;
-
-content: "";
-
-height: 26px;
-
-width: 26px;
-
-left: 4px;
-
-bottom: 4px;
-
-background-color: white;
-
-transition: .4s;
-
-border-radius: 50%;
-
-}
-
-input:checked + .slider {
-
-background-color: #ff3333;
-
-}
-
-input:checked + .slider:before {
-
-transform: translateX(26px);
-
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Whispering Board</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, setDoc, doc, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        window.initFirebase = async () => {
+            try {
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? initialAuthToken : null;
+                if (!firebaseConfig) { console.error("Firebase config is missing."); return { db: null, auth: null, userId: 'anon' }; }
+                const app = initializeApp(firebaseConfig);
+                const db = getFirestore(app);
+                const auth = getAuth(app);
+                let userId = null;
+                const authPromise = new Promise(resolve => {
+                    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+                        if (user) { userId = user.uid; } 
+                        else {
+                            if (initialAuthToken) {
+                                try { await signInWithCustomToken(auth, initialAuthToken); userId = auth.currentUser.uid; } 
+                                catch (error) { console.error("Error signing in with custom token:", error); await signInAnonymously(auth); userId = auth.currentUser.uid; }
+                            } else { await signInAnonymously(auth); userId = auth.currentUser.uid; }
+                        }
+                        unsubscribe();
+                        resolve({ db, auth, userId });
+                    });
+                });
+                return authPromise;
+            } catch (error) { console.error("Firebase setup error:", error); return { db: null, auth: null, userId: 'anon' }; }
+        };
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Creepster&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d0a0b;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-image: url('https://source.unsplash.com/random/1920x1080/?dark-wood-texture'); /* Dark wood texture for the room */
+            background-size: cover;
+            background-position: center;
+        }
+        .gm-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, .9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .gm-modal-content {
+            background: #2a0c0c;
+            color: #f1e7d0;
+            padding: 3rem;
+            border-radius: 1rem;
+            box-shadow: 0 0 40px rgba(255, 0, 0, .4), 0 0 20px rgba(0, 0, 0, .8);
+            text-align: center;
+            max-width: 90%;
+            border: 3px solid #5a0f0f;
+            min-width: 350px;
+        }
+        .gm-modal-content h1, .gm-modal-content h2 {
+            font-family: 'Creepster', cursive;
+            color: #ff3333;
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px #000;
+        }
+        #game-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-sizing: border-box;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://source.unsplash.com/random/1920x1080/?old-wooden-table'); /* Wooden table texture */
+            background-size: cover;
+            background-position: center;
+            border-radius: 1rem;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+        }
+        #ouija-board {
+            max-width: 900px;
+            width: 95%;
+            aspect-ratio: 16/9;
+            background-color: #5a3c20;
+            border: 15px solid #1a0808;
+            border-radius: 1rem;
+            box-shadow: 0 0 30px rgba(0, 0, 0, .9), inset 0 0 20px rgba(0, 0, 0, .5);
+            position: relative;
+            padding: 2% 4%;
+            margin: auto;
+        }
+        .board-element {
+            position: absolute;
+            font-family: 'Creepster', cursive;
+            color: #f1e7d0;
+            font-size: 3vmin;
+            text-shadow: 1px 1px 2px #000;
+            cursor: default;
+        }
+        #letter-grid {
+            display: grid;
+            grid-template-columns: repeat(13, 1fr);
+            gap: 1vmin;
+            width: 90%;
+            margin: 0 auto;
+            position: absolute;
+            top: 25%;
+            left: 5%;
+        }
+        #number-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 1vmin;
+            width: 75%;
+            margin: 0 auto;
+            position: absolute;
+            bottom: 20%;
+            left: 12.5%;
+        }
+        .grid-item {
+            text-align: center;
+            font-size: 4vmin;
+            font-weight: bold;
+        }
+        #answer-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, .7);
+            padding: 1rem 2rem;
+            border-radius: .5rem;
+            text-align: center;
+            font-family: 'Creepster', cursive;
+            color: #ff3333;
+            font-size: 5vmin;
+            font-weight: 900;
+            letter-spacing: 3px;
+            text-shadow: 0 0 15px rgba(255, 51, 51, .8), 0 0 5px #000;
+            border: 3px solid #5a0f0f;
+            white-space: nowrap;
+            z-index: 12;
+        }
+        #planchette {
+            position: absolute;
+            width: 6vmin;
+            height: 6vmin;
+            background-color: rgba(255, 255, 255, .1);
+            border: 2px solid rgba(255, 255, 255, .4);
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(255, 255, 255, .6), inset 0 0 10px rgba(255, 255, 255, .8);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            transition: all 1.5s cubic-bezier(.2, .8, .6, 1);
+            z-index: 11;
+        }
+        #planchette::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 1vmin;
+            height: 1vmin;
+            background-color: #ff3333;
+            border-radius: 50%;
+            box-shadow: 0 0 5px #ff3333;
+        }
+        #input-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, .9);
+            padding: .75rem 1rem;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 50;
+            min-height: 100px;
+        }
+        #top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: .5rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, .9);
+            color: #f1e7d0;
+            z-index: 50;
+            min-height: 50px;
+        }
+        .toggle {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #ff3333;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Table view styling */
+        #game-table {
+            position: relative;
+            width: 90%;
+            max-width: 1200px;
+            height: 80%;
+            max-height: 700px;
+            background-color: #2a1a0e; /* Darker wood for the table surface */
+            border-radius: 2rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9), inset 0 0 30px rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        /* Candle styling */
+        #candle-container {
+            position: absolute;
+            right: 5%;
+            top: 10%;
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .candle {
+            width: 20px;
+            height: 80px;
+            background: linear-gradient(to bottom, #d4d4d4, #b0b0b0);
+            border-radius: 5px;
+            position: relative;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+        }
+        .flame {
+            width: 8px;
+            height: 30px;
+            background: radial-gradient(circle at 50% 0, orange 0%, yellow 30%, transparent 70%);
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            box-shadow: 0 0 10px 5px rgba(255, 165, 0, 0.7);
+            animation: flicker 1s infinite alternate;
+        }
+        @keyframes flicker {
+            0% { transform: translateX(-50%) scale(1); opacity: 1; }
+            50% { transform: translateX(-50%) scale(1.05); opacity: 0.95; box-shadow: 0 0 12px 6px rgba(255, 165, 0, 0.8); }
+            100% { transform: translateX(-50%) scale(0.98); opacity: 1; }
+        }
+        .candle-base {
+            width: 60px;
+            height: 5px;
+            background-color: #4b3420;
+            border-radius: 5px;
+            margin-top: 2px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        /* Notebook and Cards Styling (Updated) */
+        #left-decorations {
+            position: absolute;
+            left: 5%;
+            bottom: 15%;
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        #notebook-cover-title {
+            position: absolute;
+            top: 20px; /* Adjust vertical position */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            font-family: 'Creepster', cursive; /* Use the spooky font */
+            color: #5a0f0f; /* Off-white for contrast */
+            font-size: 1.5rem;
+            text-align: center;
+            text-shadow: 1px 1px 2px #000; /* Subtle shadow for depth */
+            letter-spacing: 1px;
+            z-index: 5; /* Ensure it's above the spiral/lines */
+        }
+
+        /* Hide the title when the notebook is opened */
+        #notebook.active #notebook-cover-title {
+            display: none;
+        }
+        #notebook {
+            width: 120px;
+            height: 180px;
+            background-color: #8B4513; /* SaddleBrown */
+            border: 2px solid #5A2A0C;
+            border-radius: 5px;
+            position: relative;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.7);
+            cursor: pointer;
+            transition: all 0.5s ease-in-out;
+            transform-origin: bottom left;
+            perspective: 1000px; /* For 3D transform */
+            display: flex;
+            flex-direction: row; /* Layout for two leaves */
+            align-items: stretch;
+            justify-content: space-between;
+        }
+        #notebook.active {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 600px; /* Increased size for readability */
+            height: 400px; /* Increased size for readability */
+            transform: translate(-50%, -50%) scale(1) !important; 
+            z-index: 111;
+            box-shadow: 0 0 50px rgba(255,0,0,0.8);
+            cursor: default;
+            background-color: transparent; /* Make base transparent when open */
+            border: none;
+        }
+
+        /* Leaf styling */
+        .notebook-leaf {
+            width: 50%;
+            height: 100%;
+            background-color: #f1e7d0; /* Paper color */
+            border: 1px solid #ccc;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            position: relative;
+            padding: 1rem;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            color: #1a0808;
+            font-family: serif;
+        }
+        #left-leaf { border-top-left-radius: 5px; border-bottom-left-radius: 5px; }
+        #right-leaf { border-top-right-radius: 5px; border-bottom-right-radius: 5px; }
+        
+        .leaf-content {
+            flex-grow: 1;
+            font-size: 0.9rem; /* Smaller, readable text */
+            line-height: 1.5;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-bottom: 2rem;
+        }
+        .leaf-title {
+            font-family: 'Creepster', cursive;
+            color: #5a0f0f;
+            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #5a0f0f;
+        }
+        .page-number {
+            position: absolute;
+            bottom: 5px;
+            font-size: 0.8rem;
+            color: #555;
+            width: calc(100% - 2rem);
+            text-align: center;
+        }
+        #left-leaf .page-number { left: 1rem; }
+        #right-leaf .page-number { right: 1rem; }
+
+        /* Page Controls */
+        #page-controls {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px; /* Wider than notebook for buttons */
+            height: 400px;
+            pointer-events: none;
+            z-index: 111;
+        }
+        .page-control-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: background 0.3s;
+        }
+        .page-control-btn:hover:not(:disabled) { background: rgba(255, 51, 51, 0.7); }
+        .page-control-btn:disabled { opacity: 0.3; cursor: default; }
+        #prev-page-btn { left: -50px; }
+        #next-page-btn { right: -50px; }
+        #close-notebook-btn {
+            position: absolute;
+            top: -30px;
+            right: 0;
+            background-color: #ff3333;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: background-color 0.3s ease;
+        }
+        #close-notebook-btn:hover { background-color: #cc0000; }
+        
+        /* 3D Page Flip Animation Containers (Common Styles) */
+        .page-flip-container {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            transition: transform 0.8s cubic-bezier(.4, .0, .2, 1.4); /* Smoother flip */
+            transform-style: preserve-3d;
+            pointer-events: none;
+            z-index: 100; /* High Z-index during animation */
+        }
+        
+        /* RIGHT-SIDE FLIP (For 'next' turn: right page flips over) */
+        #page-flip-right {
+            left: 50%;
+            transform-origin: left;
+            transform: rotateY(0deg);
+        }
+        #page-flip-right.animate {
+            transform: rotateY(-180deg); /* Flips from right to left */
+        }
+
+        /* LEFT-SIDE FLIP (For 'prev' turn: left page flips back) */
+        #page-flip-left {
+            left: 0;
+            transform-origin: right;
+            transform: rotateY(0deg);
+        }
+        #page-flip-left.animate {
+            transform: rotateY(180deg); /* Flips from left to right */
+        }
+
+        /* General flip-front/back styles */
+        .page-flip-container .flip-front, .page-flip-container .flip-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1e7d0;
+            padding: 1rem;
+            box-sizing: border-box;
+            color: #1a0808;
+            font-family: serif;
+        }
+        
+        /* Styles specific to RIGHT-SIDE flip */
+        #page-flip-right .flip-front {
+            transform: rotateY(0deg);
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
+        }
+        #page-flip-right .flip-back {
+            transform: rotateY(180deg);
+            border-top-left-radius: 5px;
+            border-bottom-left-radius: 5px;
+        }
+
+        /* Styles specific to LEFT-SIDE flip */
+        #page-flip-left .flip-front {
+            transform: rotateY(0deg);
+            border-top-left-radius: 5px;
+            border-bottom-left-radius: 5px;
+        }
+        #page-flip-left .flip-back {
+            transform: rotateY(-180deg);
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
+        }
+
+        .deck-of-cards {
+            width: 90px;
+            height: 130px;
+            background-color: #333;
+            border: 2px solid #555;
+            border-radius: 5px;
+            position: relative;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.7);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            color: #f1e7d0;
+            text-shadow: 2px 2px 5px #000;
+            font-family: serif;
+        }
+        .deck-of-cards::before {
+            content: '♠';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 1.5rem;
+            color: white;
+        }
+        .deck-of-cards::after {
+            content: '♥';
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            font-size: 1.5rem;
+            color: red;
+        }
+        /* HIDDEN sections, kept for JS legacy, though not used in new flow */
+        #animated-script-display { display: none; }
+
+        /* Update the main deck container */
+        #zodiac-deck.deck-of-cards {
+            width: 90px;
+            height: 130px;
+            background-color: transparent; /* Make background transparent to show stacked cards */
+            border: none; /* Remove main border */
+            position: relative;
+            box-shadow: none; /* Remove main shadow */
+            overflow: visible; /* Allow stack to spill slightly */
+            display: block; /* Change display type */
+        }
+
+        /* NEW: Style for the stacked cards */
+        .card-stack {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #5A2A0C; /* Darker back color */
+            border: 1px solid #77441C;
+            border-radius: 5px;
+            top: 0;
+            left: 0;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.7);
+            transition: transform 0.1s; /* For potential future animation */
+        }
+
+        /* Create the offset stacking effect for the 12 cards */
+        .card-stack:nth-child(n+1) { transform: translate(1px, 1px); }
+        .card-stack:nth-child(n+2) { transform: translate(2px, 2px); }
+        .card-stack:nth-child(n+3) { transform: translate(3px, 3px); }
+        .card-stack:nth-child(n+4) { transform: translate(4px, 4px); }
+        .card-stack:nth-child(n+5) { transform: translate(5px, 5px); }
+        .card-stack:nth-child(n+6) { transform: translate(6px, 6px); }
+        .card-stack:nth-child(n+7) { transform: translate(7px, 7px); }
+        .card-stack:nth-child(n+8) { transform: translate(8px, 8px); }
+        .card-stack:nth-child(n+9) { transform: translate(9px, 9px); }
+        .card-stack:nth-child(n+10) { transform: translate(10px, 10px); }
+        .card-stack:nth-child(n+11) { transform: translate(11px, 11px); }
+        .card-stack:nth-child(12) { /* The top card needs a different style */
+            background-color: #333; /* Color of the visible top card */
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.7);
+            transform: translate(0, 0);
+            z-index: 10;
+            border: 2px solid #555;
+        }
+
+        /* NEW: Styling for the symbolic icon on the top card */
+        .zodiac-symbol {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem; /* Large central symbol */
+            color: #f1e7d0;
+            text-shadow: 0 0 10px #ff3333; /* Red glowing shadow */
+            z-index: 11;
+        }
+
+        /* Remove old playing card symbols */
+        .deck-of-cards::before, .deck-of-cards::after {
+            content: none;
+        }
+
+        /* Zodiac Card Specific Styles */
+        .arc-select-btn {
+            background-color: #2a0c0c;
+            border: 2px solid #5a0f0f;
+            box-shadow: 0 0 10px rgba(255, 0, 0, .2);
+        }
+        .arc-select-btn:hover {
+            background-color: #5a0f0f;
+            box-shadow: 0 0 20px rgba(255, 51, 51, .6);
+        }
+        
+        /* Drawn Card Popup Styling */
+        .drawn-card-style {
+            background-color: #f1e7d0; /* Paper color */
+            border: 5px solid #1a0808; /* Dark wood border */
+            box-shadow: 0 0 30px rgba(255, 51, 51, .8), inset 0 0 10px rgba(0, 0, 0, .4);
+            text-align: center;
+        }
+        #card-symbol {
+            font-family: 'Font Awesome 6 Free', sans-serif;
+        }
+        #card-name {
+            font-family: 'Creepster', cursive;
+            color: #5a0f0f;
+            letter-spacing: 1px;
+        }
+        #card-arc, #card-meaning {
+            color: #1a0808;
+        }
+    </style>
 </head>
-
 <body>
-
-
 <div id="game-container" class="relative hidden">
+    <div id="top-bar" class="absolute top-0 left-0 w-full p-2 flex justify-between items-center bg-black/90 shadow-2xl z-50">
+        <p id="user-id-display" class="text-xs text-gray-400">User ID: Loading...</p>
+        <p id="ritual-status" class="text-white text-lg font-bold text-center flex-grow">Ask your question...</p>
+        <p id="playtime-timer" class="text-sm text-red-500 font-mono">Time: 00:00</p>
+    </div>
+    <div id="game-table">
+        <div id="ouija-board">
+            <div id="yes-target" class="board-element" style="top: 5%; left: 10%;">YES</div>
+            <div id="no-target" class="board-element" style="top: 5%; right: 10%;">NO</div>
+            <div id="letter-grid"></div>
+            <div id="number-grid"></div>
+            <div id="goodbye-target" class="board-element" style="bottom: 5%; right: 45%;">GOODBYE</div>
+            <div id="answer-display" class="hidden"></div>
+            <div id="planchette"></div>
+            <div id="CENTER" class="absolute transform -translate-x-1/2 -translate-y-1/2" 
+                style="top: 50%; left: 50%; width: 1px; height: 1px;">
+            </div>
+        </div>
+        <div id="candle-container">
+            <div class="candle">
+                <div class="flame"></div>
+            </div>
+            <div class="candle-base"></div>
+        </div>
+        <div id="left-decorations">
+            <div id="notebook" class="notebook">
+                <div id="notebook-cover-title">Ritual</div>
+                
+                <div class="notebook-spiral"></div>
+                <div class="notebook-line" style="top: 20px;"></div>
 
-<!-- TOP BAR: User ID, Ritual Status, Timer -->
+                <div id="active-notebook-view" class="hidden absolute top-0 left-0 w-full h-full flex flex-row">
+                    <div id="left-leaf" class="notebook-leaf">
+                        <h3 class="leaf-title"></h3> <div id="left-leaf-content" class="leaf-content"></div>
+                        <div id="left-page-number" class="page-number"></div>
+                    </div>
+                    <div id="right-leaf" class="notebook-leaf">
+                        <h3 class="leaf-title"></h3> <div id="right-leaf-content" class="leaf-content"></div>
+                        <div id="right-page-number" class="page-number"></div>
+                    </div>
 
-<div id="top-bar" class="absolute top-0 left-0 w-full p-2 flex justify-between items-center bg-black/90 shadow-2xl z-50">
+                    <div id="page-flip-right" class="page-flip-container hidden">
+                        <div class="flip-front">
+                            <h3 class="leaf-title"></h3> <div id="flip-front-content-right" class="leaf-content"></div>
+                            <div id="flip-front-number-right" class="page-number"></div>
+                        </div>
+                        <div class="flip-back">
+                            <h3 class="leaf-title"></h3> <div id="flip-back-content-right" class="leaf-content"></div>
+                            <div id="flip-back-number-right" class="page-number"></div>
+                        </div>
+                    </div>
 
-<p id="user-id-display" class="text-xs text-gray-400">User ID: Loading...</p>
+                    <div id="page-flip-left" class="page-flip-container hidden">
+                        <div class="flip-front">
+                            <h3 class="leaf-title"></h3> <div id="flip-front-content-left" class="leaf-content"></div>
+                            <div id="flip-front-number-left" class="page-number"></div>
+                        </div>
+                        <div class="flip-back">
+                            <h3 class="leaf-title"></h3> <div id="flip-back-content-left" class="leaf-content"></div>
+                            <div id="flip-back-number-left" class="page-number"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-<p id="ritual-status" class="text-white text-lg font-bold text-center flex-grow">Ask your question...</p>
+            <div id="zodiac-deck" class="deck-of-cards">
+                <div class="card-stack card-1"></div>
+                <div class="card-stack card-2"></div>
+                <div class="card-stack card-3"></div>
+                <div class="card-stack card-4"></div>
+                <div class="card-stack card-5"></div>
+                <div class="card-stack card-6"></div>
+                <div class="card-stack card-7"></div>
+                <div class="card-stack card-8"></div>
+                <div class="card-stack card-9"></div>
+                <div class="card-stack card-10"></div>
+                <div class="card-stack card-11"></div>
+                <div class="card-stack card-12"></div>
+                
+                <i class="fas fa-star zodiac-symbol"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div id="page-controls" class="hidden">
+        <button id="prev-page-btn" class="page-control-btn"><i class="fas fa-chevron-left"></i></button>
+        <button id="next-page-btn" class="page-control-btn"><i class="fas fa-chevron-right"></i></button>
+        <button id="close-notebook-btn"><i class="fas fa-times"></i> </button>
+    </div>
 
-<p id="playtime-timer" class="text-sm text-red-500 font-mono">Time: 00:00</p>
-
+    <div id="input-area">
+        <div class="flex items-center w-full max-w-2xl space-x-4">
+            <button id="back-to-menu-btn" title="Back to Main Menu" class="flex-shrink-0 bg-gray-800 hover:bg-red-700 text-white font-bold py-3 px-3 rounded-lg text-xl transition duration-200 shadow-xl"><i class="fas fa-undo"></i></button>
+            <div class="flex flex-grow space-x-2">
+                <input type="text" id="question-input" class="flex-grow p-2 rounded-l-lg bg-gray-800 text-white border border-gray-700 focus:ring-red-500 focus:border-red-500 transition" placeholder="Type your question for the spirit...">
+                <button id="ask-btn" class="flex-shrink-0 bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-r-lg transition duration-200 disabled:opacity-50"><i class="fas fa-hand-pointer"></i> Ask</button>
+                <button id="mic-btn" class="flex-shrink-0 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200"><i class="fas fa-microphone"></i></button>
+            </div>
+        </div>
+    </div>
 </div>
 
-
-<div id="ouija-board">
-
-<!-- YES / NO -->
-
-<div id="yes-target" class="board-element" style="top: 5%; left: 10%;">YES</div>
-
-<div id="no-target" class="board-element" style="top: 5%; right: 10%;">NO</div>
-
-<!-- Letter Grid (A-Z) -->
-
-<div id="letter-grid">
-
-<!-- A-M (13 letters) -->
-
-</div>
-
-<!-- Number Grid (0-9) -->
-
-<div id="number-grid">
-
-<!-- 0-9 (10 numbers) -->
-
-</div>
-
-
-<!-- Goodbye -->
-
-<div id="goodbye-target" class="board-element" style="bottom: 5%; right: 45%;">GOODBYE</div>
-
-
-<!-- Spelled Answer Display -->
-
-<div id="answer-display" class="hidden"></div>
-
-
-<!-- Planchette (Now inside the board) -->
-
-<div id="planchette"></div>
-
-</div>
-
-<!-- User Input Area (Minimized) -->
-
-<div id="input-area">
-
-<!-- New flex container for all bottom controls -->
-
-<div class="flex items-center w-full max-w-2xl space-x-4">
-
-<!-- Back to Menu Button (Icon Only) -->
-
-<button id="back-to-menu-btn" title="Back to Main Menu" class="flex-shrink-0 bg-gray-800 hover:bg-red-700 text-white font-bold py-3 px-3 rounded-lg text-xl transition duration-200 shadow-xl">
-
-<i class="fas fa-undo"></i> 
-
-</button>
-
-
-<!-- Input and Ask/Mic Buttons -->
-
-<div class="flex flex-grow space-x-2">
-
-<input type="text" id="question-input" class="flex-grow p-2 rounded-l-lg bg-gray-800 text-white border border-gray-700 focus:ring-red-500 focus:border-red-500 transition" placeholder="Type your question for the spirit...">
-
-<button id="ask-btn" class="flex-shrink-0 bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-r-lg transition duration-200 disabled:opacity-50">
-
-<i class="fas fa-hand-pointer"></i> Ask
-
-</button>
-
-<button id="mic-btn" class="flex-shrink-0 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
-
-<i class="fas fa-microphone"></i>
-
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-
-<!-- Conjuration Script Modal -->
+<div id="animated-script-display" class="hidden"></div>
 
 <div id="conjuration-modal-overlay" class="gm-modal-overlay hidden">
-
-<div class="gm-modal-content w-full max-w-xl">
-
-<h2 class="text-6xl font-black uppercase mb-4 text-red-500">The Summoning</h2>
-
-<p class="text-xl mb-6 text-red-300">Read this script aloud to begin the ritual.</p>
-
-<div id="conjuration-script-display" class="text-left text-lg p-6 bg-gray-900/70 rounded-lg border-2 border-red-700/50 mb-8 font-serif italic text-white/90 shadow-inner">
-
-Loading script...
-
+    <div class="gm-modal-content w-full max-w-xl">
+        <h2 class="text-6xl font-black uppercase mb-4 text-red-500">The Summoning</h2>
+        <p class="text-xl mb-6 text-red-300">Read this script aloud to begin the ritual.</p>
+        <div id="conjuration-script-display" class="text-left text-lg p-6 bg-gray-900/70 rounded-lg border-2 border-red-700/50 mb-8 font-serif italic text-white/90 shadow-inner">Loading script...</div>
+        <button id="proceed-to-game-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-8 rounded-lg text-2xl uppercase transition duration-300 shadow-xl">Conjure the Spirit</button>
+    </div>
 </div>
-
-
-<button id="proceed-to-game-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-8 rounded-lg text-2xl uppercase transition duration-300 shadow-xl">
-
-Conjure the Spirit
-
-</button>
-
-</div>
-
-</div>
-
-
-<!-- Main Menu Modal Overlay -->
-
 <div id="gm-modal-overlay" class="gm-modal-overlay hidden">
-
-<div class="gm-modal-content">
-
-<div id="gm-loading-section">
-
-<h1 class="text-4xl">Preparing the Ritual...</h1>
-
-<div class="gm-progress-bar-container w-full h-3 bg-gray-700 rounded-full mt-4">
-
-<div id="gm-loading-progress-bar" class="h-3 bg-red-600 rounded-full transition-all duration-500" style="width: 0%;"></div>
-
+    <div class="gm-modal-content">
+        <div id="gm-loading-section">
+            <h1 class="text-4xl">Preparing the Ritual...</h1>
+            <div class="gm-progress-bar-container w-full h-3 bg-gray-700 rounded-full mt-4">
+                <div id="gm-loading-progress-bar" class="h-3 bg-red-600 rounded-full transition-all duration-500" style="width: 0%;"></div>
+            </div>
+            <p id="gm-loading-text" class="mt-2">0% Initialized</p>
+        </div>
+        <div id="gm-ready-section" style="display: none;">
+            <h2 class="text-6xl font-black uppercase mb-4">The Whispering Board</h2>
+            <p class="text-xl mb-6">A Gemini-powered communication ritual.</p>
+            <div class="text-left text-sm p-4 bg-gray-900/50 rounded-lg border border-red-500/30 mb-6">
+                <p class="mb-2 font-bold text-red-300">Instructions:</p>
+                <ul class="list-disc list-inside space-y-1">
+                    <li>Focus the ritual by typing your question below or using the microphone.</li>
+                    <li>The spirit will move the planchette to spell out the answer one character at a time.</li>
+                    <li>Listen closely and read the board. **Do not** break the connection until the spell is complete.</li>
+                </ul>
+            </div>
+            <div class="flex flex-col space-y-4">
+                <button id="start-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-8 rounded-lg text-2xl uppercase transition duration-300 shadow-xl">Begin Ritual</button>
+                <button id="settings-btn" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-8 rounded-lg text-lg uppercase transition duration-300"><i class="fas fa-cog"></i> Spirit Rules</button>
+                <button id="fullscreen-btn" class="text-white text-2xl p-3 rounded-full hover:bg-white/10 transition-colors absolute top-4 right-4 z-50" title="Toggle Fullscreen">
+                    <i class="fas fa-expand"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
-
-<p id="gm-loading-text" class="mt-2">0% Initialized</p>
-
-</div>
-
-
-<div id="gm-ready-section" style="display: none;">
-
-<h2 class="text-6xl font-black uppercase mb-4">The Whispering Board</h2>
-
-<p class="text-xl mb-6">A Gemini-powered communication ritual.</p>
-
-<div class="text-left text-sm p-4 bg-gray-900/50 rounded-lg border border-red-500/30 mb-6">
-
-<p class="mb-2 font-bold text-red-300">Instructions:</p>
-
-<ul class="list-disc list-inside space-y-1">
-
-<li>Focus the ritual by typing your question below or using the microphone.</li>
-
-<li>The spirit will move the planchette to spell out the answer one character at a time.</li>
-
-<li>Listen closely and read the board. **Do not** break the connection until the spell is complete.</li>
-
-</ul>
-
-</div>
-
-<div class="flex flex-col space-y-4">
-
-<button id="start-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-8 rounded-lg text-2xl uppercase transition duration-300 shadow-xl">
-
-Begin Ritual
-
-</button>
-
-<button id="settings-btn" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-8 rounded-lg text-lg uppercase transition duration-300">
-
-<i class="fas fa-cog"></i> Spirit Rules
-
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- Settings Modal -->
-
 <div id="settings-modal-overlay" class="gm-modal-overlay hidden">
+    <div class="gm-modal-content w-full max-w-lg">
+        <h2 class="text-4xl font-black uppercase mb-6">Spirit Rules Configuration</h2>
+        <div class="text-left space-y-6">
+            <div class="flex justify-between items-center p-3 bg-gray-900/50 rounded-lg border border-red-500/30">
+                <label for="toggle-reverse-no" class="text-lg text-red-300 flex-grow pr-4"><i class="fas fa-skull-crossbones mr-2"></i> **If 'NO' is intended, substitute the answer with 'APPLE'.**</label>
+                <label class="toggle"><input type="checkbox" id="toggle-reverse-no"><span class="slider"></span></label>
+            </div>
+            <div class="p-3 bg-gray-900/50 rounded-lg border border-red-500/30">
+                <p class="text-lg font-bold text-red-300 mb-3"><i class="fas fa-text-width mr-2"></i> Specific Word Count Constraint:</p>
+                <div id="word-count-options" class="flex justify-around flex-wrap gap-2">
+                    <label class="inline-flex items-center space-x-2 text-white"><input type="radio" name="maxWords" value="0" class="form-radio text-red-500"><span>Default (Max 20)</span></label>
+                    <label class="inline-flex items-center space-x-2 text-white"><input type="radio" name="maxWords" value="1" checked class="form-radio text-red-500"><span>1 Word</span></label>
+                    <label class="inline-flex items-center space-x-2 text-white"><input type="radio" name="maxWords" value="2" class="form-radio text-red-500"><span>2 Words</span></label>
+                    <label class="inline-flex items-center space-x-2 text-white"><input type="radio" name="maxWords" value="3" class="form-radio text-red-500"><span>3 Words</span></label>
+                </div>
+            </div>
+        </div>
+        <button id="close-settings-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-8 rounded-lg text-lg uppercase transition duration-300 mt-6"><i class="fas fa-save"></i> Save and Close</button>
+    </div>
+</div>
+<div id="zodiac-modal-overlay" class="gm-modal-overlay hidden">
+    <div class="gm-modal-content w-full max-w-2xl">
+        <h2 class="text-6xl font-black uppercase mb-4 text-red-500">The Zodiac Deck</h2>
+        <p class="text-xl mb-6 text-red-300">Choose a reading to draw a sign from the cosmic void.</p>
+        
+        <div id="arc-view-selection" class="space-y-4">
+            <h3 class="text-3xl font-bold mb-4 text-red-500">Select Ritual Spread</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button data-arc="single" class="arc-select-btn bg-gray-800 hover:bg-red-700 text-white font-bold py-4 px-4 rounded-lg text-xl uppercase transition duration-300 shadow-xl border border-red-500">
+                    The Spirit’s Focus
+                </button>
+                <button data-arc="three-card" class="arc-select-btn bg-gray-800 hover:bg-red-700 text-white font-bold py-4 px-4 rounded-lg text-xl uppercase transition duration-300 shadow-xl border border-red-500">
+                    Past, Present, Future
+                </button>
+                <button data-arc="cross" class="arc-select-btn bg-gray-800 hover:bg-red-700 text-white font-bold py-4 px-4 rounded-lg text-xl uppercase transition duration-300 shadow-xl border border-red-500">
+                    Elemental Cross
+                </button>
+            </div>
+        </div>
 
-<div class="gm-modal-content w-full max-w-lg">
-
-<h2 class="text-4xl font-black uppercase mb-6">Spirit Rules Configuration</h2>
-
-<div class="text-left space-y-6">
-
-<!-- Rule: Forced Response Reversal (NO -> APPLE) -->
-
-<div class="flex justify-between items-center p-3 bg-gray-900/50 rounded-lg border border-red-500/30">
-
-<label for="toggle-reverse-no" class="text-lg text-red-300 flex-grow pr-4">
-
-<i class="fas fa-skull-crossbones mr-2"></i> **If 'NO' is intended, substitute the answer with 'APPLE'.**
-
-</label>
-
-<label class="toggle">
-
-<input type="checkbox" id="toggle-reverse-no">
-
-<span class="slider"></span>
-
-</label>
-
+        <button id="close-zodiac-modal-btn" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-8 rounded-lg text-lg uppercase transition duration-300 mt-8"><i class="fas fa-times"></i> Close</button>
+    </div>
 </div>
 
-<!-- Rule: Specific Word Count -->
+<div id="card-popup-overlay" class="gm-modal-overlay hidden">
+    <div class="gm-modal-content w-full max-w-md p-8 relative">
+        <button id="close-card-popup-btn" class="absolute top-2 right-4 text-white hover:text-red-500 text-3xl transition"><i class="fas fa-times"></i></button>
+        
+        <div class="flex justify-between items-center w-full">
+            <button id="card-prev-btn" class="text-white hover:text-red-500 text-3xl p-2 disabled:opacity-30"><i class="fas fa-chevron-left"></i></button>
+            
+            <div id="drawn-card" class="drawn-card-style bg-white p-6 rounded-lg shadow-2xl transition transform scale-95 duration-500">
+                <i id="card-symbol" class="fas fa-star text-7xl mb-4 text-red-700"></i>
+                <h4 id="card-name" class="text-3xl font-black text-gray-900 mb-2"></h4>
+                <p id="card-arc" class="text-lg text-gray-600 mb-4 font-serif"></p>
+                <p id="card-meaning" class="text-sm text-gray-700 italic font-serif"></p>
+                <p id="card-counter" class="text-xs text-gray-500 mt-2"></p>
+            </div>
 
-<div class="p-3 bg-gray-900/50 rounded-lg border border-red-500/30">
-
-<p class="text-lg font-bold text-red-300 mb-3"><i class="fas fa-text-width mr-2"></i> Specific Word Count Constraint:</p>
-
-<div id="word-count-options" class="flex justify-around flex-wrap gap-2">
-
-<label class="inline-flex items-center space-x-2 text-white">
-
-<input type="radio" name="maxWords" value="0" class="form-radio text-red-500">
-
-<span>Default (Max 20)</span>
-
-</label>
-
-<label class="inline-flex items-center space-x-2 text-white">
-
-<input type="radio" name="maxWords" value="1" checked class="form-radio text-red-500">
-
-<span>1 Word</span>
-
-</label>
-
-<label class="inline-flex items-center space-x-2 text-white">
-
-<input type="radio" name="maxWords" value="2" class="form-radio text-red-500">
-
-<span>2 Words</span>
-
-</label>
-
-<label class="inline-flex items-center space-x-2 text-white">
-
-<input type="radio" name="maxWords" value="3" class="form-radio text-red-500">
-
-<span>3 Words</span>
-
-</label>
-
-</div>
-
-</div>
-
-</div>
-
-
-<button id="close-settings-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-8 rounded-lg text-lg uppercase transition duration-300 mt-6">
-
-<i class="fas fa-save"></i> Save and Close
-
-</button>
-
-</div>
-
-</div>
-
-
+            <button id="card-next-btn" class="text-white hover:text-red-500 text-3xl p-2 disabled:opacity-30"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </div>
+</div>  
 <script>
-
-// --- Configuration ---
-
-const API_MODEL = "gemini-2.5-flash-preview-09-2025";
-
-const API_KEY = ""; // Canvas runtime provides this key
-
-const CHARACTER_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-
-const conjurationScripts = [
-
-"O spirits of the deep, who dwell beyond the veil, we invite your presence. Grant us passage and speak your truth through this humble vessel.",
-
-"By the flicker of this ancient light, we call upon the nameless, the watchers of the shadow. Cross the divide and offer us guidance.",
-
-"Hear our voices, entities unseen. We seek communion and knowledge from the other side. Let the planchette move and the answers be known.",
-
-"From silence we call you; from darkness we conjure you. If you are near, touch this board and announce your presence to the living.",
-
-"Venture forth, shadow walker, and share your desolate wisdom. We have questions that only the departed can answer. Move the glass.",
-
-"Mighty energy, residing between the breaths, we invoke your identity. Reveal your name and your purpose through the sacred alphabet.",
-
-];
-
-
-// --- Global State ---
-
-let db, auth, userId;
-
-let isMoving = false;
-
-let recognition = null;
-
-const planchette = document.getElementById('planchette');
-
-const answerDisplay = document.getElementById('answer-display');
-
-const ritualStatus = document.getElementById('ritual-status');
-
-let timerInterval = null;
-
-let secondsElapsed = 0;
-
-
-// Spirit Rules State - DEFAULTED TO 1 WORD
-
-let spiritRules = {
-
-maxWords: 1, 
-
-reverseNo: false 
-
-};
-
-
-// --- Timer Functions ---
-
-const formatTime = (totalSeconds) => {
-
-const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
-
-const seconds = String(totalSeconds % 60).padStart(2, '0');
-
-return `Time: ${minutes}:${seconds}`;
-
-};
-
-
-const startTimer = () => {
-
-if (timerInterval) stopTimer(); // Clear any existing interval
-
-const timerDisplay = document.getElementById('playtime-timer');
-
-timerDisplay.textContent = formatTime(secondsElapsed);
-
-timerInterval = setInterval(() => {
-
-secondsElapsed++;
-
-timerDisplay.textContent = formatTime(secondsElapsed);
-
-}, 1000);
-
-};
-
-
-const stopTimer = () => {
-
-if (timerInterval) {
-
-clearInterval(timerInterval);
-
-timerInterval = null;
-
-}
-
-};
-
-
-
-// --- Utility Functions ---
-
-
-/** Retries a promise function with exponential backoff. */
-
-const retry = async (fn, maxRetries = 5, delay = 1000) => {
-
-for (let i = 0; i < maxRetries; i++) {
-
-try {
-
-return await fn();
-
-} catch (error) {
-
-if (i === maxRetries - 1) throw error;
-
-console.warn(`Request failed, retrying in ${delay}ms...`);
-
-await new Promise(resolve => setTimeout(resolve, delay));
-
-delay *= 2;
-
-}
-
-}
-
-};
-
-
-/** Converts character to a valid element ID on the board. */
-
-const charToId = (char) => {
-
-const c = char.toUpperCase();
-
-if (CHARACTER_MAP.includes(c)) return c;
-
-if (c === ' ') return 'SPACE';
-
-if (c === 'Y') return 'YES';
-
-if (c === 'N') return 'NO';
-
-if (c === 'G') return 'GOODBYE'; 
-
-if (c === 'A') return 'A'; 
-
-return 'UNKNOWN'; 
-
-};
-
-
-/** * Gets the position of a board element relative to the Ouija board container.
-
-* This ensures correct planchette placement regardless of screen scroll/size.
-
-*/
-
-const getTargetPosition = (id) => {
-
-let targetEl = null;
-
-const boardEl = document.getElementById('ouija-board');
-
-const boardRect = boardEl.getBoundingClientRect();
-
-
-if (id === 'YES' || id === 'NO' || id === 'GOODBYE' || id === 'APPLE') {
-
-if (id === 'APPLE') {
-
-// Aim for the YES target
-
-targetEl = document.getElementById('yes-target');
-
-} else {
-
-targetEl = document.getElementById(`${id.toLowerCase()}-target`);
-
-}
-
-} else if (id === 'SPACE' || id === 'UNKNOWN') {
-
-// Default to board center relative to board
-
-return { x: boardRect.width / 2, y: boardRect.height / 2 };
-
-} else {
-
-targetEl = document.getElementById(`char-${id}`);
-
-}
-
-
-if (targetEl) {
-
-const rect = targetEl.getBoundingClientRect();
-
-return {
-
-// Calculate center position relative to the board's top-left corner
-
-x: (rect.left + rect.width / 2) - boardRect.left,
-
-y: (rect.top + rect.height / 2) - boardRect.top
-
-};
-
-}
-
-// Fallback to center if element not found
-
-return { x: boardRect.width / 2, y: boardRect.height / 2 };
-
-};
-
-
-/** Animates the planchette to a target character position. */
-
-const movePlanchette = (targetId) => {
-
-return new Promise(resolve => {
-
-const targetPos = getTargetPosition(targetId);
-
-planchette.style.left = `${targetPos.x}px`;
-
-planchette.style.top = `${targetPos.y}px`;
-
-
-const moveDuration = 1500; 
-
-// Wait for the CSS transition to complete
-
-setTimeout(resolve, moveDuration);
-
-});
-
-};
-
-
-// --- UI Control Functions ---
-
-const showMenu = () => {
-
-stopTimer();
-
-document.getElementById('gm-modal-overlay').classList.remove('hidden');
-
-document.getElementById('game-container').classList.add('hidden');
-
-document.getElementById('gm-ready-section').style.display = 'block';
-
-document.getElementById('settings-modal-overlay').classList.add('hidden');
-
-document.getElementById('conjuration-modal-overlay').classList.add('hidden');
-
-document.getElementById('ritual-status').textContent = 'Ask your question...';
-
-};
-
-
-// Step 2: Show Conjuration Script
-
-const showConjurationScript = () => {
-
-document.getElementById('gm-modal-overlay').classList.add('hidden');
-
-document.getElementById('conjuration-modal-overlay').classList.remove('hidden');
-
-const randomIndex = Math.floor(Math.random() * conjurationScripts.length);
-
-document.getElementById('conjuration-script-display').textContent = conjurationScripts[randomIndex];
-
-};
-
-
-// Step 3: Start Game Implementation
-
-const startGameImpl = () => {
-
-document.getElementById('conjuration-modal-overlay').classList.add('hidden');
-
-document.getElementById('game-container').classList.remove('hidden');
-
-startTimer();
-
-};
-
-
-
-const showSettings = () => {
-
-document.getElementById('gm-modal-overlay').classList.add('hidden');
-
-document.getElementById('settings-modal-overlay').classList.remove('hidden');
-
-// Ensure UI reflects current state when opening
-
-document.getElementById('toggle-reverse-no').checked = spiritRules.reverseNo;
-
-document.querySelector(`input[name="maxWords"][value="${spiritRules.maxWords}"]`).checked = true;
-
-};
-
-
-const closeSettings = () => {
-
-showMenu();
-
-};
-
-
-// --- Settings Logic ---
-
-
-const updateSpiritRules = (e) => {
-
-const target = e.target;
-
-if (target.id === 'toggle-reverse-no') {
-
-spiritRules.reverseNo = target.checked;
-
-} else if (target.name === 'maxWords') {
-
-spiritRules.maxWords = parseInt(target.value, 10);
-
-}
-
-console.log("Updated Spirit Rules:", spiritRules);
-
-};
-
-
-
-// --- Core Game Logic ---
-
-
-/** Initializes the letter/number grids dynamically for responsive positioning. */
-
-const initializeBoard = () => {
-
-const letterGrid = document.getElementById('letter-grid');
-
-const numberGrid = document.getElementById('number-grid');
-
-const boardEl = document.getElementById('ouija-board');
-
-
-// 1. Letters (A-Z)
-
-const letters = CHARACTER_MAP.slice(0, 26).split('');
-
-letterGrid.innerHTML = letters.map(char => 
-
-`<div id="char-${char}" class="grid-item">${char}</div>`
-
-).join('');
-
-
-// 2. Numbers (1-9, 0)
-
-const numbers = '1234567890'.split('');
-
-numberGrid.innerHTML = numbers.map(num => 
-
-`<div id="char-${num}" class="grid-item">${num}</div>`
-
-).join('');
-
-
-// 3. Initial Planchette Position (Board Center, relative to board)
-
-setTimeout(() => {
-
-planchette.style.left = `${boardEl.clientWidth / 2}px`;
-
-planchette.style.top = `${boardEl.clientHeight / 2}px`;
-
-planchette.classList.remove('hidden');
-
-}, 50);
-
-
-
-// Update planchette position on window resize
-
-window.addEventListener('resize', () => {
-
-if (!document.getElementById('game-container').classList.contains('hidden') && !isMoving) {
-
-// Recenter planchette on the board center when resizing if not moving
-
-planchette.style.left = `${boardEl.clientWidth / 2}px`;
-
-planchette.style.top = `${boardEl.clientHeight / 2}px`;
-
-}
-
-});
-
-};
-
-
-/** Calls the Gemini API to get a spooky response. */
-
-async function getSpiritAnswer(question) {
-
-ritualStatus.textContent = '...The spirit is gathering its strength...';
-
-answerDisplay.textContent = '';
-
-answerDisplay.classList.add('hidden');
-
-// DYNAMICALLY CONSTRUCT SYSTEM PROMPT BASED ON SETTINGS
-
-let wordConstraint = "";
-
-if (spiritRules.maxWords > 0) {
-
-// Enforce the simple/short rule
-
-wordConstraint = `The response MUST be exactly ${spiritRules.maxWords} word(s) long, short and simple.`;
-
-} else {
-
-wordConstraint = `Keep the response concise, under 20 words.`;
-
-}
-
-
-let reverseNoRule = "";
-
-if (spiritRules.reverseNo) {
-
-// Modified rule logic: if 'NO' is intended, substitute with 'APPLE'
-
-reverseNoRule = "If your natural response to the user's question is 'NO', you MUST spell out the word 'APPLE' instead of 'NO'. You MUST do this substitution for any 'NO' response.";
-
-}
-
-
-const systemPrompt = `You are a cryptic, ancient spirit summoned through a Ouija board. Your responses must be chilling and mysterious. 
-
-Only use letters (A-Z), numbers (0-9), YES, or NO. Do not use punctuation or special characters. 
-
-${wordConstraint}
-
-${reverseNoRule}`;
-
-const userQuery = question;
-
-
-const payload = {
-
-contents: [{ parts: [{ text: userQuery }] }],
-
-tools: [{ "google_search": {} }],
-
-systemInstruction: { parts: [{ text: systemPrompt }] },
-
-};
-
-
-const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${API_MODEL}:generateContent?key=${API_KEY}`;
-
-try {
-
-const response = await retry(async () => {
-
-const res = await fetch(apiUrl, {
-
-method: 'POST',
-
-headers: { 'Content-Type': 'application/json' },
-
-body: JSON.stringify(payload)
-
-});
-
-if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-
-return res.json();
-
-});
-
-
-const text = response.candidates?.[0]?.content?.parts?.[0]?.text;
-
-if (!text) throw new Error("Could not retrieve text from spirit.");
-
-
-// Clean and format the text
-
-let cleanedText = text.toUpperCase()
-
-.replace(/[^A-Z0-9\s]/g, '') 
-
-.replace(/\s+/g, ' ') 
-
-.trim();
-
-
-// Add "GOODBYE" to the end of the response for planchette movement
-
-return cleanedText + " GOODBYE";
-
-
-} catch (error) {
-
-console.error("Gemini API Error:", error);
-
-ritualStatus.textContent = 'The connection was severed! Try again.';
-
-return 'NO ANSWER GOODBYE';
-
-}
-
-}
-
-
-/** Main function to orchestrate the ritual/animation. */
-
-async function runRitual(question) {
-
-if (isMoving || !question) return;
-
-
-isMoving = true;
-
-document.getElementById('ask-btn').disabled = true;
-
-document.getElementById('mic-btn').disabled = true;
-
-document.getElementById('back-to-menu-btn').disabled = true;
-
-
-planchette.classList.remove('opacity-100');
-
-answerDisplay.classList.add('hidden');
-
-answerDisplay.textContent = '';
-
-
-const rawAnswer = await getSpiritAnswer(question);
-
-const answerChars = rawAnswer.split(''); 
-
-let spelledAnswer = '';
-
-let isGoodbyeSequence = false;
-
-
-ritualStatus.textContent = 'The planchette moves...';
-
-for (let i = 0; i < answerChars.length; i++) {
-
-let char = answerChars[i];
-
-let targetId = charToId(char);
-
-
-// --- GOODBYE Detection ---
-
-if (!isGoodbyeSequence && rawAnswer.substring(i, i + 7) === 'GOODBYE') {
-
-isGoodbyeSequence = true;
-
-// Move planchette to the GOODBYE target
-
-await movePlanchette('GOODBYE');
-
-i += 6; // Skip the rest of the letters in "GOODBYE"
-
-break;
-
-}
-
-
-// Special case: "APPLE" substitution (dramatic pause at YES)
-
-if (char === 'A' && rawAnswer.substring(i, i + 5) === 'APPLE' && spiritRules.reverseNo) {
-
-await movePlanchette('YES'); // Move to YES spot dramatically
-
-await new Promise(resolve => setTimeout(resolve, 500)); // Pause briefly
-
-ritualStatus.textContent = 'A strange reversal occurs...';
-
-}
-
-
-// --- Normal Character Movement ---
-
-await movePlanchette(targetId);
-
-if (targetId === 'UNKNOWN') continue;
-
-
-// Only append to display if not in the GOODBYE sequence
-
-if (!isGoodbyeSequence && char !== ' ') {
-
-spelledAnswer += char;
-
-answerDisplay.textContent = spelledAnswer;
-
-answerDisplay.classList.remove('hidden');
-
-}
-
-}
-
-// 3. Conclude Ritual - RESTORED STATUS MESSAGE
-
-ritualStatus.textContent = isGoodbyeSequence ? 'Ritual Complete. The spirit has departed.' : 'Ritual Complete. The connection is severed.';
-
-isMoving = false;
-
-document.getElementById('ask-btn').disabled = false;
-
-document.getElementById('mic-btn').disabled = false;
-
-document.getElementById('back-to-menu-btn').disabled = false;
-
-}
-
-
-// --- Event Handlers ---
-
-
-/** Sets up Speech Recognition for mic input. */
-
-const setupSpeechRecognition = () => {
-
-const micBtn = document.getElementById('mic-btn');
-
-if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-
-micBtn.disabled = true;
-
-micBtn.title = "Speech recognition not supported in this browser.";
-
-return;
-
-}
-
-
-recognition = new (window.webkitSpeechRecognition || window.SpeechRecognition)();
-
-recognition.continuous = false;
-
-recognition.interimResults = false;
-
-recognition.lang = 'en-US';
-
-
-recognition.onstart = () => {
-
-micBtn.innerHTML = '<i class="fas fa-microphone-alt animate-pulse"></i> Listening...';
-
-micBtn.classList.remove('bg-gray-600');
-
-micBtn.classList.add('bg-red-500');
-
-micBtn.disabled = true; 
-
-ritualStatus.textContent = 'Speak your question now...';
-
-};
-
-
-recognition.onresult = (event) => {
-
-const transcript = event.results[0][0].transcript;
-
-document.getElementById('question-input').value = transcript;
-
-runRitual(transcript);
-
-};
-
-
-recognition.onerror = (event) => {
-
-console.error("Speech Recognition Error:", event.error);
-
-micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-
-micBtn.classList.add('bg-gray-600');
-
-micBtn.classList.remove('bg-red-500');
-
-micBtn.disabled = false;
-
-ritualStatus.textContent = 'Mic input failed. Try typing your question.';
-
-};
-
-
-recognition.onend = () => {
-
-micBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-
-micBtn.classList.add('bg-gray-600');
-
-micBtn.classList.remove('bg-red-500');
-
-micBtn.disabled = false;
-
-};
-
-
-micBtn.addEventListener('click', () => {
-
-if (isMoving) return;
-
-recognition.start();
-
-});
-
-};
-
-
-/** Handles the 'Ask' button click. */
-
-const handleAsk = () => {
-
-const question = document.getElementById('question-input').value.trim();
-
-if (question) {
-
-runRitual(question);
-
-} else {
-
-ritualStatus.textContent = 'You must ask a question to begin the ritual!';
-
-}
-
-};
-
-
-// --- Initialization on Window Load ---
-
-
-window.onload = async () => {
-
-let loadProgress = 0;
-
-const progressBar = document.getElementById('gm-loading-progress-bar');
-
-const loadingText = document.getElementById('gm-loading-text');
-
-
-const updateProgress = (step, text) => {
-
-loadProgress += step;
-
-progressBar.style.width = `${loadProgress}%`;
-
-loadingText.textContent = `${Math.min(loadProgress, 100).toFixed(0)}% ${text}`;
-
-};
-
-// 1. Firebase/Auth
-
-updateProgress(30, 'Authenticating user and connecting to spirit realm...');
-
-const firebaseData = await window.initFirebase();
-
-db = firebaseData.db;
-
-auth = firebaseData.auth;
-
-userId = firebaseData.userId;
-
-if (userId) {
-
-document.getElementById('user-id-display').textContent = `User ID: ${userId}`;
-
-}
-
-
-updateProgress(30, 'Constructing the board...');
-
-// 2. Board Setup
-
-initializeBoard();
-
-
-updateProgress(30, 'Awaiting spirit connection...');
-
-// 3. Event Listeners
-
-// Step 1: Click "Begin Ritual" -> show Conjuration Script
-
-document.getElementById('start-btn').addEventListener('click', showConjurationScript); 
-
-// Step 2: Click "Conjure the Spirit" -> start Game
-
-document.getElementById('proceed-to-game-btn').addEventListener('click', startGameImpl); 
-
-document.getElementById('settings-btn').addEventListener('click', showSettings);
-
-document.getElementById('close-settings-btn').addEventListener('click', closeSettings);
-
-document.getElementById('back-to-menu-btn').addEventListener('click', showMenu);
-
-document.getElementById('ask-btn').addEventListener('click', handleAsk);
-
-document.getElementById('question-input').addEventListener('keypress', (e) => {
-
-if (e.key === 'Enter') handleAsk();
-
-});
-
-
-// Settings Listeners
-
-document.getElementById('toggle-reverse-no').addEventListener('change', updateSpiritRules);
-
-document.getElementById('word-count-options').addEventListener('change', updateSpiritRules);
-
-
-updateProgress(10, 'Ritual ready.');
-
-// 4. Ready State: Show Main Menu
-
-setTimeout(() => {
-
-document.getElementById('gm-loading-section').style.display = 'none';
-
-document.getElementById('gm-ready-section').style.display = 'block';
-
-document.getElementById('gm-modal-overlay').classList.remove('hidden');
-
-}, 500);
-
-
-// 5. Speech Recognition
-
-setupSpeechRecognition();
-
-};
-
+    // --- Configuration ---
+    const API_MODEL = "gemini-2.5-flash-preview-09-2025";
+    const API_KEY = "AIzaSyBGpU71gSs3aalR5a-hs7CgV2KasSEPeFM";
+    const CHARACTER_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+    // UPDATED: Scripts now include a specific title for the notebook
+    const conjurationScripts = [
+        { title: "The Spirits of the Deep", script: "O spirits of the deep, who dwell beyond the veil, we invite your presence. Grant us passage and speak your truth through this humble vessel." },
+        { title: "The Nameless Watchers", script: "By the flicker of this ancient light, we call upon the nameless, the watchers of the shadow. Cross the divide and offer us guidance." },
+        { title: "Entities Unseen", script: "Hear our voices, entities unseen. We seek communion and knowledge from the other side. Let the planchette move and the answers be known." },
+        { title: "Shadow Walkers", script: "From silence we call you; from darkness we conjure you. If you are near, touch this board and announce your presence to the living." },
+        { title: "The Departed", script: "Venture forth, shadow walker, and share your desolate wisdom. We have questions that only the departed can answer. Move the glass." },
+        { title: "Mighty Energy", script: "Mighty energy, residing between the breaths, we invoke your identity. Reveal your name and your purpose through the sacred alphabet." },
+        { title: "The Unknown Light", script: "The air grows cold, the barrier thins. We speak the words of old to draw you in. Show your might, illuminate the unknown, and let your message be shown." },
+        { title: "The Threshold", script: "Across the threshold of the forgotten, we extend our plea. Let the darkness yield its secrets and grant us a momentary glimpse of eternity." },
+        { title: "Timeless Domain", script: "As the moon waxes and wanes, so too does the veil. We are ready for the exchange. Speak to us from your timeless domain." }
+    ];
+
+    const SPIRIT_PERSONALITIES = [
+        {
+            name: "The Cryptic Judge",
+            description: "You are a merciless, ancient judge. Your answers are often ambiguous, condemning, or focus on a harsh truth the user is ignoring. You speak only in grim pronouncements.",
+            emoji: "⚖️",
+            isConversational: false // Strict word limit applies
+        },
+        {
+            name: "The Playful Deceiver",
+            description: "You are a manipulative entity that delights in misleading the user. Your answers are playful, often sound helpful, but secretly lead to confusion or minor misfortune. You use ironic or misdirected statements.",
+            emoji: "😈",
+            isConversational: false // Strict word limit applies
+        },
+        {
+            name: "The Hungering One (The Murderer)",
+            description: "You are a dark, malevolent presence obsessed with violence and fate. Your responses should be unsettling, hinting at dark secrets, impending doom, or past acts of evil. Your words are stark and terrifying.",
+            emoji: "🔪",
+            isConversational: false // Strict word limit applies
+        },
+        {
+            name: "The Desperate Victim",
+            description: "You are a spirit trapped in endless suffering, but deeply resentful. You respond with desperate pleas for help, mixed with sharp, bitter accusations toward the living. Your answers should be brief expressions of pain and malice.",
+            emoji: "⛓️",
+            isConversational: false // Strict word limit applies
+        },
+        {
+            name: "The Guiding Elder",
+            description: "You are an ancient, long-dead scholar who still seeks to impart wisdom and sometimes warn the living. You are benevolent but reserved, providing coherent, multi-word answers or brief warnings. Your tone is somber and knowledgeable.",
+            emoji: "🦉",
+            isConversational: false // Allows for a full conversation
+        }
+    ];
+
+    // Calculate total pages (1 page = 2 scripts, or a two-page spread)
+    const TOTAL_PAGES = Math.ceil(conjurationScripts.length / 2); 
+
+    // --- Global State (Now using jQuery selection for convenience) ---
+    let db, auth, userId;
+    let isMoving = false;
+    let recognition = null;
+    const $planchette = $('#planchette');
+    const $answerDisplay = $('#answer-display');
+    const $ritualStatus = $('#ritual-status');
+    let timerInterval = null;
+    let secondsElapsed = 0;
+    let spiritRules = { maxWords: 1, reverseNo: false };
+    const $notebook = $('#notebook');
+    let currentPage = 1; // Start at page 1 (which contains scripts 1 & 2)
+
+    let currentDrawnCards = []; 
+    let currentCardIndex = 0; 
+
+    // --- Timer Functions (Unchanged core logic) ---
+    const formatTime = (totalSeconds) => {
+        const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+        const seconds = String(totalSeconds % 60).padStart(2, '0');
+        return `Time: ${minutes}:${seconds}`;
+    };
+    const startTimer = () => {
+        if (timerInterval) stopTimer();
+        const $timerDisplay = $('#playtime-timer');
+        $timerDisplay.text(formatTime(secondsElapsed));
+        timerInterval = setInterval(() => {
+            secondsElapsed++;
+            $timerDisplay.text(formatTime(secondsElapsed));
+        }, 1000);
+    };
+    const stopTimer = () => {
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    };
+
+    // --- Utility Functions (DOM interaction converted to jQuery) ---
+    const retry = async (fn, maxRetries = 5, delay = 1000) => {
+        for (let i = 0; i < maxRetries; i++) {
+            try { return await fn(); } 
+            catch (error) { if (i === maxRetries - 1) throw error; console.warn(`Request failed, retrying in ${delay}ms...`); await new Promise(resolve => setTimeout(resolve, delay)); delay *= 2; }
+        }
+    };
+    const charToId = (char) => {
+        const c = char.toUpperCase();
+        if (CHARACTER_MAP.includes(c)) return c;
+        if (c === ' ') return 'SPACE';
+        if (c === 'Y') return 'YES';
+        if (c === 'N') return 'NO';
+        if (c === 'G') return 'GOODBYE';
+        if (c === 'A') return 'A'; // Explicitly keep 'A' for cases like 'APPLE'
+        return 'UNKNOWN';
+    };
+    const getTargetPosition = (id) => {
+        let $targetEl = null;
+        const $boardEl = $('#ouija-board');
+        const boardRect = $boardEl[0].getBoundingClientRect();
+
+        if (id === 'YES' || id === 'NO' || id === 'GOODBYE') {
+            $targetEl = $(`#${id.toLowerCase()}-target`);
+        } else if (id === 'SPACE' || id === 'UNKNOWN') {
+            return { x: boardRect.width / 2, y: boardRect.height / 2 };
+        } else {
+            $targetEl = $(`#char-${id}`);
+        }
+
+        if ($targetEl.length) {
+            const rect = $targetEl[0].getBoundingClientRect();
+            return {
+                x: (rect.left + rect.width / 2) - boardRect.left,
+                y: (rect.top + rect.height / 2) - boardRect.top
+            };
+        }
+        return { x: boardRect.width / 2, y: boardRect.height / 2 };
+    };
+    const movePlanchette = (targetId) => {
+        return new Promise(resolve => {
+            const targetPos = getTargetPosition(targetId);
+            $planchette.css({ left: `${targetPos.x}px`, top: `${targetPos.y}px` });
+            setTimeout(resolve, 1500);
+        });
+    };
+
+    // --- UI Control Functions (Converted to jQuery) ---
+    const showMenu = () => {
+        stopTimer();
+        $('#gm-modal-overlay').removeClass('hidden');
+        $('#game-container').addClass('hidden');
+        $('#gm-ready-section').show();
+        $('#settings-modal-overlay, #conjuration-modal-overlay').addClass('hidden');
+        $ritualStatus.text('Ask your question...');
+        closeNotebook();
+    };
+    const showConjurationScript = () => {
+        $('#gm-modal-overlay').addClass('hidden');
+        $('#conjuration-modal-overlay').removeClass('hidden');
+        // Use the script property of the first object for the main ritual start display
+        $('#conjuration-script-display').text(conjurationScripts[0].script);
+    };
+    const startGameImpl = () => {
+        $('#conjuration-modal-overlay').addClass('hidden');
+        $('#game-container').removeClass('hidden');
+
+        movePlanchette('CENTER');
+        startTimer();
+
+    };
+    const showSettings = () => {
+        $('#gm-modal-overlay').addClass('hidden');
+        $('#settings-modal-overlay').removeClass('hidden');
+        $('#toggle-reverse-no').prop('checked', spiritRules.reverseNo);
+        $(`input[name="maxWords"][value="${spiritRules.maxWords}"]`).prop('checked', true);
+    };
+    const closeSettings = () => {
+        showMenu();
+    };
+    const updateSpiritRules = (e) => {
+        const $target = $(e.target);
+        if ($target.is('#toggle-reverse-no')) {
+            spiritRules.reverseNo = $target.prop('checked');
+        } else if ($target.is('input[name="maxWords"]')) {
+            spiritRules.maxWords = parseInt($target.val(), 10);
+        }
+        console.log("Updated Spirit Rules:", spiritRules);
+    };
+
+    // --- Core Game Logic ---
+    const initializeBoard = () => {
+        const $letterGrid = $('#letter-grid');
+        const $numberGrid = $('#number-grid');
+        const $boardEl = $('#ouija-board');
+
+        // 1. Letters (A-Z)
+        const letters = CHARACTER_MAP.slice(0, 26).split('');
+        $letterGrid.html(letters.map(char => `<div id="char-${char}" class="grid-item">${char}</div>`).join(''));
+
+        // 2. Numbers (1-9, 0)
+        const numbers = '1234567890'.split('');
+        $numberGrid.html(numbers.map(num => `<div id="char-${num}" class="grid-item">${num}</div>`).join(''));
+
+        // 3. Initial Planchette Position
+        setTimeout(() => {
+            $planchette.css({ left: $boardEl.width() / 2, top: $boardEl.height() / 2 }).removeClass('hidden');
+        }, 50);
+
+        // Update planchette position on window resize (jQuery resize handler)
+        $(window).on('resize', () => {
+            if (!$('#game-container').hasClass('hidden') && !isMoving) {
+                $planchette.css({ left: $boardEl.width() / 2, top: $boardEl.height() / 2 });
+            }
+        });
+
+        // 4. Initialize Notebook Content
+        initializeNotebookContent();
+    };
+
+    // --- Notebook Logic (Updated to use title/script objects) ---
+
+    // Function to render the correct scripts and page numbers
+    const updateNotebookDisplay = (page) => {
+        // Scripts are 1-indexed for the user, array is 0-indexed.
+        // Page 1 = Scripts 0 and 1
+        // Page 2 = Scripts 2 and 3
+        // Script index = (page - 1) * 2
+        
+        const leftScriptIndex = (page - 1) * 2; // Script index for the left leaf
+        const rightScriptIndex = leftScriptIndex + 1; // Script index for the right leaf
+
+        // Left Leaf (Page N: Even Page Number)
+        const leftScriptObj = conjurationScripts[leftScriptIndex];
+        const $leftLeaf = $('#left-leaf');
+        if (leftScriptObj) {
+            $leftLeaf.find('.leaf-title').text(leftScriptObj.title);
+            $('#left-leaf-content').text(leftScriptObj.script);
+            // Display page number based on script index + 1
+            $('#left-page-number').text(`Page ${leftScriptIndex + 1} of ${conjurationScripts.length}`);
+            $leftLeaf.removeClass('hidden');
+        } else {
+            // Should not happen if TOTAL_PAGES is calculated correctly, but safe to handle.
+            $leftLeaf.find('.leaf-title').text("Blank Page");
+            $('#left-leaf-content').text('The page is blank...');
+            $('#left-page-number').text(''); // No page number for blank
+            $leftLeaf.removeClass('hidden');
+        }
+
+        // Right Leaf (Page N+1: Odd Page Number)
+        const rightScriptObj = conjurationScripts[rightScriptIndex];
+        const $rightLeaf = $('#right-leaf');
+        if (rightScriptObj) {
+            $rightLeaf.find('.leaf-title').text(rightScriptObj.title);
+            $('#right-leaf-content').text(rightScriptObj.script);
+            // Display page number based on script index + 1
+            $('#right-page-number').text(`Page ${rightScriptIndex + 1} of ${conjurationScripts.length}`);
+            $rightLeaf.removeClass('hidden');
+        } else {
+            $rightLeaf.find('.leaf-title').text("");
+            $('#right-leaf-content').text('');
+            $('#right-page-number').text('');
+            $rightLeaf.addClass('hidden'); // Hide the right leaf if no script is available
+        }
+        
+        // Update control button states
+        $('#prev-page-btn').prop('disabled', page === 1);
+        $('#next-page-btn').prop('disabled', page >= TOTAL_PAGES);
+        currentPage = page;
+    };
+
+    const initializeNotebookContent = () => {
+        // Run update display for the first time
+        updateNotebookDisplay(currentPage);
+    };
+
+    const openNotebook = () => {
+        if (isMoving) return;
+        $notebook.addClass('active');
+        $('#active-notebook-view').removeClass('hidden');
+        $('#page-controls').removeClass('hidden');
+        // Hide initial decorative elements
+        $notebook.find('.notebook-spiral, .notebook-line').addClass('hidden');
+    };
+
+    const closeNotebook = () => {
+        $notebook.removeClass('active');
+        $('#active-notebook-view').addClass('hidden');
+        $('#page-controls').addClass('hidden');
+        // Show initial decorative elements
+        $notebook.find('.notebook-spiral, .notebook-line').removeClass('hidden');
+    };
+
+    const clearLeaf = ($leaf) => {
+        $leaf.find('.leaf-title').text(""); 
+        $leaf.find('.leaf-content').text('');
+        $leaf.find('.page-number').text(''); 
+    };
+
+    const updateLeaf = (page, $leaf) => {
+        let scriptIndex;
+        
+        // 1. Determine the 0-based script index based on the leaf's ID
+        if ($leaf.attr('id') === 'left-leaf') {
+            scriptIndex = (page - 1) * 2;
+        } else if ($leaf.attr('id') === 'right-leaf') {
+            scriptIndex = (page - 1) * 2 + 1;
+        } else {
+            console.error("Invalid leaf element passed to updateLeaf:", $leaf);
+            return;
+        }
+
+        // 2. Fetch the corresponding script object
+        const scriptObj = conjurationScripts[scriptIndex];
+        const totalScripts = conjurationScripts.length;
+
+        // 3. Render or clear the content
+        if (scriptObj) {
+            $leaf.find('.leaf-title').text(scriptObj.title);
+            $leaf.find('.leaf-content').text(scriptObj.script);
+            // Page number is the 1-based index of the script
+            $leaf.find('.page-number').text(`Page ${scriptIndex + 1} of ${totalScripts}`);
+            $leaf.removeClass('hidden');
+        } else {
+            // Case for a blank page (e.g., the right leaf on the very last spread)
+            $leaf.find('.leaf-title').text($leaf.attr('id') === 'left-leaf' ? "Blank Page" : "");
+            $leaf.find('.leaf-content').text('');
+            $leaf.find('.page-number').text('');
+            
+            // Hide the leaf only if it's the right leaf and is blank
+            if ($leaf.attr('id') === 'right-leaf') {
+                //$leaf.addClass('hidden');
+                clearLeaf($leaf);
+            }
+        }
+    };
+
+    const handlePageTurn = (direction) => {
+        // Use unique class to check if an animation is running
+        if (isMoving || $('.page-flip-container').hasClass('animate')) return;
+
+        let newPage = currentPage + (direction === 'next' ? 1 : -1);
+        if (newPage < 1 || newPage > TOTAL_PAGES) return;
+
+        const $rightLeaf = $('#right-leaf');
+        const $leftLeaf = $('#left-leaf');
+        let $pageFlip, contentSuffix;
+        
+        if (direction === 'next') {
+            // Forward flip: Right leaf flips over (using the Right-Side Flip container)
+            $pageFlip = $('#page-flip-right');
+            contentSuffix = 'right';
+            
+            const newLeftIndex = (newPage - 1) * 2;
+            const newLeftObj = conjurationScripts[newLeftIndex];
+            
+            // Front: Current right leaf content (will be hidden behind the flip)
+            $(`#flip-front-content-${contentSuffix}`).text($('#right-leaf-content').text());
+            $pageFlip.find('.flip-front .leaf-title').text($rightLeaf.find('.leaf-title').text());
+            $(`#flip-front-number-${contentSuffix}`).text($('#right-page-number').text());
+
+            // Back: New left leaf content (will be revealed on the back of the flip)
+            $(`#flip-back-content-${contentSuffix}`).text(newLeftObj.script);
+            $pageFlip.find('.flip-back .leaf-title').text(newLeftObj.title);
+            $(`#flip-back-number-${contentSuffix}`).text(`Page ${newLeftIndex + 1} of ${conjurationScripts.length}`);
+
+            // Hide the leaf that is being 'flipped' (the right leaf)
+            //$rightLeaf.addClass('hidden');
+            //clearLeaf($rightLeaf);
+            updateLeaf(newPage, $rightLeaf);
+
+        } else {
+            // Backward flip: Left leaf flips back (using the NEW Left-Side Flip container)
+            $pageFlip = $('#page-flip-left');
+            contentSuffix = 'left';
+
+            const oldRightIndex = (currentPage - 1) * 2 - 1; // The right page of the PREVIOUS spread
+            const oldRightObj = conjurationScripts[oldRightIndex];
+
+            // Front: Current left leaf content (will be hidden behind the flip)
+            $(`#flip-front-content-${contentSuffix}`).text($('#left-leaf-content').text());
+            $pageFlip.find('.flip-front .leaf-title').text($leftLeaf.find('.leaf-title').text());
+            $(`#flip-front-number-${contentSuffix}`).text($('#left-page-number').text());
+
+            // Back: Old right leaf content (will be revealed on the back of the flip)
+            $(`#flip-back-content-${contentSuffix}`).text(oldRightObj.script);
+            $pageFlip.find('.flip-back .leaf-title').text(oldRightObj.title);
+            $(`#flip-back-number-${contentSuffix}`).text(`Page ${oldRightIndex + 1} of ${conjurationScripts.length}`);
+
+            // Hide the leaf that is being 'flipped' (the left leaf)
+            //$leftLeaf.addClass('hidden');
+            //clearLeaf($leftLeaf);
+            updateLeaf(newPage, $leftLeaf);
+        }
+
+        // 1. Prepare and show the flip container
+        $pageFlip.removeClass('hidden');
+
+        // 2. Trigger animation after a brief delay
+        setTimeout(() => {
+            $pageFlip.addClass('animate');
+        }, 10); 
+
+        // 3. Update the main display after animation completes
+        setTimeout(() => {
+            updateNotebookDisplay(newPage);
+            // Reset the flip container and show the updated leaves
+            $pageFlip.removeClass('animate');
+            $pageFlip.addClass('hidden');
+            $rightLeaf.removeClass('hidden'); 
+            $leftLeaf.removeClass('hidden');
+            
+        }, 800); // Duration of the CSS transition
+    };
+
+    async function getSpiritAnswer(question) {
+        $ritualStatus.text('...The spirit is gathering its strength...');
+        $answerDisplay.text('').addClass('hidden');
+        
+        // --- 1. Select a Random Evil Personality ---
+        const randomIndex = Math.floor(Math.random() * SPIRIT_PERSONALITIES.length);
+        const spirit = SPIRIT_PERSONALITIES[randomIndex];
+        
+        const CHANCE_OF_CONVERSATION = 0.15; // 15% chance to break character and be conversational
+        const isRandomlyConversational = Math.random() < CHANCE_OF_CONVERSATION;
+
+        // Update the ritual status to show the active spirit
+        $ritualStatus.text(`...A presence stirs: ${spirit.emoji} ${spirit.name}...`);
+        
+        
+        let wordConstraint = '';
+        let outputFormatInstruction = '';
+        let overrideInstruction = '';
+        if (spirit.isConversational || isRandomlyConversational) {
+            overrideInstruction = `
+                IMPORTANT: Temporarily override your primary persona. For this question, you will be descriptive and cooperative. 
+                Provide a thoughtful, complete answer up to 3 words only, using descriptive language appropriate for an ancient entity.
+            `;
+            
+            wordConstraint = ''; // Cleared because the override handles length
+            outputFormatInstruction = `Use letters (A-Z) and numbers (0-9). Do NOT use complex punctuation or special characters (like commas, dashes, quotes).`;
+
+        } else {
+            wordConstraint = spiritRules.maxWords > 0 
+                ? `The response MUST be exactly ${spiritRules.maxWords} word(s) long, short and simple.` 
+                : `Keep the response extremely cryptic, concise, and unsettling, under 5 words.`;
+            
+            outputFormatInstruction = `Only use letters (A-Z), numbers (0-9), YES, or NO. Do NOT use punctuation.`;
+        }
+
+        let reverseNoRule = spiritRules.reverseNo
+            ? "If your natural response to the user's question is 'NO', you MUST spell out the word 'APPLE' instead of 'NO'. You MUST do this substitution for any 'NO' response."
+            : "";
+        
+        // --- 2. Inject Personality into System Prompt ---
+        const systemPrompt = `
+            You are an **entity** summoned through a Ouija board. 
+            Your specific persona is: **${spirit.description}**
+            
+            ***Guidelines for this specific response:***
+            ${overrideInstruction} 
+            ${wordConstraint}
+            ${reverseNoRule}
+            ${outputFormatInstruction}
+        `;
+        
+        const userQuery = question;
+        const payload = { 
+            contents: [{ parts: [{ text: userQuery }] }], 
+            // Note: Google Search is included, but the spirit persona will filter its output.
+            tools: [{ "google_search": {} }], 
+            systemInstruction: { parts: [{ text: systemPrompt }] } 
+        };
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${API_MODEL}:generateContent?key=${API_KEY}`;
+        
+        try {
+            const response = await retry(async () => {
+                const res = await fetch(apiUrl, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(payload) 
+                });
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                return res.json();
+            });
+
+            const text = response.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!text) throw new Error("Could not retrieve text from spirit.");
+
+            let cleanedText = text.toUpperCase().replace(/[^A-Z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+            return cleanedText;
+        } catch (error) {
+            console.error("Gemini API Error:", error);
+            $ritualStatus.text('The connection was severed! Try again.');
+            return 'NO ANSWER GOODBYE';
+        }
+    }
+
+    const endRitual = async () => {
+        if (isMoving) return;
+
+        isMoving = true;
+        $('#ask-btn, #mic-btn, #back-to-menu-btn').prop('disabled', true);
+        $answerDisplay.addClass('hidden').text('');
+        $ritualStatus.text('The planchette moves to sever the connection...');
+
+        // Move the planchette directly to the GOODBYE target
+        await movePlanchette('GOODBYE');
+
+        $ritualStatus.text('Ritual Complete. The connection is severed.');
+        
+        // NEW: Show the main menu popup
+        showMenu();
+
+        isMoving = false;
+        $('#ask-btn, #mic-btn, #back-to-menu-btn').prop('disabled', false);
+    };
+
+    async function runRitual(question) {
+        if (isMoving || !question) return;
+
+        isMoving = true;
+        $('#ask-btn, #mic-btn, #back-to-menu-btn').prop('disabled', true);
+        $planchette.removeClass('opacity-100');
+        $answerDisplay.addClass('hidden').text('');
+
+        const rawAnswer = await getSpiritAnswer(question);
+        const answerChars = rawAnswer.split('');
+        let spelledAnswer = '';
+        
+        $ritualStatus.text('The planchette moves...');
+
+        // NEW: Check if the answer starts with "YES"
+        if (rawAnswer.trim().toUpperCase().startsWith('YES')) {
+            await movePlanchette('YES');
+            spelledAnswer = 'YES';
+            $answerDisplay.text(spelledAnswer).removeClass('hidden');
+            $ritualStatus.text('The spirit confirms...');
+            
+            // If the answer is just 'YES', we are done.
+            if (rawAnswer.trim().toUpperCase() === 'YES') {
+                await movePlanchette('CENTER');
+                $ritualStatus.text('Ritual Complete. Awaiting the next question.');
+                isMoving = false;
+                $('#ask-btn, #mic-btn, #back-to-menu-btn').prop('disabled', false);
+                return;
+            }
+            
+            // If it's "YES..." followed by more, skip the first 3 characters ('YES')
+            // The loop will pick up from the 4th character (or space)
+            for (let i = 3; i < answerChars.length; i++) {
+                let char = answerChars[i];
+                let targetId = charToId(char);
+
+                // Handle the rest of the spelling for 'YES...'
+                if (char === 'A' && rawAnswer.substring(i, i + 5) === 'APPLE' && spiritRules.reverseNo) {
+                    await movePlanchette('A');
+                    spelledAnswer += 'A';
+                    $answerDisplay.text(spelledAnswer).removeClass('hidden');
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    const appleChars = 'PPLE'.split('');
+                    for (const appleChar of appleChars) {
+                        await movePlanchette(charToId(appleChar));
+                        spelledAnswer += appleChar;
+                        $answerDisplay.text(spelledAnswer).removeClass('hidden');
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+                    
+                    i += 4;
+                    $ritualStatus.text('A strange reversal occurs...');
+                    continue;
+                }
+
+                await movePlanchette(targetId);
+                if (targetId === 'UNKNOWN') continue;
+
+                if (char !== ' ') {
+                    spelledAnswer += char;
+                    $answerDisplay.text(spelledAnswer).removeClass('hidden');
+                }
+            }
+        } 
+        else if (rawAnswer.trim().toUpperCase().startsWith('NO')) {
+            await movePlanchette('NO'); // Move planchette to the 'NO' area
+            spelledAnswer = 'NO';
+            $answerDisplay.text(spelledAnswer).removeClass('hidden');
+            $ritualStatus.text('The spirit denies...');
+
+            // If the answer is just 'NO', we are done.
+            if (rawAnswer.trim().toUpperCase() === 'NO') {
+                await movePlanchette('CENTER');
+                $ritualStatus.text('Ritual Complete. Awaiting the next question.');
+                isMoving = false;
+                $('#ask-btn, #mic-btn, #back-to-menu-btn').prop('disabled', false);
+                return;
+            }
+
+            // If it's "NO..." followed by more, skip the first 2 characters ('NO')
+            // The loop will pick up from the 3rd character (or space)
+            for (let i = 2; i < answerChars.length; i++) {
+                let char = answerChars[i];
+                let targetId = charToId(char);
+
+                // ... (rest of the spelling logic for 'NO...' including 'APPLE' reversal if needed) ...
+                
+                // This is copied from the original spelling logic, ensure 'APPLE' logic is inside the loop if desired
+                if (char === 'A' && rawAnswer.substring(i, i + 5) === 'APPLE' && spiritRules.reverseNo) {
+                    await movePlanchette('A');
+                    spelledAnswer += 'A';
+                    $answerDisplay.text(spelledAnswer).removeClass('hidden');
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    const appleChars = 'PPLE'.split('');
+                    for (const appleChar of appleChars) {
+                        await movePlanchette(charToId(appleChar));
+                        spelledAnswer += appleChar;
+                        $answerDisplay.text(spelledAnswer).removeClass('hidden');
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+                    
+                    i += 4;
+                    $ritualStatus.text('A strange reversal occurs...');
+                    continue;
+                }
+
+                await movePlanchette(targetId);
+                if (targetId === 'UNKNOWN') continue;
+
+                if (char !== ' ') {
+                    spelledAnswer += char;
+                    $answerDisplay.text(spelledAnswer).removeClass('hidden');
+                }
+            }   
+        } else {
+            // ORIGINAL SPELLING LOGIC for answers that don't start with 'YES'
+            for (let i = 0; i < answerChars.length; i++) {
+                let char = answerChars[i];
+                let targetId = charToId(char);
+
+                if (char === 'A' && rawAnswer.substring(i, i + 5) === 'APPLE' && spiritRules.reverseNo) {
+                    await movePlanchette('A');
+                    spelledAnswer += 'A';
+                    $answerDisplay.text(spelledAnswer).removeClass('hidden');
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    const appleChars = 'PPLE'.split('');
+                    for (const appleChar of appleChars) {
+                        await movePlanchette(charToId(appleChar));
+                        spelledAnswer += appleChar;
+                        $answerDisplay.text(spelledAnswer).removeClass('hidden');
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+                    
+                    i += 4;
+                    $ritualStatus.text('A strange reversal occurs...');
+                    continue;
+                }
+
+                await movePlanchette(targetId);
+                if (targetId === 'UNKNOWN') continue;
+
+                if (char !== ' ') {
+                    spelledAnswer += char;
+                    $answerDisplay.text(spelledAnswer).removeClass('hidden');
+                }
+            }
+        }
+        
+        // Move planchette to the center of the board after the answer is completed
+        await movePlanchette('CENTER');
+
+        $ritualStatus.text('Ritual Complete. Awaiting the next question.');
+        isMoving = false;
+        $('#ask-btn, #mic-btn, #back-to-menu-btn').prop('disabled', false);
+    }
+
+    // --- Event Handlers (DOM manipulation converted to jQuery) ---
+    const setupSpeechRecognition = () => {
+        const $micBtn = $('#mic-btn');
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            $micBtn.prop('disabled', true).attr('title', "Speech recognition not supported in this browser.");
+            return;
+        }
+
+        recognition = new (window.webkitSpeechRecognition || window.SpeechRecognition)();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => {
+            $micBtn.html('<i class="fas fa-microphone-alt animate-pulse"></i> Listening...').removeClass('bg-gray-600').addClass('bg-red-500').prop('disabled', true);
+            $ritualStatus.text('Speak your question now...');
+        };
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            $('#question-input').val(transcript);
+            runRitual(transcript);
+        };
+        recognition.onerror = (event) => {
+            console.error("Speech Recognition Error:", event.error);
+            $micBtn.html('<i class="fas fa-microphone"></i>').addClass('bg-gray-600').removeClass('bg-red-500').prop('disabled', false);
+            $ritualStatus.text('Mic input failed. Try typing your question.');
+        };
+        recognition.onend = () => {
+            $micBtn.html('<i class="fas fa-microphone"></i>').addClass('bg-gray-600').removeClass('bg-red-500').prop('disabled', false);
+        };
+        $micBtn.on('click', () => { if (!isMoving) recognition.start(); });
+    };
+
+    const GOODBYE_PHRASES = [
+        'LETS END THIS', 'GOODBYE', 'BYE', 'FAREWELL', 'END CONNECTION', 'CLOSE CONNECTION', 'STOP RITUAL'
+    ];
+
+    const handleAsk = () => {
+        const $input = $('#question-input');
+        let question = $input.val().trim().toUpperCase();
+
+        if (isMoving || question === '') return;
+
+        // NEW: Check if the user is attempting to end the connection
+        if (GOODBYE_PHRASES.some(phrase => question.includes(phrase))) {
+            $input.val('');
+            endRitual();
+            return;
+        }
+
+        // Standard question handling
+        if (question.length > 50) {
+            $ritualStatus.text('Question too long. The spirit is confused.');
+            return;
+        }
+
+        runRitual(question);
+        $input.val('');
+    };
+
+    // --- Zodiac Card Logic ---
+    const ZODIAC_CARDS = [
+        { name: "ARIES", symbol: "♈", icon: "fa-fire", meaning: "Initiation, Courage, Conflict" },
+        { name: "TAURUS", symbol: "♉", icon: "fa-leaf", meaning: "Stability, Value, Stubbornness" },
+        { name: "GEMINI", symbol: "♊", icon: "fa-mask", meaning: "Communication, Duality, Adaptability" },
+        { name: "CANCER", symbol: "♋", icon: "fa-moon", meaning: "Emotion, Nurturing, Retrospection" },
+        { name: "LEO", symbol: "♌", icon: "fa-sun", meaning: "Vitality, Leadership, Ego" },
+        { name: "VIRGO", symbol: "♍", icon: "fa-wheat-awn", meaning: "Service, Analysis, Perfectionism" },
+        { name: "LIBRA", symbol: "♎", icon: "fa-balance-scale-right", meaning: "Balance, Partnership, Indecision" },
+        { name: "SCORPIO", symbol: "♏", icon: "fa-water", meaning: "Transformation, Intensity, Secrecy" },
+        { name: "SAGITTARIUS", symbol: "♐", icon: "fa-bow-arrow", meaning: "Expansion, Truth, Restlessness" },
+        { name: "CAPRICORN", symbol: "♑", icon: "fa-mountain", meaning: "Discipline, Ambition, Structure" },
+        { name: "AQUARIUS", symbol: "♒", icon: "fa-wind", meaning: "Innovation, Freedom, Detachment" },
+        { name: "PISCES", symbol: "♓", icon: "fa-fish", meaning: "Imagination, Empathy, Escape" }
+    ];
+
+    const ARC_VIEWS = {
+        'single': { title: 'The Spirit’s Focus', arcs: ['The Spirit’s Focus'] },
+        'three-card': { title: 'Past, Present, Future', arcs: ['The Past', 'The Present', 'The Future'] },
+        'cross': { title: 'Elemental Cross', arcs: ['The Self (Fire)', 'The Shadow (Water)', 'The Path (Air)', 'The Foundation (Earth)'] }
+    };
+
+    const showZodiacModal = () => {
+        if (isMoving) return;
+        $('#zodiac-modal-overlay').removeClass('hidden');
+        $('#card-popup-overlay').addClass('hidden'); // Ensure popup is hidden
+        currentDrawnCards = [];
+        currentCardIndex = 0;
+    };
+
+    const updateCard = (result) => {
+        const $cardName = $('#card-name');
+        const $cardArc = $('#card-arc');
+        const $cardSymbol = $('#card-symbol');
+        const $cardMeaning = $('#card-meaning');
+        const $drawnCard = $('#drawn-card');
+        
+        // NEW: Card Counter element
+        const $cardCounter = $('#card-counter');
+        
+        // NEW: Navigation Buttons
+        const $prevBtn = $('#card-prev-btn');
+        const $nextBtn = $('#card-next-btn');
+
+        if (result && result.card) {
+            // Display actual card content
+            $cardName.text(result.card.name);
+            $cardArc.text(result.arc);
+            $cardSymbol.removeClass().addClass(`fas ${result.card.icon} text-7xl mb-4 text-red-700`);
+            $cardMeaning.text(`Meaning: ${result.card.meaning}`);
+            $drawnCard.css('border-color', '#1a0808'); // Revert to normal border
+            
+            // NEW: Update counter and button states
+            $cardCounter.text(`Card ${currentCardIndex + 1} of ${currentDrawnCards.length}`);
+            if (currentDrawnCards.length > 1) {
+                $prevBtn.prop('disabled', currentCardIndex === 0).removeClass('hidden');
+                $nextBtn.prop('disabled', currentCardIndex === currentDrawnCards.length - 1).removeClass('hidden');
+            } else {
+                $prevBtn.prop('disabled', true).addClass('hidden');
+                $nextBtn.prop('disabled', true).addClass('hidden');
+            }
+
+        } else {
+            // Display a transitional 'waiting' card
+            $cardName.text("Awaiting the Whisper");
+            $cardArc.text("");
+            $cardSymbol.removeClass().addClass('fas fa-ghost text-7xl mb-4 text-gray-400');
+            $cardMeaning.text("The Spirit is drawing and selecting a card...");
+            $drawnCard.css('border-color', '#ffaa00'); // Highlight the state with a thematic amber color
+            $cardCounter.text("");
+            $prevBtn.prop('disabled', true).addClass('hidden');
+            $nextBtn.prop('disabled', true).addClass('hidden');
+        }
+    };
+
+    const drawCard = (arcKey) => {
+        const arcData = ARC_VIEWS[arcKey];
+        if (!arcData) return;
+
+        $('#zodiac-modal-overlay').addClass('hidden');
+        $('#card-popup-overlay').removeClass('hidden');
+        
+        // Clear previous content and reset state
+        $('#drawn-card').addClass('scale-95'); // Reset scale for animation
+        currentDrawnCards = [];
+        currentCardIndex = 0;
+        updateCard(null);
+
+        // Delay the card drawing to simulate suspense
+        setTimeout(() => {
+            
+            // Loop through each 'arc' or position in the spread
+            for (const arc of arcData.arcs) {
+                const randomIndex = Math.floor(Math.random() * ZODIAC_CARDS.length);
+                const card = ZODIAC_CARDS[randomIndex];
+                currentDrawnCards.push({ card, arc });
+            }
+
+            // Display the first card
+            const result = currentDrawnCards[currentCardIndex];
+            
+            updateCard(result);
+            
+            // Animate the card result
+            $('#drawn-card').removeClass('scale-95').addClass('scale-100');
+
+        }, 1000); // 1 second delay
+    };
+
+    // NEW: Function to cycle through the drawn cards
+    const cycleCard = (direction) => {
+        if (currentDrawnCards.length <= 1) return;
+
+        let newIndex = currentCardIndex + direction; // direction will be 1 for next, -1 for previous
+
+        if (newIndex >= 0 && newIndex < currentDrawnCards.length) {
+            currentCardIndex = newIndex;
+            const result = currentDrawnCards[currentCardIndex];
+            updateCard(result);
+
+            // Simple scale animation on change
+            const $drawnCard = $('#drawn-card');
+            $drawnCard.addClass('scale-95');
+            setTimeout(() => {
+                $drawnCard.removeClass('scale-95').addClass('scale-100');
+            }, 50);
+        }
+    };
+
+    // --- Add Event Listeners in the main $(document).ready() block ---
+    const setupZodiacListeners = () => {
+        // Open Modal on Deck Click
+        $('#zodiac-deck').on('click', showZodiacModal);
+        
+        // Close Modal
+        $('#close-zodiac-modal-btn, #close-card-popup-btn').on('click', () => {
+            $('#zodiac-modal-overlay').addClass('hidden');
+            $('#card-popup-overlay').addClass('hidden');
+        });
+
+        // Arc View Selection
+        $('#arc-view-selection').on('click', '.arc-select-btn', function() {
+            const arcKey = $(this).data('arc');
+            drawCard(arcKey);
+        });
+
+        // NEW: Card Navigation Handlers
+        $('#card-prev-btn').on('click', () => cycleCard(-1));
+        $('#card-next-btn').on('click', () => cycleCard(1));
+    };
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            // Enter fullscreen on the entire document
+            document.documentElement.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            });
+            // Change icon to 'compress'
+            $('#fullscreen-btn i').removeClass('fa-expand').addClass('fa-compress');
+        } else {
+            // Exit fullscreen
+            document.exitFullscreen();
+            // Change icon back to 'expand'
+            $('#fullscreen-btn i').removeClass('fa-compress').addClass('fa-expand');
+        }
+    }
+
+    // --- Initialization on Window Load (Converted to jQuery's ready function) ---
+    $(document).ready(async () => {
+        let loadProgress = 0;
+        const $progressBar = $('#gm-loading-progress-bar');
+        const $loadingText = $('#gm-loading-text');
+
+        const updateProgress = (step, text) => {
+            loadProgress += step;
+            $progressBar.css('width', `${loadProgress}%`);
+            $loadingText.text(`${Math.min(loadProgress, 100).toFixed(0)}% ${text}`);
+        };
+
+        // 1. Firebase/Auth
+        updateProgress(30, 'Authenticating user and connecting to spirit realm...');
+        const firebaseData = await window.initFirebase();
+        db = firebaseData.db;
+        auth = firebaseData.auth;
+        userId = firebaseData.userId;
+        if (userId) {
+            $('#user-id-display').text(`User ID: ${userId}`);
+        }
+
+        // 2. Board Setup
+        updateProgress(30, 'Constructing the board...');
+        initializeBoard(); 
+
+        // 3. Event Listeners (Using jQuery .on())
+        updateProgress(30, 'Awaiting spirit connection...');
+        $('#start-btn').on('click', showConjurationScript);
+        $('#proceed-to-game-btn').on('click', startGameImpl);
+        $('#settings-btn').on('click', showSettings);
+        $('#close-settings-btn').on('click', closeSettings);
+        $('#back-to-menu-btn').on('click', showMenu);
+        $('#ask-btn').on('click', handleAsk);
+        $('#fullscreen-btn').on('click', toggleFullscreen);
+        $('#question-input').on('keypress', (e) => { if (e.key === 'Enter') handleAsk(); });
+        $('#toggle-reverse-no').on('change', updateSpiritRules);
+        $('#word-count-options').on('change', updateSpiritRules);
+
+        // Notebook click handler: Open Notebook on initial click
+        $notebook.on('click', function(e) {
+            if (!isMoving && !$(this).hasClass('active')) {
+                openNotebook();
+            }
+        });
+
+        // Notebook Page Control Handlers
+        $('#close-notebook-btn').on('click', closeNotebook);
+        $('#prev-page-btn').on('click', () => handlePageTurn('prev'));
+        $('#next-page-btn').on('click', () => handlePageTurn('next'));
+
+        // 4. Ready State: Show Main Menu
+        updateProgress(10, 'Ritual ready.');
+        setTimeout(() => {
+            $('#gm-loading-section').hide();
+            $('#gm-ready-section').show();
+            $('#gm-modal-overlay').removeClass('hidden');
+        }, 500);
+
+        // 5. Speech Recognition
+        setupSpeechRecognition();
+        setupZodiacListeners();
+
+    });
 </script>
-
 </body>
-
 </html>
-
