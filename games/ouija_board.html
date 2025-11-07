@@ -669,12 +669,14 @@
             /* 1. Adjust Game Container for scrolling/full height */
             #notebook.active {
                 /* Overrides the desktop size/position to ensure center on mobile */
-                position: absolute;
-                top: 250%!important;
-                left: -150%!important;   
+                position: fixed;
+                /*top: 250%!important;
+                left: -150%!important;  */
+                top: 50%;
+                left: -50%; 
                 width: 90vw; /* **New: Use viewport width for large size** */
                 height: 80vh; /* **New: Use viewport height for large size** */
-                transform: translate(-50%, -50%) scale(1) !important; 
+                transform: translate(0%, 0%) scale(1) !important; 
                 z-index: 111;
                 box-shadow: 0 0 50px rgba(255,0,0,0.8);
                 cursor: default;
@@ -930,12 +932,21 @@
     </div>
 
     <div id="input-area">
-        <div class="flex items-center w-full max-w-2xl space-x-4">
-            <button id="back-to-menu-btn" title="Back to Main Menu" class="flex-shrink-0 bg-gray-800 hover:bg-red-700 text-white font-bold py-3 px-3 rounded-lg text-xl transition duration-200 shadow-xl"><i class="fas fa-undo"></i></button>
-            <div class="flex flex-grow space-x-2">
-                <input type="text" id="question-input" class="flex-grow p-2 rounded-l-lg bg-gray-800 text-white border border-gray-700 focus:ring-red-500 focus:border-red-500 transition" placeholder="Type your question for the spirit...">
-                <button id="ask-btn" class="flex-shrink-0 bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-4 rounded-r-lg transition duration-200 disabled:opacity-50"><i class="fas fa-hand-pointer"></i> Ask</button>
-                <button id="mic-btn" class="flex-shrink-0 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200"><i class="fas fa-microphone"></i></button>
+        <div class="flex items-center w-full max-w-2xl space-x-0 md:space-x-4">
+            <button id="back-to-menu-btn" title="Back to Main Menu" class="flex-shrink-0 text-white font-bold text-xl transition duration-200 shadow-xl p-0 md:py-2 md:px-3 md:bg-gray-800 md:hover:bg-red-700 md:rounded-lg">
+                <i class="fas fa-undo"></i>
+            </button>
+            <div class="flex flex-grow space-x-0 md:space-x-2">
+                <input type="text" id="question-input" class="flex-grow p-2 bg-gray-800 text-white border border-gray-700 focus:ring-red-500 focus:border-red-500 transition md:rounded-l-lg" placeholder="Type your question for the spirit...">
+                
+                <button id="ask-btn" class="flex-shrink-0 bg-red-700 hover:bg-red-800 text-white font-bold py-1 px-2 md:py-2 md:px-4 transition duration-200 disabled:opacity-50 md:rounded-r-lg">
+                    <i class="fas fa-hand-pointer"></i> 
+                    <span class="hidden md:inline">Ask</span>
+                </button>
+                
+                <button id="mic-btn" class="flex-shrink-0 bg-gray-600 hover:bg-gray-700 text-white font-bold py-1 px-2 md:py-2 md:px-4 transition duration-200 md:rounded-lg">
+                    <i class="fas fa-microphone"></i>
+                </button>
             </div>
         </div>
     </div>
