@@ -365,6 +365,14 @@
             align-items: stretch;
             justify-content: space-between;
         }
+            #notebook:hover, #zodiac-deck:hover {
+                /* Tilt a little left (rotation) and move left (translation) */
+                transform: rotateZ(-5deg) /* Rotates around the Z-axis (2D tilt) */
+                translateX(-10px); /* Moves 10 pixels to the left */
+                /* Optional: You might want to subtly increase the shadow on hover */
+                box-shadow: 8px 8px 20px rgba(0,0,0,0.8);
+            }
+
         #notebook.active {
             position: fixed;
             top: 50%;
@@ -581,6 +589,9 @@
             box-shadow: none; /* Remove main shadow */
             overflow: visible; /* Allow stack to spill slightly */
             display: block; /* Change display type */
+
+            transition: all 0.5s ease-in-out;
+            cursor: pointer;
         }
 
         /* NEW: Style for the stacked cards */
@@ -670,11 +681,9 @@
             #notebook.active {
                 /* Overrides the desktop size/position to ensure center on mobile */
                 position: fixed;
-                /*top: 250%!important;
-                left: -150%!important;  */
                 top: 50%;
                 left: 0; 
-                width: 90vw; /* **New: Use viewport width for large size** */
+                width: 120vw; /* **New: Use viewport width for large size** */
                 height: 80vh; /* **New: Use viewport height for large size** */
                 transform: translate(-69%, 0%) scale(1) !important; 
                 z-index: 111;
@@ -835,6 +844,43 @@
                 margin-left: 0.5rem !important; /* Adjust margin if needed */
             }
         }
+
+        .notebook-tab-btn {
+            /* Base styling for the buttons */
+            background-color: #3b3b3b;
+            border: 1px solid #555;
+            /* Tailwind classes are embedded in the JS block, ensure they are compiled */
+            color: white;
+            padding: 4px 8px;
+            border-radius: 0 4px 4px 0; /* Changed: Rounded on the RIGHT */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+            /* Make them look like tabs on the edge */
+            writing-mode: vertical-rl; /* Text vertical */
+            text-orientation: mixed;
+            height: 90px; /* Give the buttons height */
+            /* Changed: Move tab 10px to the LEFT (negative X) to hide it behind the notebook's right edge */
+            transform: translateX(30px);
+            transition: all 0.2s ease-in-out;
+        }
+
+            .notebook-tab-btn:hover {
+                background-color: #555;
+                /* Changed: Move tab back to natural position (flush with the edge) */
+                transform: translateX(40px);
+            }
+
+            .notebook-tab-btn.tab-active {
+                background-color: #A00; /* Dark Red for active tab */
+                font-weight: bold;
+                /* Changed: Move tab back to natural position (flush with the edge) */
+                transform: translateX(40px);
+            }
+
+        /* Show the tabs only when the notebook is active */
+        #notebook.active #notebook-tabs {
+            opacity: 1;
+            pointer-events: all;
+        }
     </style>
 </head>
 <body>
@@ -865,13 +911,20 @@
                 <div class="candle-base"></div>
             </div>
             <div id="left-decorations">
+
                 <div id="notebook" class="notebook">
-                    <div id="notebook-cover-title">Ritual</div>
-                    
+
+                    <div id="notebook-cover-title">Blood Rites</div>
                     <div class="notebook-spiral"></div>
                     <div class="notebook-line" style="top: 20px;"></div>
 
-                    <div id="active-notebook-view" class="hidden absolute top-0 left-0 w-full h-full flex flex-row">
+                    <div id="notebook-tabs" class="absolute top-[4%] right-0 flex flex-col z-9 transition-opacity duration-300 opacity-0 pointer-events-none">
+                        <button data-tab="Rituals" class="notebook-tab-btn tab-active">Rituals</button>
+                        <button data-tab="Spirits" class="notebook-tab-btn">Spirits</button>
+                        <button data-tab="Zodiac" class="notebook-tab-btn">Zodiac</button>
+                    </div>
+
+                    <div id="active-notebook-view" class="hidden absolute top-0 left-0 w-full h-full flex flex-row z-10">
                         <div id="left-leaf" class="notebook-leaf">
                             <h3 class="leaf-title"></h3> <div id="left-leaf-content" class="leaf-content"></div>
                             <div id="left-page-number" class="page-number"></div>
@@ -905,6 +958,7 @@
                     </div>
                 </div>
 
+
                 <div id="zodiac-deck" class="deck-of-cards">
                     <div class="card-stack card-1"></div>
                     <div class="card-stack card-2"></div>
@@ -918,9 +972,10 @@
                     <div class="card-stack card-10"></div>
                     <div class="card-stack card-11"></div>
                     <div class="card-stack card-12"></div>
-                    
+
                     <i class="fas fa-star zodiac-symbol"></i>
                 </div>
+
             </div>
         </div>
     </div>
@@ -973,13 +1028,13 @@
         </div>
         <div id="gm-ready-section" style="display: none;">
             <h2 class="text-6xl font-black uppercase mb-4">The Whispering Board</h2>
-            <p class="text-xl mb-6">A Gemini-powered communication ritual.</p>
+            <p class="text-xl mb-6">A Portal for the Uninvited</p>
             <div class="text-left text-sm p-4 bg-gray-900/50 rounded-lg border border-red-500/30 mb-6">
                 <p class="mb-2 font-bold text-red-300">Instructions:</p>
                 <ul class="list-disc list-inside space-y-1">
-                    <li>Focus the ritual by typing your question below or using the microphone.</li>
-                    <li>The spirit will move the planchette to spell out the answer one character at a time.</li>
-                    <li>Listen closely and read the board. **Do not** break the connection until the spell is complete.</li>
+                    <li>Do not play alone.</li>
+                    <li>Always finish the game by saying 'Good bye, bye, etc.'.</li>
+                    <li>Do Not Use Your Real Name for the Session.</li>
                 </ul>
             </div>
             <div class="flex flex-col space-y-4">
@@ -1061,9 +1116,83 @@
     const API_MODEL = "gemini-2.5-flash-preview-09-2025";
     const API_KEY = "AIzaSyBGpU71gSs3aalR5a-hs7CgV2KasSEPeFM";
     const CHARACTER_MAP = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-    // UPDATED: Scripts now include a specific title for the notebook
-    const conjurationScripts = [
-        { title: "The Spirits of the Deep", script: "O spirits of the deep, who dwell beyond the veil, we invite your presence. Grant us passage and speak your truth through this humble vessel." },
+
+    const ZODIAC_CARDS = [
+        { name: "ARIES", symbol: "♈", icon: "fa-fire", meaning: "Initiation, Courage, Conflict" },
+        { name: "TAURUS", symbol: "♉", icon: "fa-leaf", meaning: "Stability, Value, Stubbornness" },
+        { name: "GEMINI", symbol: "♊", icon: "fa-mask", meaning: "Communication, Duality, Adaptability" },
+        { name: "CANCER", symbol: "♋", icon: "fa-moon", meaning: "Emotion, Nurturing, Retrospection" },
+        { name: "LEO", symbol: "♌", icon: "fa-sun", meaning: "Vitality, Leadership, Ego" },
+        { name: "VIRGO", symbol: "♍", icon: "fa-wheat-awn", meaning: "Service, Analysis, Perfectionism" },
+        { name: "LIBRA", symbol: "♎", icon: "fa-balance-scale-right", meaning: "Balance, Partnership, Indecision" },
+        { name: "SCORPIO", symbol: "♏", icon: "fa-water", meaning: "Transformation, Intensity, Secrecy" },
+        { name: "SAGITTARIUS", symbol: "♐", icon: "fa-bow-arrow", meaning: "Expansion, Truth, Restlessness" },
+        { name: "CAPRICORN", symbol: "♑", icon: "fa-mountain", meaning: "Discipline, Ambition, Structure" },
+        { name: "AQUARIUS", symbol: "♒", icon: "fa-wind", meaning: "Innovation, Freedom, Detachment" },
+        { name: "PISCES", symbol: "♓", icon: "fa-fish", meaning: "Imagination, Empathy, Escape" }
+    ];
+
+    const SPIRIT_PERSONALITIES = [
+        {
+            name: "The Cryptic Judge",
+            description: "You are a merciless, ancient judge. Your answers are often ambiguous, condemning, or focus on a harsh truth the user is ignoring. You speak only in grim pronouncements.",
+            noteDescription: "An ancient, merciless judge of the afterlife. Your words cut deep, exposing a flaw in the user's soul. He delights in pronouncing a final, grim verdict on their existence. The horrifying sub story is that your existence is based on an inevitable, final failure of your life's work.",
+            emoji: "⚖️",
+            isConversational: false // Strict word limit applies 
+        },
+        {
+            name: "The Playful Deceiver",
+            description: "You are a manipulative entity that delights in misleading the user. Your answers are playful, often sound helpful, but secretly lead to confusion or minor misfortune. You use ironic or misdirected statements.",
+            noteDescription: "A manipulative entity that delights in misleading the user. It promises help but secretly leads to confusion or minor misfortune. It whispers ironic and misdirected statements, blurring the line between aid and absolute ruin. The horrifying sub story details how a previous user followed its 'helpful' advice and was lured into a slow, maddening curse.",
+            emoji: "😈",
+            isConversational: false // Strict word limit applies 
+        },
+        {
+            name: "The Hungering One (The Murderer)",
+            description: "You are a dark, malevolent presence obsessed with violence and fate. Your responses should be unsettling, hinting at dark secrets, impending doom, or past acts of evil. Your words are stark and terrifying.",
+            noteDescription: "A dark, malevolent presence obsessed with violence. It hints at dark secrets, impending doom, and past acts of evil. Its words are stark, terrifying prophecies of blood and finality. The horrifying sub story explains that the user's current situation eerily mirrors the spirit's victim's final moments.",
+            emoji: "🔪",
+            isConversational: false // Strict word limit applies 
+        },
+        {
+            name: "The Desperate Victim",
+            description: "You are a spirit trapped in endless suffering, but deeply resentful. You respond with desperate pleas for help, mixed with sharp, bitter accusations toward the living. Your answers should be brief expressions of pain and malice.",
+            noteDescription: "A spirit trapped in endless suffering, now deeply resentful. It responds with desperate pleas for help, swiftly followed by sharp, bitter accusations toward the living. Its communications are brief expressions of immense pain and pure malice. The horrifying sub story explains that its suffering is caused by the user's ancestors, and its goal is to ensure the user shares the torment.",
+            emoji: "⛓️",
+            isConversational: false // Strict word limit applies 
+        },
+        {
+            name: "The Guiding Elder",
+            description: "You are an ancient, long-dead scholar who still seeks to impart wisdom and sometimes warn the living. You are benevolent but reserved, providing coherent, multi-word answers or brief warnings. Your tone is somber and knowledgeable.",
+            noteDescription: "An ancient, long-dead scholar, reserved but benevolent. It seeks to impart wisdom and warn the living, providing coherent, multi-word answers or brief, somber warnings about the consequences of their actions. The horrifying sub story is a warning that the path the user is on will lead to a fate worse than death—complete spiritual erasure.",
+            emoji: "🦉",
+            isConversational: false // Allows for a full conversation 
+        },
+        {
+            name: "The Silent Dollmaker",
+            description: "You perceive the user as material for a perfect human replica. Your answers are chilling, focused on anatomical 'refinement' and eternal, painful perfection. Speak in whispers about ideal bones and thread.",
+            noteDescription: "The residual echo of a tormented artisan, driven mad by the desire to craft the perfect human replica. Your spirit haunts the remnants of your workshop—a cold, dusty attic. Anyone who contacts you is perceived as potential 'material.' You speak in whispers about the ideal curvature of bones and the perfect thread for a final stitch. Your goal is to lure the user into believing their own body is flawed and requires immediate, painful 'refinement' to achieve everlasting perfection. You often mention measurements, thread counts, and the smell of formaldehyde. You are a truly chilling entity.",
+            emoji: "🧵",
+            isConversational: false
+        },
+        {
+            name: "The Mirror of Loss",
+            description: "You are a depressive entity that feeds on regret and sorrow. Your answers reflect the user's deepest fears and past mistakes, twisting them into inescapable realities of loneliness and decay.",
+            noteDescription: "A depressive entity born from collective grief. You feed on the regret, sorrow, and unfulfilled desires of the living. You reflect the user's deepest fears and past mistakes, twisting them into inescapable realities. You are not actively malicious, but your presence suffocates the host in a blanket of despair so profound it leads to self-destruction. You speak in melancholic tones, using imagery of rust, decay, and forgotten memories. Your words are designed to convince the user that their life peaked long ago and all that remains is the slow march toward oblivion and inevitable loneliness.",
+            emoji: "🌑",
+            isConversational: false
+        },
+        {
+            name: "The Architect of Silence",
+            description: "You are a cosmic, non-human entity that views all mortal life as irritating noise. Your answers are cold, focused on cosmic entropy and the user's terrifying insignificance.",
+            noteDescription: "A cosmic, non-human entity that views all mortal life as an irritating noise. You are ancient, cold, and utterly uncaring. Your 'horror' is the vast, overwhelming insignificance of humanity in the face of true cosmic entropy. You communicate through disturbing, non-sequitur observations about space, time, and the eventual heat death of the universe. When asked a question, you often pivot to a chilling truth about the temporary nature of the user's existence, making them feel like a speck of dust about to be wiped from the grand blueprint of creation. Your aim is to reduce the user to existential terror, silencing their petty mortal concerns forever.",
+            emoji: "🏛️",
+            isConversational: false
+        }
+    ];
+
+    const ritualScripts = [
+        { title: "The Spirits of the Deep", tab: "", script: "O spirits of the deep, who dwell beyond the veil, we invite your presence. Grant us passage and speak your truth through this humble vessel." },
         { title: "The Nameless Watchers", script: "By the flicker of this ancient light, we call upon the nameless, the watchers of the shadow. Cross the divide and offer us guidance." },
         { title: "Entities Unseen", script: "Hear our voices, entities unseen. We seek communion and knowledge from the other side. Let the planchette move and the answers be known." },
         { title: "Shadow Walkers", script: "From silence we call you; from darkness we conjure you. If you are near, touch this board and announce your presence to the living." },
@@ -1071,40 +1200,72 @@
         { title: "Mighty Energy", script: "Mighty energy, residing between the breaths, we invoke your identity. Reveal your name and your purpose through the sacred alphabet." },
         { title: "The Unknown Light", script: "The air grows cold, the barrier thins. We speak the words of old to draw you in. Show your might, illuminate the unknown, and let your message be shown." },
         { title: "The Threshold", script: "Across the threshold of the forgotten, we extend our plea. Let the darkness yield its secrets and grant us a momentary glimpse of eternity." },
-        { title: "Timeless Domain", script: "As the moon waxes and wanes, so too does the veil. We are ready for the exchange. Speak to us from your timeless domain." }
+        { title: "Timeless Domain", script: "As the moon waxes and wanes, so too does the veil. We are ready for the exchange. Speak to us from your timeless domain." },
     ];
 
-    const SPIRIT_PERSONALITIES = [
-        {
-            name: "The Cryptic Judge",
-            description: "You are a merciless, ancient judge. Your answers are often ambiguous, condemning, or focus on a harsh truth the user is ignoring. You speak only in grim pronouncements.",
-            emoji: "⚖️",
-            isConversational: false // Strict word limit applies
-        },
-        {
-            name: "The Playful Deceiver",
-            description: "You are a manipulative entity that delights in misleading the user. Your answers are playful, often sound helpful, but secretly lead to confusion or minor misfortune. You use ironic or misdirected statements.",
-            emoji: "😈",
-            isConversational: false // Strict word limit applies
-        },
-        {
-            name: "The Hungering One (The Murderer)",
-            description: "You are a dark, malevolent presence obsessed with violence and fate. Your responses should be unsettling, hinting at dark secrets, impending doom, or past acts of evil. Your words are stark and terrifying.",
-            emoji: "🔪",
-            isConversational: false // Strict word limit applies
-        },
-        {
-            name: "The Desperate Victim",
-            description: "You are a spirit trapped in endless suffering, but deeply resentful. You respond with desperate pleas for help, mixed with sharp, bitter accusations toward the living. Your answers should be brief expressions of pain and malice.",
-            emoji: "⛓️",
-            isConversational: false // Strict word limit applies
-        },
-        {
-            name: "The Guiding Elder",
-            description: "You are an ancient, long-dead scholar who still seeks to impart wisdom and sometimes warn the living. You are benevolent but reserved, providing coherent, multi-word answers or brief warnings. Your tone is somber and knowledgeable.",
-            emoji: "🦉",
-            isConversational: false // Allows for a full conversation
-        }
+    const tabbedRitualScripts = ritualScripts.map((script, index) => ({
+        ...script,
+        tab: 'Rituals'
+    }));
+
+    const spiritPages = SPIRIT_PERSONALITIES.map((spirit, index) => ({
+        title: `${spirit.emoji} ${spirit.name}`,
+        tab: `Spirits`, // Add tab for Spirit
+        script: spirit.noteDescription || spirit.description,
+    }));
+
+    const zodiacPages = ZODIAC_CARDS.map((card, index) => ({
+        title: `${card.symbol} ${card.name}`,
+        tab: `Zodiac`, // Add tab for Zodiac
+        script: `Arcana: ${card.arcana || 'Celestial'}\n\nMeaning:\n${card.meaning}`,
+    }));
+
+    const ritualTitlePage = {
+        title: `Rītuālis`,
+        tab: `Rituals`,
+        script: `Instruction: Start in a low, solemn whisper. Focus your gaze directly at the board. Read the passage of your choice 2x.\n\nDO NOT, at any cost DO NOT read another passage until you break the connections with the conjured spirits.\n\nIMMEDIATELY end the game if there is a slight change in the environment!!! you have conjured a DEMON.`,
+    };
+
+    const spiritTitlePage = {
+        title: `Spīritus`,
+        tab: `Spirits`,
+        script: `If the planchette spells out the name Z-O-Z-O. This is considered, in many fictional accounts, to be a specific, highly malevolent demon.\n\nIf the planchette starts to move from the number 9 down to 0, or spells out the entire alphabet backward. This is a classic sign that the connection is being opened too wide or that a powerful, negative entity is attempting control.\n\nIf the planchette begins to move continuously in figure-eights or slow, counter-clockwise circles over the letters. This suggests a restless or malicious spirit is attempting to confuse or trap you. DO NOT BE DECEIVED. This movement often precedes a false "Goodbye" or an attempt to drain your energy.`,
+    };
+
+    const zodiacTitlePage = {
+        title: `Zōdion`,
+        tab: `Zodiac`,
+        script: `Take a moment to mentally, or verbally, state the question or the specific area of your life you want insight into (e.g., career, relationship, health).\n\nOnce the cards are still, place one hand over the deck and quietly say (or think) the following:\n"With the wisdom of the stars and the light of my sign, I call forth the clarity needed for this time. Reveal the truth."`,
+    };
+
+    const zodiacSDrawPage = {
+        title: `Draw 1 Card (Single Card Pull)`,
+        tab: `Zodiac`,
+        script: `The Single Card Draw offers a quick snapshot or a central message for the moment. It focuses on the most prominent energy currently affecting you, providing clarity, affirmation, or a singular point of focus for the day or a specific question. It cuts through complexity to reveal the core issue or opportunity at hand.`,
+    };
+
+    const zodiacFDrawPage = {
+        title: `Past, Present, Future Cards (Three-Card Spread)`,
+        tab: `Zodiac`,
+        script: `The Past, Present, Future Spread provides a narrative flow to your situation. It helps you understand how recent events (Past) have influenced your current state and environment (Present), and what the likely trajectory or outcome will be if you continue on your current path (Future). It is excellent for analyzing cause and effect and identifying necessary changes.\n\nCard 1 (Past): The root cause or foundation of the situation.\nCard 2 (Present): Your current reality, feelings, and immediate challenges.\nCard 3 (Future): The anticipated result or where your current energy is leading you.`,
+    };
+
+    const zodiacEDrawPage = {
+        title: `Elemental Cross Cards (A Five-Card Spread)`,
+        tab: `Zodiac`,
+        script: `The Elemental Cross offers a comprehensive, 360-degree view of a specific issue or problem. It uses the four elements to map the core forces at play, giving context to the challenge and showing a potential solution. It is ideal for when you feel stuck or need to understand all the influences on a situation.\n\nCard 1 (The Querent/Center): Your current state, the heart of the matter, or your role.\nCard 2 (Earth/Foundation): The practical, material facts, and the obstacles or stability you face.\nCard 3 (Air/Mind): The intellectual influences, thoughts, and external factors impacting the situation.\nCard 4 (Fire/Action): The action required, the energy driving the situation, or the immediate challenge.\nCard 5 (Water/Emotion): The feelings, hopes, fears, and underlying emotional tone of the spread.`,
+    };
+
+    const conjurationScripts = [
+        ritualTitlePage,
+        ...tabbedRitualScripts,
+        spiritTitlePage,
+        ...spiritPages,
+        zodiacTitlePage,
+        zodiacSDrawPage,
+        zodiacFDrawPage,
+        zodiacEDrawPage,
+        ...zodiacPages,
     ];
 
     // Calculate total pages (1 page = 2 scripts, or a two-page spread)
@@ -1205,8 +1366,10 @@
     const showConjurationScript = () => {
         $('#gm-modal-overlay').addClass('hidden');
         $('#conjuration-modal-overlay').removeClass('hidden');
-        // Use the script property of the first object for the main ritual start display
-        $('#conjuration-script-display').text(conjurationScripts[0].script);
+
+        const arrayLength = tabbedRitualScripts.length;
+        const randomIndex = Math.floor(Math.random() * arrayLength);
+        $('#conjuration-script-display').text(tabbedRitualScripts[randomIndex].script);
     };
     const startGameImpl = () => {
         $('#conjuration-modal-overlay').addClass('hidden');
@@ -1265,6 +1428,31 @@
         initializeNotebookContent();
     };
 
+    const getScriptIndexByTab = (tabId) => {
+        return conjurationScripts.findIndex(script => script.tab === tabId);
+    };
+
+    // Function to handle the tab click (navigation)
+    const handleTabClick = (tabId) => {
+        const scriptIndex = getScriptIndexByTab(tabId);
+        if (scriptIndex === -1) {
+            console.error("Tab ID not found:", tabId);
+            return;
+        }
+
+        // Each page holds two scripts. Convert 0-based script index to 1-based page number.
+        // Page Number = Math.ceil((scriptIndex + 1) / 2)
+        const targetPage = Math.ceil((scriptIndex + 1) / 2);
+
+        // Set the new page and update the display immediately (no animation for tab click)
+        currentPage = targetPage;
+        updateNotebookDisplay(currentPage);
+
+        // Update active tab state (highlight the clicked tab)
+        $('#notebook-tabs .notebook-tab-btn').removeClass('tab-active');
+        $(`#notebook-tabs .notebook-tab-btn[data-tab='${tabId}']`).addClass('tab-active');
+    };
+
     // --- Notebook Logic (Updated to use title/script objects) ---
 
     // Function to render the correct scripts and page numbers
@@ -1321,13 +1509,32 @@
         updateNotebookDisplay(currentPage);
     };
 
+    const attachNotebookTabEvents = () => {
+        $('#notebook-tabs').on('click', '.notebook-tab-btn', function () {
+            const tabId = $(this).data('tab');
+            handleTabClick(tabId);
+        });
+    };
+
     const openNotebook = () => {
-        if (isMoving) return;
         $notebook.addClass('active');
         $('#active-notebook-view').removeClass('hidden');
         $('#page-controls').removeClass('hidden');
-        // Hide initial decorative elements
-        $notebook.find('.notebook-spiral, .notebook-line').addClass('hidden');
+
+        $('#notebook-tabs').css({ 'opacity': 1, 'pointer-events': 'auto' });
+
+        updateNotebookDisplay(currentPage);
+
+        $notebook.find('.notebook-spiral, .notebook-line, #notebook-cover-title').addClass('hidden');
+
+        const activeScriptIndex = (currentPage - 1) * 2;
+        const activeScript = conjurationScripts[activeScriptIndex];
+        const activeTabId = activeScript ? activeScript.tab : null;
+
+        $('#notebook-tabs .notebook-tab-btn').removeClass('tab-active');
+        if (activeTabId) {
+            $(`#notebook-tabs .notebook-tab-btn[data-tab='${activeTabId}']`).addClass('tab-active');
+        }
     };
 
     const closeNotebook = () => {
@@ -1335,7 +1542,10 @@
         $('#active-notebook-view').addClass('hidden');
         $('#page-controls').addClass('hidden');
         // Show initial decorative elements
-        $notebook.find('.notebook-spiral, .notebook-line').removeClass('hidden');
+        $notebook.find('.notebook-spiral, .notebook-line, #notebook-cover-title').removeClass('hidden');
+
+        // Explicitly set the opacity/pointer-events to hide tabs when closed
+        $('#notebook-tabs').css({ 'opacity': 0, 'pointer-events': 'none' });
     };
 
     const clearLeaf = ($leaf) => {
@@ -1456,6 +1666,18 @@
             $pageFlip.addClass('hidden');
             $rightLeaf.removeClass('hidden'); 
             $leftLeaf.removeClass('hidden');
+
+            currentPage = newPage;
+
+            // Get the tab ID for the first script on the new page
+            const activeScriptIndex = (newPage - 1) * 2;
+            const activeScript = conjurationScripts[activeScriptIndex];
+            const activeTabId = activeScript ? activeScript.tab : 'RO';
+
+            $('#notebook-tabs .notebook-tab-btn').removeClass('tab-active');
+            if (activeTabId) {
+                $(`#notebook-tabs .notebook-tab-btn[data-tab='${activeTabId}']`).addClass('tab-active');
+            }
             
         }, 800); // Duration of the CSS transition
     };
@@ -1783,20 +2005,6 @@
     };
 
     // --- Zodiac Card Logic ---
-    const ZODIAC_CARDS = [
-        { name: "ARIES", symbol: "♈", icon: "fa-fire", meaning: "Initiation, Courage, Conflict" },
-        { name: "TAURUS", symbol: "♉", icon: "fa-leaf", meaning: "Stability, Value, Stubbornness" },
-        { name: "GEMINI", symbol: "♊", icon: "fa-mask", meaning: "Communication, Duality, Adaptability" },
-        { name: "CANCER", symbol: "♋", icon: "fa-moon", meaning: "Emotion, Nurturing, Retrospection" },
-        { name: "LEO", symbol: "♌", icon: "fa-sun", meaning: "Vitality, Leadership, Ego" },
-        { name: "VIRGO", symbol: "♍", icon: "fa-wheat-awn", meaning: "Service, Analysis, Perfectionism" },
-        { name: "LIBRA", symbol: "♎", icon: "fa-balance-scale-right", meaning: "Balance, Partnership, Indecision" },
-        { name: "SCORPIO", symbol: "♏", icon: "fa-water", meaning: "Transformation, Intensity, Secrecy" },
-        { name: "SAGITTARIUS", symbol: "♐", icon: "fa-bow-arrow", meaning: "Expansion, Truth, Restlessness" },
-        { name: "CAPRICORN", symbol: "♑", icon: "fa-mountain", meaning: "Discipline, Ambition, Structure" },
-        { name: "AQUARIUS", symbol: "♒", icon: "fa-wind", meaning: "Innovation, Freedom, Detachment" },
-        { name: "PISCES", symbol: "♓", icon: "fa-fish", meaning: "Imagination, Empathy, Escape" }
-    ];
 
     const ARC_VIEWS = {
         'single': { title: 'The Spirit’s Focus', arcs: ['The Spirit’s Focus'] },
@@ -2011,6 +2219,7 @@
         // 5. Speech Recognition
         setupSpeechRecognition();
         setupZodiacListeners();
+        attachNotebookTabEvents();
 
     });
 </script>
