@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Hub: Game Library</title>
+    <!-- Load Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Import the Inter font and apply it globally */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s;
+        }
+        /* Fixed aspect ratio for consistent card images */
+        .game-cover {
+            aspect-ratio: 16 / 9;
+        }
+    </style>
+</head>
+<!-- Apply dark mode background and text color to the body -->
+<body class="bg-gray-900 text-white min-h-screen p-4 sm:p-6 lg:p-12 flex flex-col items-center">
+
+    <!-- Dashboard Header -->
+    <header class="mb-12 text-center">
+        <h1 class="text-5xl sm:text-6xl font-extrabold text-teal-400 tracking-tight">
+            Arcade Hub
+        </h1>
+        <p class="text-xl text-gray-400 mt-2">Explore Our HTML Games <small>no flash, just html</small></p>
+    </header>
+
+    <!-- Main Content: Game Grid View - This container will be populated by JavaScript -->
+    <main class="w-full max-w-7xl">
+        <!-- The ID 'gamesGrid' is used by the JavaScript function to insert the cards -->
+        <div id="gamesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Game cards will be dynamically inserted here -->
+        </div>
+    </main>
+
+    <!-- Footer for context -->
+    <footer class="mt-12 text-center text-gray-600 text-sm">
+        <p>Game Viewer designed with Tailwind CSS, dynamically loaded via JSON.</p>
+    </footer>
+
+    <!-- JavaScript for Game Data and Rendering -->
+    <script>
+        // --- 1. Game Data in JSON Format ---
+        const gamesData = [
+            {
+                "id": 1,
+                "title": "Ouija Board",
+                "description": "Launch into an epic space strategy game where you command a fleet across an ever-expanding universe. Annex star systems and engage in real-time tactical combat against rival empires.",
+                "image_url": "https://s26162.pcdn.co/wp-content/uploads/sites/3/2025/09/ouija-board-ft.jpg",
+                "tags": [
+                    {"name": "Strategy", "color": "teal"},
+                    {"name": "Sci-Fi", "color": "teal"},
+                    {"name": "Horror", "color": "teal"}
+                ],
+                "play_url": "games/ouija_board.html"
+            },
+            {
+                "id": 2,
+                "title": "Worlds End",
+                "description": "Experience high-speed, anti-gravity racing across neon-lit tracks in the heart of distant nebulae. Master the art of quantum drifting and outpace your rivals for glory.",
+                "image_url": "https://static.tvtropes.org/pmwiki/pub/images/scisource_3m6697_1__wide_e527344edcf04f87feb3f6f3fe4e11e300a7c065.png",
+                "tags": [
+                    {"name": "Strategy", "color": "indigo"},
+                    {"name": "Sci-Fi", "color": "indigo"},
+                    {"name": "Horror", "color": "indigo"}
+                ],
+                "play_url": "games/the_end3.html"
+            }
+        ];
+
+        /**
+         * Function to open a specific game URL in a new tab.
+         * This function is called by the onclick attribute inside the dynamically generated cards.
+         * @param {string} gameUrl - The URL of the game to open.
+         */
+        function playGame(gameUrl) {
+            window.open(gameUrl, '_blank');
+            console.log('Redirecting player to: ' + gameUrl);
+        }
+
+        /**
+         * Helper function to generate HTML for the game tags.
+         * @param {Object} tag - The tag object with name and color.
+         */
+        function createTagHtml(tag) {
+            // Note: The Tailwind JIT compiler needs to see the full class names (e.g., bg-teal-600/30) 
+            // used explicitly in the source code, so we use string interpolation.
+            const bgColor = `bg-${tag.color}-600/30`;
+            const textColor = `text-${tag.color}-300`;
+            return `<span class="px-3 py-1 ${bgColor} ${textColor} text-xs font-medium rounded-full">${tag.name}</span>`;
+        }
+
+        /**
+         * Function to generate the HTML structure for a single game card.
+         * @param {Object} game - The game data object.
+         * @returns {string} The HTML string for the game card.
+         */
+        function createGameCard(game) {
+            const tagsHtml = game.tags.map(createTagHtml).join('');
+
+            return `
+                <div class="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 overflow-hidden flex flex-col transition hover:scale-[1.01] duration-300">
+                    <!-- Game Image / Cover Art -->
+                    <div class="relative game-cover">
+                        <img 
+                            src="${game.image_url}" 
+                            alt="${game.title} Cover Art"
+                            class="w-full h-full object-cover"
+                            onerror="this.onerror=null;this.src='https://placehold.co/800x450/374151/ffffff?text=Image+Load+Error'"
+                        >
+                        <div class="absolute inset-0 bg-gradient-to-t from-gray-800/60 via-transparent to-transparent"></div>
+                    </div>
+
+                    <!-- Game Details and Play Button -->
+                    <div class="p-6 flex flex-col flex-grow">
+                        <h2 class="text-3xl font-bold text-white mb-3">${game.title}</h2>
+                        
+                        <!-- Description -->
+                        <p class="text-md text-gray-300 leading-relaxed mb-4 flex-grow">
+                            ${game.description}
+                        </p>
+
+                        <!-- Key Information Tags -->
+                        <div class="flex flex-wrap gap-2 mb-6">
+                            ${tagsHtml}
+                        </div>
+
+                        <!-- Play Button -->
+                        <button 
+                            class="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-lg rounded-lg transition duration-200 shadow-lg shadow-purple-900/50 uppercase tracking-wider active:scale-95"
+                            onclick="playGame('${game.play_url}')"
+                        >
+                            PLAY NOW
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Main function to load and render all games from the data source.
+         */
+        function loadGames() {
+            const grid = document.getElementById('gamesGrid');
+            if (!grid) {
+                console.error('Games grid container not found.');
+                return;
+            }
+
+            let htmlContent = '';
+            gamesData.forEach(game => {
+                htmlContent += createGameCard(game);
+            });
+
+            grid.innerHTML = htmlContent;
+            console.log(`Successfully loaded ${gamesData.length} games.`);
+        }
+
+        // --- 3. Execute loadGames when the DOM is fully loaded ---
+        document.addEventListener('DOMContentLoaded', loadGames);
+    </script>
+
+</body>
+</html>
