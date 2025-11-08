@@ -673,10 +673,10 @@
                 /*top: 250%!important;
                 left: -150%!important;  */
                 top: 50%;
-                left: -50%; 
+                left: 0; 
                 width: 90vw; /* **New: Use viewport width for large size** */
                 height: 80vh; /* **New: Use viewport height for large size** */
-                transform: translate(0%, 0%) scale(1) !important; 
+                transform: translate(-69%, 0%) scale(1) !important; 
                 z-index: 111;
                 box-shadow: 0 0 50px rgba(255,0,0,0.8);
                 cursor: default;
@@ -1736,7 +1736,7 @@
         recognition.lang = 'en-US';
 
         recognition.onstart = () => {
-            $micBtn.html('<i class="fas fa-microphone-alt animate-pulse"></i> Listening...').removeClass('bg-gray-600').addClass('bg-red-500').prop('disabled', true);
+            $micBtn.html('<i class="fas fa-microphone-alt animate-pulse"></i>').removeClass('bg-gray-600').addClass('bg-red-500').prop('disabled', true);
             $ritualStatus.text('Speak your question now...');
         };
         recognition.onresult = (event) => {
