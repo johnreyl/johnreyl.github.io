@@ -880,6 +880,71 @@
         };
 
         /**
+         * Handles the turret firing animation for intermediate Word Fall hits.
+         * This is identical to fireAndPop but skips the score/pop logic.
+         */
+        const fireOnly = ($targetBubble) => {
+            const travelTime = 150;
+            const $projectile = $('#projectile');
+            const $turretBase = $('#turret-base');
+            const $nozzle = $('#turret-gun-nozzle');
+            const $gamePlay = $('#game-play');
+
+            // 1. Calculate Target Coordinates and Angle
+            const gamePlayRect = $gamePlay[0].getBoundingClientRect();
+            const bubbleRect = $targetBubble[0].getBoundingClientRect();
+            const targetX = bubbleRect.left + bubbleRect.width / 2 - gamePlayRect.left;
+            const targetY = bubbleRect.top + bubbleRect.height / 2 - gamePlayRect.top;
+            const turretRect = $turretBase[0].getBoundingClientRect();
+            const turretCenterY = turretRect.top - gamePlayRect.top + $nozzle.height();
+            const nozzleTipY = turretCenterY - $nozzle.height();
+            const startX = turretCenterX = turretRect.left + turretRect.width / 2 - gamePlayRect.left;
+            const startY = nozzleTipY;
+            const deltaX = targetX - turretCenterX;
+            const deltaY = targetY - nozzleTipY;
+            const angleRad = Math.atan2(deltaY, deltaX);
+            const angleDeg = angleRad * (180 / Math.PI) + 90;
+
+            // Apply rotation to the nozzle
+            $nozzle.css('transform', `rotate(${angleDeg}deg)`);
+
+            // 2. Set projectile to start position and unhide
+            $projectile.css({
+                left: startX + 'px',
+                top: startY + 'px',
+                opacity: 1,
+                transform: 'scale(1)',
+                transition: 'none'
+            }).removeClass('hidden');
+
+            // 3. Trigger reflow before transition
+            $projectile.get(0).offsetHeight;
+
+            // 4. Trigger the movement animation
+            $projectile.css({
+                transition: `all ${travelTime}ms linear`,
+                left: targetX + 'px',
+                top: targetY + 'px',
+                transform: 'scale(0.3)',
+            });
+
+            // 5. Reset projectile/turret after travel time (NO POP OR SCORING)
+            setTimeout(() => {
+                // Only trigger a small visual scale change on the target to show the hit
+                $targetBubble.css({
+                    transform: 'scale(1.05)',
+                    transition: 'transform 0.1s'
+                });
+                setTimeout(() => $targetBubble.css('transform', 'scale(1)'), 100);
+
+                // Reset projectile
+                $projectile.addClass('hidden').css('transition', 'none');
+                // Return to idle rotation after firing
+                idleTurretRotation();
+            }, travelTime);
+        };
+
+        /**
          * Handles the turret firing animation and bubble popping, including rotation.
          */
         const fireAndPop = ($targetBubble) => {
@@ -1669,7 +1734,7 @@
                                     lowestY = currentY;
                                     $target = $this;
                                 }
-                            }
+                            } 
                         });
 
                         if ($target) {
@@ -1707,6 +1772,8 @@
                                 fireAndPop($target); // Will fire and score, but correctKeystrokes is already updated for the last character
                                 GAME_CONFIG.activeWordTarget = null;
                                 $('#turret-display').text('-');
+                            } else {
+                                fireOnly($target);
                             }
                         }
                     }
