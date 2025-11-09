@@ -1,0 +1,1102 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Madness</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Fonts */
+        .font-press-start {
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* General Body and Game Container */
+        body {
+            background: linear-gradient(135deg, #1f2937, #374151);
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        #game-container {
+            /* Ensures game container scales nicely on small screens */
+            width: 100%;
+            height: 100%;
+            max-width: 4xl;
+            max-height: 800px;
+            background: radial-gradient(circle at center, rgba(16, 24, 39, 0.9) 0%, rgba(13, 17, 23, 0.95) 100%), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect x="0" y="0" width="100" height="100" fill="%230d1117"/><circle cx="50" cy="50" r="10" fill="%231a2c42" opacity="0.3"/><circle cx="50" cy="50" r="5" fill="%232c4a70" opacity="0.2"/><path d="M0 0 L100 0 L100 100 L0 100 Z" fill="none" stroke="%231a2c42" stroke-width="1"/></svg>') repeat;
+            background-size: cover;
+        }
+
+        /* Title Specifics */
+        .game-title {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            text-shadow: 0 0 15px rgba(59, 130, 246, 0.7), 0 0 30px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Custom Button Styling (Skewed, Glowing) */
+        .menu-btn {
+            background: linear-gradient(145deg, #1e3a8a, #2563eb);
+            border: 2px solid #3b82f6;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 10px rgba(59, 130, 246, 0.5);
+            transition: all 0.2s ease-in-out;
+            transform: skew(-10deg);
+            text-align: center;
+        }
+
+            .menu-btn:hover {
+                background: linear-gradient(145deg, #2563eb, #3b82f6);
+                transform: skew(-10deg) scale(1.05);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(59, 130, 246, 0.8);
+            }
+
+            .menu-btn span {
+                display: inline-block;
+                transform: skew(10deg); /* Counter-skew text */
+            }
+
+        .menu-btn-secondary {
+            background: linear-gradient(145deg, #374151, #4b5563);
+            border: 2px solid #6b7280;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2), 0 0 8px rgba(107, 114, 128, 0.3);
+        }
+
+            .menu-btn-secondary:hover {
+                background: linear-gradient(145deg, #4b5563, #6b7280);
+                box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3), 0 0 12px rgba(107, 114, 128, 0.5);
+            }
+
+        /* Popups Styling (Centered with fixed position and transform) */
+        .popup-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(16, 24, 39, 0.98);
+            border: 2px solid #3b82f6;
+            border-radius: 1rem;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.6);
+            z-index: 100;
+            padding: 1.5rem; /* Reduced padding for mobile */
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Game Over Modal Styling */
+        #game-over-screen.popup-panel {
+            z-index: 200;
+            background-color: rgba(13, 17, 23, 0.99);
+            border-color: #ef4444;
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.8);
+        }
+
+        /* Typing Input */
+        #typing-input {
+            position: absolute;
+            opacity: 0;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            cursor: default;
+        }
+
+        /* Bubbles */
+        .bubble {
+            position: absolute;
+            width: 45px; /* Slightly smaller for mobile */
+            height: 45px;
+            border-radius: 50%;
+            background-color: rgba(59, 130, 246, 0.8); /* Default Blue (Letters) */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem; /* Smaller pixel font */
+            font-weight: bold;
+            color: white;
+            border: 2px solid rgba(147, 197, 253, 0.9);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+            top: -60px;
+            transition: transform 0.1s, opacity 0.1s;
+            user-select: none;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        /* Type Specific Bubble Colors */
+        .bubble-number {
+            background-color: rgba(239, 68, 68, 0.8); /* Red-500 */
+            border: 2px solid rgba(252, 165, 165, 0.9); /* Red-300 */
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        .bubble-symbol {
+            background-color: rgba(168, 85, 247, 0.8); /* Purple-500 */
+            border: 2px solid rgba(221, 214, 254, 0.9); /* Purple-300 */
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+        }
+
+        .bubble-word {
+            width: auto;
+            min-width: 70px;
+            padding: 4px 8px; /* Reduced padding */
+            height: 35px; /* Reduced height */
+            font-size: 1rem; /* Smaller Orbitron font */
+            background-color: rgba(168, 85, 247, 0.8);
+            border: 2px solid rgba(196, 181, 253, 0.9);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+            border-radius: 20px;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+        }
+
+        /* Turret Base Styling (Bottom Center) */
+        #turret-base {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            width: 50px;
+            height: auto; /* Adjusted to hold longer barrel */
+            transition: none; /* Removed transition for explosion effect on base */
+            position: relative; /* Ensure explosion container can be positioned correctly */
+        }
+
+        /* Character Display (Smaller) */
+        #turret-display {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            background-color: #2563eb; /* Blue-600 */
+            border: 3px solid #60a5fa; /* Blue-400 */
+            color: white;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px 14px 0 0;
+            box-shadow: 0 0 10px #3b82f6;
+            margin-top: 0; /* Connects directly to nozzle */
+            z-index: 2;
+        }
+
+        /* Gun Nozzle (Turret Look) */
+        #turret-gun-nozzle {
+            position: relative;
+            width: 8px; /* Barrel width */
+            height: 40px; /* LONGER BARREL */
+            background-color: #374151; /* Gray-700 */
+            border: 2px solid #6b7280; /* Gray-500 */
+            border-radius: 2px 2px 0 0;
+            margin-bottom: -20px;
+            /* Turret Rotation Setup */
+            transform-origin: bottom center;
+            transition: transform 0.15s ease-out; /* Smooth rotation */
+            transform: rotate(0deg); /* Start vertical */
+            z-index: 1;
+        }
+
+        /* Projectile Styling */
+        #projectile {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background-color: #ef4444; /* Red projectile */
+            border-radius: 50%;
+            box-shadow: 0 0 8px #f87171;
+            z-index: 60;
+        }
+
+        /* Animations (Retained) */
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .animate-pulse-effect {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% {
+                transform: scale(1);
+            }
+
+            15% {
+                transform: scale(1.1);
+            }
+
+            30% {
+                transform: scale(1);
+            }
+
+            45% {
+                transform: scale(1.1);
+            }
+        }
+
+        .heartbeat-animation {
+            animation: heartbeat 1s ease-in-out;
+        }
+
+        /* --- UPDATED: Softer and Slower Flash --- */
+        @keyframes incorrect-flash {
+            0% {
+                background-color: transparent;
+            }
+
+            50% {
+                /* Softer orange color at a low 20% opacity */
+                background-color: rgba(255, 165, 0, 0.2);
+            }
+
+            100% {
+                background-color: transparent;
+            }
+        }
+
+        .incorrect-flash-bg {
+            /* Slower duration for a gentle fade instead of a rapid flash */
+            animation: incorrect-flash 0.7s ease-out;
+        }
+        /* --- END UPDATED STYLES --- */
+
+
+        /* NEW TURRET EXPLOSION STYLES */
+        #turret-explosion-container {
+            /* Span the area of the turret display/nozzle for centering */
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 80px; /* To cover both nozzle and display */
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 5;
+        }
+
+        .explosion-circle {
+            position: absolute;
+            width: 0px;
+            height: 0px;
+            border-radius: 50%;
+            background-color: rgba(255, 140, 0, 1); /* Initial bright orange */
+            transform: translate(-50%, -50%); /* Center the circle */
+            top: 60px; /* Adjust to center around the display/pivot area */
+            left: 50%;
+            z-index: 10;
+            pointer-events: none;
+            animation: explosion-pulse 0.5s ease-out forwards;
+        }
+
+        @keyframes explosion-pulse {
+            0% {
+                width: 0px;
+                height: 0px;
+                opacity: 1;
+                box-shadow: 0 0 10px 5px rgba(255, 165, 0, 0.8), 0 0 20px 10px rgba(239, 68, 68, 0.6);
+            }
+
+            100% {
+                width: 100px; /* Max size */
+                height: 100px;
+                opacity: 0;
+                box-shadow: 0 0 50px 20px rgba(255, 165, 0, 0); /* Glow fades */
+            }
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col items-center justify-center font-orbitron">
+
+    <div id="game-container" class="relative w-full h-full max-w-4xl max-h-[800px] shadow-2xl p-4 overflow-hidden rounded-lg">
+
+        <div id="main-menu" class="absolute inset-0 flex flex-col items-center justify-center p-8 z-20 transition-opacity duration-500 bg-gray-900/90">
+            <h1 class="text-4xl sm:text-6xl font-extrabold mb-8 sm:mb-12 text-blue-400 tracking-wider game-title">TYPING MADNESS</h1>
+            <div class="space-y-3 sm:space-y-4 w-56 sm:w-64">
+                <button id="start-game-btn" class="w-full py-3 rounded-lg text-lg sm:text-xl font-bold menu-btn"><span>START GAME</span></button>
+                <button id="settings-btn" class="w-full py-3 rounded-lg text-lg sm:text-xl font-bold menu-btn menu-btn-secondary"><span>SETTINGS</span></button>
+                <button id="fullscreen-btn" class="w-full py-3 rounded-lg text-lg sm:text-xl font-bold menu-btn menu-btn-secondary"><span>FULL SCREEN</span></button>
+                <button id="history-btn" class="w-full py-3 rounded-lg text-lg sm:text-xl font-bold menu-btn menu-btn-secondary"><span>HISTORY</span></button>
+            </div>
+        </div>
+
+        <div id="game-mode-popup" class="hidden popup-panel w-full max-w-sm sm:max-w-3xl">
+            <h2 class="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-center text-blue-300 game-title">SELECT GAME MODE</h2>
+            <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                <div id="mode-bubble" class="mode-card flex-1 p-4 sm:p-6 border-blue-500 rounded-xl hover:bg-gray-600 cursor-pointer transition duration-300 transform hover:scale-[1.02] shadow-lg">
+                    <h3 class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 text-center game-title">BUBBLE BURST</h3>
+                    <p class="text-gray-300 text-center mb-3 sm:mb-4 text-xs font-press-start">Pop single-character bubbles (Letters, Numbers, Symbols). 5 Lives.</p>
+                    <button class="select-mode-btn w-full py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-semibold font-press-start" data-mode="bubble">SELECT</button>
+                </div>
+                <div id="mode-word" class="mode-card flex-1 p-4 sm:p-6 border-purple-500 rounded-xl hover:bg-gray-600 cursor-pointer transition duration-300 transform hover:scale-[1.02] shadow-lg">
+                    <h3 class="text-xl sm:text-2xl font-bold mb-1 sm:mb-2 text-center game-title">WORD FALL</h3>
+                    <p class="text-gray-300 text-center mb-3 sm:mb-4 text-xs font-press-start">Type full words. 2 min. timer per level.</p>
+                    <button class="select-mode-btn w-full py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-semibold font-press-start" data-mode="word">SELECT</button>
+                </div>
+            </div>
+            <button class="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-white text-xl sm:text-2xl" id="close-mode-popup">&times;</button>
+        </div>
+
+        <div id="settings-panel" class="hidden popup-panel w-full max-w-xs sm:max-w-lg">
+            <h2 class="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-center text-blue-300 game-title">SETTINGS</h2>
+            <p class="text-gray-300 mb-3 sm:mb-4 text-xs font-press-start text-center">Volume control, Difficulty (Start Level), etc.</p>
+            <button id="close-settings-btn" class="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-lg font-bold transition duration-200 font-press-start">CLOSE</button>
+            <button class="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-white text-xl sm:text-2xl" id="close-settings-popup">&times;</button>
+        </div>
+
+        <div id="history-panel" class="hidden popup-panel w-full max-w-xs sm:max-w-lg">
+            <h2 class="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-center text-blue-300 game-title">HISTORY</h2>
+            <ul id="history-list" class="space-y-1 sm:space-y-2 text-gray-300 font-press-start text-xs list-disc list-inside">
+                <li>No history recorded yet.</li>
+            </ul>
+            <button id="close-history-btn" class="mt-4 sm:mt-6 w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-lg font-bold transition duration-200 font-press-start">CLOSE</button>
+            <button class="absolute top-2 right-2 sm:top-4 sm:right-4 text-gray-400 hover:text-white text-xl sm:text-2xl" id="close-history-popup">&times;</button>
+        </div>
+
+        <div id="game-play" class="hidden relative w-full h-full bg-gray-900/90 p-2 sm:p-4">
+
+            <div class="flex justify-between items-center mb-2 sm:mb-4 text-xs sm:text-xl font-bold font-press-start">
+                <div id="lives-display" class="flex items-center space-x-1 sm:space-x-2 text-red-500">
+                    <span class="text-lg sm:text-2xl">❤️</span><span id="life-count">5</span>
+                </div>
+                <div id="level-timer-display" class="text-yellow-400">
+                    Time: <span id="time-left">00:30</span>
+                </div>
+                <div id="level-display" class="text-green-400">
+                    Level: <span id="current-level">1</span>
+                </div>
+                <button id="back-to-menu-btn" class="text-xs py-1 px-2 sm:px-3 bg-red-600 hover:bg-red-700 rounded-lg transition duration-200 font-press-start">Menu</button>
+            </div>
+
+            <div id="game-over-screen" class="hidden font-press-start text-center">
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-red-500 animate-pulse-effect mb-4 sm:mb-6">GAME OVER</h2>
+                <p class="text-base sm:text-xl text-gray-300 mb-6 sm:mb-8">Score: <span id="final-score" class="font-bold text-yellow-400">0</span></p>
+                <button id="restart-game-btn" class="py-2 sm:py-3 px-4 sm:px-6 bg-blue-600 hover:bg-blue-700 rounded-lg text-lg sm:text-xl font-bold transition duration-200">RESTART</button>
+                <button id="go-to-main-menu-btn" class="mt-3 sm:mt-4 py-2 sm:py-3 px-4 sm:px-6 bg-gray-600 hover:bg-gray-700 rounded-lg text-lg sm:text-xl font-bold transition duration-200">MENU</button>
+            </div>
+
+            <div id="bubble-fall-area" class="relative w-full h-[calc(100%-40px)] sm:h-[calc(100%-60px)] border-t-2 border-gray-700">
+            </div>
+
+            <div id="turret-base" class="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2 z-50">
+                <div id="turret-explosion-container"></div>
+                <div id="turret-gun-nozzle"></div>
+                <div id="turret-display" class="font-press-start">
+                    -
+                </div>
+            </div>
+            <div id="projectile" class="hidden"></div>
+
+            <div class="absolute bottom-0 left-0 w-full h-1 bg-red-600 shadow-xl"></div>
+
+            <input type="text" id="typing-input" maxlength="1" autofocus autocomplete="off" spellcheck="false">
+
+        </div>
+
+    </div>
+
+    <script>
+        const GAME_CONFIG = {
+            currentMode: null,
+            maxLives: 5,
+            currentLives: 5,
+            score: 0,
+
+            currentLevel: 1,
+            levelDuration: 30, // 30 seconds per level
+            timeLeft: 30,
+            levelTimerInterval: null,
+
+            bubbleSpeedBase: 0.8,
+            bubbleSpeedIncrease: 0.1,
+
+            // BASE SPAWN RATES
+            bubbleSpawnRateBase: 1200, // This will be used primarily for letters
+            bubbleSpawnRateDecrease: 50,
+            maxBubbles: 7,
+
+            gameLoopInterval: null,
+            // DEDICATED SPAWN INTERVALS ADDED
+            spawnLoopInterval: null, // For letters/word fall
+            symbolSpawnInterval: null,
+            numberSpawnInterval: null,
+        };
+
+        const BUBBLE_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const NUMBER_CHARACTERS = "0123456789";
+        const SYMBOL_CHARACTERS = "!@#$%^&*()";
+        const HISTORY_KEY = 'typingMadnessHistory';
+
+        const BUBBLE_LIFE_CHANCE = 0.05; // 5% chance to spawn a life bubble
+        const MIN_BUBBLE_LIFE = 3;
+        const MAX_BUBBLE_LIFE = 7;
+        let CONTINUOUS_EXPLOSION_INTERVAL = null; // Global variable for continuous explosion loop
+
+        let IDLE_ROTATION_INTERVAL = null;
+
+        // --- Utility Functions (Including multi-life utilities) ---
+
+        /**
+         * Converts hex to RGBA with a specified alpha.
+         */
+        const hexToRgba = (hex, alpha) => {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        };
+
+        /**
+         * Calculates the color based on the bubble's remaining life (darker = more life).
+         */
+        const getBubbleColor = (life, maxLife) => {
+            const BASE_BG_HEX = '#3b82f6'; // Blue-500
+            const BASE_BORDER_HEX = '#93c5fd'; // Blue-300
+
+            // Interpolation factor (0 at maxLife, 1 at 1 life)
+            const factor = maxLife > 1 ? (maxLife - life) / (maxLife - 1) : 1;
+
+            const interpolate = (startHex, endHex, f) => {
+                const rStart = parseInt(startHex.slice(1, 3), 16);
+                const gStart = parseInt(startHex.slice(3, 5), 16);
+                const bStart = parseInt(startHex.slice(5, 7), 16);
+
+                const rEnd = parseInt(endHex.slice(1, 3), 16);
+                const gEnd = parseInt(endHex.slice(3, 5), 16);
+                const bEnd = parseInt(endHex.slice(5, 7), 16);
+
+                const r = Math.round(rStart + (rEnd - rStart) * f);
+                const g = Math.round(gStart + (gEnd - gStart) * f);
+                const b = Math.round(bStart + (bEnd - bStart) * f);
+
+                return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`;
+            };
+
+            const START_BG_HEX = '#1e3a8a'; // Dark Blue-800
+            const START_BORDER_HEX = '#3b82f6'; // Blue-500
+
+            const interpolatedBg = interpolate(START_BG_HEX, BASE_BG_HEX, factor);
+            const interpolatedBorder = interpolate(START_BORDER_HEX, BASE_BORDER_HEX, factor);
+
+            return {
+                bg: hexToRgba(interpolatedBg, 0.8),
+                border: hexToRgba(interpolatedBorder, 0.9)
+            };
+        };
+
+
+        /**
+         * Updates the bubble's visual style and text based on its remaining life.
+         */
+        const updateBubbleAppearance = ($bubble, life, maxLife, content) => {
+            if (life <= 1) {
+                // Return to normal appearance (letter/char only)
+                $bubble.text(content).css({
+                    'background-color': '', // Clears inline style, relies on CSS .bubble
+                    'border-color': '',
+                    'border-style': ''
+                }).removeClass('bubble-life'); // Remove class used for multi-life styling
+            } else {
+                // Apply life color and display life count
+                const colors = getBubbleColor(life, maxLife);
+                $bubble.text(life).css({
+                    'background-color': colors.bg,
+                    'border-color': colors.border,
+                    'border-style': 'solid'
+                }).addClass('bubble-life');
+            }
+        };
+
+        const saveHistory = (score, mode) => {
+            const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+            const timestamp = new Date().toLocaleString();
+            history.push({ score, mode, timestamp });
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+        };
+
+        const loadHistory = () => {
+            const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+            const $list = $('#history-list');
+            $list.empty();
+            if (history.length === 0) {
+                $list.append('<li class="text-center">No history recorded yet.</li>');
+                return;
+            }
+            history.reverse().slice(0, 10).forEach((item, index) => {
+                $list.append(`<li><span class="text-blue-300">${index + 1}.</span> [${item.mode.toUpperCase()}] Score: <span class="text-yellow-400">${item.score}</span> (${item.timestamp})</li>`);
+            });
+        };
+
+        const toggleFullscreen = () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        };
+
+        const updateHUD = () => {
+            $('#life-count').text(GAME_CONFIG.currentLives);
+            $('#current-level').text(GAME_CONFIG.currentLevel);
+
+            const minutes = String(Math.floor(GAME_CONFIG.timeLeft / 60)).padStart(2, '0');
+            const seconds = String(GAME_CONFIG.timeLeft % 60).padStart(2, '0');
+            $('#time-left').text(`${minutes}:${seconds}`);
+        };
+
+        /**
+         * UPDATED: Sets the body flash to be softer and longer (0.7s) to be less jarring.
+         */
+        const flashIncorrect = () => {
+            $('body').addClass('incorrect-flash-bg');
+            setTimeout(() => {
+                $('body').removeClass('incorrect-flash-bg');
+            }, 700); // 700ms matches the new CSS animation duration
+        };
+
+        /**
+         * Creates an expanding, glowing explosion circle on the turret.
+         */
+        const turretExplosion = () => {
+            const $container = $('#turret-explosion-container');
+            // Create a new circle div with the explosion-circle animation class
+            const $circle = $('<div class="explosion-circle"></div>');
+
+            $container.append($circle);
+
+            // The animation lasts 0.5s (500ms). Remove the div after it finishes.
+            setTimeout(() => {
+                $circle.remove();
+            }, 550); // 50ms buffer
+        };
+
+        /**
+         * Starts the continuous loop of the explosion effect.
+         */
+        const startContinuousExplosion = () => {
+            if (CONTINUOUS_EXPLOSION_INTERVAL) return;
+            // Loop the explosion effect slightly faster than the animation time
+            CONTINUOUS_EXPLOSION_INTERVAL = setInterval(turretExplosion, 300);
+        };
+
+        /**
+         * Stops the continuous explosion loop.
+         */
+        const stopContinuousExplosion = () => {
+            if (CONTINUOUS_EXPLOSION_INTERVAL) {
+                clearInterval(CONTINUOUS_EXPLOSION_INTERVAL);
+                CONTINUOUS_EXPLOSION_INTERVAL = null;
+            }
+            // Also clean up any existing circles
+            $('#turret-explosion-container').empty();
+        };
+
+        /**
+         * Handles the turret firing animation and bubble popping, including rotation.
+         */
+        const fireAndPop = ($targetBubble) => {
+            const travelTime = 150;
+            const $projectile = $('#projectile');
+            const $turretBase = $('#turret-base');
+            const $nozzle = $('#turret-gun-nozzle');
+            const $gamePlay = $('#game-play');
+
+            // 1. Calculate Target Coordinates and Angle
+            const gamePlayRect = $gamePlay[0].getBoundingClientRect();
+            const bubbleRect = $targetBubble[0].getBoundingClientRect();
+
+            // Target center (relative to #game-play)
+            const targetX = bubbleRect.left + bubbleRect.width / 2 - gamePlayRect.left;
+            const targetY = bubbleRect.top + bubbleRect.height / 2 - gamePlayRect.top;
+
+            // Turret center (relative to #game-play)
+            const turretRect = $turretBase[0].getBoundingClientRect();
+            const turretCenterX = turretRect.left + turretRect.width / 2 - gamePlayRect.left;
+            const turretCenterY = turretRect.top - gamePlayRect.top + $nozzle.height(); // Pivot point is bottom of nozzle/top of display
+
+            // Start position (Tip of the nozzle)
+            const nozzleTipY = turretCenterY - $nozzle.height();
+            const startX = turretCenterX;
+            const startY = nozzleTipY;
+
+
+            // Angle calculation
+            const deltaX = targetX - turretCenterX;
+            const deltaY = targetY - nozzleTipY;
+            const angleRad = Math.atan2(deltaY, deltaX);
+            // Convert to degrees and adjust (90 degrees offset for vertical barrel)
+            const angleDeg = angleRad * (180 / Math.PI) + 90;
+
+            // Apply rotation to the nozzle
+            $nozzle.css('transform', `rotate(${angleDeg}deg)`);
+
+            // 2. Set projectile to start position and unhide
+            $projectile.css({
+                left: startX + 'px',
+                top: startY + 'px',
+                opacity: 1,
+                transform: 'scale(1)',
+                transition: 'none'
+            }).removeClass('hidden');
+
+            // 3. Trigger reflow before transition
+            $projectile.get(0).offsetHeight;
+
+            // 4. Trigger the movement animation
+            $projectile.css({
+                transition: `all ${travelTime}ms linear`,
+                left: targetX + 'px',
+                top: targetY + 'px',
+                transform: 'scale(0.3)',
+            });
+
+            // 5. Pop/Damage bubble and reset projectile/turret after travel time
+            setTimeout(() => {
+                // ADDED MULTI-LIFE DAMAGE LOGIC
+                const currentLife = parseInt($targetBubble.data('life') || 1);
+                const maxLife = parseInt($targetBubble.data('max-life') || 1);
+                const content = $targetBubble.data('full-text');
+
+                if (currentLife > 1) {
+                    // DAMAGE THE BUBBLE
+                    $targetBubble.data('life', currentLife - 1);
+                    updateBubbleAppearance($targetBubble, currentLife - 1, maxLife, content);
+
+                    // Re-apply scale for a small hit-effect
+                    $targetBubble.css({
+                        transform: 'scale(1.1)',
+                        transition: 'transform 0.1s'
+                    });
+                    setTimeout(() => $targetBubble.css('transform', 'scale(1)'), 100);
+
+                } else {
+                    // POP THE BUBBLE
+                    $targetBubble.css({
+                        transform: 'scale(1.2)',
+                        opacity: 0,
+                        transition: 'transform 0.1s, opacity 0.1s'
+                    });
+                    // Remove the bubble after its small visual transition
+                    setTimeout(() => $targetBubble.remove(), 100);
+                }
+                // END ADDED DAMAGE LOGIC
+
+
+                // Reset projectile
+                $projectile.addClass('hidden').css('transition', 'none');
+
+                // Return to idle rotation after firing
+                idleTurretRotation();
+
+                // Update score immediately
+                GAME_CONFIG.score += 10;
+            }, travelTime);
+        };
+
+        /**
+         * Rotates the turret nozzle slightly when no key is being pressed.
+         */
+        const idleTurretRotation = () => {
+            const $nozzle = $('#turret-gun-nozzle');
+            // Random angle between -45deg (left) and +45deg (right) for idle
+            const randomAngle = Math.floor(Math.random() * 90) - 45;
+            $nozzle.css('transform', `rotate(${randomAngle}deg)`);
+        };
+
+        const startIdleRotation = () => {
+            if (IDLE_ROTATION_INTERVAL) clearInterval(IDLE_ROTATION_INTERVAL);
+            IDLE_ROTATION_INTERVAL = setInterval(idleTurretRotation, 2500); // Change direction every 2.5 seconds
+            idleTurretRotation(); // Initial rotation
+        };
+
+        const stopIdleRotation = () => {
+            if (IDLE_ROTATION_INTERVAL) {
+                clearInterval(IDLE_ROTATION_INTERVAL);
+                IDLE_ROTATION_INTERVAL = null;
+            }
+            // Reset nozzle to center when stopped
+            $('#turret-gun-nozzle').css('transform', 'rotate(0deg)');
+        };
+
+        // --- Level & Game State Logic ---
+
+        const startLevelTimer = () => {
+            if (GAME_CONFIG.levelTimerInterval) {
+                clearInterval(GAME_CONFIG.levelTimerInterval);
+            }
+
+            GAME_CONFIG.timeLeft = GAME_CONFIG.levelDuration;
+            updateHUD();
+
+            GAME_CONFIG.levelTimerInterval = setInterval(() => {
+                GAME_CONFIG.timeLeft--;
+                updateHUD();
+
+                if (GAME_CONFIG.timeLeft <= 0) {
+                    clearInterval(GAME_CONFIG.levelTimerInterval);
+                    nextLevel();
+                }
+            }, 1000);
+        };
+
+        const nextLevel = () => {
+            GAME_CONFIG.currentLevel++;
+
+            $('#bubble-fall-area').empty();
+
+            startLevelTimer();
+
+            // Clear and restart all spawn loops for the new level
+            clearInterval(GAME_CONFIG.spawnLoopInterval);
+            clearInterval(GAME_CONFIG.symbolSpawnInterval);
+            clearInterval(GAME_CONFIG.numberSpawnInterval);
+            startSpawnLoop();
+        };
+
+        const startGame = (mode) => {
+            GAME_CONFIG.currentMode = mode;
+            GAME_CONFIG.currentLives = GAME_CONFIG.maxLives;
+            GAME_CONFIG.currentLevel = 1;
+            GAME_CONFIG.score = 0;
+
+            stopContinuousExplosion(); // Stop continuous explosion when starting game
+
+            $('#main-menu').hide();
+            $('.popup-panel').fadeOut(0);
+            $('#game-play').show();
+            $('#game-over-screen').removeClass('popup-panel').hide();
+
+            $('#bubble-fall-area').empty();
+            $('#turret-display').text('-');
+
+            $('#typing-input').val('').focus();
+            $('#typing-input').prop('maxlength', mode === 'bubble' ? 1 : 99);
+
+            $('#lives-display').toggle(mode === 'bubble').show();
+            $('#level-timer-display').show();
+            $('#back-to-menu-btn').show();
+
+            updateHUD();
+            startGameLoop();
+            startSpawnLoop();
+            startLevelTimer();
+            startIdleRotation();
+        };
+
+        const endGame = () => {
+            // Stop all loops
+            clearInterval(GAME_CONFIG.gameLoopInterval);
+            clearInterval(GAME_CONFIG.spawnLoopInterval);
+            clearInterval(GAME_CONFIG.levelTimerInterval);
+            clearInterval(GAME_CONFIG.symbolSpawnInterval);
+            clearInterval(GAME_CONFIG.numberSpawnInterval);
+            stopIdleRotation();
+
+            saveHistory(GAME_CONFIG.score, GAME_CONFIG.currentMode);
+
+            $('#final-score').text(GAME_CONFIG.score);
+
+            const $gameOverScreen = $('#game-over-screen');
+            $gameOverScreen.addClass('popup-panel').fadeIn(500);
+
+            $('#typing-input').blur();
+            startContinuousExplosion(); // Start continuous explosion on game over
+        };
+
+        const loseLife = () => {
+            if (GAME_CONFIG.currentMode === 'bubble' || GAME_CONFIG.currentMode === 'word') {
+                GAME_CONFIG.currentLives--;
+                turretExplosion(); // Trigger single explosion when losing life
+                $('#lives-display').addClass('heartbeat-animation');
+                setTimeout(() => $('#lives-display').removeClass('heartbeat-animation'), 1000);
+                updateHUD();
+                if (GAME_CONFIG.currentLives <= 0) {
+                    endGame();
+                }
+            }
+        };
+
+        const generateRandomWord = () => {
+            const length = Math.floor(Math.random() * 4) + 3;
+            const allChars = BUBBLE_CHARACTERS + NUMBER_CHARACTERS + SYMBOL_CHARACTERS;
+            let word = '';
+            for (let i = 0; i < length; i++) {
+                word += allChars.charAt(Math.floor(Math.random() * allChars.length));
+            }
+            return word;
+        };
+
+        /**
+         * Includes multi-life bubble spawning.
+         */
+        const spawnBubble = (type) => {
+            const $area = $('#bubble-fall-area');
+            const areaWidth = $area.width();
+
+            let content;
+            let bubbleClass = 'bubble';
+            let bubbleSize = 50;
+
+            let isMultiLife = false;
+            let initialLife = 1;
+
+            if (type === 'word') {
+                content = generateRandomWord();
+                bubbleClass = 'bubble-word';
+                bubbleSize = 100;
+            } else {
+                // Calculate multi-life chance only for letter/number/symbol bubbles
+                if (Math.random() < BUBBLE_LIFE_CHANCE) {
+                    isMultiLife = true;
+                    initialLife = Math.floor(Math.random() * (MAX_BUBBLE_LIFE - MIN_BUBBLE_LIFE + 1)) + MIN_BUBBLE_LIFE;
+                }
+
+                if (type === 'symbol') {
+                    content = SYMBOL_CHARACTERS.charAt(Math.floor(Math.random() * SYMBOL_CHARACTERS.length));
+                    bubbleClass += ' bubble-symbol';
+                } else if (type === 'number') {
+                    content = NUMBER_CHARACTERS.charAt(Math.floor(Math.random() * NUMBER_CHARACTERS.length));
+                    bubbleClass += ' bubble-number';
+                } else {
+                    content = BUBBLE_CHARACTERS.charAt(Math.floor(Math.random() * BUBBLE_CHARACTERS.length));
+                }
+            }
+
+            // Determine initial text for the bubble
+            const initialText = isMultiLife ? initialLife : content;
+
+            const startX = Math.random() * (areaWidth - bubbleSize);
+
+            // Set data attributes for multi-life tracking
+            const $bubble = $(`<div class="${bubbleClass}" data-full-text="${content}" data-life="${initialLife}" data-max-life="${initialLife}">${initialText}</div>`);
+            $bubble.css({ left: startX + 'px' });
+            $area.append($bubble);
+
+            // Apply initial appearance for multi-life bubbles
+            if (isMultiLife) {
+                updateBubbleAppearance($bubble, initialLife, initialLife, content);
+            }
+        };
+
+        const startSpawnLoop = () => {
+            clearInterval(GAME_CONFIG.spawnLoopInterval);
+            clearInterval(GAME_CONFIG.symbolSpawnInterval);
+            clearInterval(GAME_CONFIG.numberSpawnInterval);
+
+            if (GAME_CONFIG.currentMode === 'word') {
+                const currentRate = Math.max(
+                    500,
+                    GAME_CONFIG.bubbleSpawnRateBase - (GAME_CONFIG.currentLevel * GAME_CONFIG.bubbleSpawnRateDecrease * 2)
+                );
+
+                GAME_CONFIG.spawnLoopInterval = setInterval(() => {
+                    if ($('#bubble-fall-area > div').length < GAME_CONFIG.maxBubbles) {
+                        spawnBubble('word');
+                    }
+                }, currentRate);
+
+            } else if (GAME_CONFIG.currentMode === 'bubble') {
+
+                const letterRate = Math.max(
+                    300,
+                    GAME_CONFIG.bubbleSpawnRateBase - (GAME_CONFIG.currentLevel * GAME_CONFIG.bubbleSpawnRateDecrease)
+                );
+
+                GAME_CONFIG.spawnLoopInterval = setInterval(() => {
+                    if ($('#bubble-fall-area > div').length < GAME_CONFIG.maxBubbles) {
+                        spawnBubble('letter');
+                    }
+                }, letterRate);
+
+                GAME_CONFIG.numberSpawnInterval = setInterval(() => {
+                    if ($('#bubble-fall-area > div').length < GAME_CONFIG.maxBubbles) {
+                        spawnBubble('number');
+                    }
+                }, 5000);
+
+                GAME_CONFIG.symbolSpawnInterval = setInterval(() => {
+                    if ($('#bubble-fall-area > div').length < GAME_CONFIG.maxBubbles) {
+                        spawnBubble('symbol');
+                    }
+                }, 15000);
+            }
+        };
+
+        const startGameLoop = () => {
+            let animationFrameId;
+
+            const fallBubbles = () => {
+                const speed = GAME_CONFIG.bubbleSpeedBase + (GAME_CONFIG.currentLevel * GAME_CONFIG.bubbleSpeedIncrease);
+                const areaHeight = $('#bubble-fall-area').height();
+
+                $('#bubble-fall-area > div').each(function () {
+                    const $bubble = $(this);
+                    let currentY = $bubble.position().top;
+                    const newY = currentY + speed;
+
+                    if (newY >= areaHeight - $bubble.outerHeight()) {
+                        $bubble.remove();
+                        loseLife();
+                    } else {
+                        $bubble.css({ top: newY + 'px' });
+                    }
+                });
+
+                if (GAME_CONFIG.gameLoopInterval) {
+                    cancelAnimationFrame(GAME_CONFIG.gameLoopInterval);
+                }
+
+                animationFrameId = requestAnimationFrame(fallBubbles);
+                GAME_CONFIG.gameLoopInterval = animationFrameId;
+            };
+
+            animationFrameId = requestAnimationFrame(fallBubbles);
+            GAME_CONFIG.gameLoopInterval = animationFrameId;
+        };
+
+        // --- Event Handlers ---
+
+        $(document).ready(function () {
+
+            // Menu Buttons
+            $('#start-game-btn').on('click', function () {
+                $('#game-mode-popup').fadeIn(300);
+                $('#typing-input').blur();
+            });
+            $('#settings-btn').on('click', function () { $('#settings-panel').fadeIn(300); });
+            $('#fullscreen-btn').on('click', toggleFullscreen);
+            $('#history-btn').on('click', function () { loadHistory(); $('#history-panel').fadeIn(300); });
+
+            // Close Popup buttons
+            $('.popup-panel .absolute.top-2.right-2, .popup-panel .absolute.top-4.right-4, .popup-panel button:contains("CLOSE")').on('click', function () {
+                $(this).closest('.popup-panel').fadeOut(300);
+                $('#typing-input').focus();
+            });
+
+            // Game Mode Selection
+            $('.select-mode-btn').on('click', function () {
+                const mode = $(this).data('mode');
+                startGame(mode);
+            });
+
+            // In-Game Menu Button (quitting mid-game)
+            $('#back-to-menu-btn').on('click', function () {
+                clearInterval(GAME_CONFIG.gameLoopInterval);
+                clearInterval(GAME_CONFIG.spawnLoopInterval);
+                clearInterval(GAME_CONFIG.levelTimerInterval);
+                clearInterval(GAME_CONFIG.symbolSpawnInterval);
+                clearInterval(GAME_CONFIG.numberSpawnInterval);
+                stopIdleRotation();
+                stopContinuousExplosion(); // Stop explosion if running
+                $('#bubble-fall-area').empty();
+                $('#game-play').hide();
+                $('#main-menu').fadeIn(300);
+            });
+
+            // Game Over Restart Button Handler
+            $('#restart-game-btn').on('click', function () {
+                $('#game-over-screen').removeClass('popup-panel').hide();
+                startGame(GAME_CONFIG.currentMode);
+            });
+
+            // Game Over Menu Button Handler
+            $('#go-to-main-menu-btn').on('click', function () {
+                $('#game-over-screen').removeClass('popup-panel').hide();
+                stopContinuousExplosion(); // Stop explosion
+                $('#bubble-fall-area').empty();
+                $('#game-play').hide();
+                $('#main-menu').fadeIn(300);
+            });
+
+
+            // Typing Input Logic - FIX APPLIED HERE
+            $('#typing-input').on('input', function (event) {
+                if ($('#game-over-screen').is(':visible')) {
+                    $(this).val('');
+                    return;
+                }
+
+                const rawTypedText = $(this).val();
+                $(this).val('');
+
+                if (!rawTypedText) return;
+
+                let typedChar = rawTypedText.charAt(0);
+
+                // 1. Normalize character case
+                if (/[a-zA-Z]/.test(typedChar)) {
+                    typedChar = typedChar.toUpperCase();
+                }
+
+                // 2. Update the visual display
+                $('#turret-display').text(typedChar);
+
+                // 3. Game logic check
+                if (GAME_CONFIG.currentMode === 'bubble') {
+                    let $targetBubble = null;
+                    let lowestY = -Infinity;
+
+                    // Find the lowest bubble matching the typed character
+                    $('#bubble-fall-area .bubble').each(function () {
+                        const $this = $(this);
+
+                        // FIX: Check if the currently displayed text of the bubble matches the typed character.
+                        if ($this.text().toString() === typedChar) {
+                            const currentY = $this.position().top;
+                            if (currentY > lowestY) {
+                                lowestY = currentY;
+                                $targetBubble = $this;
+                            }
+                        }
+                    });
+
+                    if ($targetBubble) {
+                        // Success! Fire the turret and pop/damage the bubble.
+                        fireAndPop($targetBubble);
+                    } else {
+                        // INCORRECT KEYPRESS - LOSE A LIFE
+                        flashIncorrect();
+                        loseLife();
+                        // Turret resets to idle after an incorrect shot
+                        idleTurretRotation();
+                    }
+                }
+                // Placeholder for Word Fall logic (incorrect typing loses a life)
+                else if (GAME_CONFIG.currentMode === 'word') {
+                    flashIncorrect();
+                    loseLife();
+                }
+            });
+
+            // Focus the input when game-play is visible
+            $(document).on('click', '#game-play', function () {
+                if (!$('#game-over-screen').is(':visible')) {
+                    $('#typing-input').focus();
+                }
+            });
+
+            $('#start-game-btn').focus();
+        });
+    </script>
+</body>
+</html>
