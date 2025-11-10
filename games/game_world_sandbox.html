@@ -3,1405 +3,1589 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Pixel Craft World Map</title>
+    <title>3D Voxel Strategy Game</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Font Awesome for the character icon and menu icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <style>
-        /* Custom CSS */
         body {
-            background-color: #1a202c;
-            font-family: monospace; 
-            display: flex;
-            flex-direction: column; 
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden; 
-            /* Ensure the body is focusable for key events */
-            outline: none; 
+            font-family: 'Inter', sans-serif;
         }
 
-        .map-container-iso {
-            perspective: 1000px;
-            transform-style: preserve-3d;
-            position: relative;
-            width: 90vw; 
-            max-width: 800px;
-            height: 70vh;
-            max-height: 600px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .map-base-plane {
-            position: absolute;
-            transform-style: preserve-3d;
-            transition: box-shadow 0.5s ease;
-            cursor: grab; 
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-            transform: rotateX(40deg) rotateZ(-45deg);
-        }
-        
-        .map-base-plane.panning {
-            cursor: all-scroll; 
-        }
-
-
-        .tile {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            transform: rotateX(-90deg) rotateY(0deg); 
-            transform-origin: top left;
-            border-right: 1px solid rgba(0,0,0,0.1);
-            border-bottom: 1px solid rgba(0,0,0,0.1);
-            transition: background-color 0.1s;
-        }
-
-        /* Color definitions */
-        .grass { background-color: #6c9940; } 
-        .sand { background-color: #e6c384; } 
-        .water { background-color: #4a7ab3; } 
-        .mountain { background-color: #8b837c; } 
-        .forest { background-color: #4f772d; } 
-        .structure { background-color: #c9b199; } 
-
-        .char-icon {
-            position: absolute;
-            width: 40px; 
-            height: 40px;
-            font-size: 24px;
-            line-height: 40px;
-            text-align: center;
-            z-index: 100;
-            cursor: pointer;
-            text-shadow: 0 0 5px #000;
-            transition: transform 0.3s; 
-            margin-left: -20px; 
-            margin-top: -20px;
-        }
-
-        /* Menu Styles - Smaller and responsive */
-        .menu-card {
-            background-color: #2d3748; /* bg-gray-700 */
-            padding: 1.5rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-            max-width: 95vw; /* nearly full width on small screens */
-            width: 320px; /* Reduced fixed width */
-            min-height: 200px; 
-        }
-
-        .menu-button {
-            width: 100%;
-            margin-bottom: 0.75rem; /* Reduced margin */
-            padding: 0.5rem 1rem; /* Reduced padding */
-            font-size: 1rem; /* Reduced font size */
-            font-weight: bold;
-            color: white;
-            border-radius: 0.5rem;
-            transition: background-color 0.3s, transform 0.1s;
-        }
-
-        .menu-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Utility for managing views */
-        .view {
+        #renderCanvas {
             width: 100%;
             height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .lives-display {
-            /* Position relative to .char-icon (which is 'relative') */
-            /* Z-index high to ensure visibility above other elements */
-            z-index: 50; 
-            /* Ensure the text is readable */
-            pointer-events: none;
+            touch-action: none; /* Disables touch scrolling to allow Babylon.js touch control */
         }
 
-        /* Tailwind checkbox override for better visibility */
-        input[type="checkbox"] {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            height: 1.25rem;
-            width: 1.25rem;
-            background-color: #4a5568; /* bg-gray-600 */
-            border-radius: 0.25rem;
-            border: 1px solid #718096; /* border-gray-500 */
-            cursor: pointer;
-            transition: all 0.2s;
+        .ui-panel {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            backdrop-filter: blur(8px);
         }
-
-        input[type="checkbox"]:checked {
-            background-color: #6366f1; /* indigo-500 */
-            border-color: #6366f1;
-            /* Simple checkmark icon using border property */
-            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 00-1.414 0L7 8.586 4.207 5.793a1 1 0 00-1.414 1.414l3.5 3.5a1 1 0 001.414 0l5-5a1 1 0 000-1.414z'/%3e%3c/svg%3e");
-            background-size: 100% 100%;
-            background-position: center;
-            background-repeat: no-repeat;
+        /* Custom class for active toggle buttons */
+        .toggle-active {
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.7); /* Green glow */
+            border: 2px solid #4ade80;
         }
-
+        /* Ensure the collapsed panel is truly hidden visually by setting max-width to 0 */
+        .max-w-0 {
+            max-width: 0 !important;
+        }
     </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'team-a': '#EF4444', // Red 500
+                        'team-b': '#3B82F6', // Blue 500
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body tabindex="0"> <!-- Make body focusable for key events -->
+<body class="bg-gray-900 h-screen w-screen overflow-hidden flex items-center justify-center">
 
-    <!-- Main Application Container -->
-    <div id="app" class="flex flex-col items-center justify-center w-full h-full p-4">
+    <canvas id="renderCanvas" class="absolute inset-0"></canvas>
 
-        <!-- --- 1. Main Menu View --- -->
-        <div id="mainMenu" class="view">
-            <div class="menu-card text-white text-center">
-                <h1 class="text-4xl font-extrabold text-indigo-400 mb-6">Pixel Craft World</h1>
-                <button id="startGameBtn" class="menu-button bg-green-600 hover:bg-green-500">
-                    <i class="fas fa-play mr-2"></i> START GAME
-                </button>
-                <button id="settingsBtn" class="menu-button bg-indigo-600 hover:bg-indigo-500">
-                    <i class="fas fa-cog mr-2"></i> SETTINGS
-                </button>
-            </div>
+    <div id="main-menu" class="absolute inset-0 bg-gray-900 bg-opacity-90 flex flex-col items-center justify-center transition-opacity duration-500 z-20">
+        <h1 class="text-4xl sm:text-6xl font-extrabold text-white mb-10 tracking-wider">VOXEL BATTLE ARENA</h1>
+        <div class="space-y-4 w-64">
+            <button id="start-game" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200 shadow-xl transform hover:scale-105">
+                Start Game
+            </button>
+            <button id="how-to-play" class="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-6 rounded-lg transition duration-200 shadow-xl transform hover:scale-105">
+                How to Play
+            </button>
+            <button id="settings" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 shadow-xl transform hover:scale-105">
+                Settings (WIP)
+            </button>
         </div>
-
-        <!-- --- 2. Settings View --- -->
-        <div id="settingsView" class="view hidden">
-            <div class="menu-card text-white p-6">
-                <h2 class="text-2xl font-bold text-pink-400 mb-6 text-center">Controls & Settings</h2>
-                
-                
-                
-                <div class="space-y-3 text-sm text-gray-300 mt-4">
-                    <p><strong>Game Objective:</strong> Summon a Character and observe the traveler navigate the randomly generated isometric world.</p>
-                    <hr class="border-gray-600">
-                    <p class="font-bold text-base text-indigo-300">Camera Controls:</p>
-                    <ul class="list-disc list-inside ml-4 space-y-1">
-                        <li>**WASD / Arrow Keys:** Pan the camera view (moves the map origin).</li>
-                        <li>**Mouse Scroll:** Zooms the camera in and out.</li>
-                        <li>**Shift-Drag:** Pans the camera view (moves the map origin).</li>
-                        <li>**Mouse Drag:** Rotates the map's isometric angle.</li>
-                        <li>**R Key:** Resets the camera pan, zoom, and rotation to default.</li>
-                    </ul>
-                </div>
-                <button id="backToMenuFromSettingsBtn" class="menu-button bg-gray-600 hover:bg-gray-500 mt-8">
-                    <i class="fas fa-arrow-left mr-2"></i> Back to Main Menu
-                </button>
-            </div>
-        </div>
-
-        <!-- --- 3. Game View (The actual map and UI) --- -->
-        <div id="gameView" class="view hidden flex-col">
-
-            <!-- Top Control Panel -->
-            <div id="gameControlsPanel" class="flex justify-between items-center w-full p-2 bg-gray-900 text-white shadow-lg fixed top-0 left-0 z-30">
-
-    <button id="menuBtn" class="text-indigo-400 hover:text-indigo-300 transition duration-200 p-2 rounded-lg hover:bg-gray-800" title="Back to Main Menu">
-        <i class="fas fa-home text-xl"></i>
-    </button>
-
-    <div id="infoPanel" class="text-center text-sm text-gray-400 p-1 md:p-2 mx-4 flex-grow flex justify-center items-center" title="Current Game Status">
-        <i class="fas fa-info-circle text-lg"></i>
     </div>
 
-    <div class="flex items-center space-x-2 sm:space-x-4">
-        <div class="flex items-center text-gray-400 p-2 hover:text-indigo-400 transition duration-200" title="Toggle Character HP Display">
-            <label for="livesToggle" class="cursor-pointer">
-                <i class="fas fa-heart text-xl"></i>
-            </label>
-            <input type="checkbox" id="livesToggle" class="sr-only"> </div>
-
-        <button id="summonBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold w-10 h-10 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105 shadow-md" title="Summon Character">
-            <i class="fas fa-plus text-lg"></i>
+    <div id="fight-button-container" class="hidden absolute top-4 right-4 z-10">
+        <button id="btn-fight" class="flex items-center space-x-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full shadow-lg transition duration-200 transform hover:scale-105 shadow-xl" title="Start Battle">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path id="fight-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+            </svg>
+            <span id="fight-btn-text" class="text-lg font-bold">Fight</span>
         </button>
     </div>
-</div>
-            
-            <!-- Map Container -->
-            <div id="mapContainer" class="map-container-iso">
-                <div id="mapBasePlane" class="map-base-plane">
-                    <!-- Map tiles will be generated here -->
-                    <div id="characterLayer" class="absolute w-full h-full" style="transform-style: preserve-3d; z-index: 10;">
-                        <!-- Characters will be placed here -->
+
+    <div id="game-hud" class="hidden absolute top-0 left-0 h-full p-2 sm:p-4 z-10 flex flex-col items-start">
+
+        <button id="btn-collapse" class="w-8 h-8 sm:w-10 sm:h-10 bg-gray-700 hover:bg-gray-600 text-white rounded-full shadow-lg transition duration-200 mb-2 ml-1">
+            <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path id="collapse-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+            </svg>
+        </button>
+
+        <div id="game-panel-content" class="flex flex-col max-w-xs sm:max-w-sm w-full h-full bg-gray-800 bg-opacity-70 rounded-xl ui-panel transition-all duration-300 overflow-hidden">
+
+            <div id="panel-inner-wrapper" class="flex flex-col space-y-3 p-3 transition-opacity duration-200 opacity-100 pointer-events-auto">
+
+                <div class="flex justify-start items-center pb-2 border-b border-gray-700 w-full min-w-[200px]">
+                    <p id="game-status" class="text-white text-xs sm:text-lg font-semibold min-w-[100px] sm:min-w-[120px]">Status: Ready</p>
+                </div>
+
+                <div class="flex justify-between items-center w-full space-x-2">
+                    <select id="unit-selection" class="flex-1 bg-gray-700 text-white px-2 py-1 rounded-lg shadow-lg transition duration-200"></select>
+                </div>
+
+                <div class="flex justify-between items-center w-full space-x-2 border-b border-gray-700 ">
+                    <button id="btn-summon-character" class="flex items-center justify-center space-x-1 bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded-lg shadow-lg transition duration-200 transform hover:scale-105" title="Summon Unit">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                        <span class="font-semibold">Summon</span>
+                    </button>
+                    <div id="team-select" class="flex space-x-1 bg-gray-900 p-1 rounded-lg">
+                        <button data-team="A" class="team-btn px-2 py-0.5 text-xs rounded-md bg-team-a text-white font-bold shadow-md">A</button>
+                        <button data-team="B" class="team-btn px-2 py-0.5 text-xs rounded-md bg-gray-600 text-white font-bold shadow-md">B</button>
                     </div>
                 </div>
+
+                <div class="flex justify-between items-center w-full space-x-2">
+                    <button id="btn-alter-terrain" class="flex flex-1 items-center justify-center space-x-1 bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-lg shadow-lg transition duration-200 transform hover:scale-105" title="Generate New Terrain">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7-5l-4 4m12-4l4 4m-4-4l-4 4"></path></svg>
+                        <span class="font-semibold">New Terrain</span>
+                    </button>
+                    <button id="btn-revert-terrain" class="bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 text-sm rounded-lg shadow-md transition duration-200 transform hover:scale-105 min-w-[100px]" title="Revert to initial plain ground">
+                        Revert Plain
+                    </button>
+                </div>
+
+                <div class="flex justify-between items-center w-full space-x-2">
+                    <span class="text-white text-sm font-semibold min-w-[80px]">Map Size:</span>
+                    <button id="btn-increase-size" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 text-sm rounded-lg shadow-md transition duration-200 transform hover:scale-105" title="Increase Map Size">
+                        + Size
+                    </button>
+                    <button id="btn-decrease-size" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 text-sm rounded-lg shadow-md transition duration-200 transform hover:scale-105" title="Decrease Map Size">
+                        - Size
+                    </button>
+                </div>
+
+                <div class="flex justify-center items-center w-full space-x-2 border-b border-gray-700 pt-3">
+                    <span class="text-white text-sm font-semibold">Display:</span>
+                    <button id="toggle-health" data-toggle="showHealth" class="toggle-btn bg-gray-700 text-green-400 px-3 py-1 rounded-md toggle-active text-xs sm:text-sm" title="Toggle Health">Health</button>
+                    <button id="toggle-name" data-toggle="showName" class="toggle-btn bg-gray-700 text-white px-3 py-1 rounded-md text-xs sm:text-sm" title="Toggle Name">Name</button>
+                    <button id="toggle-weapon" data-toggle="showWeapon" class="toggle-btn bg-gray-700 text-yellow-400 px-3 py-1 rounded-md text-xs sm:text-sm" title="Toggle Weapon">Weapon</button>
+                </div>
+
+                <div class="flex justify-between items-center w-full space-x-2">
+                    <button id="btn-remove-entity" class="bg-gray-600 hover:bg-yellow-600 text-white px-3 py-1 text-sm rounded-lg shadow-md transition duration-200 transform hover:scale-105 min-w-[100px]" title="Click to remove an entity">
+                        Remove Entity
+                    </button>
+                    <button id="btn-clear-all" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1 text-sm rounded-lg shadow-md transition duration-200 transform hover:scale-105 min-w-[100px]" title="Remove all units and trees">
+                        Clear All Map
+                    </button>
+                </div>
+
+                <div class="flex justify-between items-center w-full space-x-2">
+                    <button id="btn-summon-tree" class="flex flex-1 items-center justify-center space-x-1 bg-lime-500 hover:bg-lime-600 text-white px-2 py-1 rounded-lg shadow-lg transition duration-200 transform hover:scale-105" title="Summon Tree">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span class="font-semibold">Tree/Obstacle</span>
+                    </button>
+                </div>
+
+                <div class="flex justify-between items-center w-full space-x-2">
+                    <button id="btn-summon-army" class="flex flex-1 items-center justify-center space-x-1 bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded-lg shadow-lg transition duration-200 transform hover:scale-105" title="Summon Tree">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span class="font-semibold">Random Initial Summon</span>
+                    </button>
+                </div>
+
+                <div class="flex-grow"></div>
             </div>
-
         </div>
-
     </div>
 
+    <div id="how-to-play-modal" class="hidden absolute inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-30">
+        <div class="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl mx-4">
+            <h2 class="text-2xl font-bold mb-4">How to Play</h2>
+            <ul class="list-disc pl-5 space-y-2 text-gray-700 text-sm sm:text-base">
+                <li>**Interact (Click/Drag):** When not fighting, click and drag units to reposition them on the map.</li>
+                <li>**Remove/Clear:** Press **Remove Entity** (Yellow button), then click a unit or tree to destroy it, or use **Clear All Map** (Red button) to wipe the board.</li>
+                <li>**Terrain:** Use **New Terrain** to generate mountains or **Revert Plain** to flatten the ground. Use the **Map Size** controls to change the world size.</li>
+                <li>**Movement/Attack:** Units now have visible **walk animations** when moving and an **arm swing animation** when attacking.</li>
+                <li>**Toggles:** Use the **HP, Name, and Wpn** buttons to show/hide unit details above their heads.</li>
+            </ul>
+            <button id="close-how-to-play" class="mt-6 w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 rounded-lg">Got It</button>
+        </div>
+    </div>
 
-<script>
-const CHARACTER_DATA = {
-        astra: {
-            name: "Astra",
-            description: "The Comet Runner, a fast and witty scout pilot.",
-            features: "Youthful, energetic expression; asymmetrical haircut; sleek silver flight suit.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="18" r="10" fill="#FCECDD"/> <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#FFC300"/> <rect x="26" y="28" width="12" height="16" fill="#A8DADC"/> <rect x="20" y="28" width="6" height="12" fill="#A8DADC"/> <rect x="38" y="28" width="6" height="12" fill="#A8DADC"/> <circle cx="23" cy="42" r="3" fill="#FCECDD"/>
-    <circle cx="41" cy="42" r="3" fill="#FCECDD"/>
-    <rect x="27" y="44" width="4" height="14" fill="#457B9D"/> <rect x="33" y="44" width="4" height="14" fill="#457B9D"/> <rect x="26" y="58" width="6" height="4" fill="#457B9D"/>
-    <rect x="32" y="58" width="6" height="4" fill="#457B9D"/>
-    <circle cx="29" cy="16" r="1.5" fill="#1D3557"/>
-    <circle cx="35" cy="16" r="1.5" fill="#1D3557"/>
-    <path d="M30 20 Q 32 21, 34 20" stroke="#1D3557" stroke-width="1"/>
-</svg>`,
-        },
-        cygnus: {
-            name: "Cygnus",
-            description: "The Starfall Captain, a wise and stoic fleet commander.",
-            features: "Mature, commanding presence; subtle glowing lines on the jawline; high-collared navy uniform.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <ellipse cx="32" cy="18" rx="10" ry="11" fill="#D4A373"/> <path d="M24 8 Q 32 2, 40 8 L 40 20 Q 32 24, 24 20 Z" fill="#3A3A3A"/>
-    <rect x="24" y="29" width="16" height="20" fill="#1D3557"/> <path d="M24 29 L 20 34 L 24 34 Z M40 29 L 44 34 L 40 34 Z" fill="#A8DADC"/>
-    <rect x="18" y="30" width="6" height="16" fill="#1D3557"/> <rect x="40" y="30" width="6" height="16" fill="#1D3557"/> <circle cx="21" cy="48" r="3.5" fill="#D4A373"/>
-    <circle cx="43" cy="48" r="3.5" fill="#D4A373"/>
-    <rect x="26" y="49" width="5" height="10" fill="#1D3557"/> <rect x="33" y="49" width="5" height="10" fill="#1D3557"/> <rect x="25" y="59" width="7" height="3" fill="#457B9D"/> <rect x="32" y="59" width="7" height="3" fill="#457B9D"/>
-    <circle cx="29" cy="16" r="1.8" fill="#F1FAEE"/>
-    <circle cx="35" cy="16" r="1.8" fill="#F1FAEE"/>
-    <path d="M32 19 L 32 21" stroke="#3A3A3A" stroke-width="1"/> <path d="M30 23 Q 32 24, 34 23" stroke="#3A3A3A" stroke-width="1"/> </svg>`,
-        },
-        nova: {
-            name: "Nova",
-            description: "The Stardust Dancer, a graceful zero-G performer with a flowing suit.",
-            features: "Slender build, long flowing hair, iridescent fabric on her suit.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="16" r="9" fill="#FCECDD"/>
-    <path d="M26 10 Q 32 4, 38 10 Q 36 24, 32 26 Q 28 24, 26 10 Z" fill="#90EE90"/>
-    <rect x="28" y="25" width="8" height="18" fill="#FF69B4"/>
-    <rect x="20" y="27" width="8" height="14" fill="#FF69B4"/>
-    <rect x="36" y="27" width="8" height="14" fill="#FF69B4"/>
-    <circle cx="23" cy="41" r="3" fill="#FCECDD"/>
-    <circle cx="41" cy="41" r="3" fill="#FCECDD"/>
-    <rect x="29" y="43" width="3" height="12" fill="#8A2BE2"/>
-    <rect x="32" y="43" width="3" height="12" fill="#8A2BE2"/>
-    <rect x="28" y="55" width="4" height="3" fill="#8A2BE2"/>
-    <rect x="32" y="55" width="4" height="3" fill="#8A2BE2"/>
-    <circle cx="29" cy="14" r="1.5" fill="#1D3557"/>
-    <circle cx="35" cy="14" r="1.5" fill="#1D3557"/>
-    <path d="M30 18 Q 32 19, 34 18" stroke="#1D3557" stroke-width="1"/>
-</svg>`,
-        },
-        zenith: {
-            name: "Zenith",
-            description: "The Deep Space Scholar, a studious researcher with cybernetic optical implants.",
-            features: "Calm, thoughtful expression, glowing blue lines around eyes, simple robe.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="18" r="10" fill="#D4A373"/>
-    <rect x="26" y="28" width="12" height="20" fill="#283747"/>
-    <rect x="20" y="28" width="6" height="16" fill="#283747"/>
-    <rect x="38" y="28" width="6" height="16" fill="#283747"/>
-    <circle cx="23" cy="46" r="3.5" fill="#D4A373"/>
-    <circle cx="41" cy="46" r="3.5" fill="#D4A373"/>
-    <rect x="28" y="48" width="4" height="12" fill="#283747"/>
-    <rect x="32" y="48" width="4" height="12" fill="#283747"/>
-    <rect x="27" y="60" width="5" height="3" fill="#4B0082"/>
-    <rect x="32" y="60" width="5" height="3" fill="#4B0082"/>
-    <circle cx="29" cy="16" r="2" fill="#00BFFF"/>
-    <circle cx="35" cy="16" r="2" fill="#00BFFF"/>
-    <path d="M30 20 Q 32 21, 34 20" stroke="#FFFFFF" stroke-width="1"/>
-</svg>`,
-        },
-        ion: {
-            name: "Ion",
-            description: "The Plasma Guardian, a strong protector with a radiant energy field.",
-            features: "Muscular build, short spiky hair, glowing accents on armor.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="16" r="10" fill="#A0522D"/>
-    <path d="M26 10 Q 32 4, 38 10 Q 36 24, 32 26 Q 28 24, 26 10 Z" fill="#DAA520"/>
-    <rect x="25" y="26" width="14" height="22" fill="#FF4500"/>
-    <rect x="18" y="28" width="7" height="18" fill="#FF4500"/>
-    <rect x="39" y="28" width="7" height="18" fill="#FF4500"/>
-    <circle cx="21" cy="48" r="4" fill="#A0522D"/>
-    <circle cx="43" cy="48" r="4" fill="#A0522D"/>
-    <rect x="27" y="48" width="5" height="14" fill="#FFA07A"/>
-    <rect x="32" y="48" width="5" height="14" fill="#FFA07A"/>
-    <rect x="26" y="62" width="7" height="2" fill="#FFA07A"/>
-    <rect x="31" y="62" width="7" height="2" fill="#FFA07A"/>
-    <circle cx="29" cy="14" r="1.5" fill="#FFFFFF"/>
-    <circle cx="35" cy="14" r="1.5" fill="#FFFFFF"/>
-    <path d="M30 18 Q 32 19, 34 18" stroke="#FFFFFF" stroke-width="1"/>
-</svg>`,
-        },
-        aurora: {
-            name: "Aurora",
-            description: "The Celestial Healer, radiating warmth and compassion.",
-            features: "Soft, kind eyes; gentle smile; attire that shimmers like nebulae.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="18" r="10" fill="#FCECDD"/>
-    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#ADD8E6"/>
-    <rect x="26" y="28" width="12" height="18" fill="#FFD700"/>
-    <rect x="20" y="28" width="6" height="14" fill="#FFD700"/>
-    <rect x="38" y="28" width="6" height="14" fill="#FFD700"/>
-    <circle cx="23" cy="44" r="3" fill="#FCECDD"/>
-    <circle cx="41" cy="44" r="3" fill="#FCECDD"/>
-    <rect x="29" y="46" width="3" height="12" fill="#ADFF2F"/>
-    <rect x="32" y="46" width="3" height="12" fill="#ADFF2F"/>
-    <rect x="28" y="58" width="4" height="3" fill="#ADFF2F"/>
-    <rect x="32" y="58" width="4" height="3" fill="#ADFF2F"/>
-    <circle cx="29" cy="16" r="1.5" fill="#1D3557"/>
-    <circle cx="35" cy="16" r="1.5" fill="#1D3557"/>
-    <path d="M30 20 Q 32 21, 34 20" stroke="#1D3557" stroke-width="1"/>
-</svg>`,
-        },
-        atlas: {
-            name: "Atlas",
-            description: "The Planetary Cartographer, mapping uncharted worlds with powerful sensors.",
-            features: "Rugged beard, keen eyes, carrying intricate holographic maps.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="18" r="10" fill="#D4A373"/>
-    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#8B4513"/>
-    <rect x="26" y="28" width="12" height="20" fill="#6A5ACD"/>
-    <rect x="20" y="28" width="6" height="16" fill="#6A5ACD"/>
-    <rect x="38" y="28" width="6" height="16" fill="#6A5ACD"/>
-    <circle cx="23" cy="46" r="3.5" fill="#D4A373"/>
-    <circle cx="41" cy="46" r="3.5" fill="#D4A373"/>
-    <rect x="28" y="48" width="4" height="12" fill="#708090"/>
-    <rect x="32" y="48" width="4" height="12" fill="#708090"/>
-    <rect x="27" y="60" width="5" height="3" fill="#708090"/>
-    <rect x="32" y="60" width="5" height="3" fill="#708090"/>
-    <circle cx="29" cy="16" r="1.8" fill="#1D3557"/>
-    <circle cx="35" cy="16" r="1.8" fill="#1D3557"/>
-    <path d="M30 23 Q 32 24, 34 23" stroke="#8B4513" stroke-width="1"/>
-</svg>`,
-        },
-        lyra: {
-            name: "Lyra",
-            description: "The Astro-Minstrel, serenading distant galaxies with a cosmic lute.",
-            features: "Long, dark hair; expressive hands; ornate, star-themed clothing.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="18" r="10" fill="#FCECDD"/>
-    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#4B0082"/>
-    <rect x="26" y="28" width="12" height="18" fill="#8A2BE2"/>
-    <rect x="20" y="28" width="6" height="14" fill="#8A2BE2"/>
-    <rect x="38" y="28" width="6" height="14" fill="#8A2BE2"/>
-    <circle cx="23" cy="44" r="3" fill="#FCECDD"/>
-    <circle cx="41" cy="44" r="3" fill="#FCECDD"/>
-    <rect x="29" y="46" width="3" height="12" fill="#4B0082"/>
-    <rect x="32" y="46" width="3" height="12" fill="#4B0082"/>
-    <rect x="28" y="58" width="4" height="3" fill="#4B0082"/>
-    <rect x="32" y="58" width="4" height="3" fill="#4B0082"/>
-    <circle cx="29" cy="16" r="1.5" fill="#1D3557"/>
-    <circle cx="35" cy="16" r="1.5" fill="#1D3557"/>
-    <path d="M30 20 Q 32 21, 34 20" stroke="#1D3557" stroke-width="1"/>
-</svg>`,
-        },
-        pulsar: {
-            name: "Pulsar",
-            description: "The Temporal Courier, delivering messages across time and space.",
-            features: "Fast-paced demeanor, sleek goggles, uniform with glowing stripes.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="18" r="10" fill="#D4A373"/>
-    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#FF8C00"/>
-    <rect x="26" y="28" width="12" height="16" fill="#00CED1"/>
-    <rect x="20" y="28" width="6" height="12" fill="#00CED1"/>
-    <rect x="38" y="28" width="6" height="12" fill="#00CED1"/>
-    <circle cx="23" cy="42" r="3" fill="#D4A373"/>
-    <circle cx="41" cy="42" r="3" fill="#D4A373"/>
-    <rect x="27" y="44" width="4" height="14" fill="#4682B4"/>
-    <rect x="33" y="44" width="4" height="14" fill="#4682B4"/>
-    <rect x="26" y="58" width="6" height="4" fill="#4682B4"/>
-    <rect x="32" y="58" width="6" height="4" fill="#4682B4"/>
-    <rect x="28" y="14" width="8" height="4" fill="#FFD700"/>
-    <circle cx="29" cy="16" r="1.5" fill="#1D3557"/>
-    <circle cx="35" cy="16" r="1.5" fill="#1D3557"/>
-    <path d="M30 20 Q 32 21, 34 20" stroke="#1D3557" stroke-width="1"/>
-</svg>`,
-        },
-        solaris: {
-            name: "Solaris",
-            description: "The Starship Engineer, maintaining vital systems with unwavering focus.",
-            features: "Grease smudges, tool belt, strong practical hands.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="18" r="10" fill="#A0522D"/>
-    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#696969"/>
-    <rect x="26" y="28" width="12" height="20" fill="#8B4513"/>
-    <rect x="20" y="28" width="6" height="16" fill="#8B4513"/>
-    <rect x="38" y="28" width="6" height="16" fill="#8B4513"/>
-    <circle cx="23" cy="46" r="3.5" fill="#A0522D"/>
-    <circle cx="41" cy="46" r="3.5" fill="#A0522D"/>
-    <rect x="28" y="48" width="4" height="12" fill="#696969"/>
-    <rect x="32" y="48" width="4" height="12" fill="#696969"/>
-    <rect x="27" y="60" width="5" height="3" fill="#696969"/>
-    <rect x="32" y="60" width="5" height="3" fill="#696969"/>
-    <circle cx="29" cy="16" r="1.8" fill="#1D3557"/>
-    <circle cx="35" cy="16" r="1.8" fill="#1D3557"/>
-    <path d="M30 23 Q 32 24, 34 23" stroke="#1D3557" stroke-width="1"/>
-</svg>`,
-        },
-        nebula: {
-            name: "Nebula",
-            description: "The Galactic Artist, capturing cosmic beauty on canvas.",
-            features: "Dreamy eyes, colorful smudges on hands, flowing artistic attire.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="18" r="10" fill="#FCECDD"/>
-    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#FFC0CB"/>
-    <rect x="26" y="28" width="12" height="18" fill="#FF69B4"/>
-    <rect x="20" y="28" width="6" height="14" fill="#FF69B4"/>
-    <rect x="38" y="28" width="6" height="14" fill="#FF69B4"/>
-    <circle cx="23" cy="44" r="3" fill="#FCECDD"/>
-    <circle cx="41" cy="44" r="3" fill="#FCECDD"/>
-    <rect x="29" y="46" width="3" height="12" fill="#9370DB"/>
-    <rect x="32" y="46" width="3" height="12" fill="#9370DB"/>
-    <rect x="28" y="58" width="4" height="3" fill="#9370DB"/>
-    <rect x="32" y="58" width="4" height="3" fill="#9370DB"/>
-    <circle cx="29" cy="16" r="1.5" fill="#1D3557"/>
-    <circle cx="35" cy="16" r="1.5" fill="#1D3557"/>
-    <path d="M30 20 Q 32 21, 34 20" stroke="#1D3557" stroke-width="1"/>
-</svg>`,
-        },
-        comet: {
-            name: "Comet",
-            description: "The Interstellar Racer, swift and daring, always seeking the next challenge.",
-            features: "Dynamic pose, streamlined helmet, racing stripes on jumpsuit.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="18" r="10" fill="#D4A373"/>
-    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#FFD700"/>
-    <rect x="26" y="28" width="12" height="16" fill="#FF4500"/>
-    <rect x="20" y="28" width="6" height="12" fill="#FF4500"/>
-    <rect x="38" y="28" width="6" height="12" fill="#FF4500"/>
-    <circle cx="23" cy="42" r="3" fill="#D4A373"/>
-    <circle cx="41" cy="42" r="3" fill="#D4A373"/>
-    <rect x="27" y="44" width="4" height="14" fill="#FF6347"/>
-    <rect x="33" y="44" width="4" height="14" fill="#FF6347"/>
-    <rect x="26" y="58" width="6" height="4" fill="#FF6347"/>
-    <rect x="32" y="58" width="6" height="4" fill="#FF6347"/>
-    <circle cx="29" cy="16" r="1.5" fill="#1D3557"/>
-    <circle cx="35" cy="16" r="1.5" fill="#1D3557"/>
-    <path d="M30 20 Q 32 21, 34 20" stroke="#1D3557" stroke-width="1"/>
-</svg>`,
-        },
-        equinox: {
-            name: "Equinox",
-            description: "The Diplomatic Envoy, mediating peace across starfaring civilizations.",
-            features: "Calm demeanor, formal elegant uniform, symbols of unity.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="18" r="10" fill="#FCECDD"/>
-    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#ADD8E6"/>
-    <rect x="26" y="28" width="12" height="20" fill="#B0C4DE"/>
-    <rect x="20" y="28" width="6" height="16" fill="#B0C4DE"/>
-    <rect x="38" y="28" width="6" height="16" fill="#B0C4DE"/>
-    <circle cx="23" cy="46" r="3.5" fill="#FCECDD"/>
-    <circle cx="41" cy="46" r="3.5" fill="#FCECDD"/>
-    <rect x="28" y="48" width="4" height="12" fill="#778899"/>
-    <rect x="32" y="48" width="4" height="12" fill="#778899"/>
-    <rect x="27" y="60" width="5" height="3" fill="#778899"/>
-    <rect x="32" y="60" width="5" height="3" fill="#778899"/>
-    <circle cx="29" cy="16" r="1.8" fill="#1D3557"/>
-    <circle cx="35" cy="16" r="1.8" fill="#1D3557"/>
-    <path d="M30 23 Q 32 24, 34 23" stroke="#1D3557" stroke-width="1"/>
-</svg>`,
-        },
-        quasar: {
-            name: "Quasar",
-            description: "The Hyper-Trader, dealing in rare and exotic goods across the cosmos.",
-            features: "Shrewd eyes, elaborate space cloak, pouches and gadgets.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="18" r="10" fill="#D4A373"/>
-    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#8B4513"/>
-    <rect x="26" y="28" width="12" height="20" fill="#5F9EA0"/>
-    <rect x="20" y="28" width="6" height="16" fill="#5F9EA0"/>
-    <rect x="38" y="28" width="6" height="16" fill="#5F9EA0"/>
-    <circle cx="23" cy="46" r="3.5" fill="#D4A373"/>
-    <circle cx="41" cy="46" r="3.5" fill="#D4A373"/>
-    <rect x="28" y="48" width="4" height="12" fill="#2F4F4F"/>
-    <rect x="32" y="48" width="4" height="12" fill="#2F4F4F"/>
-    <rect x="27" y="60" width="5" height="3" fill="#2F4F4F"/>
-    <rect x="32" y="60" width="5" height="3" fill="#2F4F4F"/>
-    <circle cx="29" cy="16" r="1.8" fill="#1D3557"/>
-    <circle cx="35" cy="16" r="1.8" fill="#1D3557"/>
-    <path d="M30 23 Q 32 24, 34 23" stroke="#8B4513" stroke-width="1"/>
-</svg>`,
-        },
-        meridian: {
-            name: "Meridian",
-            description: "The Stellar Navigator, guiding ships through treacherous asteroid fields.",
-            features: "Focused expression, navigational tools on gauntlets, balanced posture.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="18" r="10" fill="#FCECDD"/>
-    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#40E0D0"/>
-    <rect x="26" y="28" width="12" height="16" fill="#008B8B"/>
-    <rect x="20" y="28" width="6" height="12" fill="#008B8B"/>
-    <rect x="38" y="28" width="6" height="12" fill="#008B8B"/>
-    <circle cx="23" cy="42" r="3" fill="#FCECDD"/>
-    <circle cx="41" cy="42" r="3" fill="#FCECDD"/>
-    <rect x="27" y="44" width="4" height="14" fill="#20B2AA"/>
-    <rect x="33" y="44" width="4" height="14" fill="#20B2AA"/>
-    <rect x="26" y="58" width="6" height="4" fill="#20B2AA"/>
-    <rect x="32" y="58" width="6" height="4" fill="#20B2AA"/>
-    <circle cx="29" cy="16" r="1.5" fill="#1D3557"/>
-    <circle cx="35" cy="16" r="1.5" fill="#1D3557"/>
-    <path d="M30 20 Q 32 21, 34 20" stroke="#1D3557" stroke-width="1"/>
-</svg>`,
-        },
-        umbra: {
-            name: "Umbra",
-            description: "The Shadow Agent, master of stealth and infiltration in deep space.",
-            features: "Hooded figure, minimalist dark clothing, concealed weaponry.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="18" r="10" fill="#C0C0C0"/>
-    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#2F4F4F"/>
-    <rect x="26" y="28" width="12" height="20" fill="#4B0082"/>
-    <rect x="20" y="28" width="6" height="16" fill="#4B0082"/>
-    <rect x="38" y="28" width="6" height="16" fill="#4B0082"/>
-    <circle cx="23" cy="46" r="3.5" fill="#C0C0C0"/>
-    <circle cx="41" cy="46" r="3.5" fill="#C0C0C0"/>
-    <rect x="28" y="48" width="4" height="12" fill="#191970"/>
-    <rect x="32" y="48" width="4" height="12" fill="#191970"/>
-    <rect x="27" y="60" width="5" height="3" fill="#191970"/>
-    <rect x="32" y="60" width="5" height="3" fill="#191970"/>
-    <circle cx="29" cy="16" r="1.8" fill="#F1FAEE"/>
-    <circle cx="35" cy="16" r="1.8" fill="#F1FAEE"/>
-    <path d="M30 23 Q 32 24, 34 23" stroke="#F1FAEE" stroke-width="1"/>
-</svg>`,
-        },
-        vortex: {
-            name: "Vortex",
-            description: "The Galactic Nomad, wandering the cosmic currents, seeking ancient artifacts.",
-            features: "Tattered cloak, staff, wise and weary expression.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="18" r="10" fill="#D4A373"/>
-    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#8B4513"/>
-    <rect x="26" y="28" width="12" height="20" fill="#696969"/>
-    <rect x="20" y="28" width="6" height="16" fill="#696969"/>
-    <rect x="38" y="28" width="6" height="16" fill="#696969"/>
-    <circle cx="23" cy="46" r="3.5" fill="#D4A373"/>
-    <circle cx="41" cy="46" r="3.5" fill="#D4A373"/>
-    <rect x="28" y="48" width="4" height="12" fill="#2F4F4F"/>
-    <rect x="32" y="48" width="4" height="12" fill="#2F4F4F"/>
-    <rect x="27" y="60" width="5" height="3" fill="#2F4F4F"/>
-    <rect x="32" y="60" width="5" height="3" fill="#2F4F4F"/>
-    <circle cx="29" cy="16" r="1.8" fill="#1D3557"/>
-    <circle cx="35" cy="16" r="1.8" fill="#1D3557"/>
-    <path d="M30 23 Q 32 24, 34 23" stroke="#8B4513" stroke-width="1"/>
-</svg>`,
-        },
-        celeste: {
-            name: "Celeste",
-            description: "The Stellar Cartographer, charting new constellations and cosmic phenomena.",
-            features: "Observant eyes, intricate holographic map on a wrist device, neat uniform.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="32" cy="18" r="10" fill="#FCECDD"/>
-    <path d="M22 10 Q 32 4, 42 10 Q 40 24, 32 28 Q 24 24, 22 10 Z" fill="#B0E0E6"/>
-    <rect x="26" y="28" width="12" height="18" fill="#6A5ACD"/>
-    <rect x="20" y="28" width="6" height="14" fill="#6A5ACD"/>
-    <rect x="38" y="28" width="6" height="14" fill="#6A5ACD"/>
-    <circle cx="23" cy="44" r="3" fill="#FCECDD"/>
-    <circle cx="41" cy="44" r="3" fill="#FCECDD"/>
-    <rect x="29" y="46" width="3" height="12" fill="#7B68EE"/>
-    <rect x="32" y="46" width="3" height="12" fill="#7B68EE"/>
-    <rect x="28" y="58" width="4" height="3" fill="#7B68EE"/>
-    <rect x="32" y="58" width="4" height="3" fill="#7B68EE"/>
-    <circle cx="29" cy="16" r="1.5" fill="#1D3557"/>
-    <circle cx="35" cy="16" r="1.5" fill="#1D3557"/>
-    <path d="M30 20 Q 32 21, 34 20" stroke="#1D3557" stroke-width="1"/>
-</svg>`,
-        },
-        quasar_prime: { 
-            name: "Prime",
-            description: "The Galactic Commander, leading vast fleets through cosmic battles.",
-            features: "Authoritative stance, elaborate uniform, piercing gaze.",
-            svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <ellipse cx="32" cy="18" rx="10" ry="11" fill="#D4A373"/>
-    <path d="M24 8 Q 32 2, 40 8 L 40 20 Q 32 24, 24 20 Z" fill="#00008B"/>
-    <rect x="24" y="29" width="16" height="20" fill="#0000CD"/>
-    <path d="M24 29 L 20 34 L 24 34 Z M40 29 L 44 34 L 40 34 Z" fill="#C0C0C0"/>
-    <rect x="18" y="30" width="6" height="16" fill="#0000CD"/>
-    <rect x="40" y="30" width="6" height="16" fill="#0000CD"/>
-    <circle cx="21" cy="48" r="3.5" fill="#D4A373"/>
-    <circle cx="43" cy="48" r="3.5" fill="#D4A373"/>
-    <rect x="26" y="49" width="5" height="10" fill="#4169E1"/>
-    <rect x="33" y="49" width="5" height="10" fill="#4169E1"/>
-    <rect x="25" y="59" width="7" height="3" fill="#4169E1"/>
-    <rect x="32" y="59" width="7" height="3" fill="#4169E1"/>
-    <circle cx="29" cy="16" r="1.8" fill="#F1FAEE"/>
-    <circle cx="35" cy="16" r="1.8" fill="#F1FAEE"/>
-    <path d="M32 19 L 32 21" stroke="#3A3A3A" stroke-width="1"/>
-    <path d="M30 23 Q 32 24, 34 23" stroke="#3A3A3A" stroke-width="1"/>
-</svg>`,
-        },
-    };
+    <script type="module">
+        // ----------------------------------------------------
+        // SIMPLEX NOISE IMPLEMENTATION (FOR SMOOTH TERRAIN)
+        // ----------------------------------------------------
+        // Self-contained, simple 2D Simplex Noise function for smooth, non-spiky terrain.
+        const SimplexNoise = (function () {
+            const p = new Uint8Array(256);
+            for (let i = 0; i < 256; i++) p[i] = i;
 
-    // --- Global Configuration ---
-    const TILE_SIZE = 50; // px
-    const MAP_WIDTH = 12; // 12 tiles wide
-    const MAP_HEIGHT = 12; // 12 tiles high
-    const MAX_X_COORD = MAP_WIDTH * TILE_SIZE;
-    const MAX_Y_COORD = MAP_HEIGHT * TILE_SIZE;
-
-    const CHARACTER_Z_OFFSET = 15; 
-
-    const MOVEMENT_SPEED = 1.0; // px per frame
-    const WANDER_INTERVAL = 120; // Frames to keep a direction axis dominant
-    const occupiedPositions = new Set(); 
-    
-    // --- Add default stats to all characters ---
-    Object.keys(CHARACTER_DATA).forEach(key => {
-        // Set initial lives and team
-        CHARACTER_DATA[key].lives = 5;
-        // Assign a default team
-        CHARACTER_DATA[key].team = 'Alpha'; 
-    });
-
-    // --- DOM Elements ---
-    const mapBasePlane = document.getElementById('mapBasePlane');
-    const mapContainer = document.getElementById('mapContainer');
-    const characterLayer = document.getElementById('characterLayer');
-    const summonBtn = document.getElementById('summonBtn');
-    const infoPanel = document.getElementById('infoPanel');
-    
-    // Menu Buttons
-    const startGameBtn = document.getElementById('startGameBtn');
-    const settingsBtn = document.getElementById('settingsBtn');
-    const menuBtn = document.getElementById('menuBtn');
-    const backToMenuFromSettingsBtn = document.getElementById('backToMenuFromSettingsBtn');
-    const livesToggle = document.getElementById('livesToggle');
-
-
-    // --- State Variables ---
-    let rotationX = 40; 
-    let rotationZ = -45;
-    let isDragging = false;
-    let isPanningMode = false; 
-    let lastX, lastY;
-    let mapTileData = []; 
-
-    // CAMERA CONTROL STATE
-    let cameraTranslateX = 0; 
-    let cameraTranslateY = 0; 
-    let zoomScale = 1.0; 
-    const ZOOM_SPEED = 0.05;
-    const PAN_SPEED = 3.0; 
-    let isKeyboardPanning = false; 
-    let keysPressed = {}; 
-    
-    // UI/Game State
-    let showLives = false; 
-    
-    // --- New Character Drag State ---
-    let activeCharacterState = null; // The character that is currently moving (wandering)
-    let heldCharacterState = null; // The character currently being dragged by the user
-    let isCharacterHeld = false; // Flag to indicate a character is in hand
-
-    // --- Game Loop State ---
-    let frameCount = 0;
-    let lastTime = 0;
-    const MAX_FRAME_DURATION = 1000 / 20; 
-
-    // --- View Management ---
-    function showView(viewName) {
-        document.querySelectorAll('.view').forEach(view => {
-            view.classList.add('hidden');
-        });
-
-        const targetView = document.getElementById(viewName);
-        if (targetView) {
-            targetView.classList.remove('hidden');
-        }
-
-        // Specific actions when entering the game
-        if (viewName === 'gameView') {
-            // If the map hasn't been generated yet, do it now
-            if (mapTileData.length === 0) {
-                generateMap();
-                updateMapTransform();
+            function shuffle(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
             }
-            // Ensure the body is focused for keyboard input
-            document.body.focus(); 
-            document.body.scrollIntoView(); 
-        } else {
-            // When leaving game view, release focus
-            keysPressed = {};
+            shuffle(p);
+            const perm = new Uint8Array(512);
+            for (let i = 0; i < 512; i++) perm[i] = p[i & 255];
+
+            const grad2 = [
+                [1, 1], [-1, 1], [1, -1], [-1, -1],
+                [1, 0], [-1, 0], [0, 1], [0, -1]
+            ];
+
+            function dot(g, x, y) {
+                return g[0] * x + g[1] * y;
+            }
+
+            const F2 = 0.5 * (Math.sqrt(3.0) - 1.0);
+            const G2 = (3.0 - Math.sqrt(3.0)) / 6.0;
+
+            function noise2D(xin, yin) {
+                const s = (xin + yin) * F2;
+                const i = Math.floor(xin + s);
+                const j = Math.floor(yin + s);
+                const t = (i + j) * G2;
+                const X0 = i - t;
+                const Y0 = j - t;
+                const x0 = xin - X0;
+                const y0 = yin - Y0;
+
+                let i1, j1;
+                if (x0 > y0) {
+                    i1 = 1; j1 = 0;
+                } else {
+                    i1 = 0; j1 = 1;
+                }
+
+                const x1 = x0 - i1 + G2;
+                const y1 = y0 - j1 + G2;
+                const x2 = x0 - 1.0 + 2.0 * G2;
+                const y2 = y0 - 1.0 + 2.0 * G2;
+
+                const ii = i & 255;
+                const jj = j & 255;
+                const gi0 = perm[ii + perm[jj]] % 8;
+                const gi1 = perm[ii + i1 + perm[jj + j1]] % 8;
+                const gi2 = perm[ii + 1 + perm[jj + 1]] % 8;
+
+                let n0, n1, n2;
+
+                let t0 = 0.5 - x0 * x0 - y0 * y0;
+                if (t0 < 0) n0 = 0.0;
+                else {
+                    t0 *= t0;
+                    n0 = t0 * t0 * dot(grad2[gi0], x0, y0);
+                }
+
+                let t1 = 0.5 - x1 * x1 - y1 * y1;
+                if (t1 < 0) n1 = 0.0;
+                else {
+                    t1 *= t1;
+                    n1 = t1 * t1 * dot(grad2[gi1], x1, y1);
+                }
+
+                let t2 = 0.5 - x2 * x2 - y2 * y2;
+                if (t2 < 0) n2 = 0.0;
+                else {
+                    t2 *= t2;
+                    n2 = t2 * t2 * dot(grad2[gi2], x2, y2);
+                }
+
+                return 70.0 * (n0 + n1 + n2);
+            }
+
+            /**
+             * Generates a noise value using Fractional Brownian Motion (FBM) / Octaves.
+             */
+            function fbm(x, y, octaves, lacunarity, persistence) {
+                let total = 0;
+                let amplitude = 1;
+                let frequency = 1;
+                let maxValue = 0;
+
+                for (let i = 0; i < octaves; i++) {
+                    total += noise2D(x * frequency, y * frequency) * amplitude;
+                    maxValue += amplitude;
+                    amplitude *= persistence;
+                    frequency *= lacunarity;
+                }
+
+                return total / maxValue;
+            }
+
+            return {
+                fbm: fbm
+            };
+        })();
+
+        // ----------------------------------------------------
+        // GLOBAL DEFINITIONS (UPDATED FOR DAMAGE FIX)
+        // ----------------------------------------------------
+        const WEAPONS = [
+            // Weapon Rarity Base Damage (5 to 50)
+            { name: "Dagger", damage: 5, range: 2.0, missChance: 0.1, weight: 5, icon: "🔪" },
+            { name: "Sword", damage: 20, range: 3.0, missChance: 0.05, weight: 4, icon: "🗡️" },
+            { name: "Rifle", damage: 35, range: 10.0, missChance: 0.15, weight: 3, icon: "🔫" },
+            { name: "Grenade Launcher", damage: 50, range: 15.0, missChance: 0.3, weight: 1, icon: "💣" }
+        ];
+
+        const UNIT_TIERS = [
+            // Character Rarity Damage Multiplier (1.0 to 1.5)
+            { name: "Normal", minHp: 50, maxHp: 100, speed: 0.05, hue: 0.0, emissive: 0.0, weight: 5, colorClass: "text-gray-400", damageMultiplier: 1.0 },
+            { name: "Elite", minHp: 101, maxHp: 200, speed: 0.07, hue: 0.1, emissive: 0.1, weight: 3, colorClass: "text-green-400", damageMultiplier: 1.15 },
+            { name: "Epic", minHp: 201, maxHp: 400, speed: 0.09, hue: 0.3, emissive: 0.3, weight: 2, colorClass: "text-purple-400", damageMultiplier: 1.3 },
+            { name: "Legendary", minHp: 401, maxHp: 500, speed: 0.12, hue: 0.5, emissive: 0.5, weight: 1, colorClass: "text-yellow-400", damageMultiplier: 1.5 }
+        ];
+
+        // Fight Button Icon Paths
+        const FIGHT_ICON = 'M9 19l-7-7 7-7m8 14l-7-7 7-7';
+        const STOP_ICON = 'M10 9l3 3m0 0l-3 3m3-3h7m-5-3v6M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z';
+
+        // Terrain Variables
+        let currentGroundSize = 40;
+        let currentGroundSubdivisions = 60; // High subdivisions for mountain detail
+        const MAX_HEIGHT = 8; // Increased max height for better mountains
+        const MIN_SIZE = 20;
+        const MAX_SIZE = 80;
+        const SIZE_STEP = 10;
+        let initialTerrainData = null; // Store the initial plain terrain height map
+        let currentTerrainComplexity = 0.2; // Track current complexity (0.2 is plain, 1.0 is mountainous)
+
+
+        let battleLoopInterval = null;
+        let currentDraggingUnit = null;
+        let isRemoving = false; // State for remove mode
+
+        // Global Display Toggles for GUI (UPDATED: Only show health on initial load)
+        let displayToggles = {
+            showName: false,
+            showHealth: true,
+            showWeapon: false
+        };
+
+        // Helper to choose item based on weight
+        function weightedRandom(items) {
+            const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
+            let randomNum = Math.random() * totalWeight;
+            for (const item of items) {
+                if (randomNum < item.weight) {
+                    return item;
+                }
+                randomNum -= item.weight;
+            }
         }
-    }
+
+        // ----------------------------------------------------
+        // TERRAIN GENERATION LOGIC (UPDATED FOR SMOOTH MOUNTAINS with Simplex Noise)
+        // ----------------------------------------------------
+
+        /**
+         * Generates an array of heights for the ground vertices using Simplex Noise FBM.
+         * This creates smooth, realistic rolling hills/mountains.
+         * @param {number} complexity - Max height factor (0.2 for plain, 1.0 for mountainous).
+         * @returns {number[]} Array of height values.
+         */
+        function generateTerrainData(complexity = 1.0) {
+            const heightMap = [];
+            const subdivisions = currentGroundSubdivisions;
+            const size = currentGroundSize;
+            const maxHeight = MAX_HEIGHT * complexity;
+
+            // FBM (Fractal Brownian Motion) parameters for realistic mountain detail
+            const OCTAVES = 5;
+            const LACUNARITY = 2.0; // Frequency multiplier
+            const PERSISTENCE = 0.5; // Amplitude multiplier
+            const SCALE = 0.05; // Zoom level - smaller number is more zoomed in/larger features
+
+            for (let i = 0; i <= subdivisions; i++) {
+                for (let j = 0; j <= subdivisions; j++) {
+                    // Convert grid coordinate (i, j) to world coordinate (x, z)
+                    const x = (i / subdivisions) * size - (size / 2);
+                    const z = (j / subdivisions) * size - (size / 2);
+
+                    // 1. Generate multi-octave noise (result is between -1 and 1)
+                    let noiseValue = SimplexNoise.fbm(
+                        x * SCALE,
+                        z * SCALE,
+                        OCTAVES,
+                        LACUNARITY,
+                        PERSISTENCE
+                    );
+
+                    // Map noise from [-1, 1] to [0, maxHeight] (positive height map)
+                    let height = (noiseValue + 1) * 0.5 * maxHeight;
+
+                    // 2. Apply edge-fading factor (Reduce height towards map edges)
+                    const centerDistX = Math.abs(x);
+                    const centerDistZ = Math.abs(z);
+                    const maxCenterDist = size / 2;
+                    // Factor decreases from 1 (center) to 0.1 (edges)
+                    const edgeFactor = 1 - (Math.max(centerDistX, centerDistZ) / maxCenterDist) * 0.9;
+                    height *= edgeFactor;
+
+                    // Add a tiny base height to ensure terrain is not below 0 at complexity=0.2
+                    height = Math.max(0.01 * size * complexity, height);
+
+                    heightMap.push(height);
+                }
+            }
+            return heightMap;
+        }
+
+        // Applies the height data to the ground mesh
+        function applyTerrainToGround(heightData) {
+            const positions = ground.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+            const totalVertices = (currentGroundSubdivisions + 1) * (currentGroundSubdivisions + 1);
+
+            if (positions.length / 3 !== totalVertices || heightData.length !== totalVertices) {
+                console.error("Vertex count mismatch for terrain application. Subdivisions might be mismatched.");
+                return;
+            }
+
+            // Positions are (x, y, z) triplets. Update the y-coordinate (index + 1)
+            for (let i = 0; i < totalVertices; i++) {
+                positions[i * 3 + 1] = heightData[i];
+            }
+
+            ground.setVerticesData(BABYLON.VertexBuffer.PositionKind, positions);
+            // Recalculate normals after height change for correct lighting
+            ground.createNormals(true);
+        }
+
+        // Adjust all existing entities (units and trees) to sit on the new ground level
+        function adjustEntitiesToNewGround() {
+            [...units.filter(u => u.isAlive).map(u => u.rootNode), ...scene.meshes.filter(m => m.name === "Tree")].forEach(entity => {
+                // Raycast downwards from above the entity to find the new ground height
+                const ray = new BABYLON.Ray(entity.position.add(new BABYLON.Vector3(0, 10, 0)), BABYLON.Vector3.Down());
+                const pick = scene.pickWithRay(ray, (mesh) => mesh === ground);
+
+                if (pick.hit) {
+                    // For units, position.y is the base (0). For trees (merged meshes), position.y is the center (y=1 for a standard tree).
+                    const yOffset = entity.name.includes("unitRoot") ? 0 : 1;
+                    entity.position.y = pick.pickedPoint.y + yOffset;
+                }
+            });
+        }
+
+        // Main function to create new random, mountainous terrain
+        function generateNewTerrain() {
+            // Generate a high complexity, mountainous terrain
+            currentTerrainComplexity = 1.0;
+            const mountainData = generateTerrainData(currentTerrainComplexity);
+            applyTerrainToGround(mountainData);
+
+            adjustEntitiesToNewGround();
+
+            $('#game-status').html('<span class="text-xs sm:text-lg font-extrabold text-purple-400">Terrain altered!</span>');
+            setTimeout(() => updateGameStatus(), 1500);
+        }
+
+        // Revert to initial plain field
+        function revertGroundTerrain() {
+            if (initialTerrainData) {
+                currentTerrainComplexity = 0.2; // Reset complexity
+                applyTerrainToGround(initialTerrainData);
+
+                adjustEntitiesToNewGround();
+
+                $('#game-status').html('<span class="text-xs sm:text-lg font-extrabold text-green-400">Terrain reverted to plain.</span>');
+                setTimeout(() => updateGameStatus(), 1500);
+            }
+        }
+
+        function updateGroundSize(change) {
+            const newSize = Math.max(MIN_SIZE, Math.min(MAX_SIZE, currentGroundSize + change));
+
+            if (newSize === currentGroundSize) {
+                $('#game-status').html('<span class="text-xs sm:text-lg font-extrabold text-yellow-400">Cannot change size further.</span>');
+                setTimeout(() => updateGameStatus(), 1500);
+                return;
+            }
+
+            currentGroundSize = newSize;
+
+            // 1. Recreate the ground mesh with the new size
+            ground = createGroundMesh(currentGroundSize, currentGroundSubdivisions);
+
+            // 2. Generate and apply new terrain (keeping the current complexity)
+            const newTerrainData = generateTerrainData(currentTerrainComplexity);
+            applyTerrainToGround(newTerrainData);
+
+            // 3. If the terrain is plain, update the initial data; otherwise, save a new plain version for 'Revert'
+            initialTerrainData = generateTerrainData(0.2);
+
+            // 4. Adjust all entities to the new height/surface
+            adjustEntitiesToNewGround();
+
+            $('#game-status').html(`<span class="text-xs sm:text-lg font-extrabold text-teal-400">Map size updated to ${currentGroundSize}x${currentGroundSize}.</span>`);
+            setTimeout(() => updateGameStatus(), 1500);
+        }
 
 
-    // --- Helper Functions ---
+        // ----------------------------------------------------
+        // BABYLON.JS SETUP
+        // ----------------------------------------------------
+        const canvas = document.getElementById("renderCanvas");
+        const engine = new BABYLON.Engine(canvas, true);
+        let scene, camera, ground, advancedTexture;
+        let units = [];
+        let unitCount = 0;
+        let selectedTeam = 'A';
 
-    function gridToPixel(x, y) {
-        // Converts grid coordinates (0,0, 1,0, etc.) to the center pixel coordinates of that tile
-        const centerX = x * TILE_SIZE + (TILE_SIZE / 2);
-        const centerY = y * TILE_SIZE + (TILE_SIZE / 2);
-        return { px: centerX, py: centerY };
-    }
+        function createGroundMesh(size, subdivisions) {
+            if (ground) {
+                // Dispose old ground mesh before creating a new one
+                ground.dispose();
+            }
+            const groundMaterial = new BABYLON.StandardMaterial("groundMat", scene);
+            groundMaterial.diffuseColor = new BABYLON.Color3(0.2, 0.6, 0.2);
 
-    function pixelToGrid(px, py) {
-        // Converts pixel coordinates to grid coordinates
-        const gridX = Math.floor(px / TILE_SIZE);
-        const gridY = Math.floor(py / TILE_SIZE);
-        return { gridX, gridY };
-    }
+            const newGround = BABYLON.MeshBuilder.CreateGround("ground", { width: size, height: size, subdivisions: subdivisions }, scene);
+            newGround.material = groundMaterial;
+            newGround.receiveShadows = true;
+            return newGround;
+        }
 
-    function getIsoTransform(x, y) {
-        const translateZ = CHARACTER_Z_OFFSET; 
-        const inverseTransform = `rotateX(${-rotationX}deg) rotateZ(${-rotationZ}deg)`;
-        return `translate3d(${x}px, ${y}px, ${translateZ}px) ${inverseTransform}`;
-    }
+        const createScene = function () {
+            scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color3(0.5, 0.8, 0.9);
 
-    function updateMapTransform() {
-        mapBasePlane.style.transform = 
-            `translateX(${cameraTranslateX}px) 
-             translateY(${cameraTranslateY}px) 
-             rotateX(${rotationX}deg) 
-             rotateZ(${rotationZ}deg)
-             scale(${zoomScale})`;
-        
-        updateCharacterTransforms();
-    }
-    
-    function generateMap() {
-        if (mapTileData.length > 0) return; // Prevent re-generation
+            camera = new BABYLON.ArcRotateCamera("Camera", -Math.PI / 2, Math.PI / 4, 30, BABYLON.Vector3.Zero(), scene);
+            camera.attachControl(canvas, true);
+            camera.lowerRadiusLimit = 10;
+            camera.upperRadiusLimit = 60;
+            camera.wheelPrecision = 50;
+            camera.inputs.remove(camera.inputs.attached.mousewheel);
+            camera.inputs.addMouseWheel();
 
-        const types = ['grass', 'grass', 'grass', 'sand', 'water', 'mountain', 'forest', 'structure'];
-        
-        for (let j = 0; j < MAP_HEIGHT; j++) {
-            for (let i = 0; i < MAP_WIDTH; i++) {
-                const type = types[Math.floor(Math.random() * types.length)];
-                const x = i * TILE_SIZE;
-                const y = j * TILE_SIZE;
+            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+            light.intensity = 0.8;
 
-                const tileElement = document.createElement('div');
-                tileElement.className = `tile ${type}`;
-                tileElement.style.width = `${TILE_SIZE}px`;
-                tileElement.style.height = `${TILE_SIZE}px`;
-                // Note: The tile rotation is relative to the mapBasePlane's coordinate system
-                tileElement.style.transform = `translateX(${x}px) translateY(${y}px) rotateX(-0deg)`; 
-                tileElement.style.transformOrigin = '0 0';
-                tileElement.dataset.gridX = i;
-                tileElement.dataset.gridY = j;
+            // 1. Create initial ground mesh
+            ground = createGroundMesh(currentGroundSize, currentGroundSubdivisions);
 
-                mapBasePlane.appendChild(tileElement);
-                
-                mapTileData.push({ x, y, type, gridX: i, gridY: j, element: tileElement });
+            // 2. Apply initial, gentle (plain) terrain (complexity 0.2)
+            currentTerrainComplexity = 0.2;
+            const plainData = generateTerrainData(currentTerrainComplexity);
+            applyTerrainToGround(plainData);
+            initialTerrainData = plainData; // Save the plain data
 
-                // Add minimal visual feedback for hover
-                tileElement.addEventListener('mouseover', () => {
-                    if (!isDragging && !isCharacterHeld) tileElement.style.filter = 'brightness(1.2)';
-                    // Highlight the target square if holding a character
-                    if (isCharacterHeld) {
-                        tileElement.style.boxShadow = '0 0 10px 5px rgba(0, 255, 0, 0.7)';
+            advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
+
+            setupPointerObservables(); // Initialize drag and remove logic
+
+            $('#game-hud').hide();
+            $('#fight-button-container').hide(); // Hide fight button initially
+            $('#main-menu').show();
+
+            return scene;
+        };
+
+        const scene_instance = createScene();
+
+        engine.runRenderLoop(function () {
+            if (scene) {
+                const deltaTime = engine.getDeltaTime() / 1000;
+                scene.render();
+
+                // --- MOVEMENT & ANIMATION LOGIC ---
+                units.filter(u => u.isAlive).forEach(unit => {
+                    unit.updateAnimation(deltaTime);
+
+                    if (unit.state === 'moving') {
+                        if (unit.target && unit.target.isAlive) {
+                            const targetPos = unit.target.mesh.position;
+                            const reached = unit.moveTowardsTarget({ x: targetPos.x, z: targetPos.z }, deltaTime);
+                            if (reached) {
+                                unit.state = 'attacking';
+                            }
+                        } else {
+                            unit.state = 'idle';
+                            unit.target = null;
+                        }
                     }
                 });
-                tileElement.addEventListener('mouseout', () => {
-                    tileElement.style.filter = 'none';
-                    tileElement.style.boxShadow = 'none';
-                });
             }
-        }
-
-        mapBasePlane.style.width = `${MAX_X_COORD}px`;
-        mapBasePlane.style.height = `${MAX_Y_COORD}px`;
-        
-        mapContainer.style.justifyContent = 'flex-start';
-        mapContainer.style.alignItems = 'flex-start';
-    }
-
-
-    function getTileAt(x, y) {
-        const { gridX, gridY } = pixelToGrid(x, y);
-        
-        if (gridX >= 0 && gridX < MAP_WIDTH && gridY >= 0 && gridY < MAP_HEIGHT) {
-            return mapTileData.find(t => t.gridX === gridX && t.gridY === gridY);
-        }
-        return null;
-    }
-
-    function changeDirection(forceChange = false) {
-        if (!activeCharacterState) return;
-
-        if (forceChange || frameCount >= activeCharacterState.nextDirChange) {
-            
-            const primaryAxis = Math.floor(Math.random() * 2);
-
-            const dirX = Math.random() < 0.5 ? -1 : 1;
-            const dirY = Math.random() < 0.5 ? -1 : 1;
-
-            let vx, vy;
-            const primaryFactor = 0.85; 
-            const secondaryFactor = 0.5; 
-
-            if (primaryAxis === 0) { 
-                vx = dirX * MOVEMENT_SPEED * primaryFactor;
-                vy = dirY * MOVEMENT_SPEED * secondaryFactor;
-            } else { 
-                vx = dirX * MOVEMENT_SPEED * secondaryFactor;
-                vy = dirY * MOVEMENT_SPEED * primaryFactor;
-            }
-            
-            activeCharacterState.vx = vx;
-            activeCharacterState.vy = vy;
-            activeCharacterState.nextDirChange = frameCount + WANDER_INTERVAL;
-        }
-    }
-    
-    function updateCharacterPosition(deltaTime) {
-        if (!activeCharacterState || isCharacterHeld) return; // Don't move if held
-        
-        const char = activeCharacterState;
-        const dt = deltaTime / (1000 / 60); 
-
-        changeDirection(false); 
-
-        let nextX = char.x + char.vx * dt;
-        let nextY = char.y + char.vy * dt;
-        
-        // Effective boundaries are TILE_SIZE/2 to MAX_COORD - TILE_SIZE/2
-        const effectiveMaxX = MAX_X_COORD - TILE_SIZE/2;
-        const effectiveMaxY = MAX_Y_COORD - TILE_SIZE/2;
-        const effectiveMin = TILE_SIZE/2;
-
-        let reversed = false;
-
-        // Boundary checks
-        if (nextX < effectiveMin || nextX > effectiveMaxX) {
-            char.vx *= -1; 
-            nextX = char.x + char.vx * dt; 
-            reversed = true;
-        }
-        if (nextY < effectiveMin || nextY > effectiveMaxY) {
-            char.vy *= -1; 
-            nextY = char.y + char.vy * dt; 
-            reversed = true;
-        }
-        
-        if (reversed) changeDirection(true); 
-
-        const tileAtNewPos = getTileAt(nextX, nextY);
-        const obstacleTypes = ['water', 'mountain', 'structure'];
-
-        if (tileAtNewPos && obstacleTypes.includes(tileAtNewPos.type)) {
-            // Simple obstacle avoidance: reverse both axes
-            char.vx *= -1;
-            char.vy *= -1;
-            changeDirection(true); 
-
-            nextX = char.x + char.vx * dt;
-            nextY = char.y + char.vy * dt;
-        }
-        
-        // Update grid position for occupancy tracking
-        const { gridX: newGridX, gridY: newGridY } = pixelToGrid(nextX, nextY);
-        if (newGridX !== char.gridX || newGridY !== char.gridY) {
-            occupiedPositions.delete(`${char.gridX},${char.gridY}`);
-            occupiedPositions.add(`${newGridX},${newGridY}`);
-            char.gridX = newGridX;
-            char.gridY = newGridY;
-            char.element.dataset.gridX = newGridX;
-            char.element.dataset.gridY = newGridY;
-        }
-
-        char.x = nextX;
-        char.y = nextY;
-
-        char.element.style.transform = getIsoTransform(char.x, char.y);
-    }
-    
-    function gameLoop(timestamp) {
-        requestAnimationFrame(gameLoop);
-
-        const deltaTime = timestamp - lastTime;
-        lastTime = timestamp;
-
-        // Only update character movement if we are in the game view
-        if (document.getElementById('gameView').classList.contains('hidden')) {
-            return;
-        }
-
-        if (activeCharacterState) {
-            const clampedDeltaTime = Math.min(deltaTime, MAX_FRAME_DURATION); 
-            frameCount++; 
-            updateCharacterPosition(clampedDeltaTime);
-        }
-    }
-
-
-    function updateCharacterTransforms() {
-        // This function ensures all characters (active and inactive) are rotated correctly 
-        // when the map is rotated/panned/zoomed.
-        characterLayer.querySelectorAll('.char-icon').forEach(charElement => {
-            
-            // Skip the held character, its position is updated by the mousemove handler
-            if (isCharacterHeld && charElement === heldCharacterState.element) return; 
-            
-            let char;
-            // Check if this is the active character whose position is managed by activeCharacterState
-            if (activeCharacterState && charElement === activeCharacterState.element) {
-                char = activeCharacterState;
-            } else {
-                // If it's an inactive character, use its data attributes for position
-                const gridX = parseInt(charElement.dataset.gridX);
-                const gridY = parseInt(charElement.dataset.gridY);
-                const { px, py } = gridToPixel(gridX, gridY);
-                char = { x: px, y: py };
-            }
-            
-            charElement.style.transform = getIsoTransform(char.x, char.y);
         });
-    }
 
-    function findRandomUnoccupiedPosition() {
-        const maxAttempts = 100;
-        for (let i = 0; i < maxAttempts; i++) {
-            const x = Math.floor(Math.random() * MAP_WIDTH); 
-            const y = Math.floor(Math.random() * MAP_HEIGHT);
-            const key = `${x},${y}`;
-            
-            if (!occupiedPositions.has(key)) {
-                occupiedPositions.add(key);
-                return { x, y };
-            }
-        }
-        
-        if (occupiedPositions.size === MAP_WIDTH * MAP_HEIGHT) {
-            infoPanel.innerHTML = '<span class="text-red-400 font-bold">MAP FULL!</span>';
-        }
-        
-        return null;
-    }
-    
-    function updateLivesVisibility() {
-        document.querySelectorAll('.lives-display').forEach(el => {
-            el.classList.toggle('hidden', !showLives);
-        });
-    }
-
-    // --- NEW: Character Drag & Drop Functions ---
-    
-    function pickupCharacter(charState) {
-        if (isDragging) return; // Prevent pickup while map is dragging/rotating
-        
-        // Remove old occupied position key if it was the active character
-        if (charState === activeCharacterState) {
-            occupiedPositions.delete(`${activeCharacterState.gridX},${activeCharacterState.gridY}`);
-            // Stop the character from moving
-            activeCharacterState = null; 
-        }
-
-        heldCharacterState = charState;
-        isCharacterHeld = true;
-        heldCharacterState.element.style.zIndex = '200'; // Bring to front
-        heldCharacterState.element.classList.add('shadow-lg', 'scale-125');
-
-        infoPanel.innerHTML = `<span class="text-yellow-400 font-bold">PICKED UP:</span> ${charState.charData.name}. Drag and drop onto an unoccupied tile!`;
-
-        // Temporarily adjust map cursor to indicate a character is held
-        mapBasePlane.style.cursor = 'crosshair';
-    }
-    
-    function dropCharacter(mapCoordX, mapCoordY) {
-        if (!isCharacterHeld) return;
-
-        // Convert map pixel coordinates to grid and then back to center pixel
-        const { gridX, gridY } = pixelToGrid(mapCoordX, mapCoordY);
-        
-        const newPosKey = `${gridX},${gridY}`;
-        const tileAtDrop = getTileAt(mapCoordX, mapCoordY);
-        
-        let validDrop = false;
-        if (tileAtDrop && !occupiedPositions.has(newPosKey) && 
-            !['water', 'mountain'].includes(tileAtDrop.type)) {
-            
-            // Valid drop: update position and occupancy
-            const { px, py } = gridToPixel(gridX, gridY);
-            
-            heldCharacterState.x = px;
-            heldCharacterState.y = py;
-            heldCharacterState.gridX = gridX;
-            heldCharacterState.gridY = gridY;
-            heldCharacterState.element.dataset.gridX = gridX;
-            heldCharacterState.element.dataset.gridY = gridY;
-            occupiedPositions.add(newPosKey);
-            validDrop = true;
-            
-            // Re-activate as the wandering character
-            activeCharacterState = heldCharacterState;
-            changeDirection(true); // Give a new direction to start moving
-            
-            infoPanel.innerHTML = `<span class="text-green-400 font-bold">DROPPED:</span> ${heldCharacterState.charData.name} at (${gridX}, ${gridY}). Now wandering.`;
-        } else {
-            // Invalid drop (occupied or obstacle), remove character from map
-            heldCharacterState.element.remove();
-            infoPanel.innerHTML = `<span class="text-red-400 font-bold">LOST:</span> ${heldCharacterState.charData.name} was lost in space! (Dropped on an invalid tile or off map) `;
-        }
-        
-        // Reset state
-        heldCharacterState.element.style.zIndex = '100';
-        heldCharacterState.element.classList.remove('shadow-lg', 'scale-125');
-        heldCharacterState = null;
-        isCharacterHeld = false;
-        
-        // Restore map cursor
-        mapBasePlane.style.cursor = 'grab';
-        
-        // Clear any temporary tile highlights
-        mapTileData.forEach(t => t.element.style.boxShadow = 'none');
-        
-        // Update transform to apply final position
-        updateCharacterTransforms(); 
-    }
-
-    // --- Camera Control Functions ---
-
-    // ... (handleZoom, keyboardPanLoop remain the same) ...
-
-    function handleZoom(e) {
-        if (document.getElementById('gameView').classList.contains('hidden')) return;
-        
-        e.preventDefault(); 
-        const direction = e.deltaY < 0 ? 1 : -1; 
-        
-        zoomScale += direction * ZOOM_SPEED;
-        zoomScale = Math.max(0.5, Math.min(3.0, zoomScale)); 
-        
-        updateMapTransform();
-    }
-
-    function keyboardPanLoop() {
-        if (document.getElementById('gameView').classList.contains('hidden')) {
-            isKeyboardPanning = false;
-            return;
-        }
-
-        let moved = false;
-        
-        if (keysPressed['w'] || keysPressed['arrowup']) {
-            cameraTranslateY += PAN_SPEED; // Moving the camera up shifts the map down
-            moved = true;
-        }
-        if (keysPressed['s'] || keysPressed['arrowdown']) {
-            cameraTranslateY -= PAN_SPEED; // Moving the camera down shifts the map up
-            moved = true;
-        }
-        if (keysPressed['a'] || keysPressed['arrowleft']) {
-            cameraTranslateX += PAN_SPEED; // Moving the camera left shifts the map right
-            moved = true;
-        }
-        if (keysPressed['d'] || keysPressed['arrowright']) {
-            cameraTranslateX -= PAN_SPEED; // Moving the camera right shifts the map left
-            moved = true;
-        }
-
-        if (moved) {
-            updateMapTransform();
-            requestAnimationFrame(keyboardPanLoop); 
-        } else {
-            isKeyboardPanning = false; 
-        }
-    }
-
-
-    function setupEventListeners() {
-        // --- View Switching Buttons ---
-        startGameBtn.addEventListener('click', () => showView('gameView'));
-        settingsBtn.addEventListener('click', () => showView('settingsView'));
-        menuBtn.addEventListener('click', () => showView('mainMenu'));
-        backToMenuFromSettingsBtn.addEventListener('click', () => showView('mainMenu'));
-        
-        // --- Settings Toggle ---
-        livesToggle.checked = showLives;
-        livesToggle.addEventListener('change', (e) => {
-            showLives = e.target.checked;
-            updateLivesVisibility();
+        window.addEventListener("resize", function () {
+            engine.resize();
         });
 
 
-        // --- 1. Zoom (Mouse Wheel) ---
-        document.addEventListener('wheel', handleZoom, { passive: false });
-        
-        // --- 2. Drag (Rotation / Panning) ---
-        
-        document.addEventListener('mousedown', (e) => {
-            if (document.getElementById('gameView').classList.contains('hidden')) return;
-            // Check if the click is on a control button or held character
-            if (e.target.closest('#gameControlsPanel') || isCharacterHeld) return;
-            // Only respond to left button (0)
-            if (e.button !== 0) return; 
-            
-            // Check if a character was clicked
-            const charElement = e.target.closest('.char-icon');
-            if (charElement) {
-                // --- FIX: Stop propagation to allow the dedicated 'click' listener to fire later ---
-                // We use the mousedown event to *start* the pickup state.
-                e.stopPropagation(); 
-                
-                // Find the character state associated with this element
-                let charStateToPickUp = null;
-                if (activeCharacterState && activeCharacterState.element === charElement) {
-                    charStateToPickUp = activeCharacterState;
+        // ----------------------------------------------------
+        // POINTER OBSERVABLES (Click/Drag/Remove)
+        // ----------------------------------------------------
+
+        function setupPointerObservables() {
+            scene.onPointerObservable.add((pointerInfo) => {
+                const pickInfo = pointerInfo.pickInfo;
+                const pickedUnit = pickInfo?.hit ? (pickInfo.pickedMesh.parent?.unitData || pickInfo.pickedMesh.unitData) : null;
+
+                switch (pointerInfo.type) {
+                    case BABYLON.PointerEventTypes.POINTERDOWN:
+                        if (isRemoving) {
+                            if (pickedUnit) {
+                                pickedUnit.die();
+                            } else if (pickInfo.hit && pickInfo.pickedMesh.name.includes("Tree")) {
+                                pickInfo.pickedMesh.dispose();
+                            }
+                            // Reset mode after one action or a click
+                            isRemoving = false;
+                            $('#btn-remove-entity').removeClass('bg-yellow-500 toggle-active').addClass('bg-gray-600').html('Remove Entity');
+                            $('#game-status').html('Status: Ready');
+                            return;
+                        }
+
+                        if (pickedUnit && !battleLoopInterval) {
+                            // Start Drag
+                            currentDraggingUnit = pickedUnit;
+                            camera.detachControl(canvas);
+                        }
+                        break;
+
+                    case BABYLON.PointerEventTypes.POINTERUP:
+                        if (currentDraggingUnit) {
+                            // End Drag
+                            currentDraggingUnit = null;
+                            camera.attachControl(canvas, true);
+                        }
+                        break;
+
+                    case BABYLON.PointerEventTypes.POINTERMOVE:
+                        if (currentDraggingUnit) {
+                            // Dragging logic
+                            const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, BABYLON.Matrix.Identity(), camera, false);
+                            const groundPick = scene.pickWithRay(ray, (mesh) => mesh === ground);
+
+                            if (groundPick.hit) {
+                                // Update unit position to mouse position on the ground plane, respecting height
+                                currentDraggingUnit.rootNode.position.x = groundPick.pickedPoint.x;
+                                currentDraggingUnit.rootNode.position.z = groundPick.pickedPoint.z;
+                                currentDraggingUnit.rootNode.position.y = groundPick.pickedPoint.y;
+                            }
+                        }
+                        break;
+                }
+            });
+        }
+
+
+        // ----------------------------------------------------
+        // GAME ENTITY FUNCTIONS & CLASS (UPDATED FOR DAMAGE FIX & TIER SELECTION)
+        // ----------------------------------------------------
+
+        class GameUnit {
+            // UPDATED: Accept tierData and weaponData
+            constructor(name, team, position, tierData, weaponData, scene) {
+                this.id = unitCount++;
+                this.name = name;
+                this.team = team;
+                this.isAlive = true;
+
+                // Use provided data
+                this.tierData = tierData; // <--- ADDED: Fixes damageMultiplier error
+                this.tier = tierData.name;
+                this.tierColorClass = tierData.colorClass;
+                this.weapon = weaponData;
+                this.maxLife = Math.floor(Math.random() * (tierData.maxHp - tierData.minHp + 1)) + tierData.minHp;
+                this.life = this.maxLife;
+                this.speed = tierData.speed;
+                // this.damage = this.weapon.damage; // REMOVED: Damage calculated on attack
+
+                this.state = 'idle';
+                this.target = null;
+                this.attackCooldown = 0;
+                this.walkCycle = 0; // for walk animation
+
+                this.rootNode = new BABYLON.TransformNode(`unitRoot_${this.id}`, scene);
+                // Position will be set via raycast immediately after creation
+                this.rootNode.position = new BABYLON.Vector3(position.x, 0, position.z);
+                this.rootNode.unitData = this; // Link root node to unit data
+
+                this.mesh = this.rootNode;
+
+                const baseColor = team === 'A' ? BABYLON.Color3.Red() : BABYLON.Color3.Blue();
+                const colorHue = baseColor.scale(1 - tierData.hue).add(BABYLON.Color3.White().scale(tierData.hue));
+
+                this.buildVoxelHuman(colorHue, tierData.emissive);
+
+                // Store the original material for the damage flash effect to revert to
+                this.originalMaterial = this.torso.material;
+
+                this.label = this.createLabel();
+                updateUnitLabelsVisibility(); // Apply initial display settings
+            }
+
+            /**
+             * NOTE ON MODEL IMPROVEMENT:
+             * To render a human dummy/weapon that looks much better,
+             * you should replace the voxel mesh construction below with a GLTF/GLB model load.
+             * * 1. Comment out the `buildVoxelHuman` call in the constructor.
+             * 2. Use BABYLON.SceneLoader.ImportMeshAsync to load a GLTF file:
+             * * BABYLON.SceneLoader.ImportMeshAsync("", "path/to/model/", "unit.glb", scene).then((result) => {
+             * // result.meshes[0] will be the root of the imported model.
+             * result.meshes[0].parent = this.rootNode;
+             * * // You would then modify the animation functions (updateAnimation, attack)
+             * // to use the imported model's animation groups (result.animationGroups).
+             * });
+             */
+
+            createWeaponMesh() {
+                let weaponMesh;
+                const s = 0.5; // Use the unit scale 's' from the main function for better consistency
+
+                // Material for all weapons (Gold/Brass color)
+                const wMat = new BABYLON.StandardMaterial("wMat", scene);
+                wMat.diffuseColor = new BABYLON.Color3(0.8, 0.7, 0.3); // Brass/Gold tone for hilt
+
+                // Material for the blade/barrel (Silver/Gunmetal color)
+                const bladeMat = new BABYLON.StandardMaterial("bladeMat", scene);
+                bladeMat.diffuseColor = new BABYLON.Color3(0.5, 0.5, 0.5); // Silver/Metal tone for blade
+
+                // Helper function to combine and parent meshes
+                const combineMeshes = (name, parts) => {
+                    const root = new BABYLON.Mesh(name + "_root", scene);
+                    parts.forEach(part => {
+                        part.parent = root;
+                    });
+                    return root;
+                };
+
+                switch (this.weapon.name) {
+                    case "Dagger":
+                        // 🗡️ Components: Blade (Cone for tip), Mid-Blade (Cylinder), Crossguard (Box), Handle (Cylinder)
+
+                        const daggerBladeLength = s * 0.8;
+                        const daggerBladeRadius = s * 0.06;
+                        const handleLength = s * 0.4;
+
+                        // Blade Tip (Cone)
+                        const daggerTip = BABYLON.MeshBuilder.CreateCylinder("daggerTip", { height: daggerBladeLength / 3, diameterTop: 0, diameterBottom: daggerBladeRadius * 2, tessellation: 6 }, scene);
+                        daggerTip.material = bladeMat;
+                        daggerTip.position.y = daggerBladeLength * 0.8;
+
+                        // Blade Body (Cylinder)
+                        const daggerMid = BABYLON.MeshBuilder.CreateCylinder("daggerMid", { height: daggerBladeLength * 2 / 3, diameter: daggerBladeRadius * 2, tessellation: 6 }, scene);
+                        daggerMid.material = bladeMat;
+                        daggerMid.position.y = daggerBladeLength * 0.35;
+
+                        // Crossguard (Thin Box)
+                        const daggerGuard = BABYLON.MeshBuilder.CreateBox("daggerGuard", { height: s * 0.05, width: s * 0.3, depth: s * 0.08 }, scene);
+                        daggerGuard.material = wMat;
+                        daggerGuard.position.y = -s * 0.1; // Positioned between blade and handle
+
+                        // Handle (Cylinder)
+                        const daggerHandle = BABYLON.MeshBuilder.CreateCylinder("daggerHandle", { height: handleLength, diameter: s * 0.12 }, scene);
+                        daggerHandle.material = wMat;
+                        daggerHandle.position.y = -s * 0.2; // Below the guard
+
+                        weaponMesh = combineMeshes("Dagger", [daggerTip, daggerMid, daggerGuard, daggerHandle]);
+                        break;
+
+                    case "Sword":
+                        // Components: Blade (box) + Crossguard (box) + Hilt (cylinder)
+                        const swordBlade = BABYLON.MeshBuilder.CreateBox("swordBlade", { height: s * 3.0, width: s * 0.2, depth: s * 0.05 }, scene);
+                        swordBlade.material = bladeMat;
+                        swordBlade.position.y = s * 1.5;
+
+                        const swordGuard = BABYLON.MeshBuilder.CreateBox("swordGuard", { height: s * 0.1, width: s * 0.5, depth: s * 0.1 }, scene);
+                        swordGuard.material = wMat;
+                        swordGuard.position.y = 0;
+
+                        const swordHandle = BABYLON.MeshBuilder.CreateCylinder("swordHandle", { height: s * 1.0, diameter: s * 0.15 }, scene);
+                        swordHandle.material = wMat;
+                        swordHandle.position.y = -s * 0.5;
+
+                        weaponMesh = combineMeshes("Sword", [swordBlade, swordGuard, swordHandle]);
+                        break;
+
+                    case "Rifle":
+                        // Components: Body (long box) + Barrel (thin cylinder) + Stock (small box)
+                        const rifleBody = BABYLON.MeshBuilder.CreateBox("rifleBody", { height: s * 0.3, width: s * 0.2, depth: s * 1.5 }, scene);
+                        rifleBody.material = wMat;
+                        rifleBody.position.z = s * 0.25;
+
+                        const rifleBarrel = BABYLON.MeshBuilder.CreateCylinder("rifleBarrel", { height: s * 2.0, diameter: s * 0.08 }, scene);
+                        rifleBarrel.material = bladeMat;
+                        // Rotate and position the barrel along the Z-axis (forward)
+                        rifleBarrel.rotation.x = Math.PI / 2;
+                        rifleBarrel.position.z = s * 0.75;
+                        rifleBarrel.position.y = s * 0.1;
+
+                        const rifleStock = BABYLON.MeshBuilder.CreateBox("rifleStock", { height: s * 0.5, width: s * 0.3, depth: s * 0.5 }, scene);
+                        rifleStock.material = wMat;
+                        rifleStock.position.z = -s * 0.8;
+                        rifleStock.position.y = -s * 0.1;
+
+                        weaponMesh = combineMeshes("Rifle", [rifleBody, rifleBarrel, rifleStock]);
+                        break;
+
+                    case "Grenade Launcher":
+                        // Components: Large Barrel (cylinder) + Handle (small box) + Sight (small box)
+                        const glBarrel = BABYLON.MeshBuilder.CreateCylinder("glBarrel", { height: s * 2.5, diameter: s * 0.35 }, scene);
+                        glBarrel.material = bladeMat;
+                        glBarrel.rotation.x = Math.PI / 2; // Orient along Z-axis (forward)
+                        glBarrel.position.z = s * 0.1;
+
+                        const glHandle = BABYLON.MeshBuilder.CreateBox("glHandle", { height: s * 0.8, width: s * 0.2, depth: s * 0.2 }, scene);
+                        glHandle.material = wMat;
+                        glHandle.position.z = -s * 0.5;
+                        glHandle.position.y = -s * 0.4; // Hanging down
+
+                        const glSight = BABYLON.MeshBuilder.CreateBox("glSight", { size: s * 0.1, depth: s * 0.5 }, scene);
+                        glSight.material = wMat;
+                        glSight.position.z = s * 0.5;
+                        glSight.position.y = s * 0.2;
+
+                        weaponMesh = combineMeshes("GrenadeLauncher", [glBarrel, glHandle, glSight]);
+                        break;
+
+                    default:
+                        // Default (Unarmed/Fist)
+                        weaponMesh = BABYLON.MeshBuilder.CreateBox("fist", { size: s * 0.2 }, scene);
+                        weaponMesh.material = wMat;
+                }
+
+                return weaponMesh;
+            }
+
+            buildVoxelHuman(color, emissiveMultiplier) {
+                const s = 0.5; // Base scale factor
+                const material = new BABYLON.StandardMaterial(`mat_${this.id}`, scene);
+                material.diffuseColor = color;
+                material.emissiveColor = color.scale(emissiveMultiplier * 0.3);
+
+                // --- Core Dimensions for a Stylized Rounded Human ---
+                const stickRadius = s * 0.15; // Very thin radius for limbs
+                const torsoRadius = s * 0.5;  // <-- INCREASED: Wider radius for the body
+                const torsoHeight = s * 1.5;
+
+                // --- Torso (Wider Cylinder) ---
+                this.torso = BABYLON.MeshBuilder.CreateCylinder("torso", { height: torsoHeight, diameter: torsoRadius * 2 }, scene);
+                this.torso.position = new BABYLON.Vector3(0, torsoHeight / 2, 0);
+                this.torso.material = material;
+                this.torso.parent = this.rootNode;
+                this.torso.unitData = this;
+
+                // --- Head (Sphere) ---
+                const headRadius = s * 0.6;
+                this.head = BABYLON.MeshBuilder.CreateSphere("head", { diameter: headRadius * 2 }, scene);
+                this.head.position = new BABYLON.Vector3(0, torsoHeight / 2 + headRadius, 0);
+                this.head.material = material;
+                this.head.parent = this.torso;
+
+                // --- Legs (Thin Cylinders) ---
+                const legHeight = s * 1.8;
+                const legSeparation = torsoRadius; // Separate legs by the torso radius
+
+                // Left Leg Root (Hip pivot)
+                this.legLeftRoot = new BABYLON.TransformNode("legLRoot", scene);
+                this.legLeftRoot.parent = this.torso;
+                // Positioned right under the torso, offset to the side
+                this.legLeftRoot.position = new BABYLON.Vector3(-legSeparation / 2, -torsoHeight / 2, 0);
+
+                this.legLeft = BABYLON.MeshBuilder.CreateCylinder("legL", { height: legHeight, diameter: stickRadius * 2 }, scene);
+                this.legLeft.position = new BABYLON.Vector3(0, -legHeight / 2, 0);
+                this.legLeft.material = material;
+                this.legLeft.parent = this.legLeftRoot;
+
+                // Right Leg Root (Hip pivot)
+                this.legRightRoot = new BABYLON.TransformNode("legRRoot", scene);
+                this.legRightRoot.parent = this.torso;
+                this.legRightRoot.position = new BABYLON.Vector3(legSeparation / 2, -torsoHeight / 2, 0);
+
+                this.legRight = BABYLON.MeshBuilder.CreateCylinder("legR", { height: legHeight, diameter: stickRadius * 2 }, scene);
+                this.legRight.position = new BABYLON.Vector3(0, -legHeight / 2, 0);
+                this.legRight.material = material;
+                this.legRight.parent = this.legRightRoot;
+
+                // --- Arms (Thin Cylinders) ---
+                const armHeight = s * 1.8;
+                // Arm roots start at the edge of the WIDER torso
+                const armXOffset = torsoRadius + stickRadius / 2;
+                const armYOffset = s * 0.8;
+
+                // Right Arm Root (Shoulder pivot)
+                this.armRightRoot = new BABYLON.TransformNode("armRRoot", scene);
+                this.armRightRoot.parent = this.torso;
+                this.armRightRoot.position = new BABYLON.Vector3(armXOffset, armYOffset, 0);
+
+                this.armRight = BABYLON.MeshBuilder.CreateCylinder("armR", { height: armHeight, diameter: stickRadius * 2 }, scene);
+                this.armRight.position = new BABYLON.Vector3(0, -armHeight / 2, 0);
+                this.armRight.material = material;
+                this.armRight.parent = this.armRightRoot;
+
+                // Left Arm Root (Shoulder pivot)
+                this.armLeftRoot = new BABYLON.TransformNode("armLRoot", scene);
+                this.armLeftRoot.parent = this.torso;
+                this.armLeftRoot.position = new BABYLON.Vector3(-armXOffset, armYOffset, 0);
+
+                this.armLeft = BABYLON.MeshBuilder.CreateCylinder("armL", { height: armHeight, diameter: stickRadius * 2 }, scene);
+                this.armLeft.position = new BABYLON.Vector3(0, -armHeight / 2, 0);
+                this.armLeft.material = material;
+                this.armLeft.parent = this.armLeftRoot;
+
+                // --- Weapon ---
+                this.weaponMesh = this.createWeaponMesh();
+                this.weaponMesh.parent = this.armRight;
+
+                // Position the weapon in the hand (at the bottom tip of the arm mesh)
+                if (this.weapon.range < 5) { // Melee: Held diagonally up
+                    this.weaponMesh.rotation.z = Math.PI / 18;
+                    this.weaponMesh.position = new BABYLON.Vector3(0.1, -armHeight, 0);
+                } else { // Ranged: Held slightly forward/up
+                    this.weaponMesh.rotation.x = -Math.PI / 18;
+                    this.weaponMesh.position = new BABYLON.Vector3(0.1, -armHeight, 0);
+                }
+
+                // Set initial arm rotation to point forward (Ready pose) - applied to the root
+                this.armRightRoot.rotation.x = 0;
+                this.armLeftRoot.rotation.x = 0;
+            }
+
+
+            createLabel() {
+                const labelContainer = new BABYLON.GUI.StackPanel();
+                labelContainer.height = "100px";
+                labelContainer.width = "200px";
+
+                const nameText = new BABYLON.GUI.TextBlock();
+                nameText.color = this.tierColorClass.replace('text-', '#');
+                nameText.fontSize = 14;
+                nameText.height = "25px";
+                nameText.outlineWidth = 2;
+                nameText.outlineColor = "black";
+                this.nameText = nameText;
+                labelContainer.addControl(nameText);
+
+                const lifeText = new BABYLON.GUI.TextBlock();
+                lifeText.color = "lime";
+                lifeText.fontSize = 12;
+                lifeText.height = "25px";
+                lifeText.outlineWidth = 1;
+                lifeText.outlineColor = "black";
+                this.lifeText = lifeText;
+                labelContainer.addControl(lifeText);
+
+                advancedTexture.addControl(labelContainer);
+                labelContainer.linkWithMesh(this.rootNode);
+                labelContainer.linkOffsetY = -65;
+                return labelContainer;
+            }
+
+            updateAnimation(deltaTime) {
+                // Walk Animation (Leg Swing)
+                if (this.isAlive && this.state === 'moving') {
+                    this.walkCycle += deltaTime * 5;
+                    const swing = Math.sin(this.walkCycle) * 0.5;
+
+                    this.legLeftRoot.rotation.x = swing;
+                    this.legRightRoot.rotation.x = -swing;
                 } else {
-                    // This is the logic to re-create a state for non-active/untracked characters
-                    const gridX = parseInt(charElement.dataset.gridX);
-                    const gridY = parseInt(charElement.dataset.gridY);
-                    const name = charElement.classList[1].replace('char-type-', '');
-                    const charData = Object.values(CHARACTER_DATA).find(c => c.name.toLowerCase().includes(name.split('-')[1]));
-                    
-                    if (!charData) return; // Should not happen
-                    
-                    const { px, py } = gridToPixel(gridX, gridY);
-                    
-                    charStateToPickUp = {
-                        x: px, 
-                        y: py, 
-                        vx: 0, 
-                        vy: 0,
-                        element: charElement,
-                        livesElement: charElement.querySelector('.lives-display'),
-                        charData: charData, 
-                        nextDirChange: 0,
-                        gridX: gridX,
-                        gridY: gridY,
-                        lives: charData.lives, 
-                        team: charData.team
+                    // Reset to standing pose
+                    this.legLeftRoot.rotation.x = 0;
+                    this.legRightRoot.rotation.x = 0;
+                }
+            }
+
+
+            moveTowardsTarget(targetPosition, deltaTime) {
+                if (this.rootNode.isDisposed()) return false;
+
+                const currentPos = this.rootNode.position;
+                const targetVector = new BABYLON.Vector3(targetPosition.x, currentPos.y, targetPosition.z);
+
+                // Rotation: Face the target (Rotate Pattern)
+                this.rootNode.lookAt(targetVector);
+
+                const distance = BABYLON.Vector3.Distance(currentPos, targetVector);
+
+                if (distance <= this.weapon.range * 0.9) {
+                    return true;
+                }
+
+                const direction = targetVector.subtract(currentPos).normalize();
+                const step = direction.scale(this.speed * deltaTime * 60);
+
+                this.rootNode.position.addInPlace(step);
+
+                // We rely on adjustEntitiesToNewGround to reset Y, but for movement we keep the current Y.
+
+                return false;
+            }
+
+            // New: Visual feedback when unit takes damage (red flash)
+            flashMesh() {
+                // Use the unit's material property which was saved in the constructor
+                const originalMat = this.originalMaterial;
+
+                // Create a temporary red material for the flash effect
+                const flashMaterial = new BABYLON.StandardMaterial("flashMat", scene);
+                flashMaterial.diffuseColor = BABYLON.Color3.Red();
+                flashMaterial.emissiveColor = BABYLON.Color3.Red().scale(0.5);
+
+                // List of all primary meshes
+                const meshesToFlash = [this.torso, this.head, this.legLeft, this.legRight, this.armRight, this.armLeft];
+
+                // Apply flash material
+                meshesToFlash.forEach(mesh => {
+                    if (mesh && mesh.material) mesh.material = flashMaterial;
+                });
+
+                // Revert after a short delay (100ms)
+                setTimeout(() => {
+                    if (!this.rootNode.isDisposed()) {
+                        meshesToFlash.forEach(mesh => {
+                            if (mesh) mesh.material = originalMat;
+                        });
+                    }
+                }, 100);
+            }
+
+            // New: Encapsulate the arm swinging logic
+            animateAttack() {
+                // If it's a voxel unit with arms, animate the arm swing
+                if (this.armRightRoot) {
+                    // Swing angle calculation
+                    const swingAngle = this.weapon.range < 5 ? Math.PI / 3 : -Math.PI / 8;
+
+                    // Animate arm rotation for attack pattern (Swing Out)
+                    BABYLON.Animation.CreateAndStartAnimation(
+                        "attackAnim",
+                        this.armRightRoot,
+                        "rotation.x",
+                        30, // frame rate
+                        10, // total frames
+                        0, // start value
+                        swingAngle, // end value (swing out)
+                        BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+                        new BABYLON.CubicEase()
+                    ).onAnimationEnd = () => {
+                        // Return arm to original pose (Ready pose = 0)
+                        BABYLON.Animation.CreateAndStartAnimation(
+                            "returnAnim",
+                            this.armRightRoot,
+                            "rotation.x",
+                            30,
+                            10,
+                            swingAngle,
+                            0,
+                            BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+                        );
                     };
                 }
-                
-                pickupCharacter(charStateToPickUp);
-                return;
             }
 
-            // If no character was clicked, start map drag
-            isDragging = true;
-            lastX = e.clientX;
-            lastY = e.clientY;
+            // UPDATED: Damage calculation uses the new formula (Weapon * Rarity)
+            attack(target) {
+                // FIX: Check if the enemy unit (target) is alive, not the enemy's target.
+                if (!target || !target.isAlive || this.rootNode.isDisposed()) {
+                    this.state = 'idle';
+                    this.target = null;
+                    return;
+                }
 
-            // Shift key activates Panning mode, otherwise it's rotation mode
-            isPanningMode = e.shiftKey; 
-            
-            if (isPanningMode) {
-                mapBasePlane.classList.add('panning');
-                mapBasePlane.style.cursor = 'all-scroll';
-            } else {
-                mapBasePlane.classList.add('dragging');
-                mapBasePlane.style.cursor = 'grabbing';
-            }
-            
-            e.preventDefault(); 
-        });
+                // Miss chance
+                if (Math.random() < this.weapon.missChance) {
+                    this.nameText.text = "MISS!";
+                    this.nameText.color = "yellow";
+                    setTimeout(() => {
+                        if (this.nameText && !this.nameText.isDisposed) {
+                            updateUnitLabelsVisibility();
+                        }
+                    }, 500);
+                    // Stop attacking state if miss
+                    this.state = 'idle';
+                    return;
+                }
 
-        document.addEventListener('mouseup', (e) => {
-            if (isCharacterHeld) {
-                // Drop the character at the mouse position relative to the mapBasePlane's parent
-                const rect = mapBasePlane.getBoundingClientRect();
-                const mapX = (e.clientX - rect.left) / zoomScale - cameraTranslateX;
-                const mapY = (e.clientY - rect.top) / zoomScale - cameraTranslateY;
-                
-                dropCharacter(mapX, mapY);
-                return;
-            }
-            
-            // End map drag
-            isDragging = false;
-            isPanningMode = false;
-            mapBasePlane.classList.remove('dragging', 'panning');
-            mapBasePlane.style.cursor = 'grab'; 
-        });
+                // New Damage Calculation: (Weapon Base Damage: 5-50) * (Character Rarity Multiplier: 1.0-1.5)
+                const baseDamage = this.weapon.damage;
+                const rarityMultiplier = this.tierData.damageMultiplier;
+                const finalDamage = Math.round(baseDamage * rarityMultiplier); // Round for clean integer damage
 
-        document.addEventListener('mousemove', (e) => {
-            if (isCharacterHeld) {
-                // Get the position of the map container relative to the viewport
-                const rect = mapContainer.getBoundingClientRect();
-                
-                // Calculate the mouse position relative to the map container center
-                const containerCenterX = rect.left + rect.width / 2;
-                const containerCenterY = rect.top + rect.height / 2;
-                
-                // Mouse delta relative to map container center
-                const deltaX = e.clientX - containerCenterX;
-                const deltaY = e.clientY - containerCenterY;
+                // Trigger damage and visual feedback
+                target.updateLife(finalDamage);
 
-                // The held character should follow the mouse in 2D screen space
-                heldCharacterState.element.style.transform = 
-                    `translate3d(${deltaX}px, ${deltaY}px, 50px) scale(1.2)`;
-                    
-                heldCharacterState.element.style.zIndex = '300';
-                
-                // Stop map rotation/pan
-                isDragging = false;
-                
-                return;
+                // Encapsulate animation logic
+                this.animateAttack();
             }
 
-            if (!isDragging) return;
+            updateLife(damage) {
+                this.life -= damage;
+                this.life = Math.max(0, this.life);
 
-            const deltaX = e.clientX - lastX;
-            const deltaY = e.clientY - lastY;
+                // New: Flash unit on hit
+                if (damage > 0) {
+                    this.flashMesh();
+                }
 
-            if (isPanningMode) {
-                cameraTranslateX += deltaX;
-                cameraTranslateY += deltaY;
-            } else {
-                rotationZ += deltaX * 0.2; 
-                rotationX -= deltaY * 0.2; 
-                rotationX = Math.max(10, Math.min(60, rotationX)); 
-            }
+                this.lifeText.text = `HP: ${this.life}/${this.maxLife}`;
 
-            updateMapTransform();
+                if (this.life / this.maxLife < 0.3) {
+                    this.lifeText.color = "red";
+                }
 
-            lastX = e.clientX;
-            lastY = e.clientY;
-        });
-        
-        mapBasePlane.addEventListener('contextmenu', (e) => e.preventDefault());
-
-        // --- 3. Keyboard Controls (WASD/Arrows/Reset) ---
-        document.addEventListener('keydown', (e) => {
-            if (document.getElementById('gameView').classList.contains('hidden')) return;
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-            const key = e.key.toLowerCase();
-            keysPressed[key] = true; 
-
-            // R: Reset View
-            if (key === 'r') {
-                cameraTranslateX = 0;
-                cameraTranslateY = 0;
-                zoomScale = 1.0;
-                rotationX = 40;
-                rotationZ = -45;
-                updateMapTransform();
-                return;
-            }
-
-            const isMovementKey = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key);
-            
-            if (isMovementKey) {
-                e.preventDefault(); 
-                if (!isKeyboardPanning) {
-                    isKeyboardPanning = true;
-                    requestAnimationFrame(keyboardPanLoop);
+                if (this.life <= 0) {
+                    this.die();
                 }
             }
-        });
 
-        document.addEventListener('keyup', (e) => {
-            keysPressed[e.key.toLowerCase()] = false; 
-        });
-        
-        // --- Summon Button Listener ---
-        summonBtn.addEventListener('click', summonCharacter);
-    }
-
-    // --- Character Management (Updated to use new info panel and lives) ---
-    
-    function summonCharacter() {
-        const keys = Object.keys(CHARACTER_DATA);
-        if (keys.length === 0) return;
-        const randomKey = keys[Math.floor(Math.random() * keys.length)];
-        const charData = CHARACTER_DATA[randomKey];
-        placeCharacter(charData);
-    }
-    
-    function placeCharacter(charData) {
-        // Clear previous active character for simplicity
-        /*if (activeCharacterState) {
-            occupiedPositions.delete(`${activeCharacterState.gridX},${activeCharacterState.gridY}`);
-            activeCharacterState.element.remove();
-            activeCharacterState = null;
-        }*/
-
-        const pos = findRandomUnoccupiedPosition();
-        
-        if (!pos) return;
-        
-        const { px, py } = gridToPixel(pos.x, pos.y);
-        
-        // --- 1. Character Icon Element ---
-        const charElement = document.createElement('div');
-        // 'relative' is needed for absolute positioning of lives/tooltip children
-        // 'group' is needed for Tailwind's group-hover utility
-        charElement.className = 'char-icon relative group'; 
-        charElement.innerHTML = charData.svg; 
-        charElement.style.transform = getIsoTransform(px, py);
-        charElement.dataset.gridX = pos.x;
-        charElement.dataset.gridY = pos.y;
-        charElement.classList.add(`char-type-${charData.name.toLowerCase().replace(/\s/g, '-')}`);
-
-        // --- 2. Lives Display Element ---
-        const livesDisplay = document.createElement('div');
-        livesDisplay.className = `lives-display absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full text-xs font-bold text-red-300 bg-red-900 px-1 rounded-sm shadow-lg pointer-events-none z-50 transition-opacity ${showLives ? '' : 'hidden'}`;
-        livesDisplay.textContent = `HP: ${charData.lives}`;
-        
-        // --- 3. Name/Description Hover Panel (Tooltip) ---
-        const hoverTooltip = document.createElement('div');
-        hoverTooltip.className = 'absolute bottom-full left-1/2 transform -translate-x-1/2 p-2 mb-2 bg-gray-900 border border-gray-700 text-white text-xs whitespace-nowrap rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-50 w-auto min-w-40';
-        hoverTooltip.innerHTML = `<span class="font-bold text-pink-400">${charData.name} (Team ${charData.team})</span><br>${charData.description}`;
-        
-        charElement.appendChild(livesDisplay);
-        //charElement.appendChild(hoverTooltip);
-        
-        
-        // Create the state object
-        const newCharState = {
-            x: px, 
-            y: py, 
-            vx: 0, 
-            vy: 0,
-            element: charElement,
-            livesElement: livesDisplay,
-            charData: charData, 
-            nextDirChange: 0,
-            gridX: pos.x,
-            gridY: pos.y,
-            lives: charData.lives, 
-            team: charData.team
-        };
-        
-        // --- 4. Event Listeners (for hover) ---
-        // Mouseover/out for info panel
-        charElement.addEventListener('mouseover', function() {
-            if (!isCharacterHeld) {
-                infoPanel.innerHTML = 
-                    `<span class="text-pink-400 font-bold">${charData.name} (Team ${charData.team})</span>: ${charData.description}`;
+            die() {
+                this.isAlive = false;
+                this.rootNode.dispose();
+                if (this.label) {
+                    this.label.dispose();
+                }
+                updateGameStatus();
             }
-        });
+        }
 
-        charElement.addEventListener('mouseout', function() {
-            if (!isCharacterHeld) {
-                // Restore default message when mouse leaves
-                infoPanel.innerHTML = 'Click an icon or Summon a Character.';
-                
-                // If the character is still the active one, update to show its active status
-                if (activeCharacterState && charElement === activeCharacterState.element) {
-                    infoPanel.innerHTML = `<span class="text-green-400 font-bold">ACTIVE:</span> ${activeCharacterState.charData.name} at (${activeCharacterState.gridX}, ${activeCharacterState.gridY})`;
+        // Helper to update all unit labels based on global display settings
+        function updateUnitLabelsVisibility() {
+            units.filter(u => u.isAlive).forEach(unit => {
+                // Visibility Toggles
+                unit.nameText.isVisible = displayToggles.showName || displayToggles.showWeapon;
+                unit.lifeText.isVisible = displayToggles.showHealth;
+
+                // Content Update
+                let nameContent = "";
+                if (displayToggles.showWeapon) nameContent += unit.weapon.icon + " ";
+                if (displayToggles.showName) nameContent += unit.name + " ";
+                // Always show tier if name is shown
+                unit.nameText.text = nameContent.trim() + (displayToggles.showName ? ` (${unit.tier})` : "");
+            });
+        }
+
+        function createTree(position) {
+            const trunk = BABYLON.MeshBuilder.CreateBox("trunk", { height: 2, width: 0.5, depth: 0.5 }, scene);
+            const trunkMat = new BABYLON.StandardMaterial("trunkMat", scene);
+            trunkMat.diffuseColor = new BABYLON.Color3(0.5, 0.3, 0.1);
+            trunk.material = trunkMat;
+            trunk.name = "Tree";
+
+            const leaves = BABYLON.MeshBuilder.CreateBox("leaves", { height: 1.5, width: 1.5, depth: 1.5 }, scene);
+            leaves.position.y = 1.5; // Offset from trunk center
+            const leavesMat = new BABYLON.StandardMaterial("leavesMat", scene);
+            leavesMat.diffuseColor = new BABYLON.Color3(0.2, 0.8, 0.2);
+            leaves.material = leavesMat;
+            leaves.name = "Tree";
+
+            const tree = BABYLON.Mesh.MergeMeshes([trunk, leaves], true, true, undefined, false, true);
+            tree.name = "Tree";
+
+            // Raycast to place tree on ground
+            const ray = new BABYLON.Ray(new BABYLON.Vector3(position.x, 10, position.z), BABYLON.Vector3.Down());
+            const pick = scene.pickWithRay(ray, (mesh) => mesh === ground);
+
+            if (pick.hit) {
+                // Tree position is (0, 1, 0) relative to its base. So we add 1 to the picked point Y.
+                tree.position = new BABYLON.Vector3(position.x, pick.pickedPoint.y + 1, position.z);
+            } else {
+                tree.position = new BABYLON.Vector3(position.x, 1, position.z);
+            }
+
+            return tree;
+        }
+
+        // UPDATED: Added selectedTierName parameter
+        function spawnCharacter(team, selectedTierName = 'random') {
+
+            const mapRadius = currentGroundSize / 2;
+            const spawnRange = mapRadius * 0.75; // Spawn units within 75% of the radius
+            let x = Math.random() * (currentGroundSize * 0.75) - (currentGroundSize * 0.375);
+            let z = Math.random() * (currentGroundSize * 0.75) - (currentGroundSize * 0.375);
+
+            if (team == 'A') {
+                x = spawnRange / 2 + Math.random() * (spawnRange / 2);
+                z = -spawnRange + Math.random() * (spawnRange / 2);
+            } else if (team == 'B') {
+                x = -spawnRange + Math.random() * (spawnRange / 2);
+                z = spawnRange / 2 + Math.random() * (spawnRange / 2);
+            }
+
+            const position = { x: x, z: z };
+
+            let tierData;
+            if (selectedTierName === 'random') {
+                tierData = weightedRandom(UNIT_TIERS);
+            } else {
+                tierData = UNIT_TIERS.find(t => t.name === selectedTierName);
+                if (!tierData) { // Fallback just in case
+                    console.error(`Tier ${selectedTierName} not found. Defaulting to random.`);
+                    tierData = weightedRandom(UNIT_TIERS);
                 }
             }
+
+            const weaponData = weightedRandom(WEAPONS);
+            const name = `Unit ${team}-${unitCount}`;
+
+            // Create unit with selected/randomized tier and weapon
+            // UPDATED: Pass tierData and weaponData
+            const newUnit = new GameUnit(name, team, position, tierData, weaponData, scene);
+
+            // Raycast to place unit on ground
+            const ray = new BABYLON.Ray(new BABYLON.Vector3(position.x, 10, position.z), BABYLON.Vector3.Down());
+            const pick = scene.pickWithRay(ray, (mesh) => mesh === ground);
+
+            if (pick.hit) {
+                newUnit.rootNode.position.y = pick.pickedPoint.y;
+            }
+
+            units.push(newUnit);
+            updateGameStatus();
+        }
+
+        function spawnTree() {
+            const x = Math.random() * (currentGroundSize * 0.8) - (currentGroundSize * 0.4);
+            const z = Math.random() * (currentGroundSize * 0.8) - (currentGroundSize * 0.4);
+            const position = { x: x, z: z };
+            createTree(position);
+        }
+
+        // NEW: Function to clear all units and obstacles
+        function clearAllEntities() {
+            if (battleLoopInterval) {
+                // Stop Battle if running
+                clearInterval(battleLoopInterval);
+                battleLoopInterval = null;
+                // Update fight button text
+                $('#btn-fight').removeClass('bg-yellow-500').addClass('bg-red-500');
+                $('#fight-icon-path').attr('d', FIGHT_ICON);
+                $('#fight-btn-text').text('Fight');
+            }
+
+            // Dispose all units
+            units.forEach(u => u.die());
+            units = []; // Reset unit array
+
+            // Dispose all trees/obstacles
+            scene.meshes.filter(m => m.name === "Tree").forEach(tree => tree.dispose());
+
+            updateGameStatus();
+            $('#game-status').html('<span class="text-xs sm:text-lg font-extrabold text-red-400">All entities cleared from map.</span>');
+            setTimeout(() => updateGameStatus(), 1500);
+        }
+
+
+        // UPDATED: Added logic to revert fight button text on game over
+        function updateGameStatus() {
+            const aliveA = units.filter(u => u.team === 'A' && u.isAlive).length;
+            const aliveB = units.filter(u => u.team === 'B' && u.isAlive).length;
+            const total = aliveA + aliveB;
+
+            $('#game-status').html(`A: <span class="text-team-a font-bold">${aliveA}</span> | B: <span class="text-team-b font-bold">${aliveB}</span> (Total: ${total})`);
+
+            if (total > 0 && (aliveA === 0 || aliveB === 0)) {
+                const winner = aliveA > 0 ? 'Team A (Red)' : 'Team B (Blue)';
+                $('#game-status').html(`<span class="text-xs sm:text-xl font-extrabold text-yellow-400">GAME OVER! ${winner} WINS!</span>`);
+                $('#btn-fight').prop('disabled', true).removeClass('bg-red-500 hover:bg-red-600').addClass('bg-gray-500');
+                if (battleLoopInterval) { clearInterval(battleLoopInterval); battleLoopInterval = null; }
+                $('#fight-icon-path').attr('d', FIGHT_ICON); // Revert to Fight icon
+                $('#fight-btn-text').text('Fight'); // Revert text to Fight
+            } else if (total === 0) {
+                $('#game-status').html(`<span class="text-xs sm:text-xl font-extrabold text-yellow-400">All Units Eliminated!</span>`);
+                $('#btn-fight').prop('disabled', true).removeClass('bg-red-500 hover:bg-red-600').addClass('bg-gray-500');
+                if (battleLoopInterval) { clearInterval(battleLoopInterval); battleLoopInterval = null; }
+                $('#fight-icon-path').attr('d', FIGHT_ICON); // Revert to Fight icon
+                $('#fight-btn-text').text('Fight'); // Revert text to Fight
+            } else if (!battleLoopInterval) {
+                $('#game-status').html('Status: Ready');
+                $('#btn-fight').prop('disabled', false).removeClass('bg-gray-500').addClass('bg-red-500 hover:bg-red-600');
+            }
+        }
+
+        function startFight() {
+            if (battleLoopInterval) {
+                clearInterval(battleLoopInterval);
+                battleLoopInterval = null;
+            }
+
+            battleLoopInterval = setInterval(() => {
+                const currentAliveUnits = units.filter(u => u.isAlive);
+                const aliveA = currentAliveUnits.filter(u => u.team === 'A');
+                const aliveB = currentAliveUnits.filter(u => u.team === 'B');
+
+                if (aliveA.length === 0 || aliveB.length === 0) {
+                    clearInterval(battleLoopInterval);
+                    battleLoopInterval = null;
+                    updateGameStatus();
+                    return;
+                }
+
+                currentAliveUnits.forEach(unit => {
+                    const enemies = unit.team === 'A' ? aliveB : aliveA;
+
+                    if (!unit.target || !unit.target.isAlive) {
+                        unit.target = findNearestEnemy(unit, enemies);
+                        if (unit.target) {
+                            unit.state = 'moving';
+                        } else {
+                            unit.state = 'idle';
+                        }
+                    }
+
+                    if (unit.target && unit.target.isAlive) {
+                        const targetPosition = unit.target.mesh.position;
+                        const distance = BABYLON.Vector3.Distance(unit.mesh.position, targetPosition);
+
+                        if (distance <= unit.weapon.range) {
+                            unit.state = 'attacking';
+                            if (unit.attackCooldown <= 0) {
+                                unit.attack(unit.target);
+                                unit.attackCooldown = 20;
+                            }
+                        } else if (unit.state !== 'moving') {
+                            unit.state = 'moving';
+                        }
+                    }
+
+                    if (unit.attackCooldown > 0) {
+                        unit.attackCooldown--;
+                    }
+                });
+
+            }, 100);
+        }
+
+        function findNearestEnemy(attacker, enemies) {
+            let nearestEnemy = null;
+            let minDistance = Infinity;
+
+            for (const enemy of enemies) {
+                if (enemy.isAlive) {
+                    const distance = BABYLON.Vector3.Distance(attacker.mesh.position, enemy.mesh.position);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nearestEnemy = enemy;
+                    }
+                }
+            }
+            return nearestEnemy;
+        }
+
+        function spawnEntityAt(x, z, type, team = 'A') {
+            const position = { x: x, z: z };
+
+            // 1. Raycast to find the ground height at the position
+            const ray = new BABYLON.Ray(new BABYLON.Vector3(position.x, MAX_HEIGHT + 5, position.z), BABYLON.Vector3.Down());
+            const pick = scene.pickWithRay(ray, (mesh) => mesh === ground);
+
+            let groundY = 0;
+            if (pick.hit) {
+                groundY = pick.pickedPoint.y;
+            }
+
+            if (type === 'unit') {
+                // Randomly select a tier and weapon (as requested)
+                const tierData = weightedRandom(UNIT_TIERS);
+                const weaponData = weightedRandom(WEAPONS);
+                const name = `Unit ${team}-${unitCount}`;
+
+                const newUnit = new GameUnit(name, team, position, tierData, weaponData, scene);
+                newUnit.rootNode.position.y = groundY; // Set Y to ground height
+
+                units.push(newUnit);
+                updateGameStatus();
+
+            } else if (type === 'tree') {
+                const trunk = BABYLON.MeshBuilder.CreateBox("trunk", { height: 2, width: 0.5, depth: 0.5 }, scene);
+                const trunkMat = new BABYLON.StandardMaterial("trunkMat", scene);
+                trunkMat.diffuseColor = new BABYLON.Color3(0.5, 0.3, 0.1);
+                trunk.material = trunkMat;
+                trunk.name = "Tree";
+
+                const leaves = BABYLON.MeshBuilder.CreateBox("leaves", { height: 1.5, width: 1.5, depth: 1.5 }, scene);
+                leaves.position.y = 1.5;
+                const leavesMat = new BABYLON.StandardMaterial("leavesMat", scene);
+                leavesMat.diffuseColor = new BABYLON.Color3(0.2, 0.8, 0.2);
+                leaves.material = leavesMat;
+                leaves.name = "Tree";
+
+                const tree = BABYLON.Mesh.MergeMeshes([trunk, leaves], true, true, undefined, false, true);
+                tree.name = "Tree";
+                // Tree position is (0, 1, 0) relative to its base. So we add 1 to the picked point Y.
+                tree.position = new BABYLON.Vector3(x, groundY + 1, z);
+            }
+        }
+
+        function setupInitialMap() {
+            // Define map quadrants based on currentGroundSize (e.g., 40)
+            const mapRadius = currentGroundSize / 2;
+            const spawnRange = mapRadius * 0.75; // Spawn units within 75% of the radius
+
+            // --- Spawn 5 Trees (Randomly across the central 80% of the map) ---
+            const treeSpawnRange = currentGroundSize * 0.4; // 80% of 40 is 32. Range from -16 to 16.
+            for (let i = 0; i < 5; i++) {
+                const x = Math.random() * (treeSpawnRange * 2) - treeSpawnRange;
+                const z = Math.random() * (treeSpawnRange * 2) - treeSpawnRange;
+                spawnEntityAt(x, z, 'tree');
+            }
+
+            // --- Team B (Blue) - Upper Left Quadrant (Negative X, Positive Z) ---
+            for (let i = 0; i < 5; i++) {
+                const x = -spawnRange + Math.random() * (spawnRange / 2);
+                const z = spawnRange / 2 + Math.random() * (spawnRange / 2);
+                spawnEntityAt(x, z, 'unit', 'B');
+            }
+
+            // --- Team A (Red) - Lower Right Quadrant (Positive X, Negative Z) ---
+            for (let i = 0; i < 5; i++) {
+                const x = spawnRange / 2 + Math.random() * (spawnRange / 2);
+                const z = -spawnRange + Math.random() * (spawnRange / 2);
+                spawnEntityAt(x, z, 'unit', 'A');
+            }
+
+            $('#game-status').html('<span class="text-xs sm:text-lg font-extrabold text-white">Initial setup complete!</span>');
+            // Re-center camera a bit after spawning
+            camera.setTarget(BABYLON.Vector3.Zero());
+            camera.alpha = 0.5;
+        }
+
+        // ----------------------------------------------------
+        // JQUERY UI CONTROLS
+        // ----------------------------------------------------
+        $(document).ready(function () {
+            
+            // --- Menu Handlers ---
+            $('#start-game').on('click', function () {
+                setupInitialMap();
+
+                $('#main-menu').fadeOut(500, function () {
+                    $('#game-hud').fadeIn(500);
+                    $('#fight-button-container').fadeIn(500);
+                    updateGameStatus();
+                });
+            });
+
+            $('#how-to-play').on('click', function () {
+                $('#how-to-play-modal').fadeIn(300);
+            });
+
+            $('#close-how-to-play').on('click', function () {
+                $('#how-to-play-modal').fadeOut(300);
+            });
+
+            // --- NEW: Populate Unit Selection Dropdown and Set Initial Toggles ---
+            const $unitSelect = $('#unit-selection');
+            $unitSelect.append('<option value="random">Random Unit (Weighted)</option>');
+            UNIT_TIERS.forEach(tier => {
+                $unitSelect.append(`<option value="${tier.name}">${tier.name} Rarity</option>`);
+            });
+
+            // Set initial toggle state: Only Health active
+            $('#toggle-name').removeClass('toggle-active');
+            $('#toggle-weapon').removeClass('toggle-active');
+            // --- END NEW ---
+
+
+            // --- HUD Handlers ---
+            $('.team-btn').on('click', function () {
+                selectedTeam = $(this).data('team');
+                $('.team-btn').removeClass('bg-team-a bg-team-b').addClass('bg-gray-600');
+                $(this).removeClass('bg-gray-600').addClass(selectedTeam === 'A' ? 'bg-team-a' : 'bg-team-b');
+            });
+
+            $('#btn-summon-character').on('click', function () {
+                if (battleLoopInterval) {
+                    $('#game-status').html('<span class="text-xs sm:text-lg font-extrabold text-red-500">Battle in progress! Cannot summon.</span>');
+                    setTimeout(() => updateGameStatus(), 1500);
+                    return;
+                }
+                const selectedTier = $('#unit-selection').val(); // Get selected tier from dropdown
+                spawnCharacter(selectedTeam, selectedTier);
+            });
+
+            $('#btn-summon-tree').on('click', function () {
+                spawnTree();
+            });
+
+            $('#btn-summon-army').on('click', function () {
+                clearAllEntities();
+                setupInitialMap();
+            });
+
+            // Terrain Handlers
+            $('#btn-alter-terrain').on('click', function () {
+                generateNewTerrain();
+            });
+            $('#btn-revert-terrain').on('click', function () {
+                revertGroundTerrain();
+            });
+            $('#btn-increase-size').on('click', function () {
+                updateGroundSize(SIZE_STEP);
+            });
+            $('#btn-decrease-size').on('click', function () {
+                updateGroundSize(-SIZE_STEP);
+            });
+
+            // Toggle Button Handlers
+            $('.toggle-btn').on('click', function () {
+                const key = $(this).data('toggle');
+                displayToggles[key] = !displayToggles[key];
+                $(this).toggleClass('toggle-active', displayToggles[key]);
+                updateUnitLabelsVisibility();
+            });
+
+            // Remove Entity Handler
+            $('#btn-remove-entity').on('click', function () {
+                if (isRemoving) {
+                    // Turn off remove mode
+                    isRemoving = false;
+                    $(this).removeClass('bg-yellow-500 toggle-active').addClass('bg-gray-600').text('Remove Entity');
+                    $('#game-status').html('Status: Ready');
+                } else {
+                    // Turn on remove mode
+                    isRemoving = true;
+                    $(this).removeClass('bg-gray-600').addClass('bg-yellow-500 toggle-active').text('CLICK TO REMOVE');
+                    $('#game-status').html('<span class="text-xs sm:text-lg font-extrabold text-yellow-400">REMOVE MODE ACTIVE! Click entity.</span>');
+                }
+                // Disabling fight mode if active
+                if (battleLoopInterval) {
+                    $('#btn-fight').click();
+                }
+            });
+
+            // NEW: Clear All Handler
+            $('#btn-clear-all').on('click', function () {
+                clearAllEntities();
+            });
+
+            // Fight Button Handler (Now on the floating button)
+            $('#btn-fight').on('click', function () {
+                const aliveA = units.filter(u => u.team === 'A' && u.isAlive).length;
+                const aliveB = units.filter(u => u.team === 'B' && u.isAlive).length;
+
+                if (aliveA === 0 || aliveB === 0) {
+                    $('#game-status').html('<span class="text-xs sm:text-lg font-extrabold text-red-500">Need units on both teams to fight!</span>');
+                    setTimeout(() => updateGameStatus(), 1500);
+                    return;
+                }
+                if (battleLoopInterval) {
+                    // Stop Battle
+                    clearInterval(battleLoopInterval);
+                    battleLoopInterval = null;
+                    units.forEach(u => u.state = 'idle');
+                    updateGameStatus();
+
+                    $(this).removeClass('bg-yellow-500').addClass('bg-red-500');
+                    $('#fight-icon-path').attr('d', FIGHT_ICON);
+                    $('#fight-btn-text').text('Fight');
+
+                } else {
+                    // Start Battle
+                    startFight();
+
+                    $('#game-status').html('<span class="text-xs sm:text-xl font-extrabold text-red-500">BATTLE IN PROGRESS!</span>');
+
+                    $(this).removeClass('bg-red-500').addClass('bg-yellow-500');
+                    $('#fight-icon-path').attr('d', STOP_ICON);
+                    $('#fight-btn-text').text('Stop');
+                }
+            });
+
+            // --- Collapse/Expand Logic ---
+            let isPanelCollapsed = false;
+
+            $('#btn-collapse').on('click', function () {
+                isPanelCollapsed = !isPanelCollapsed;
+                const $panelContent = $('#game-panel-content');
+                const $innerWrapper = $('#panel-inner-wrapper');
+                const $collapseIconPath = $('#collapse-icon-path');
+
+                if (isPanelCollapsed) {
+                    // Collapse: start fading inner content, then collapse width
+                    $innerWrapper.removeClass('opacity-100 pointer-events-auto').addClass('opacity-0 pointer-events-none');
+                    // Delay width collapse slightly for better visual effect, or rely on transition duration
+                    setTimeout(() => {
+                        $panelContent.removeClass('max-w-xs sm:max-w-sm');
+                        $panelContent.addClass('max-w-0');
+                    }, 50);
+
+                    // Change icon to 'open' arrow (pointing right)
+                    $collapseIconPath.attr('d', 'M13 5l7 7-7 7m-8-14l7 7-7 7');
+                } else {
+                    // Expand: expand width first, then fade in inner content
+                    $panelContent.removeClass('max-w-0');
+                    $panelContent.addClass('max-w-xs sm:max-w-sm');
+
+                    // Fade in inner content after the width transition has started (200ms duration total for opacity)
+                    setTimeout(() => {
+                        $innerWrapper.removeClass('opacity-0 pointer-events-none').addClass('opacity-100 pointer-events-auto');
+                    }, 100);
+
+                    // Change icon to 'close' arrow (pointing left)
+                    $collapseIconPath.attr('d', 'M11 19l-7-7 7-7m8 14l-7-7 7-7');
+                }
+            });
         });
-        
-        // Click listener for persistent status update
-        charElement.addEventListener('click', function(event) {
-            if (isDragging || isCharacterHeld) return;
-            event.stopPropagation();
-             infoPanel.innerHTML = 
-                `<span class="text-pink-400 font-bold">${charData.name} (Team ${charData.team})</span>: ${charData.description}`;
-        });
-
-
-        characterLayer.appendChild(charElement);
-        
-        activeCharacterState = newCharState;
-        changeDirection(true);
-
-        infoPanel.innerHTML = 
-            `<span class="text-green-400 font-bold">SUMMONED:</span> ${charData.name} on Team ${charData.team} at (${pos.x}, ${pos.y})!`;
-    }
-
-
-    // --- Initialization ---
-
-    function init() {
-        setupEventListeners();
-        showView('mainMenu'); // Start on the main menu
-        requestAnimationFrame(gameLoop); // Start the character movement loop
-    }
-    
-    // Run Initialization on load
-    window.onload = init;
-</script>
+    </script>
 </body>
+</html>
