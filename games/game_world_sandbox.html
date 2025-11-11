@@ -35,6 +35,38 @@
             max-width: 0 !important;
         }
     </style>
+    <style>
+        /* Base glow for the title */
+        .text-shadow-glow {
+            /* Subtle blue-tinged glow */
+            text-shadow: 0 0 5px rgba(100, 149, 237, 0.5), 0 0 10px rgba(100, 149, 237, 0.3);
+        }
+
+        /* Define the keyframe animation */
+        @keyframes pulse-title {
+            0% {
+                /* Base state: subtle glow */
+                text-shadow: 0 0 5px rgba(100, 149, 237, 0.5), 0 0 10px rgba(100, 149, 237, 0.3);
+            }
+
+            50% {
+                /* Pulsed state: brighter, wider glow */
+                text-shadow: 0 0 15px rgba(255, 255, 255, 0.7), /* White core */
+                0 0 30px rgba(66, 165, 245, 0.8), /* Stronger blue halo */
+                0 0 45px rgba(66, 165, 245, 0.5); /* Outer blue dispersion */
+            }
+
+            100% {
+                /* Return to base state */
+                text-shadow: 0 0 5px rgba(100, 149, 237, 0.5), 0 0 10px rgba(100, 149, 237, 0.3);
+            }
+        }
+
+        /* Apply the animation to the custom class */
+        .title-pulse {
+            animation: pulse-title 3s infinite ease-in-out; /* Slower, more pronounced pulse */
+        }
+    </style>
     <script>
         tailwind.config = {
             theme: {
@@ -47,25 +79,39 @@
             }
         }
     </script>
+
 </head>
 <body class="bg-gray-900 h-screen w-screen overflow-hidden flex items-center justify-center">
 
     <canvas id="renderCanvas" class="absolute inset-0"></canvas>
 
-    <div id="main-menu" class="absolute inset-0 bg-gray-900 bg-opacity-90 flex flex-col items-center justify-center transition-opacity duration-500 z-20">
-        <h1 class="text-4xl sm:text-6xl font-extrabold text-white mb-10 tracking-wider">VOXEL BATTLE ARENA</h1>
-        <div class="space-y-4 w-64">
-            <button id="start-game" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200 shadow-xl transform hover:scale-105">
+    <div id="main-menu" class="absolute inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex flex-col items-center justify-center transition-opacity duration-500 z-20 font-sans antialiased">
+
+        <h1 class="text-5xl sm:text-6xl font-black text-white mb-10 tracking-tighter drop-shadow-lg title-pulse">
+            VOXEL VORTEX ARENA
+        </h1>
+
+        <div class="space-y-4 w-64 md:w-72">
+            <button id="start-game" class="w-full bg-blue-600 bg-opacity-85 border-b-2 border-blue-800 hover:bg-blue-500 text-white font-extrabold py-3 px-6 uppercase rounded-md shadow-xl transform hover:scale-[1.02] transition duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-70 text-base">
                 Start Game
             </button>
-            <button id="how-to-play" class="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-6 rounded-lg transition duration-200 shadow-xl transform hover:scale-105">
+
+            <button id="how-to-play" class="w-full bg-gray-700 bg-opacity-85 border-b-2 border-gray-900 hover:bg-gray-600 text-gray-100 font-semibold py-3 px-6 uppercase rounded-md shadow-lg transform hover:scale-[1.02] transition duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 text-base">
                 How to Play
             </button>
-            <button id="settings" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 shadow-xl transform hover:scale-105">
-                Settings (WIP)
+            <!--
+            <button id="settings" class="w-full bg-gray-700 bg-opacity-85 border-b-2 border-gray-900 hover:bg-gray-600 text-gray-100 font-semibold py-3 px-6 uppercase rounded-md shadow-lg transform hover:scale-[1.02] transition duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 text-base">
+                Settings
             </button>
+
+            <button id="quit-game" class="w-full bg-red-700 bg-opacity-85 border-b-2 border-red-900 hover:bg-red-600 text-white font-semibold py-3 px-6 uppercase rounded-md shadow-lg transform hover:scale-[1.02] transition duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 text-base">
+                Quit Game
+            </button>
+                -->
         </div>
     </div>
+
+    
 
     <div id="fight-button-container" class="hidden absolute top-4 right-4 z-10">
         <button id="btn-fight" class="flex items-center space-x-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full shadow-lg transition duration-200 transform hover:scale-105 shadow-xl" title="Start Battle">
@@ -78,74 +124,76 @@
 
     <div id="game-hud" class="hidden absolute top-0 left-0 h-full p-2 sm:p-4 z-10 flex flex-col items-start">
 
-        <button id="btn-collapse" class="w-8 h-8 sm:w-10 sm:h-10 bg-gray-700 hover:bg-gray-600 text-white rounded-full shadow-lg transition duration-200 mb-2 ml-1">
-            <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path id="collapse-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
-            </svg>
-        </button>
+        <div class="flex items-center space-x-2 mb-2">
+            <button id="btn-collapse"
+                    class="w-8 h-8 sm:w-10 sm:h-10 bg-gray-700 hover:bg-gray-600 text-white rounded-full shadow-lg transition duration-200">
+                <i class="fa-solid fa-angles-left text-sm" id="collapse-icon"></i>
+            </button>
+
+            <button id="btn-fullscreen-toggle"
+                    class="flex items-center justify-center space-x-1 bg-gray-700 hover:bg-gray-800 text-white font-semibold px-4 py-2 rounded-lg shadow-md transition duration-200 text-sm"
+                    title="Toggle Fullscreen">
+                <i class="fa-solid fa-expand text-sm" id="fullscreen-icon"></i>
+                <span class="hidden sm:inline">Fullscreen</span>
+            </button>
+        </div>
 
         <div id="game-panel-content" class="flex flex-col max-w-xs sm:max-w-sm w-full h-full bg-gray-800 bg-opacity-70 rounded-xl ui-panel transition-all duration-300 overflow-hidden">
 
             <div id="panel-inner-wrapper" class="flex flex-col space-y-3 p-3 transition-opacity duration-200 opacity-100 pointer-events-auto">
 
-                <div class="flex justify-start items-center pb-2 border-b border-gray-700 w-full min-w-[200px]">
-                    <p id="game-status" class="text-white text-xs sm:text-lg font-semibold min-w-[100px] sm:min-w-[120px]">Status: Ready</p>
+                <div class="flex justify-start items-center pb-2 border-b border-gray-700 w-full min-w-[150px]">
+                    <p id="game-status" class="text-white text-sm font-semibold min-w-[100px]">Status: Ready</p>
                 </div>
 
                 <div class="flex justify-between items-center w-full space-x-2">
-                    <select id="unit-selection" class="flex-1 bg-gray-700 text-white px-2 py-1 rounded-lg shadow-lg transition duration-200"></select>
-                </div>
-
-                <div class="flex justify-between items-center w-full space-x-2 border-b border-gray-700 ">
-                    <button id="btn-summon-character" class="flex items-center justify-center space-x-1 bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded-lg shadow-lg transition duration-200 transform hover:scale-105" title="Summon Unit">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
-                        <span class="font-semibold">Summon</span>
-                    </button>
-                    <div id="team-select" class="flex space-x-1 bg-gray-900 p-1 rounded-lg">
-                        <button data-team="A" class="team-btn px-2 py-0.5 text-xs rounded-md bg-team-a text-white font-bold shadow-md">A</button>
-                        <button data-team="B" class="team-btn px-2 py-0.5 text-xs rounded-md bg-gray-600 text-white font-bold shadow-md">B</button>
-                    </div>
-                </div>
-
-                <div class="flex justify-between items-center w-full space-x-2">
-                    <button id="btn-alter-terrain" class="flex flex-1 items-center justify-center space-x-1 bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-lg shadow-lg transition duration-200 transform hover:scale-105" title="Generate New Terrain">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7-5l-4 4m12-4l4 4m-4-4l-4 4"></path></svg>
+                    <button id="btn-alter-terrain" class="flex flex-1 items-center justify-center space-x-1 bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 text-sm rounded-lg shadow-lg transition duration-200 transform hover:scale-105" title="Generate New Terrain">
+                        <i class="fa-solid fa-mountain text-sm"></i>
                         <span class="font-semibold">New Terrain</span>
                     </button>
-                    <button id="btn-revert-terrain" class="bg-gray-600 hover:bg-gray-500 text-white px-3 py-1 text-sm rounded-lg shadow-md transition duration-200 transform hover:scale-105 min-w-[100px]" title="Revert to initial plain ground">
-                        Revert Plain
+                    <button id="btn-revert-terrain" class="bg-gray-600 hover:bg-gray-500 text-white px-3 py-2 text-sm rounded-lg shadow-md transition duration-200 transform hover:scale-105 min-w-[90px]" title="Revert to initial plain ground">
+                        <i class="fa-solid fa-retweet text-sm"></i>
+                        <span>Revert</span>
                     </button>
                 </div>
 
                 <div class="flex justify-between items-center w-full space-x-2">
-                    <span class="text-white text-sm font-semibold min-w-[80px]">Map Size:</span>
-                    <button id="btn-increase-size" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 text-sm rounded-lg shadow-md transition duration-200 transform hover:scale-105" title="Increase Map Size">
-                        + Size
+                    <span class="text-white text-sm font-semibold min-w-[50px]">Map:</span>
+                    <button id="btn-increase-size" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white px-3 py-2 text-sm rounded-lg shadow-md transition duration-200 transform hover:scale-105" title="Increase Map Size">
+                        <i class="fa-solid fa-magnifying-glass-plus"></i>
                     </button>
-                    <button id="btn-decrease-size" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 text-sm rounded-lg shadow-md transition duration-200 transform hover:scale-105" title="Decrease Map Size">
-                        - Size
+                    <button id="btn-decrease-size" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white px-3 py-2 text-sm rounded-lg shadow-md transition duration-200 transform hover:scale-105" title="Decrease Map Size">
+                        <i class="fa-solid fa-magnifying-glass-minus"></i>
                     </button>
                 </div>
 
-                <div class="flex justify-center items-center w-full space-x-2 border-b border-gray-700 pt-3">
+                <div class="flex justify-center items-center w-full space-x-2 border-b border-gray-700 pt-3 pb-2">
                     <span class="text-white text-sm font-semibold">Display:</span>
-                    <button id="toggle-health" data-toggle="showHealth" class="toggle-btn bg-gray-700 text-green-400 px-3 py-1 rounded-md toggle-active text-xs sm:text-sm" title="Toggle Health">Health</button>
-                    <button id="toggle-name" data-toggle="showName" class="toggle-btn bg-gray-700 text-white px-3 py-1 rounded-md text-xs sm:text-sm" title="Toggle Name">Name</button>
-                    <button id="toggle-weapon" data-toggle="showWeapon" class="toggle-btn bg-gray-700 text-yellow-400 px-3 py-1 rounded-md text-xs sm:text-sm" title="Toggle Weapon">Weapon</button>
-                </div>
-
-                <div class="flex justify-between items-center w-full space-x-2">
-                    <button id="btn-remove-entity" class="bg-gray-600 hover:bg-yellow-600 text-white px-3 py-1 text-sm rounded-lg shadow-md transition duration-200 transform hover:scale-105 min-w-[100px]" title="Click to remove an entity">
-                        Remove Entity
+                    <button id="toggle-health" data-toggle="showHealth" class="toggle-btn bg-gray-700 text-green-400 px-3 py-1 rounded-md toggle-active text-xs" title="Toggle Health">
+                        <i class="fa-solid fa-heart"></i>
                     </button>
-                    <button id="btn-clear-all" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1 text-sm rounded-lg shadow-md transition duration-200 transform hover:scale-105 min-w-[100px]" title="Remove all units and trees">
-                        Clear All Map
+                    <button id="toggle-name" data-toggle="showName" class="toggle-btn bg-gray-700 text-white px-3 py-1 rounded-md text-xs" title="Toggle Name">
+                        <i class="fa-solid fa-tag"></i>
+                    </button>
+                    <button id="toggle-weapon" data-toggle="showWeapon" class="toggle-btn bg-gray-700 text-yellow-400 px-3 py-1 rounded-md text-xs" title="Toggle Weapon">
+                        <i class="fa-solid fa-gun"></i>
                     </button>
                 </div>
 
                 <div class="flex justify-between items-center w-full space-x-2">
-                    <button id="btn-summon-tree" class="flex flex-1 items-center justify-center space-x-1 bg-lime-500 hover:bg-lime-600 text-white px-2 py-1 rounded-lg shadow-lg transition duration-200 transform hover:scale-105" title="Summon Tree">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <button id="btn-remove-entity" class="bg-gray-600 hover:bg-yellow-600 text-white px-3 py-2 text-sm rounded-lg shadow-md transition duration-200 transform hover:scale-105 flex-1" title="Click to remove an entity">
+                        <i class="fa-solid fa-eraser text-sm"></i>
+                        <span>Remove</span>
+                    </button>
+                    <button id="btn-clear-all" class="bg-red-700 hover:bg-red-800 text-white px-3 py-2 text-sm rounded-lg shadow-md transition duration-200 transform hover:scale-105 flex-1" title="Remove all units and trees">
+                        <i class="fa-solid fa-trash-can text-sm"></i>
+                        <span>Clear All</span>
+                    </button>
+                </div>
+
+                <div class="flex justify-between items-center w-full space-x-2">
+                    <button id="btn-summon-tree" class="flex flex-1 items-center justify-center space-x-1 bg-lime-500 hover:bg-lime-600 text-white px-3 py-2 text-sm rounded-lg shadow-lg transition duration-200 transform hover:scale-105" title="Summon Tree">
+                        <i class="fa-solid fa-tree text-sm"></i>
                         <span class="font-semibold">Tree/Obstacle</span>
                     </button>
                 </div>
@@ -157,35 +205,59 @@
                                type="number"
                                placeholder="Count"
                                value="5"
-                               class="w-24 px-4 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-150" />
+                               class="w-24 px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-150 text-sm" />
                     </div>
 
                     <div class="flex space-x-4 mb-4">
 
                         <div class="flex-1 p-3 border border-red-300 rounded-lg bg-red-50 shadow-sm">
-                            <h3 class="text-sm font-bold text-red-700 mb-2">Team A (Red Column)</h3>
+                            <h3 class="text-sm font-bold text-red-700 mb-2">Team A (Red)</h3>
+
                             <label for="weapon-a" class="block text-xs font-medium text-red-500 mb-1">Weapon:</label>
                             <select id="weapon-a"
-                                    class="w-full px-3 py-2 border border-red-400 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-150">
-                                
+                                    class="w-full px-3 py-2 text-sm border border-red-400 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-150 mb-3">
                             </select>
+
+                            <label for="class-a" class="block text-xs font-medium text-red-500 mb-1">Unit Tier:</label>
+                            <select id="class-a"
+                                    class="w-full px-3 py-2 text-sm border border-red-400 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-150 mb-3">
+                            </select>
+
+                            <div class="flex items-center">
+                                <input id="chk-team-a-disabled"
+                                       type="checkbox"
+                                       class="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
+                                <label for="chk-team-a-disabled" class="ml-2 text-sm text-red-700 font-medium">Disabled</label>
+                            </div>
                         </div>
 
                         <div class="flex-1 p-3 border border-blue-300 rounded-lg bg-blue-50 shadow-sm">
-                            <h3 class="text-sm font-bold text-blue-700 mb-2">Team B (Blue Column)</h3>
+                            <h3 class="text-sm font-bold text-blue-700 mb-2">Team B (Blue)</h3>
+
                             <label for="weapon-b" class="block text-xs font-medium text-blue-500 mb-1">Weapon:</label>
                             <select id="weapon-b"
-                                    class="w-full px-3 py-2 border border-blue-400 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150">
-                                
+                                    class="w-full px-3 py-2 text-sm border border-blue-400 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150 mb-3">
                             </select>
+
+                            <label for="class-b" class="block text-xs font-medium text-blue-500 mb-1">Unit Class:</label>
+                            <select id="class-b"
+                                    class="w-full px-3 py-2 text-sm border border-blue-400 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150 mb-3">
+                            </select>
+
+                            <div class="flex items-center">
+                                <input id="chk-team-b-disabled"
+                                       type="checkbox"
+                                       class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <label for="chk-team-b-disabled" class="ml-2 text-sm text-blue-700 font-medium">Disabled</label>
+                            </div>
                         </div>
                     </div>
 
                     <button id="btn-summon-army"
-                            class="flex w-full items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg shadow-md transition duration-200 transform hover:scale-[1.01] mt-2"
+                            class="flex w-full items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-3 rounded-lg shadow-md transition duration-200 transform hover:scale-[1.01] mt-2 text-lg"
                             title="Summon Army">
-                        <i class="fa-solid fa-shield-halved"></i>
-                        <span>Random Initial Summon</span>
+                        <i class="fa-solid fa-people-group"></i>
+                        <span>Summon Army</span>
                     </button>
                 </div>
 
@@ -195,16 +267,50 @@
     </div>
 
     <div id="how-to-play-modal" class="hidden absolute inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-30">
-        <div class="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl mx-4">
-            <h2 class="text-2xl font-bold mb-4">How to Play</h2>
-            <ul class="list-disc pl-5 space-y-2 text-gray-700 text-sm sm:text-base">
-                <li>**Interact (Click/Drag):** When not fighting, click and drag units to reposition them on the map.</li>
-                <li>**Remove/Clear:** Press **Remove Entity** (Yellow button), then click a unit or tree to destroy it, or use **Clear All Map** (Red button) to wipe the board.</li>
-                <li>**Terrain:** Use **New Terrain** to generate mountains or **Revert Plain** to flatten the ground. Use the **Map Size** controls to change the world size.</li>
-                <li>**Movement/Attack:** Units now have visible **walk animations** when moving and an **arm swing animation** when attacking.</li>
-                <li>**Toggles:** Use the **HP, Name, and Wpn** buttons to show/hide unit details above their heads.</li>
-            </ul>
-            <button id="close-how-to-play" class="mt-6 w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 rounded-lg">Got It</button>
+        <div class="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <h2 class="text-2xl font-bold mb-4 text-center">How to Play</h2>
+
+            <div class="flex flex-col items-start">
+                <ul class="space-y-3 text-gray-700 text-sm sm:text-base w-full pb-12">
+
+                    <li class="flex items-start space-x-3">
+                        <i class="fa-solid fa-hand-pointer text-blue-600 mt-1 flex-shrink-0"></i>
+                        <p>
+                            **Interact (Click/Drag):** When not fighting, click and drag units to **reposition** them on the map.
+                        </p>
+                    </li>
+
+                    <li class="flex items-start space-x-3">
+                        <i class="fa-solid fa-eraser text-yellow-600 mt-1 flex-shrink-0"></i>
+                        <p>
+                            **Remove/Clear:** Press **Remove Entity** (Yellow button) and click a unit/tree, or use **Clear All Map** (Red button) to wipe the board.
+                        </p>
+                    </li>
+
+                    <li class="flex items-start space-x-3">
+                        <i class="fa-solid fa-mountain text-purple-600 mt-1 flex-shrink-0"></i>
+                        <p>
+                            **Terrain:** Use **New Terrain** to generate mountains or **Revert Plain** to flatten the ground. Change world size with **Map Size** controls.
+                        </p>
+                    </li>
+
+                    <li class="flex items-start space-x-3">
+                        <i class="fa-solid fa-person-running text-teal-600 mt-1 flex-shrink-0"></i>
+                        <p>
+                            **Movement/Attack:** Units have visible **walk animations** when moving and an **arm swing animation** when attacking.
+                        </p>
+                    </li>
+
+                    <li class="flex items-start space-x-3">
+                        <i class="fa-solid fa-toggle-on text-green-600 mt-1 flex-shrink-0"></i>
+                        <p>
+                            **Toggles:** Use the **HP, Name, and Wpn** buttons to show/hide unit details above their heads.
+                        </p>
+                    </li>
+                </ul>
+            </div>
+
+            <button id="close-how-to-play" class="mt-2 w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 rounded-lg transition duration-200 sticky bottom-0">Got It</button>
         </div>
     </div>
 
@@ -322,18 +428,18 @@
         // ----------------------------------------------------
         const WEAPONS = [
             // Weapon Rarity Base Damage (5 to 50)
-            { name: "Dagger", damage: 5, range: 2.0, missChance: 0.1, weight: 5, icon: "🔪" },
-            { name: "Sword", damage: 20, range: 3.0, missChance: 0.05, weight: 4, icon: "🗡️" },
-            { name: "Rifle", damage: 35, range: 10.0, missChance: 0.15, weight: 3, icon: "🔫" },
+            { name: "Dagger", damage: 20, range: 2.0, missChance: 0.1, weight: 5, icon: "🔪" },
+            { name: "Sword", damage: 30, range: 3.0, missChance: 0.05, weight: 4, icon: "🗡️" },
+            { name: "Rifle", damage: 25, range: 10.0, missChance: 0.15, weight: 3, icon: "🔫" },
             { name: "Grenade Launcher", damage: 50, range: 15.0, missChance: 0.3, weight: 1, icon: "💣" }
         ];
 
         const UNIT_TIERS = [
             // Character Rarity Damage Multiplier (1.0 to 1.5)
-            { name: "Normal", minHp: 50, maxHp: 100, speed: 0.05, hue: 0.0, emissive: 0.0, weight: 5, colorClass: "text-gray-400", damageMultiplier: 1.0 },
-            { name: "Elite", minHp: 101, maxHp: 200, speed: 0.07, hue: 0.1, emissive: 0.1, weight: 3, colorClass: "text-green-400", damageMultiplier: 1.15 },
-            { name: "Epic", minHp: 201, maxHp: 400, speed: 0.09, hue: 0.3, emissive: 0.3, weight: 2, colorClass: "text-purple-400", damageMultiplier: 1.3 },
-            { name: "Legendary", minHp: 401, maxHp: 500, speed: 0.12, hue: 0.5, emissive: 0.5, weight: 1, colorClass: "text-yellow-400", damageMultiplier: 1.5 }
+            { name: "Normal", minHp: 50, maxHp: 100, speed: 0.05, hue: 0.0, emissive: 0.0, weight: 5, colorClass: "text-black-400", damageMultiplier: 1.0 },
+            { name: "Elite", minHp: 101, maxHp: 200, speed: 0.07, hue: 0.1, emissive: 0.1, weight: 3, colorClass: "text-maroon-400", damageMultiplier: 1.15 },
+            { name: "Epic", minHp: 201, maxHp: 400, speed: 0.09, hue: 0.3, emissive: 0.3, weight: 2, colorClass: "text-magenta-400", damageMultiplier: 1.5 },
+            { name: "Legendary", minHp: 401, maxHp: 550, speed: 0.12, hue: 0.5, emissive: 0.5, weight: 1, colorClass: "text-yellow-400", damageMultiplier: 1.75 }
         ];
 
         // Fight Button Icon Paths
@@ -342,7 +448,7 @@
         const UNIT_FOOT_OFFSET = 0.9;
 
         // Terrain Variables
-        let currentGroundSize = 40;
+        let currentGroundSize = 80;
         let currentGroundSubdivisions = 60; // High subdivisions for mountain detail
         const MAX_HEIGHT = 8; // Increased max height for better mountains
         const MIN_SIZE = 20;
@@ -676,7 +782,7 @@
                             if (groundPick.hit) {
                                 currentDraggingUnit.rootNode.position.x = groundPick.pickedPoint.x;
                                 currentDraggingUnit.rootNode.position.z = groundPick.pickedPoint.z;
-                                currentDraggingUnit.rootNode.position.y = groundPick.pickedPoint.y + UNIT_FOOT_OFFSET; 
+                                currentDraggingUnit.rootNode.position.y = groundPick.pickedPoint.y + UNIT_FOOT_OFFSET;
                             }
                         }
                         break;
@@ -1051,10 +1157,10 @@
                 labelContainer.width = "200px";
 
                 const nameText = new BABYLON.GUI.TextBlock();
-                nameText.color = this.tierColorClass.replace('text-', '#');
-                nameText.fontSize = 14;
+                nameText.color = this.tierColorClass.replace('text-', '').replace('-400', '');
+                nameText.fontSize = 16;
                 nameText.height = "25px";
-                nameText.outlineWidth = 2;
+                nameText.outlineWidth = 0;
                 nameText.outlineColor = "black";
                 this.nameText = nameText;
                 labelContainer.addControl(nameText);
@@ -1098,7 +1204,7 @@
                     // Calculate a positive bend based on the absolute value of the swing (max bend at max swing)
                     const bend = Math.abs(swing) * 0.4;
 
-                    // Knees: Bend backward 
+                    // Knees: Bend backward
                     this.legLeftKnee.rotation.x = bend;
                     this.legRightKnee.rotation.x = bend;
 
@@ -1156,11 +1262,11 @@
                 if (pick.hit) {
                     const groundHeight = pick.pickedPoint.y;
 
-                    // Use the defined constant UNIT_FOOT_OFFSET (which should be 0.9) 
+                    // Use the defined constant UNIT_FOOT_OFFSET (which should be 0.9)
                     // to place the unit's feet exactly on the ground.
                     this.rootNode.position.y = groundHeight + UNIT_FOOT_OFFSET;
                 }
-                // If the ray doesn't hit the ground (e.g., unit is above a hole/canyon), 
+                // If the ray doesn't hit the ground (e.g., unit is above a hole/canyon),
                 // it will maintain its current Y position, or you could add falling logic here.
 
                 return false;
@@ -1516,7 +1622,19 @@
             return nearestEnemy;
         }
 
-        function spawnEntityAt(x, z, type, team = 'A', selectedWeaponData = null) {
+        function getTierStats(tierValue) {
+            if (tierValue === 'random') {
+                return 'RANDOM'; // Special indicator for random selection
+            }
+
+            // Convert value back to a searchable name (e.g., 'elite' -> 'Elite')
+            const searchableName = tierValue.charAt(0).toUpperCase() + tierValue.slice(1);
+
+            const tier = UNIT_TIERS.find(t => t.name === searchableName);
+            return tier || null;
+        }
+
+        function spawnEntityAt(x, z, type, team = 'A', selectedWeaponData = null, selectedTierData = null) {
             const position = { x: x, z: z };
 
             // 1. Raycast to find the ground height at the position
@@ -1529,14 +1647,23 @@
             }
 
             if (type === 'unit') {
-                // Randomly select a tier
-                const tierData = weightedRandom(UNIT_TIERS);
 
-                // 2. Determine the Weapon
+                // 2. Determine the Unit Tier (Class)
+                let tierData;
+
+                if (selectedTierData === 'RANDOM' || selectedTierData === null) {
+                    // If 'Random' was selected in the UI, or no data was passed, use weighted random
+                    tierData = weightedRandom(UNIT_TIERS);
+                } else {
+                    // Use the specific tier data passed from the UI
+                    tierData = selectedTierData;
+                }
+
+                // 3. Determine the Weapon
                 let weaponData;
 
                 if (selectedWeaponData === 'RANDOM' || selectedWeaponData === null) {
-                    // If 'Random' was selected in the UI, or no data was passed (fall back to the old behavior)
+                    // If 'Random' was selected in the UI, or no data was passed, use weighted random
                     weaponData = weightedRandom(WEAPONS);
                 } else {
                     // Use the specific weapon data passed from the UI
@@ -1549,7 +1676,7 @@
                 newUnit.rootNode.position.y = groundY + UNIT_FOOT_OFFSET; // Set Y to ground height
 
                 units.push(newUnit);
-                unitCount++; // Make sure to increment unitCount if you are tracking it
+                unitCount++;
                 updateGameStatus();
 
             } else if (type === 'tree') {
@@ -1594,6 +1721,12 @@
             const selectedValueA = $('#weapon-a').val();
             const selectedValueB = $('#weapon-b').val();
 
+            // 2. Retrieve Selected Class/Tier Data (NEW)
+            const selectedClassA = $('#class-a').val();
+            const selectedClassB = $('#class-b').val();
+            const teamATierData = getTierStats(selectedClassA);
+            const teamBTierData = getTierStats(selectedClassB);
+
             // getWeaponStats returns the object or the string 'RANDOM'
             const teamAWeaponData = getWeaponStats(selectedValueA);
             const teamBWeaponData = getWeaponStats(selectedValueB);
@@ -1609,27 +1742,37 @@
 
 
             // --- Spawn 5 Trees (Randomly across the central 80% of the map) ---
-            const treeSpawnRange = currentGroundSize * 0.4; // 80% of 40 is 32. Range from -16 to 16.
+            /*const treeSpawnRange = currentGroundSize * 0.4; // 80% of 40 is 32. Range from -16 to 16.
             for (let i = 0; i < 5; i++) {
                 const x = Math.random() * (treeSpawnRange * 2) - treeSpawnRange;
                 const z = Math.random() * (treeSpawnRange * 2) - treeSpawnRange;
                 spawnEntityAt(x, z, 'tree');
-            }
+            }*/
 
             // --- Team B (Blue) - Upper Left Quadrant (Negative X, Positive Z) ---
-            for (let i = 0; i < armySize; i++) {
-                const x = -spawnRange + Math.random() * (spawnRange / 2);
-                const z = spawnRange / 2 + Math.random() * (spawnRange / 2);
-                // PASS TEAM B WEAPON DATA
-                spawnEntityAt(x, z, 'unit', 'B', teamBWeaponData);
+            if (!$('#chk-team-b-disabled').is(':checked')) {
+                for (let i = 0; i < armySize; i++) {
+                    const x = -spawnRange + Math.random() * (spawnRange / 2);
+                    const z = spawnRange / 2 + Math.random() * (spawnRange / 2);
+
+                    // PASS TEAM B WEAPON DATA AND TIER DATA
+                    spawnEntityAt(x, z, 'unit', 'B', teamBWeaponData, teamBTierData);
+                }
+            } else {
+                console.log("Team B spawning skipped: Disabled checkbox is checked.");
             }
 
             // --- Team A (Red) - Lower Right Quadrant (Positive X, Negative Z) ---
-            for (let i = 0; i < armySize; i++) {
-                const x = spawnRange / 2 + Math.random() * (spawnRange / 2);
-                const z = -spawnRange + Math.random() * (spawnRange / 2);
-                // PASS TEAM A WEAPON DATA
-                spawnEntityAt(x, z, 'unit', 'A', teamAWeaponData);
+            if (!$('#chk-team-a-disabled').is(':checked')) {
+                for (let i = 0; i < armySize; i++) {
+                    const x = spawnRange / 2 + Math.random() * (spawnRange / 2);
+                    const z = -spawnRange + Math.random() * (spawnRange / 2);
+
+                    // PASS TEAM A WEAPON DATA AND TIER DATA
+                    spawnEntityAt(x, z, 'unit', 'A', teamAWeaponData, teamATierData);
+                }
+            } else {
+                console.log("Team A spawning skipped: Disabled checkbox is checked.");
             }
 
             $('#game-status').html('<span class="text-xs sm:text-lg font-extrabold text-white">Initial setup complete!</span>');
@@ -1667,11 +1810,40 @@
             });
         }
 
+        function populateClassDropdown(selector) {
+            const $select = $(selector);
+
+            // 1. Clear existing options
+            $select.empty();
+
+            // 2. Add the "Random" option first
+            $select.append(
+                $('<option>', {
+                    value: 'random',
+                    text: 'Random',
+                    selected: true // Make 'Random' the default selection
+                })
+            );
+
+            // 3. Add all tiers from the UNIT_TIERS array
+            $.each(UNIT_TIERS, function (index, tier) {
+                // Use the tier name (lowercased) as the value
+                const tierValue = tier.name.toLowerCase();
+
+                $select.append(
+                    $('<option>', {
+                        value: tierValue,
+                        text: `${tier.name}`
+                    })
+                );
+            });
+        }
+
         // ----------------------------------------------------
         // JQUERY UI CONTROLS
         // ----------------------------------------------------
         $(document).ready(function () {
-            
+
             // --- Menu Handlers ---
             $('#start-game').on('click', function () {
                 setupInitialMap();
@@ -1692,17 +1864,57 @@
             });
 
             // --- NEW: Populate Unit Selection Dropdown and Set Initial Toggles ---
-            const $unitSelect = $('#unit-selection');
+            /*const $unitSelect = $('#unit-selection');
             $unitSelect.append('<option value="random">Random Unit (Weighted)</option>');
             UNIT_TIERS.forEach(tier => {
                 $unitSelect.append(`<option value="${tier.name}">${tier.name} Rarity</option>`);
-            });
+            });*/
 
             // Set initial toggle state: Only Health active
             $('#toggle-name').removeClass('toggle-active');
             $('#toggle-weapon').removeClass('toggle-active');
             // --- END NEW ---
 
+            $('#btn-fullscreen-toggle').on('click', function () {
+                const docElm = document.documentElement;
+                const icon = $('#fullscreen-icon');
+
+                if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+                    // Currently in fullscreen, exit it
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.mozCancelFullScreen) { // Firefox
+                        document.mozCancelFullScreen();
+                    } else if (document.webkitExitFullscreen) { // Chrome, Safari, Opera
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) { // IE/Edge
+                        document.msExitFullscreen();
+                    }
+                } else {
+                    // Not in fullscreen, enter it
+                    if (docElm.requestFullscreen) {
+                        docElm.requestFullscreen();
+                    } else if (docElm.mozRequestFullScreen) { // Firefox
+                        docElm.mozRequestFullScreen();
+                    } else if (docElm.webkitRequestFullscreen) { // Chrome, Safari, Opera
+                        docElm.webkitRequestFullscreen();
+                    } else if (docElm.msRequestFullscreen) { // IE/Edge
+                        docElm.msRequestFullscreen();
+                    }
+                }
+            });
+
+            // --- Update button icon when fullscreen state changes ---
+            $(document).on('fullscreenchange webkitfullscreenchange mozfullscreenchange MSFullscreenChange', function () {
+                const icon = $('#fullscreen-icon');
+                if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+                    // In fullscreen: Change icon to 'minimize' (contract)
+                    icon.removeClass('fa-expand').addClass('fa-compress');
+                } else {
+                    // Not in fullscreen: Change icon to 'expand'
+                    icon.removeClass('fa-compress').addClass('fa-expand');
+                }
+            });
 
             // --- HUD Handlers ---
             $('.team-btn').on('click', function () {
@@ -1711,7 +1923,7 @@
                 $(this).removeClass('bg-gray-600').addClass(selectedTeam === 'A' ? 'bg-team-a' : 'bg-team-b');
             });
 
-            $('#btn-summon-character').on('click', function () {
+            /*$('#btn-summon-character').on('click', function () {
                 if (battleLoopInterval) {
                     $('#game-status').html('<span class="text-xs sm:text-lg font-extrabold text-red-500">Battle in progress! Cannot summon.</span>');
                     setTimeout(() => updateGameStatus(), 1500);
@@ -1719,14 +1931,14 @@
                 }
                 const selectedTier = $('#unit-selection').val(); // Get selected tier from dropdown
                 spawnCharacter(selectedTeam, selectedTier);
-            });
+            });*/
 
             $('#btn-summon-tree').on('click', function () {
                 spawnTree();
             });
 
             $('#btn-summon-army').on('click', function () {
-                clearAllEntities();
+                //clearAllEntities();
                 setupInitialMap();
             });
 
@@ -1846,6 +2058,9 @@
 
             populateWeaponDropdown('#weapon-a');
             populateWeaponDropdown('#weapon-b');
+
+            populateClassDropdown('#class-a');
+            populateClassDropdown('#class-b');
         });
     </script>
 </body>
