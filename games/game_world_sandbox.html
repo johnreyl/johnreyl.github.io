@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Voxel Strategy Game</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
@@ -149,10 +150,42 @@
                     </button>
                 </div>
 
-                <div class="flex justify-between items-center w-full space-x-2">
-                    <button id="btn-summon-army" class="flex flex-1 items-center justify-center space-x-1 bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded-lg shadow-lg transition duration-200 transform hover:scale-105" title="Summon Tree">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span class="font-semibold">Random Initial Summon</span>
+                <div class="w-full p-4 border rounded-lg bg-gray-50">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-black text-sm font-semibold whitespace-nowrap">Army Size:</span>
+                        <input id="txt-soldier-count"
+                               type="number"
+                               placeholder="Count"
+                               value="5"
+                               class="w-24 px-4 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-150" />
+                    </div>
+
+                    <div class="flex space-x-4 mb-4">
+
+                        <div class="flex-1 p-3 border border-red-300 rounded-lg bg-red-50 shadow-sm">
+                            <h3 class="text-sm font-bold text-red-700 mb-2">Team A (Red Column)</h3>
+                            <label for="weapon-a" class="block text-xs font-medium text-red-500 mb-1">Weapon:</label>
+                            <select id="weapon-a"
+                                    class="w-full px-3 py-2 border border-red-400 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-150">
+                                
+                            </select>
+                        </div>
+
+                        <div class="flex-1 p-3 border border-blue-300 rounded-lg bg-blue-50 shadow-sm">
+                            <h3 class="text-sm font-bold text-blue-700 mb-2">Team B (Blue Column)</h3>
+                            <label for="weapon-b" class="block text-xs font-medium text-blue-500 mb-1">Weapon:</label>
+                            <select id="weapon-b"
+                                    class="w-full px-3 py-2 border border-blue-400 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150">
+                                
+                            </select>
+                        </div>
+                    </div>
+
+                    <button id="btn-summon-army"
+                            class="flex w-full items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg shadow-md transition duration-200 transform hover:scale-[1.01] mt-2"
+                            title="Summon Army">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Random Initial Summon</span>
                     </button>
                 </div>
 
@@ -306,6 +339,7 @@
         // Fight Button Icon Paths
         const FIGHT_ICON = 'M9 19l-7-7 7-7m8 14l-7-7 7-7';
         const STOP_ICON = 'M10 9l3 3m0 0l-3 3m3-3h7m-5-3v6M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z';
+        const UNIT_FOOT_OFFSET = 0.9;
 
         // Terrain Variables
         let currentGroundSize = 40;
@@ -419,16 +453,31 @@
         }
 
         // Adjust all existing entities (units and trees) to sit on the new ground level
+        // Adjust all existing entities (units and trees) to sit on the new ground level
         function adjustEntitiesToNewGround() {
-            [...units.filter(u => u.isAlive).map(u => u.rootNode), ...scene.meshes.filter(m => m.name === "Tree")].forEach(entity => {
-                // Raycast downwards from above the entity to find the new ground height
+            const entitiesToAdjust = [
+                ...units.filter(u => u.isAlive).map(u => u.rootNode),
+                ...scene.meshes.filter(m => m.name === "Tree")
+            ];
+
+            const pickFilter = (mesh) => mesh === ground;
+
+            entitiesToAdjust.forEach(entity => {
                 const ray = new BABYLON.Ray(entity.position.add(new BABYLON.Vector3(0, 10, 0)), BABYLON.Vector3.Down());
-                const pick = scene.pickWithRay(ray, (mesh) => mesh === ground);
+                const pick = scene.pickWithRay(ray, pickFilter);
 
                 if (pick.hit) {
-                    // For units, position.y is the base (0). For trees (merged meshes), position.y is the center (y=1 for a standard tree).
-                    const yOffset = entity.name.includes("unitRoot") ? 0 : 1;
-                    entity.position.y = pick.pickedPoint.y + yOffset;
+                    let baseOffset;
+
+                    if (entity.name.includes("unitRoot")) {
+                        // FIX: Offset root node up by 0.9 so the feet (at Y=-0.9) land on the ground
+                        baseOffset = UNIT_FOOT_OFFSET;
+                    } else if (entity.name === "Tree") {
+                        // Tree center is at Y=1, so we offset by 1
+                        baseOffset = 1;
+                    }
+
+                    entity.position.y = pick.pickedPoint.y + baseOffset;
                 }
             });
         }
@@ -625,10 +674,9 @@
                             const groundPick = scene.pickWithRay(ray, (mesh) => mesh === ground);
 
                             if (groundPick.hit) {
-                                // Update unit position to mouse position on the ground plane, respecting height
                                 currentDraggingUnit.rootNode.position.x = groundPick.pickedPoint.x;
                                 currentDraggingUnit.rootNode.position.z = groundPick.pickedPoint.z;
-                                currentDraggingUnit.rootNode.position.y = groundPick.pickedPoint.y;
+                                currentDraggingUnit.rootNode.position.y = groundPick.pickedPoint.y + UNIT_FOOT_OFFSET; 
                             }
                         }
                         break;
@@ -822,92 +870,178 @@
                 material.diffuseColor = color;
                 material.emissiveColor = color.scale(emissiveMultiplier * 0.3);
 
-                // --- Core Dimensions for a Stylized Rounded Human ---
-                const stickRadius = s * 0.15; // Very thin radius for limbs
-                const torsoRadius = s * 0.5;  // <-- INCREASED: Wider radius for the body
+                // --- Core Dimensions ---
+                const stickRadius = s * 0.15;
+                const torsoRadius = s * 0.5;
                 const torsoHeight = s * 1.5;
+                const limbSegmentHeight = s * 0.9;
+                const armXOffset = torsoRadius + stickRadius / 2;
+                const armYOffset = s * 0.8;
+                const legSeparation = torsoRadius;
 
-                // --- Torso (Wider Cylinder) ---
+                // --- Weapon Data Retrieval & Posing Constants ---
+                // Assuming global WEAPONS array is accessible
+                const DAGGER_ITEM = WEAPONS.find(w => w.name === "Dagger");
+                const MELEE_FORWARD_ROTATION_X = Math.PI / 2; // 90 degrees for downward-held weapons
+                const RANGED_ARM_FORWARD_ROTATION_X = -Math.PI / 2; // -90 degrees to point arms straight out (forward)
+
+                // --- Torso & Head (UNCHANGED) ---
                 this.torso = BABYLON.MeshBuilder.CreateCylinder("torso", { height: torsoHeight, diameter: torsoRadius * 2 }, scene);
                 this.torso.position = new BABYLON.Vector3(0, torsoHeight / 2, 0);
                 this.torso.material = material;
                 this.torso.parent = this.rootNode;
                 this.torso.unitData = this;
 
-                // --- Head (Sphere) ---
                 const headRadius = s * 0.6;
                 this.head = BABYLON.MeshBuilder.CreateSphere("head", { diameter: headRadius * 2 }, scene);
                 this.head.position = new BABYLON.Vector3(0, torsoHeight / 2 + headRadius, 0);
                 this.head.material = material;
                 this.head.parent = this.torso;
 
-                // --- Legs (Thin Cylinders) ---
-                const legHeight = s * 1.8;
-                const legSeparation = torsoRadius; // Separate legs by the torso radius
+                // --------------------------------------------------------
+                // --- Legs (Segmented: Upper, Knee, Lower) ---
+                // --------------------------------------------------------
 
-                // Left Leg Root (Hip pivot)
+                // LEFT LEG
                 this.legLeftRoot = new BABYLON.TransformNode("legLRoot", scene);
                 this.legLeftRoot.parent = this.torso;
-                // Positioned right under the torso, offset to the side
                 this.legLeftRoot.position = new BABYLON.Vector3(-legSeparation / 2, -torsoHeight / 2, 0);
+                this.legLeftUpper = BABYLON.MeshBuilder.CreateCylinder("legLU", { height: limbSegmentHeight, diameter: stickRadius * 2 }, scene);
+                this.legLeftUpper.position = new BABYLON.Vector3(0, -limbSegmentHeight / 2, 0);
+                this.legLeftUpper.material = material;
+                this.legLeftUpper.parent = this.legLeftRoot;
+                this.legLeftKnee = new BABYLON.TransformNode("legLKnee", scene);
+                this.legLeftKnee.parent = this.legLeftUpper;
+                this.legLeftKnee.position = new BABYLON.Vector3(0, -limbSegmentHeight / 2, 0);
+                this.legLeftLower = BABYLON.MeshBuilder.CreateCylinder("legLL", { height: limbSegmentHeight, diameter: stickRadius * 2 }, scene);
+                this.legLeftLower.position = new BABYLON.Vector3(0, -limbSegmentHeight / 2, 0);
+                this.legLeftLower.material = material;
+                this.legLeftLower.parent = this.legLeftKnee;
 
-                this.legLeft = BABYLON.MeshBuilder.CreateCylinder("legL", { height: legHeight, diameter: stickRadius * 2 }, scene);
-                this.legLeft.position = new BABYLON.Vector3(0, -legHeight / 2, 0);
-                this.legLeft.material = material;
-                this.legLeft.parent = this.legLeftRoot;
-
-                // Right Leg Root (Hip pivot)
+                // RIGHT LEG
                 this.legRightRoot = new BABYLON.TransformNode("legRRoot", scene);
                 this.legRightRoot.parent = this.torso;
                 this.legRightRoot.position = new BABYLON.Vector3(legSeparation / 2, -torsoHeight / 2, 0);
+                this.legRightUpper = BABYLON.MeshBuilder.CreateCylinder("legRU", { height: limbSegmentHeight, diameter: stickRadius * 2 }, scene);
+                this.legRightUpper.position = new BABYLON.Vector3(0, -limbSegmentHeight / 2, 0);
+                this.legRightUpper.material = material;
+                this.legRightUpper.parent = this.legRightRoot;
+                this.legRightKnee = new BABYLON.TransformNode("legRKnee", scene);
+                this.legRightKnee.parent = this.legRightUpper;
+                this.legRightKnee.position = new BABYLON.Vector3(0, -limbSegmentHeight / 2, 0);
+                this.legRightLower = BABYLON.MeshBuilder.CreateCylinder("legRL", { height: limbSegmentHeight, diameter: stickRadius * 2 }, scene);
+                this.legRightLower.position = new BABYLON.Vector3(0, -limbSegmentHeight / 2, 0);
+                this.legRightLower.material = material;
+                this.legRightLower.parent = this.legRightKnee;
 
-                this.legRight = BABYLON.MeshBuilder.CreateCylinder("legR", { height: legHeight, diameter: stickRadius * 2 }, scene);
-                this.legRight.position = new BABYLON.Vector3(0, -legHeight / 2, 0);
-                this.legRight.material = material;
-                this.legRight.parent = this.legRightRoot;
 
-                // --- Arms (Thin Cylinders) ---
-                const armHeight = s * 1.8;
-                // Arm roots start at the edge of the WIDER torso
-                const armXOffset = torsoRadius + stickRadius / 2;
-                const armYOffset = s * 0.8;
+                // --------------------------------------------------------
+                // --- Arms (Segmented: Upper, Elbow, Lower) ---
+                // --------------------------------------------------------
 
-                // Right Arm Root (Shoulder pivot)
+                // RIGHT ARM
                 this.armRightRoot = new BABYLON.TransformNode("armRRoot", scene);
                 this.armRightRoot.parent = this.torso;
                 this.armRightRoot.position = new BABYLON.Vector3(armXOffset, armYOffset, 0);
+                this.armRightUpper = BABYLON.MeshBuilder.CreateCylinder("armRU", { height: limbSegmentHeight, diameter: stickRadius * 2 }, scene);
+                this.armRightUpper.position = new BABYLON.Vector3(0, -limbSegmentHeight / 2, 0);
+                this.armRightUpper.material = material;
+                this.armRightUpper.parent = this.armRightRoot;
+                this.armRightElbow = new BABYLON.TransformNode("armRElbow", scene);
+                this.armRightElbow.parent = this.armRightUpper;
+                this.armRightElbow.position = new BABYLON.Vector3(0, -limbSegmentHeight / 2, 0);
+                this.armRightLower = BABYLON.MeshBuilder.CreateCylinder("armRL", { height: limbSegmentHeight, diameter: stickRadius * 2 }, scene);
+                this.armRightLower.position = new BABYLON.Vector3(0, -limbSegmentHeight / 2, 0);
+                this.armRightLower.material = material;
+                this.armRightLower.parent = this.armRightElbow;
 
-                this.armRight = BABYLON.MeshBuilder.CreateCylinder("armR", { height: armHeight, diameter: stickRadius * 2 }, scene);
-                this.armRight.position = new BABYLON.Vector3(0, -armHeight / 2, 0);
-                this.armRight.material = material;
-                this.armRight.parent = this.armRightRoot;
-
-                // Left Arm Root (Shoulder pivot)
+                // LEFT ARM
                 this.armLeftRoot = new BABYLON.TransformNode("armLRoot", scene);
                 this.armLeftRoot.parent = this.torso;
                 this.armLeftRoot.position = new BABYLON.Vector3(-armXOffset, armYOffset, 0);
+                this.armLeftUpper = BABYLON.MeshBuilder.CreateCylinder("armLU", { height: limbSegmentHeight, diameter: stickRadius * 2 }, scene);
+                this.armLeftUpper.position = new BABYLON.Vector3(0, -limbSegmentHeight / 2, 0);
+                this.armLeftUpper.material = material;
+                this.armLeftUpper.parent = this.armLeftRoot;
+                this.armLeftElbow = new BABYLON.TransformNode("armLElbow", scene);
+                this.armLeftElbow.parent = this.armLeftUpper;
+                this.armLeftElbow.position = new BABYLON.Vector3(0, -limbSegmentHeight / 2, 0);
+                this.armLeftLower = BABYLON.MeshBuilder.CreateCylinder("armLL", { height: limbSegmentHeight, diameter: stickRadius * 2 }, scene);
+                this.armLeftLower.position = new BABYLON.Vector3(0, -limbSegmentHeight / 2, 0);
+                this.armLeftLower.material = material;
+                this.armLeftLower.parent = this.armLeftElbow;
 
-                this.armLeft = BABYLON.MeshBuilder.CreateCylinder("armL", { height: armHeight, diameter: stickRadius * 2 }, scene);
-                this.armLeft.position = new BABYLON.Vector3(0, -armHeight / 2, 0);
-                this.armLeft.material = material;
-                this.armLeft.parent = this.armLeftRoot;
 
-                // --- Weapon ---
-                this.weaponMesh = this.createWeaponMesh();
-                this.weaponMesh.parent = this.armRight;
+                // --------------------------------------------------------
+                // --- Weapon Attachment and Poses (Dynamic) ---
+                // --------------------------------------------------------
 
-                // Position the weapon in the hand (at the bottom tip of the arm mesh)
-                if (this.weapon.range < 5) { // Melee: Held diagonally up
-                    this.weaponMesh.rotation.z = Math.PI / 18;
-                    this.weaponMesh.position = new BABYLON.Vector3(0.1, -armHeight, 0);
-                } else { // Ranged: Held slightly forward/up
-                    this.weaponMesh.rotation.x = -Math.PI / 18;
-                    this.weaponMesh.position = new BABYLON.Vector3(0.1, -armHeight, 0);
+                // Hand Nodes
+                this.armRightHand = new BABYLON.TransformNode("armRHand", scene);
+                this.armRightHand.position = new BABYLON.Vector3(0, -limbSegmentHeight / 2, 0);
+                this.armRightHand.parent = this.armRightLower;
+
+                this.armLeftHand = new BABYLON.TransformNode("armLHand", scene);
+                this.armLeftHand.position = new BABYLON.Vector3(0, -limbSegmentHeight / 2, 0);
+                this.armLeftHand.parent = this.armLeftLower;
+
+                // --- Weapon Meshes ---
+                this.weaponMesh = this.createWeaponMesh(this.weapon); // Main weapon
+                this.weaponMesh.parent = this.armRightHand;
+
+                if (DAGGER_ITEM) {
+                    this.daggerMesh = this.createWeaponMesh(DAGGER_ITEM); // Dagger (secondary)
+                } else {
+                    // Fallback for dagger
+                    this.daggerMesh = BABYLON.MeshBuilder.CreateBox("missingDagger", { size: 0.01 }, scene);
                 }
+                this.daggerMesh.parent = this.armLeftHand;
 
-                // Set initial arm rotation to point forward (Ready pose) - applied to the root
-                this.armRightRoot.rotation.x = 0;
-                this.armLeftRoot.rotation.x = 0;
+
+                // --- Set Poses based on Weapon Range (Melee vs. Ranged) ---
+
+                if (this.weapon.range > 5) {
+                    // RANGED WEAPONS (Rifle, Grenade Launcher) - Held forward
+
+                    // Arm Root (Shoulder) Rotation: Swing arms 90 degrees forward
+                    this.armRightRoot.rotation.x = RANGED_ARM_FORWARD_ROTATION_X;
+                    this.armLeftRoot.rotation.x = RANGED_ARM_FORWARD_ROTATION_X;
+
+                    // Weapon Mesh Rotation (Relative to hand): No rotation needed if arms are straight out
+                    this.weaponMesh.rotation.x = 0;
+                    this.weaponMesh.rotation.z = 0;
+                    this.weaponMesh.position = new BABYLON.Vector3(0.3, 0.1, 0); // Offset for two-handed look
+
+                    // Left arm takes a placeholder mesh and stays in position
+                    this.daggerMesh.dispose(); // Remove dagger if unit is using a two-handed weapon
+                    this.daggerMesh = BABYLON.MeshBuilder.CreateBox("empty", { size: 0.01 }, scene);
+                    this.daggerMesh.parent = this.armLeftHand;
+
+                    // Elbow rotation for aiming comfort
+                    this.armRightElbow.rotation.x = Math.PI / 18; // Slight bend forward
+                    this.armLeftElbow.rotation.x = Math.PI / 18; // Match the bend
+
+                } else {
+                    // MELEE WEAPONS (Sword, Dagger) - Hands pointing downward, weapons forward
+
+                    // Arm Root (Shoulder) Rotation: Hands pointing downward, arms straight
+                    this.armRightRoot.rotation.x = 0;
+                    this.armLeftRoot.rotation.x = 0;
+
+                    // Weapon Mesh Rotation: Rotate 90 degrees forward relative to the hand
+                    this.weaponMesh.rotation.x = MELEE_FORWARD_ROTATION_X;
+                    this.weaponMesh.rotation.z = Math.PI / 12; // Outward tilt
+                    this.weaponMesh.position = new BABYLON.Vector3(0, 0, 0.1);
+
+                    // Left Weapon (Dagger)
+                    this.daggerMesh.rotation.x = MELEE_FORWARD_ROTATION_X;
+                    this.daggerMesh.rotation.z = -Math.PI / 12; // Outward tilt
+                    this.daggerMesh.position = new BABYLON.Vector3(0, 0, 0.1);
+
+                    // Ensure elbows are straight
+                    this.armRightElbow.rotation.x = 0;
+                    this.armLeftElbow.rotation.x = 0;
+                }
             }
 
 
@@ -941,17 +1075,49 @@
             }
 
             updateAnimation(deltaTime) {
-                // Walk Animation (Leg Swing)
+                // Walk Animation (Leg and Arm Swing)
                 if (this.isAlive && this.state === 'moving') {
+                    // Increment the walk cycle phase
                     this.walkCycle += deltaTime * 5;
+
+                    // Calculate the main swing rotation (e.g., amplitude 0.5 radians ≈ 28.6 degrees)
                     const swing = Math.sin(this.walkCycle) * 0.5;
 
+                    // --- LEG SWING ---
+                    // Left leg forward, Right leg backward
                     this.legLeftRoot.rotation.x = swing;
                     this.legRightRoot.rotation.x = -swing;
+
+                    // --- ARM SWING (Opposite to legs) ---
+                    // Right arm swings forward when the right leg swings back (-swing)
+                    this.armRightRoot.rotation.x = swing;
+                    // Left arm swings backward when the left leg swings forward (swing)
+                    this.armLeftRoot.rotation.x = -swing;
+
+                    // --- JOINT BENDING (Optional: Adds realism) ---
+                    // Calculate a positive bend based on the absolute value of the swing (max bend at max swing)
+                    const bend = Math.abs(swing) * 0.4;
+
+                    // Knees: Bend backward 
+                    this.legLeftKnee.rotation.x = bend;
+                    this.legRightKnee.rotation.x = bend;
+
+                    // Elbows: Bend slightly inward/upward (negative rotation)
+                    this.armLeftElbow.rotation.x = -bend;
+                    this.armRightElbow.rotation.x = -bend;
+
                 } else {
-                    // Reset to standing pose
+                    // Reset to standing pose when not moving
                     this.legLeftRoot.rotation.x = 0;
                     this.legRightRoot.rotation.x = 0;
+                    this.armLeftRoot.rotation.x = 0;
+                    this.armRightRoot.rotation.x = 0;
+
+                    // Ensure knees and elbows are straight
+                    if (this.legLeftKnee) this.legLeftKnee.rotation.x = 0;
+                    if (this.legRightKnee) this.legRightKnee.rotation.x = 0;
+                    if (this.armLeftElbow) this.armLeftElbow.rotation.x = 0;
+                    if (this.armRightElbow) this.armRightElbow.rotation.x = 0;
                 }
             }
 
@@ -960,23 +1126,42 @@
                 if (this.rootNode.isDisposed()) return false;
 
                 const currentPos = this.rootNode.position;
-                const targetVector = new BABYLON.Vector3(targetPosition.x, currentPos.y, targetPosition.z);
+                // Calculate the target vector without using the current Y position (for rotation/distance calculation)
+                const targetVectorXZ = new BABYLON.Vector3(targetPosition.x, currentPos.y, targetPosition.z);
 
-                // Rotation: Face the target (Rotate Pattern)
-                this.rootNode.lookAt(targetVector);
+                // Rotation: Face the target
+                this.rootNode.lookAt(targetVectorXZ);
 
-                const distance = BABYLON.Vector3.Distance(currentPos, targetVector);
+                const distance = BABYLON.Vector3.Distance(currentPos, targetVectorXZ);
 
                 if (distance <= this.weapon.range * 0.9) {
+                    // Stop within range
                     return true;
                 }
 
-                const direction = targetVector.subtract(currentPos).normalize();
+                const direction = targetVectorXZ.subtract(currentPos).normalize();
                 const step = direction.scale(this.speed * deltaTime * 60);
 
-                this.rootNode.position.addInPlace(step);
+                // 1. Apply X and Z movement first
+                this.rootNode.position.x += step.x;
+                this.rootNode.position.z += step.z;
 
-                // We rely on adjustEntitiesToNewGround to reset Y, but for movement we keep the current Y.
+                // 2. FIX: Raycast downwards from the new X, Z position to find the ground height
+                const rayOrigin = this.rootNode.position.add(new BABYLON.Vector3(0, 10, 0));
+                const ray = new BABYLON.Ray(rayOrigin, BABYLON.Vector3.Down());
+
+                // Assuming 'ground' mesh is globally accessible
+                const pick = scene.pickWithRay(ray, (mesh) => mesh === ground);
+
+                if (pick.hit) {
+                    const groundHeight = pick.pickedPoint.y;
+
+                    // Use the defined constant UNIT_FOOT_OFFSET (which should be 0.9) 
+                    // to place the unit's feet exactly on the ground.
+                    this.rootNode.position.y = groundHeight + UNIT_FOOT_OFFSET;
+                }
+                // If the ray doesn't hit the ground (e.g., unit is above a hole/canyon), 
+                // it will maintain its current Y position, or you could add falling logic here.
 
                 return false;
             }
@@ -1331,7 +1516,7 @@
             return nearestEnemy;
         }
 
-        function spawnEntityAt(x, z, type, team = 'A') {
+        function spawnEntityAt(x, z, type, team = 'A', selectedWeaponData = null) {
             const position = { x: x, z: z };
 
             // 1. Raycast to find the ground height at the position
@@ -1344,18 +1529,31 @@
             }
 
             if (type === 'unit') {
-                // Randomly select a tier and weapon (as requested)
+                // Randomly select a tier
                 const tierData = weightedRandom(UNIT_TIERS);
-                const weaponData = weightedRandom(WEAPONS);
+
+                // 2. Determine the Weapon
+                let weaponData;
+
+                if (selectedWeaponData === 'RANDOM' || selectedWeaponData === null) {
+                    // If 'Random' was selected in the UI, or no data was passed (fall back to the old behavior)
+                    weaponData = weightedRandom(WEAPONS);
+                } else {
+                    // Use the specific weapon data passed from the UI
+                    weaponData = selectedWeaponData;
+                }
+
                 const name = `Unit ${team}-${unitCount}`;
 
                 const newUnit = new GameUnit(name, team, position, tierData, weaponData, scene);
-                newUnit.rootNode.position.y = groundY; // Set Y to ground height
+                newUnit.rootNode.position.y = groundY + UNIT_FOOT_OFFSET; // Set Y to ground height
 
                 units.push(newUnit);
+                unitCount++; // Make sure to increment unitCount if you are tracking it
                 updateGameStatus();
 
             } else if (type === 'tree') {
+                // ... (Tree creation logic remains the same)
                 const trunk = BABYLON.MeshBuilder.CreateBox("trunk", { height: 2, width: 0.5, depth: 0.5 }, scene);
                 const trunkMat = new BABYLON.StandardMaterial("trunkMat", scene);
                 trunkMat.diffuseColor = new BABYLON.Color3(0.5, 0.3, 0.1);
@@ -1376,10 +1574,39 @@
             }
         }
 
+        function getWeaponStats(weaponValue) {
+            if (weaponValue === 'random') {
+                return 'RANDOM'; // Special indicator for random selection
+            }
+
+            // Convert value back to a searchable name (e.g., 'grenade-launcher' -> 'Grenade Launcher')
+            const searchableName = weaponValue.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
+            const weapon = WEAPONS.find(w => w.name === searchableName);
+
+            // Note: If you used the icon and damage in the option text before, you can simplify the lookup
+            // by comparing the value property directly (e.g., checking if w.name.toLowerCase() === weaponValue).
+            return weapon || null;
+        }
+
         function setupInitialMap() {
+            // 1. Retrieve Selected Weapon Data
+            const selectedValueA = $('#weapon-a').val();
+            const selectedValueB = $('#weapon-b').val();
+
+            // getWeaponStats returns the object or the string 'RANDOM'
+            const teamAWeaponData = getWeaponStats(selectedValueA);
+            const teamBWeaponData = getWeaponStats(selectedValueB);
+
             // Define map quadrants based on currentGroundSize (e.g., 40)
             const mapRadius = currentGroundSize / 2;
             const spawnRange = mapRadius * 0.75; // Spawn units within 75% of the radius
+
+            let armySizeString = $('#txt-soldier-count').val();
+            let armySize = (armySizeString !== '' && !isNaN(armySizeString))
+                ? parseInt(armySizeString, 10)
+                : 5;
+
 
             // --- Spawn 5 Trees (Randomly across the central 80% of the map) ---
             const treeSpawnRange = currentGroundSize * 0.4; // 80% of 40 is 32. Range from -16 to 16.
@@ -1390,23 +1617,54 @@
             }
 
             // --- Team B (Blue) - Upper Left Quadrant (Negative X, Positive Z) ---
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < armySize; i++) {
                 const x = -spawnRange + Math.random() * (spawnRange / 2);
                 const z = spawnRange / 2 + Math.random() * (spawnRange / 2);
-                spawnEntityAt(x, z, 'unit', 'B');
+                // PASS TEAM B WEAPON DATA
+                spawnEntityAt(x, z, 'unit', 'B', teamBWeaponData);
             }
 
             // --- Team A (Red) - Lower Right Quadrant (Positive X, Negative Z) ---
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < armySize; i++) {
                 const x = spawnRange / 2 + Math.random() * (spawnRange / 2);
                 const z = -spawnRange + Math.random() * (spawnRange / 2);
-                spawnEntityAt(x, z, 'unit', 'A');
+                // PASS TEAM A WEAPON DATA
+                spawnEntityAt(x, z, 'unit', 'A', teamAWeaponData);
             }
 
             $('#game-status').html('<span class="text-xs sm:text-lg font-extrabold text-white">Initial setup complete!</span>');
             // Re-center camera a bit after spawning
             camera.setTarget(BABYLON.Vector3.Zero());
             camera.alpha = 0.5;
+        }
+
+        function populateWeaponDropdown(selector) {
+            const $select = $(selector);
+
+            // 1. Clear any existing options
+            $select.empty();
+
+            // 2. Add the "Random" option first
+            $select.append(
+                $('<option>', {
+                    value: 'random',
+                    text: 'Random',
+                    selected: true // Make 'Random' the default selection
+                })
+            );
+
+            // 3. Add options from the WEAPONS array
+            $.each(WEAPONS, function (index, weapon) {
+                // Use the weapon name (lowercased) as the value
+                const weaponValue = weapon.name.toLowerCase().replace(/\s/g, '-');
+
+                $select.append(
+                    $('<option>', {
+                        value: weaponValue,
+                        text: `${weapon.icon} ${weapon.name}`
+                    })
+                );
+            });
         }
 
         // ----------------------------------------------------
@@ -1585,6 +1843,9 @@
                     $collapseIconPath.attr('d', 'M11 19l-7-7 7-7m8 14l-7-7 7-7');
                 }
             });
+
+            populateWeaponDropdown('#weapon-a');
+            populateWeaponDropdown('#weapon-b');
         });
     </script>
 </body>
