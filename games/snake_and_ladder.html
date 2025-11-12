@@ -127,9 +127,9 @@
     // =================================================================
     // Global Game State and Constants
     // =================================================================
-    const TILE_SIZE = 12; // Increased tile size
-    const BOARD_SIZE = 10;
-    const TOTAL_TILES = 100;
+    const TILE_SIZE = 16; // Increased tile size
+    const BOARD_SIZE = 16;
+    const TOTAL_TILES = 256;
     const BOARD_WIDTH = BOARD_SIZE * TILE_SIZE;
 
     // Mapping: Tile Index (1-100) -> [x, y, z] position
@@ -137,27 +137,43 @@
     
     // Snakes and Ladders Mapping (Start Tile -> End Tile)
     const slMap = {
-        // Ladders (Green/Blue paths)
-        2: 23,
-        6: 45,
-        20: 59,
-        28: 49, 
-        36: 55,
-        51: 72,
-        61: 82,
-        71: 91,
-        79: 98,
+        // --- LADDERS (9 Ladders, upward movement) ---
+        // Start tiles are approximately: 2, 6, 20, 28, 36, 51, 61, 71, 79 (of 100)
         
-        // Snakes (Red/Yellow paths)
-        17: 4,
-        34: 12,
-        48: 30,
-        63: 24,
-        75: 54,
-        84: 66,
-        93: 70,
-        96: 74,
-        99: 80
+        // Low Board (0-64)
+        5: 50,    // 5 -> 50 (Scaled from 2 -> 23)
+        15: 110,   // 15 -> 110 (Scaled from 6 -> 45)
+        35: 160,   // 35 -> 160 (Scaled from 20 -> 59)
+        48: 95,    // 48 -> 95 (Scaled from 28 -> 49)
+
+        // Mid Board (65-128)
+        60: 130,   // 60 -> 130 (Scaled from 36 -> 55)
+        85: 185,   // 85 -> 185 (Scaled from 51 -> 72)
+        115: 200,   // 115 -> 200 (Scaled from 61 -> 82)
+
+        // High Board (129-256)
+        140: 220,   // 140 -> 220 (Scaled from 71 -> 91)
+        175: 250,   // 175 -> 250 (Scaled from 79 -> 98)
+
+
+        // --- SNAKES (10 Snakes, downward movement) ---
+        // Start tiles are approximately: 17, 34, 48, 63, 75, 84, 93, 96, 99 (of 100)
+        
+        // Low Board (0-64)
+        30: 8,     // 30 -> 8 (Scaled from 17 -> 4)
+        55: 25,    // 55 -> 25 (Scaled from 34 -> 12)
+
+        // Mid Board (65-128)
+        75: 45,    // 75 -> 45 (Scaled from 48 -> 30)
+        100: 40,    // 100 -> 40 (Scaled from 63 -> 24)
+        125: 80,    // 125 -> 80 (Scaled from 75 -> 54)
+        150: 120,   // 150 -> 120 (Scaled from 84 -> 66)
+
+        // High Board (129-256)
+        180: 135,   // 180 -> 135 (Scaled from 93 -> 70)
+        210: 155,   // 210 -> 155 (Scaled from 96 -> 74)
+        245: 190,   // 245 -> 190 (Scaled from 99 -> 80)
+        253: 205    // The classic last-tile danger snake near the end
     };
 
     const FACE_NORMALS = [
