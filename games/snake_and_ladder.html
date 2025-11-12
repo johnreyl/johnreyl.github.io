@@ -4,12 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Snakes & Ladders</title>
-    
-<script src="https://cdn.tailwindcss.com"></script>
-    
-<style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #1f2937; color: white; }
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1f2937;
+            color: white;
+            transition: background-color 0.3s;
+        }
+
         #renderCanvas {
             width: 100%;
             height: 100%;
@@ -17,6 +24,7 @@
             outline: none;
             border-radius: 0.75rem;
         }
+
         .game-container {
             position: relative;
             max-width: 1000px;
@@ -26,69 +34,124 @@
             gap: 1rem;
             padding: 1rem;
         }
+
+        /* Existing .ui-panel styles */
         .ui-panel {
             background: rgba(31, 41, 55, 0.8); /* Dark gray background */
             backdrop-filter: blur(5px);
             border-radius: 0.75rem;
             padding: 1rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            /* NEW: Transition property for smooth float */
+            transition: all 0.3s ease-out;
         }
+
         .modal-overlay {
             background-color: rgba(0, 0, 0, 0.7);
         }
+
+        /* ======================================================= */
+        /* NEW: Full-Screen Styles (Toggled by JS on <body>)       */
+        /* ======================================================= */
+        body.is-fullscreen {
+            background-color: #000;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+            /* Ensure the main container wrapper takes the whole screen when in fullscreen */
+            body.is-fullscreen .game-container {
+                margin: 0;
+                padding: 0;
+                max-width: none;
+                width: 100vw;
+                height: 100vh;
+            }
+
+            /* Ensure the element that goes fullscreen (the wrapper) fills the viewport */
+            body.is-fullscreen #canvas-wrapper {
+                position: fixed !important;
+                top: 0;
+                left: 0;
+                width: 100vw !important;
+                height: 100vh !important;
+                max-width: none !important;
+                margin: 0 !important;
+                z-index: 900;
+                border-radius: 0;
+            }
+
+            /* Floating Panel: Position fixed relative to viewport */
+            body.is-fullscreen #game-controls {
+                position: fixed;
+                bottom: 1rem;
+                left: 50%;
+                transform: translateX(-50%); /* Center horizontally */
+                width: 90%;
+                max-width: 800px;
+                z-index: 999;
+                /* Opacity is handled by the rgba background property in .ui-panel */
+                border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle white border */
+            }
     </style>
 
-    
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
-<script src="https://cdn.babylonjs.com/babylon.js"></script>
-    
-<script src="https://cdn.babylonjs.com/cannon.js"></script>
-    
-<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+
+    <script src="https://cdn.babylonjs.com/cannon.js"></script>
+
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+
+    <script src="https://unpkg.com/earcut@2.2.4/dist/earcut.min.js"></script>
 
 </head>
 <body>
 
     <div class="game-container">
-        
-<div class="w-full aspect-square md:h-[600px] h-[400px]">
-            <canvas id="renderCanvas" class="shadow-2xl"></canvas>
-        </div>
 
-        
-<div class="ui-panel md:flex md:justify-between items-center space-y-4 md:space-y-0">
-            <div id="status-display" class="text-lg font-bold">
-                <p id="current-player-status" class="text-yellow-400">Game Menu</p>
-                <p id="dice-roll-status" class="text-blue-400 mt-1">Roll: -</p>
-            </div>
-            <div class="flex space-x-4">
-                <button id="roll-dice-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-150 transform hover:scale-105" disabled>
-                    Roll Dice
-                </button>
-                <button id="show-rules-button" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-150 transform hover:scale-105">
-                    How to Play
-                </button>
-                <button id="reset-game-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-150 transform hover:scale-105">
-                    Reset Game
-                </button>
+        <div id="canvas-wrapper" class="w-full aspect-square md:h-[600px] h-[400px] relative">
+            <canvas id="renderCanvas" class="shadow-2xl"></canvas>
+
+            <div id="game-controls" class="ui-panel md:flex md:justify-between items-center space-y-4 md:space-y-0">
+                <div id="status-display" class="text-lg font-bold">
+                    <p id="current-player-status" class="text-yellow-400">Game Menu</p>
+                    <p id="dice-roll-status" class="text-blue-400 mt-1">Roll: -</p>
+                </div>
+                <div class="flex space-x-4">
+                    <button id="roll-dice-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-150 transform hover:scale-105" disabled>
+                        Roll Dice
+                    </button>
+                    <button id="fullscreen-button" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-150 transform hover:scale-105">
+                        <i id="fullscreen-icon" class="fas fa-expand"></i>
+                    </button>
+                    <button id="reset-game-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-150 transform hover:scale-105">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    
-<div id="game-menu-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+
+    <div id="game-menu-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-xl p-8 max-w-lg w-full shadow-2xl text-gray-800">
             <h2 class="text-3xl font-extrabold mb-4 text-indigo-600">3D Snakes & Ladders</h2>
             <p class="mb-6">The goal is to be the first player to reach square 100.</p>
             <button id="start-game-button" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-xl transition duration-200 transform hover:scale-105">
                 Start Game
             </button>
+
+            <button id="show-rules-button" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 rounded-lg shadow-xl transition duration-200 transform hover:scale-105 mt-2">
+                How to Play
+            </button>
         </div>
     </div>
 
-    
-<div id="rules-modal" class="modal-overlay fixed inset-0 z-50 hidden items-center justify-center p-4">
+
+    <div id="rules-modal" class="modal-overlay fixed inset-0 z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-xl p-8 max-w-lg w-full shadow-2xl text-gray-800">
             <h2 class="text-3xl font-extrabold mb-4 text-indigo-600">How to Play</h2>
             <p class="mb-4">1. Click "Start Game" to begin.</p>
@@ -102,8 +165,8 @@
         </div>
     </div>
 
-    
-<div id="win-modal" class="modal-overlay fixed inset-0 z-50 hidden items-center justify-center p-4">
+
+    <div id="win-modal" class="modal-overlay fixed inset-0 z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-xl p-8 max-w-md w-full shadow-2xl text-gray-800 text-center">
             <h2 id="win-message" class="text-4xl font-extrabold mb-6 text-yellow-600"></h2>
             <button id="play-again-button" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-xl transition duration-200 transform hover:scale-105">
@@ -113,1197 +176,1408 @@
     </div>
 
 
-<script>
-    // Global variables for Firebase access (required by the environment)
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-    // FIX: This line references the global variable __initial_auth_token directly to prevent ReferenceError
-    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; 
-    
-    // --- Constant for the uploaded image ID ---
-    const IMAGE_CONTENT_ID = "uploaded:image_048605.jpg-778ecff9-4970-41a4-9b3c-10750caf08fe";
-    // ------------------------------------------
-
-    // =================================================================
-    // Global Game State and Constants
-    // =================================================================
-    const TILE_SIZE = 16; // Increased tile size
-    const BOARD_SIZE = 16;
-    const TOTAL_TILES = 256;
-    const BOARD_WIDTH = BOARD_SIZE * TILE_SIZE;
-
-    // Mapping: Tile Index (1-100) -> [x, y, z] position
-    const tilePositions = []; // Populated in createBoard
-    
-    // Snakes and Ladders Mapping (Start Tile -> End Tile)
-    const slMap = {
-        // --- LADDERS (9 Ladders, upward movement) ---
-        // Start tiles are approximately: 2, 6, 20, 28, 36, 51, 61, 71, 79 (of 100)
-        
-        // Low Board (0-64)
-        5: 50,    // 5 -> 50 (Scaled from 2 -> 23)
-        15: 110,   // 15 -> 110 (Scaled from 6 -> 45)
-        35: 160,   // 35 -> 160 (Scaled from 20 -> 59)
-        48: 95,    // 48 -> 95 (Scaled from 28 -> 49)
-
-        // Mid Board (65-128)
-        60: 130,   // 60 -> 130 (Scaled from 36 -> 55)
-        85: 185,   // 85 -> 185 (Scaled from 51 -> 72)
-        115: 200,   // 115 -> 200 (Scaled from 61 -> 82)
-
-        // High Board (129-256)
-        140: 220,   // 140 -> 220 (Scaled from 71 -> 91)
-        175: 250,   // 175 -> 250 (Scaled from 79 -> 98)
-
-
-        // --- SNAKES (10 Snakes, downward movement) ---
-        // Start tiles are approximately: 17, 34, 48, 63, 75, 84, 93, 96, 99 (of 100)
-        
-        // Low Board (0-64)
-        30: 8,     // 30 -> 8 (Scaled from 17 -> 4)
-        55: 25,    // 55 -> 25 (Scaled from 34 -> 12)
-
-        // Mid Board (65-128)
-        75: 45,    // 75 -> 45 (Scaled from 48 -> 30)
-        100: 40,    // 100 -> 40 (Scaled from 63 -> 24)
-        125: 80,    // 125 -> 80 (Scaled from 75 -> 54)
-        150: 120,   // 150 -> 120 (Scaled from 84 -> 66)
-
-        // High Board (129-256)
-        180: 135,   // 180 -> 135 (Scaled from 93 -> 70)
-        210: 155,   // 210 -> 155 (Scaled from 96 -> 74)
-        245: 190,   // 245 -> 190 (Scaled from 99 -> 80)
-        253: 205    // The classic last-tile danger snake near the end
-    };
-
-    const FACE_NORMALS = [
-        new BABYLON.Vector3(1, 0, 0),    // Right (+X)
-        new BABYLON.Vector3(-1, 0, 0),   // Left (-X)
-        new BABYLON.Vector3(0, 1, 0),    // Top (+Y)
-        new BABYLON.Vector3(0, -1, 0),   // Bottom (-Y)
-        new BABYLON.Vector3(0, 0, 1),    // Front (+Z)
-        new BABYLON.Vector3(0, 0, -1)    // Back (-Z)
-    ];
-
-    // Use this corrected array:
-    const FACE_VALUES = [5, 2, 4, 3, 1, 6]; // Matches face order: Right, Left, Top, Bottom, Front, Back (as defined by faceValues array in createDice)
-
-    
-    // Game State
-    let playerPositions = [1, 1]; // Player 1 and Player 2 start at tile 1
-    let currentPlayer = 0; // 0 for Player 1, 1 for Player 2
-    let isRolling = false;
-    let isMoving = false;
-    let scene = null;
-    let engine = null;
-
-    // 3D Mesh References
-    let playerMeshes = [];
-    let diceMeshes = []; // Array for two dice
-    let diceBodies = []; // Array for two dice physics bodies
-
-    // Colors
-    const playerColors = [
-        new BABYLON.Color3.FromHexString("#FBBF24"), // Yellow (Player 1)
-        new BABYLON.Color3.FromHexString("#3B82F6"), // Blue (Player 2)
-    ];
-
-    // =================================================================
-    // Babylon/Cannon Setup
-    // =================================================================
-
-    const createScene = function () {
-        const canvas = document.getElementById("renderCanvas");
-        engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
-
-        scene = new BABYLON.Scene(engine);
-        scene.clearColor = new BABYLON.Color3(0.1, 0.1, 0.1); // Dark background
-
-        // Enable Physics
-        scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), new BABYLON.CannonJSPlugin());
-
-        // Camera
-        const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 4, BOARD_WIDTH * 1.5, new BABYLON.Vector3(0, BOARD_WIDTH * 0.2, 0), scene);
-        camera.attachControl(canvas, true);
-        camera.lowerRadiusLimit = BOARD_WIDTH * 0.8;
-        camera.upperRadiusLimit = BOARD_WIDTH * 2.5;
-        camera.target = new BABYLON.Vector3(0, TILE_SIZE * 2, 0); // Focus a bit higher
-
-        // Lighting
-        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
-        light.intensity = 0.7;
-        const spotLight = new BABYLON.PointLight("spotLight", new BABYLON.Vector3(BOARD_WIDTH / 2, BOARD_WIDTH * 2, -BOARD_WIDTH / 2), scene);
-        spotLight.intensity = 0.8;
-
-        // Floor Plane (Physics ground for overall scene)
-        const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: BOARD_WIDTH * 3, height: BOARD_WIDTH * 3 }, scene);
-        ground.material = new BABYLON.StandardMaterial("groundMat", scene);
-        ground.material.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.1);
-        ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 0, restitution: 0.9 }, scene);
-
-
-        // Call functions to build game elements
-        createBoard(scene);
-        createDiceBoard(scene);
-        createPlayers(scene);
-        //createDice(scene);
-        createSLModels(scene); // --- NEW: Create 3D Snakes and Ladders Models ---
-
-        // The game loop
-        engine.runRenderLoop(() => {
-            scene.render();
-        });
-
-        // Handle window resizing
-        window.addEventListener("resize", function () {
-            engine.resize();
-        });
-
-        return scene;
-    };
-
-    // =================================================================
-    // 3D Geometry Generation
-    // =================================================================
-
-    // Function to calculate tile position (bottom-left of image is Tile 1)
-    const getTilePosition = (tileNumber) => {
-        if (tileNumber < 1 || tileNumber > TOTAL_TILES) return null;
-        
-        const index = tileNumber - 1; // 0-99
-        let row = Math.floor(index / BOARD_SIZE); // 0 to 9
-        let col = index % BOARD_SIZE;           // 0 to 9
-
-        // Adjust for Boustrophedon (snake-like) numbering pattern
-        if (row % 2 === 1) { // Odd rows (from bottom: 1, 3, 5, ...) go right-to-left
-            col = BOARD_SIZE - 1 - col;
-        }
-
-        const x = (col * TILE_SIZE) + (TILE_SIZE / 2) - (BOARD_WIDTH / 2);
-        const z = (row * TILE_SIZE) + (TILE_SIZE / 2) - (BOARD_WIDTH / 2); // Z is depth/Y-axis on board
-
-        return new BABYLON.Vector3(x, 0.5, z); // Y is half the tile height for the pawn to sit on top
-    };
-
-    // --- UPDATED: To include alternating colors (individual tile meshes) ---
-    const createBoard = (scene) => {
-        // 1. Alternating Tile Meshes
-        const darkColor = BABYLON.Color3.FromHexString("#2C3E50"); // Dark Gray
-        const lightColor = BABYLON.Color3.FromHexString("#ECF0F1"); // Light Gray/White
-
-        for (let i = 1; i <= TOTAL_TILES; i++) {
-            const pos = getTilePosition(i);
-            tilePositions[i] = pos; // Store positions
-
-            // Determine row and column for coloring
-            const index = i - 1;
-            let row = Math.floor(index / BOARD_SIZE);
-            let col = index % BOARD_SIZE;
-
-            // Determine alternating color based on standard chess pattern
-            const colorIndex = (row + col) % 2;
-            const tileColor = colorIndex === 0 ? darkColor : lightColor;
-
-            // Create individual tile mesh (height 0.5)
-            const tile = BABYLON.MeshBuilder.CreateBox(`tile_${i}`, { width: TILE_SIZE, height: 0.5, depth: TILE_SIZE }, scene);
-            tile.position = new BABYLON.Vector3(pos.x, 0.0, pos.z); 
-            
-            const tileMat = new BABYLON.StandardMaterial(`tileMat_${i}`, scene);
-            tileMat.diffuseColor = tileColor;
-            tile.material = tileMat;
-        }
-
-        // 2. Main Board Texture Plane (placed slightly above the tiles, semi-transparent)
-        const boardPlane = BABYLON.MeshBuilder.CreatePlane("boardPlane", { width: BOARD_WIDTH, height: BOARD_WIDTH }, scene);
-        boardPlane.rotation.x = Math.PI / 2;
-        boardPlane.position.y = 0.3; // Slightly above the tiles (0.5 height)
-        
-        const boardMaterial = new BABYLON.StandardMaterial("boardMat", scene);
-        
-        if (IMAGE_CONTENT_ID) {
-            boardMaterial.diffuseTexture = new BABYLON.Texture(IMAGE_CONTENT_ID, scene); 
-            boardMaterial.hasAlpha = true;
-            boardMaterial.alpha = 0.8; // Make it slightly transparent so the colors beneath show through
-            boardMaterial.backFaceCulling = false;
-        } else {
-            console.warn("Could not load board image. Using default color.");
-            boardMaterial.diffuseColor = BABYLON.Color3.White();
-        }
-        
-        boardMaterial.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
-        boardPlane.material = boardMaterial;
-
-        // 3. Base box for the overall platform
-        const boardBase = BABYLON.MeshBuilder.CreateBox("boardBase", { width: BOARD_WIDTH + 2, height: 0.5, depth: BOARD_WIDTH + 2 }, scene);
-        boardBase.position.y = -0.25;
-        boardBase.material = new BABYLON.StandardMaterial("boardBaseMat", scene);
-        boardBase.material.diffuseColor = new BABYLON.Color3.FromHexString("#7F8C8D"); // Dark base
-    };
-    // ------------------------------------------------------------------------
-
-    const createDiceBoard = (scene) => {
-        const diceBoardWidth = TILE_SIZE * 5;
-        const diceBoardHeight = TILE_SIZE * 0.5;
-        // Position X is calculated to be centered relative to the main board: BOARD_WIDTH / 2 + (5 * TILE_SIZE / 2) + TILE_SIZE
-        const diceBoardPosition = new BABYLON.Vector3(BOARD_WIDTH / 2 + diceBoardWidth / 2 + TILE_SIZE, diceBoardHeight / 2, 0); // To the right of the main board
-
-        const diceBoard = BABYLON.MeshBuilder.CreateBox("diceBoard", { width: diceBoardWidth, height: diceBoardHeight, depth: diceBoardWidth }, scene);
-        diceBoard.position = diceBoardPosition;
-
-        const diceBoardMaterial = new BABYLON.StandardMaterial("diceBoardMat", scene);
-        diceBoardMaterial.diffuseColor = BABYLON.Color3.FromHexString("#4B5563"); // Darker gray
-        diceBoardMaterial.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-        diceBoard.material = diceBoardMaterial;
-
-        // Reduced restitution on the board ensures less bounce overall
-        diceBoard.physicsImpostor = new BABYLON.PhysicsImpostor(diceBoard, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 0, restitution: 0.3, friction: 0.7 }, scene);
-    };
-
-
-    const createPlayers = (scene) => {
-        const radius = TILE_SIZE * 0.2; // Adjusted for larger tiles
-        const height = TILE_SIZE * 0.6; // Taller pawns
-        const offset = TILE_SIZE * 0.2; // Offset for two players on one tile
-
-        // Player 1 (Yellow Pawn)
-        const player1 = BABYLON.MeshBuilder.CreateCylinder("player1", { diameter: radius, height: height, tessellation: 24 }, scene);
-        player1.material = new BABYLON.StandardMaterial("p1Mat", scene);
-        player1.material.diffuseColor = playerColors[0];
-        player1.material.emissiveColor = playerColors[0].scale(0.2);
-
-        // Player 2 (Blue Pawn)
-        const player2 = BABYLON.MeshBuilder.CreateCylinder("player2", { diameter: radius, height: height, tessellation: 24 }, scene);
-        player2.material = new BABYLON.StandardMaterial("p2Mat", scene);
-        player2.material.diffuseColor = playerColors[1];
-        player2.material.emissiveColor = playerColors[1].scale(0.2);
-
-        playerMeshes = [player1, player2];
-        
-        // Place players at start (Tile 1) with slight offset
-        updatePlayerMeshPosition(0, playerPositions[0], -offset);
-        updatePlayerMeshPosition(1, playerPositions[1], offset);
-    };
-    
-    // Function to create dice dots on a canvas
-    const createDiceFaceTexture = (value, scene) => {
-        const textureResolution = 256;
-        const dynamicTexture = new BABYLON.DynamicTexture(`diceFace${value}Texture`, textureResolution, scene, true);
-        const ctx = dynamicTexture.getContext();
-
-        ctx.clearRect(0, 0, textureResolution, textureResolution);
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, textureResolution, textureResolution);
-        ctx.fillStyle = "black";
-        const dotRadius = textureResolution * 0.08; // Adjusted dot size
-
-        const center = textureResolution / 2;
-        const offset = textureResolution * 0.25;
-
-        // Draw dots based on dice value
-        switch (value) {
-            case 1:
-                ctx.beginPath(); ctx.arc(center, center, dotRadius, 0, Math.PI * 2); ctx.fill();
-                break;
-            case 2:
-                ctx.beginPath(); ctx.arc(center - offset, center + offset, dotRadius, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(center + offset, center - offset, dotRadius, 0, Math.PI * 2); ctx.fill();
-                break;
-            case 3:
-                ctx.beginPath(); ctx.arc(center - offset, center + offset, dotRadius, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(center, center, dotRadius, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(center + offset, center - offset, dotRadius, 0, Math.PI * 2); ctx.fill();
-                break;
-            case 4:
-                ctx.beginPath(); ctx.arc(center - offset, center - offset, dotRadius, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(center + offset, center - offset, dotRadius, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(center - offset, center + offset, dotRadius, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(center + offset, center + offset, dotRadius, 0, Math.PI * 2); ctx.fill();
-                break;
-            case 5:
-                ctx.beginPath(); ctx.arc(center - offset, center - offset, dotRadius, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(center + offset, center - offset, dotRadius, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(center - offset, center + offset, dotRadius, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(center + offset, center + offset, dotRadius, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(center, center, dotRadius, 0, Math.PI * 2); ctx.fill();
-                break;
-            case 6:
-                ctx.beginPath(); ctx.arc(center - offset, center - offset, dotRadius, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(center + offset, center - offset, dotRadius, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(center - offset, center, dotRadius, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(center + offset, center, dotRadius, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(center - offset, center + offset, dotRadius, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(center + offset, center + offset, dotRadius, 0, Math.PI * 2); ctx.fill();
-                break;
-        }
-        dynamicTexture.update();
-        return dynamicTexture;
-    };
-
-    const createDice = (scene) => {
-        const size = TILE_SIZE * 0.4; // Adjusted for larger tiles
-        const faceUV = [];
-        // Map 3D dice faces to specific 2D texture coordinates or values
-        // Babylon.js box face order: right, left, top, bottom, front, back
-        // We'll map them to 1, 6, 5, 2, 4, 3 (common dice layout)
-        const faceValues = [1, 6, 5, 2, 4, 3];
-
-        // --- Dice Board Centering Logic ---
-        // Calculate the center X position of the dice board:
-        // (BOARD_WIDTH / 2 + TILE_SIZE) is the left edge of the board.
-        // (TILE_SIZE * 5) / 2 is half the board's width.
-        const DICE_BOARD_CENTER_X = (BOARD_WIDTH / 2 + TILE_SIZE) + (TILE_SIZE * 5) / 2;
-        const SPAWN_HEIGHT = TILE_SIZE * 4; // High enough to ensure a good drop onto the board
-        const DICE_SEPARATION_OFFSET = size * 0.75; // Small offset to keep the two dice separate
-        // -----------------------------------
-
-        // Create a multi-material for the dice to apply textures to specific faces
-        const multiMaterial = new BABYLON.MultiMaterial("diceMultiMat", scene);
-        for (let i = 0; i < 6; i++) {
-            const mat = new BABYLON.StandardMaterial(`diceFaceMat${faceValues[i]}`, scene);
-            mat.diffuseTexture = createDiceFaceTexture(faceValues[i], scene);
-            mat.specularColor = new BABYLON.Color3(0, 0, 0); // No shine
-            multiMaterial.subMaterials.push(mat);
-        }
-
-        const currentDiceMeshes = []; // Temporary array to hold the newly created meshes for return
-        const currentDiceBodies = []; // Temporary array to hold the newly created bodies for return
-
-        for (let i = 0; i < 2; i++) { // Create two dice
-            const diceMesh = BABYLON.MeshBuilder.CreateBox(`dice${i}`, { size: size, faceUV: faceUV, wrap: true }, scene);
-
-            // 1. Set Random Initial Face Orientation
-            diceMesh.rotation.x = Math.random() * Math.PI * 2;
-            diceMesh.rotation.y = Math.random() * Math.PI * 2;
-            diceMesh.rotation.z = Math.random() * Math.PI * 2;
-
-            // Calculate position to center dice above the dice board with a small separation
-            const xPos = DICE_BOARD_CENTER_X + (i === 0 ? -DICE_SEPARATION_OFFSET : DICE_SEPARATION_OFFSET);
-            diceMesh.position = new BABYLON.Vector3(xPos, SPAWN_HEIGHT, 0); // Initial position centered above the board
-
-            diceMesh.material = multiMaterial;
-
-            // Set submeshes to use the different materials (faces)
-            // This is a bit manual, but ensures correct dot mapping for a standard die
-            diceMesh.subMeshes = [];
-            diceMesh.subMeshes.push(new BABYLON.SubMesh(0, 0, diceMesh.getTotalVertices(), 0, 6, diceMesh)); // Face 1 (Right)
-            diceMesh.subMeshes.push(new BABYLON.SubMesh(1, 0, diceMesh.getTotalVertices(), 6, 6, diceMesh)); // Face 6 (Left)
-            diceMesh.subMeshes.push(new BABYLON.SubMesh(2, 0, diceMesh.getTotalVertices(), 12, 6, diceMesh)); // Face 5 (Top)
-            diceMesh.subMeshes.push(new BABYLON.SubMesh(3, 0, diceMesh.getTotalVertices(), 18, 6, diceMesh)); // Face 2 (Bottom)
-            diceMesh.subMeshes.push(new BABYLON.SubMesh(4, 0, diceMesh.getTotalVertices(), 24, 6, diceMesh)); // Face 4 (Front)
-            diceMesh.subMeshes.push(new BABYLON.SubMesh(5, 0, diceMesh.getTotalVertices(), 30, 6, diceMesh)); // Face 3 (Back)
-
-
-            const diceBody = new BABYLON.PhysicsImpostor(diceMesh, BABYLON.PhysicsImpostor.BoxImpostor, {
-                mass: 0.5, // Reduced mass for a less heavy fall, simulating reduced gravity
-                restitution: 0.2, // Significantly reduced bounce
-                friction: 0.8 // Increased friction to help them stop rolling faster
-            }, scene);
-
-            diceBody.mesh = diceMesh;
-
-            // 2. Apply Random Angular Velocity to make the dice roll
-            const angularVelocityMagnitude = 10; // Controls the initial spin speed
-            const randomAngularVelocity = new BABYLON.Vector3(
-                (Math.random() - 0.5) * angularVelocityMagnitude,
-                (Math.random() - 0.5) * angularVelocityMagnitude,
-                (Math.random() - 0.5) * angularVelocityMagnitude
-            );
-            diceBody.setAngularVelocity(randomAngularVelocity);
-
-            // Assuming diceMeshes/diceBodies are global arrays defined outside
-            // diceMeshes.push(diceMesh);
-            // diceBodies.push(diceBody);
-            
-            currentDiceMeshes.push(diceMesh); 
-            currentDiceBodies.push(diceBody); 
-        }
-        return { meshes: currentDiceMeshes, bodies: currentDiceBodies }; // Return both meshes and bodies
-    };
-
-    const createLadderModel = (scene, startTile, endTile, ladderMaterial, getCenterPos, TILE_SIZE) => {
-        const pStart = getCenterPos(startTile, TILE_SIZE * 0.05);
-        const pEnd = getCenterPos(endTile, TILE_SIZE * 0.05);
-
-        const direction = pEnd.subtract(pStart);
-        const distance = direction.length();
-        const midPoint = pStart.add(direction.scale(0.5));
-
-        const ladderWidth = TILE_SIZE * 0.5;
-
-        // --- Ladder Component Dimensions and Materials ---
-        const railWidth = TILE_SIZE * 0.05;
-        const railDepth = TILE_SIZE * 0.05;
-        const rungRadius = TILE_SIZE * 0.035; // Diameter is 2x this
-        const rungThickness = ladderWidth * 0.8; // Rungs span most of the width
-
-        // Material for the rungs (Wood-like appearance)
-        const rungMaterial = new BABYLON.StandardMaterial(`rungMat_${startTile}`, scene);
-        rungMaterial.diffuseColor = BABYLON.Color3.FromHexString("#A0522D"); // Sienna brown
-        rungMaterial.specularColor = BABYLON.Color3.Black();
-
-        // 1. Create a container (TransformNode) for the ladder components
-        const ladderContainer = new BABYLON.TransformNode(`ladderContainer_${startTile}_${endTile}`, scene);
-
-        // 2. Create the two side rails (Boxes)
-        const railOffset = (ladderWidth / 2) - (railWidth / 2);
-
-        // Rail 1 (Left side)
-        const rail1 = BABYLON.MeshBuilder.CreateBox("rail1", {
-            width: railWidth,
-            height: distance, // Height is the distance between start and end
-            depth: railDepth
-        }, scene);
-        rail1.position.x = -railOffset;
-        rail1.material = ladderMaterial; // Green material for the sides
-        rail1.parent = ladderContainer;
-
-        // Rail 2 (Right side)
-        const rail2 = BABYLON.MeshBuilder.CreateBox("rail2", {
-            width: railWidth,
-            height: distance,
-            depth: railDepth
-        }, scene);
-        rail2.position.x = railOffset;
-        rail2.material = ladderMaterial; // Green material for the sides
-        rail2.parent = ladderContainer;
-
-        // 3. Create Rungs (Cylinders)
-        // NOTE: Multiplier changed from 1.5 to 3.0 to increase rung density (compress steps)
-        const numRungs = Math.max(3, Math.floor(distance / TILE_SIZE * 3.0)); // Dynamic number of rungs
-        const stepSize = distance / (numRungs + 1); // Spacing between rungs
-
-        for (let i = 0; i < numRungs; i++) {
-            // Calculate Y position relative to the container's center (0,0,0).
-            // The container's height is centered at midPoint.
-            const rungY = (-distance / 2) + stepSize * (i + 1);
-
-            const rung = BABYLON.MeshBuilder.CreateCylinder(`rung_${i}`, {
-                height: rungThickness, // The length of the rung
-                diameter: rungRadius * 2
-            }, scene);
-
-            rung.material = rungMaterial;
-            rung.position.y = rungY;
-            rung.rotation.z = Math.PI / 2; // Rotate 90 deg so length is along X (connecting the rails)
-            rung.parent = ladderContainer;
-        }
-
-        // 4. Position and Rotate the entire ladder container
-        ladderContainer.position = midPoint;
-
-        // Calculate rotation (yaw and pitch)
-        const angleY = Math.atan2(direction.x, direction.z);
-        const angleP = Math.atan2(direction.y, Math.sqrt(direction.x * direction.x + direction.z * direction.z));
-
-        // Apply rotation
-        ladderContainer.rotation.y = angleY;
-        // Rotate around X axis to match the angle of the slope. +90 deg because components are built along Y axis
-        ladderContainer.rotation.x = angleP + Math.PI / 2;
-
-        return ladderContainer;
-    };
-
-
-    const createSnakeModel = (scene, startTile, endTile, getCenterPos, TILE_SIZE) => {
-        const pStart = getCenterPos(startTile, TILE_SIZE * 0.05); // Start (Head)
-        const pEnd = getCenterPos(endTile, TILE_SIZE * 0.05);    // End (Tail)
-
-        const direction = pEnd.subtract(pStart);
-        const distance = direction.length();
-
-        // 1. Generate Winding Path
-        const path = [];
-        const numSegments = Math.max(10, Math.floor(distance / TILE_SIZE * 4)); 
-        const wiggleAmplitude = TILE_SIZE * 0.25; 
-
-        const perpX = direction.z;
-        const perpZ = -direction.x;
-        const perpVector = new BABYLON.Vector3(perpX, 0, perpZ).normalize().scale(wiggleAmplitude);
-
-        for (let i = 0; i <= numSegments; i++) {
-            const t = i / numSegments; 
-            let p = pStart.add(direction.scale(t));
-            const wiggleFactor = Math.sin(i * Math.PI * 2 / (numSegments / 2));
-            const sideOffset = wiggleFactor * (1 - t * 0.5); 
-            p = p.add(perpVector.scale(sideOffset));
-            p.y += TILE_SIZE * 0.05 + Math.sin(t * Math.PI) * TILE_SIZE * 0.2;
-            path.push(p);
-        }
-
-        // 2. Define Tapering Radius Function
-        const radiusFunction = (i, totalSegments) => {
-            const headRadius = TILE_SIZE * 0.15; 
-            const connectionRadius = TILE_SIZE * 0.03; 
-            const t = i / totalSegments; 
-            return headRadius * (1 - 0.8 * t); 
+    <script>
+        // Global variables for Firebase access (required by the environment)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        // FIX: This line references the global variable __initial_auth_token directly to prevent ReferenceError
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // --- Constant for the uploaded image ID ---
+        const IMAGE_CONTENT_ID = "uploaded:image_048605.jpg-778ecff9-4970-41a4-9b3c-10750caf08fe";
+        // ------------------------------------------
+
+        // =================================================================
+        // Global Game State and Constants
+        // =================================================================
+        const TILE_SIZE = 16; // Increased tile size
+        const BOARD_SIZE = 16;
+        const TOTAL_TILES = 256;
+        const BOARD_WIDTH = BOARD_SIZE * TILE_SIZE;
+
+        // Mapping: Tile Index (1-100) -> [x, y, z] position
+        const tilePositions = []; // Populated in createBoard
+
+        // Snakes and Ladders Mapping (Start Tile -> End Tile)
+        const slMap = {
+            // --- LADDERS (9 Ladders, upward movement) ---
+            // Start tiles are approximately: 2, 6, 20, 28, 36, 51, 61, 71, 79 (of 100)
+
+            // Low Board (0-64)
+            5: 50,    // 5 -> 50 (Scaled from 2 -> 23)
+            15: 110,   // 15 -> 110 (Scaled from 6 -> 45)
+            35: 160,   // 35 -> 160 (Scaled from 20 -> 59)
+            48: 95,    // 48 -> 95 (Scaled from 28 -> 49)
+
+            // Mid Board (65-128)
+            60: 130,   // 60 -> 130 (Scaled from 36 -> 55)
+            85: 185,   // 85 -> 185 (Scaled from 51 -> 72)
+            115: 200,   // 115 -> 200 (Scaled from 61 -> 82)
+
+            // High Board (129-256)
+            140: 220,   // 140 -> 220 (Scaled from 71 -> 91)
+            175: 250,   // 175 -> 250 (Scaled from 79 -> 98)
+
+
+            // --- SNAKES (10 Snakes, downward movement) ---
+            // Start tiles are approximately: 17, 34, 48, 63, 75, 84, 93, 96, 99 (of 100)
+
+            // Low Board (0-64)
+            30: 8,     // 30 -> 8 (Scaled from 17 -> 4)
+            55: 25,    // 55 -> 25 (Scaled from 34 -> 12)
+
+            // Mid Board (65-128)
+            75: 45,    // 75 -> 45 (Scaled from 48 -> 30)
+            100: 40,    // 100 -> 40 (Scaled from 63 -> 24)
+            125: 80,    // 125 -> 80 (Scaled from 75 -> 54)
+            150: 120,   // 150 -> 120 (Scaled from 84 -> 66)
+
+            // High Board (129-256)
+            180: 135,   // 180 -> 135 (Scaled from 93 -> 70)
+            210: 155,   // 210 -> 155 (Scaled from 96 -> 74)
+            245: 190,   // 245 -> 190 (Scaled from 99 -> 80)
+            253: 205    // The classic last-tile danger snake near the end
         };
-        
-        const tailConnectionRadius = radiusFunction(numSegments, numSegments);
 
-        // 3. Create the snake body as a tube
-        const snakeBody = BABYLON.MeshBuilder.CreateTube(`snakeBody_${startTile}_${endTile}`, {
-            path: path,
-            radiusFunction: radiusFunction,
-            tessellation: 20, 
-            updatable: false
-        }, scene);
-
-        // 4. Apply Material
-        const stripeColor1 = BABYLON.Color3.FromHexString("#E74C3C");
-        const stripeColor2 = BABYLON.Color3.FromHexString("#442E75"); 
-
-        const snakeTexture = new BABYLON.StandardMaterial(`snakeTex_${startTile}`, scene);
-        snakeTexture.diffuseColor = stripeColor1;
-        snakeTexture.ambientColor = stripeColor2.scale(0.8);
-        snakeTexture.specularColor = BABYLON.Color3.FromHexString("#FFFFFF");
-        snakeTexture.shininess = 20;
-        snakeBody.material = snakeTexture;
-
-        // 5. Add Head Features
-        const headContainer = new BABYLON.TransformNode(`snakeHeadContainer_${startTile}_${endTile}`, scene);
-        headContainer.position = path[0];
-
-        const firstSegment = path[1].subtract(path[0]);
-        headContainer.rotation.y = Math.atan2(firstSegment.x, firstSegment.z) + Math.PI;
-
-        const headDiameter = TILE_SIZE * 0.3;
-        const head = BABYLON.MeshBuilder.CreateSphere("snakeHead", { diameter: headDiameter }, scene);
-        head.material = snakeTexture;
-        head.parent = headContainer;
-        head.position.z = -headDiameter * 0.4; 
-
-        const eyeMaterial = new BABYLON.StandardMaterial("eyeMat", scene);
-        eyeMaterial.diffuseColor = BABYLON.Color3.Black();
-
-        const eyeDiameter = TILE_SIZE * 0.04;
-        const eyeOffset = TILE_SIZE * 0.05;
-        const eyeForward = TILE_SIZE * 0.13; 
-
-        const eye1 = BABYLON.MeshBuilder.CreateSphere("eye1", { diameter: eyeDiameter }, scene);
-        eye1.material = eyeMaterial;
-        eye1.parent = headContainer;
-        eye1.position.x = -eyeOffset;
-        eye1.position.y = TILE_SIZE * 0.05;
-        eye1.position.z = head.position.z + eyeForward; 
-
-        const eye2 = BABYLON.MeshBuilder.CreateSphere("eye2", { diameter: eyeDiameter }, scene);
-        eye2.material = eyeMaterial;
-        eye2.parent = headContainer;
-        eye2.position.x = eyeOffset;
-        eye2.position.y = TILE_SIZE * 0.05;
-        eye2.position.z = head.position.z + eyeForward; 
-
-        const mouth = BABYLON.MeshBuilder.CreateBox("mouth", {
-            width: TILE_SIZE * 0.2,
-            height: TILE_SIZE * 0.01,
-            depth: TILE_SIZE * 0.05
-        }, scene);
-        mouth.material = eyeMaterial;
-        mouth.parent = headContainer;
-        const mouthForward = TILE_SIZE * 0.18; 
-        mouth.position.z = head.position.z + mouthForward; 
-        mouth.position.y = -TILE_SIZE * 0.08; 
-
-        // 6. Add Pointy Tail Mesh
-        const pTail = path[path.length - 1]; 
-        const pNeck = path[path.length - 2]; 
-
-        // The vector pointing AWAY from the body (used for positioning)
-        const tailDirectionVector = pTail.subtract(pNeck).normalize();
-        
-        // **FIX 1: The vector pointing FORWARD (used for rotation), reversed from above.**
-        const tailRotationVector = tailDirectionVector.scale(-1);
-
-        const tailLength = TILE_SIZE * 0.25;
-        const tailTip = BABYLON.MeshBuilder.CreateCylinder("snakeTailTip", {
-            height: tailLength,
-            diameterTop: 0, 
-            diameterBottom: tailConnectionRadius * 2, 
-            tessellation: 20,
-            sideOrientation: BABYLON.Mesh.DOUBLESIDE // Prevents culling issues
-        }, scene);
-        
-        tailTip.material = snakeTexture;
-
-        // Corrected Rotation Logic using the reversed vector
-        const yaw = Math.atan2(tailRotationVector.x, tailRotationVector.z);
-        const pitch = Math.asin(tailRotationVector.y);
-
-        const finalRotation = BABYLON.Quaternion.RotationYawPitchRoll(
-            yaw, 
-            pitch, 
-            0
-        );
-        tailTip.rotationQuaternion = finalRotation;
-        
-        // Positioning: Uses the original (un-reversed) vector to tuck the base into the tube
-        const overlapFactor = 0.4; 
-        tailTip.position = pTail.add(tailDirectionVector.scale(-tailLength * overlapFactor));
-
-        // Combine all parts into a single mesh
-        const snakeModel = BABYLON.Mesh.MergeMeshes([snakeBody, tailTip, head, eye1, eye2, mouth], true, true, undefined, false, true);
-        snakeModel.name = `fullSnake_${startTile}_${endTile}`;
-        
-        return snakeModel;
-    };
-
-    const createSLModels = (scene) => {
-        // 1. Define shared materials (only ladder is shared, snake creates its own inside the helper)
-        const ladderMaterial = new BABYLON.StandardMaterial("ladderMat", scene);
-        ladderMaterial.diffuseColor = BABYLON.Color3.FromHexString("#2ECC71"); // Green (Ladders)
-
-        // The initial snakeMaterial defined in the original snippet is redundant since
-        // snakeTexture is created inside createSnakeModel, so we omit the unused definition here.
-
-        // 2. Helper to get the center position of a tile, adjusted for the model base
-        const getCenterPos = (tileNumber, heightOffset = 0) => {
-            const pos = tilePositions[tileNumber];
-            // Y position is the top of the tile (0.25) + optional offset
-            return new BABYLON.Vector3(pos.x, 0.25 + heightOffset, pos.z);
-        }
-
-        // 3. Iterate and create models
-        Object.keys(slMap).forEach(startTileKey => {
-            const startTile = parseInt(startTileKey);
-            const endTile = slMap[startTile];
-
-            const isLadder = endTile > startTile;
-
-            if (!isLadder) {
-                // Snake (downwards movement)
-                createSnakeModel(scene, startTile, endTile, getCenterPos, TILE_SIZE);
-            } else {
-                // Ladder (upwards movement)
-                createLadderModel(scene, startTile, endTile, ladderMaterial, getCenterPos, TILE_SIZE);
-            }
-        });
-    }
-
-
-    const updatePlayerMeshPosition = (playerIndex, tileNumber, offset) => {
-        const pos = tilePositions[tileNumber];
-        if (!pos) return;
-
-        playerMeshes[playerIndex].position = new BABYLON.Vector3(
-            pos.x + offset,
-            TILE_SIZE * 0.35, // Adjust for pawn height
-            pos.z + offset
-        );
-    }
-
-    // =================================================================
-    // Game Logic
-    // =================================================================
-
-    const getDiceResult = (diceMesh) => {
-        const UP_VECTOR = new BABYLON.Vector3(0, 1, 0);
-        let maxDot = -Infinity;
-        let result = 0;
-
-        // Iterate through all 6 faces
-        for (let i = 0; i < FACE_NORMALS.length; i++) {
-            // 1. Get the face's local normal
-            const localNormal = FACE_NORMALS[i];
-
-            // 2. Transform the local normal to world space using the mesh's World Matrix
-            const worldNormal = BABYLON.Vector3.TransformNormal(localNormal, diceMesh.getWorldMatrix());
-            
-            // 3. Normalize the world normal (in case transform introduced scaling issues)
-            worldNormal.normalize();
-
-            // 4. Calculate the dot product between the world normal and the world UP vector
-            // A dot product close to 1 means the face is pointing directly up.
-            const dot = BABYLON.Vector3.Dot(worldNormal, UP_VECTOR);
-
-            if (dot > maxDot) {
-                maxDot = dot;
-                result = FACE_VALUES[i];
-            }
-        }
-        return result;
-    };
-
-    const waitForDiceToSettle = (body) => {
-        return new Promise(resolve => {
-            const VELOCITY_THRESHOLD = 0.05;     // Maximum allowed velocity magnitude
-            const REQUIRED_STABLE_FRAMES = 5;    // Must be stable for 5 consecutive frames
-            const MAX_WAIT_MS = 20000;            // 5-second safety timeout
-            let stableFrames = 0;
-            let observer = null; 
-            
-            // --- Safety Valve ---
-            // If the dice fail to settle after 5 seconds, resolve the promise anyway.
-            const timeoutId = setTimeout(() => {
-                if (observer) {
-                    scene.onAfterRenderObservable.remove(observer);
-                }
-                console.warn("Dice stabilization timed out after 5s. Using current value.");
-                resolve(getDiceResult(body.mesh)); 
-            }, MAX_WAIT_MS);
-
-
-            const checkSettlement = () => {
-                // Safety check for physics body
-                if (!body || !body.physicsBody || !body.mesh) {
-                    scene.onAfterRenderObservable.remove(observer);
-                    clearTimeout(timeoutId);
-                    resolve(1); 
-                    return;
-                }
-                
-                const linearVelocity = body.getLinearVelocity().length();
-                const angularVelocity = body.getAngularVelocity().length();
-
-                if (linearVelocity < VELOCITY_THRESHOLD && angularVelocity < VELOCITY_THRESHOLD) {
-                    stableFrames++;
-                } else {
-                    stableFrames = 0;
-                }
-
-                if (stableFrames >= REQUIRED_STABLE_FRAMES) {
-                    // Die is truly settled
-                    scene.onAfterRenderObservable.remove(observer);
-                    clearTimeout(timeoutId);
-                    
-                    // *** Resolve with the result of your face function ***
-                    resolve(getDiceResult(body.mesh)); 
-                }
-            };
-
-            // Add a persistent observer to run checkSettlement every frame.
-            // It MUST be removed when settling is complete or timed out.
-            observer = scene.onAfterRenderObservable.add(checkSettlement);
-        });
-    };
-
-    const handleDiceRoll = () => {
-        if (isRolling || isMoving) return;
-        isRolling = true;
-        
-        // Disable button and update UI immediately
-        $('#roll-dice-button').prop('disabled', true).text('Rolling...');
-        $('#dice-roll-status').text(`Roll: Simulating...`);
-        
-        // 1. Dispose of previous dice (Existing logic is fine)
-        if (diceMeshes.length > 0) {
-            diceMeshes.forEach(mesh => {
-                if (mesh && mesh.physicsImpostor) mesh.physicsImpostor.dispose();
-                if (mesh && mesh.dispose) mesh.dispose();
-            });
-            diceMeshes = [];
-            diceBodies = [];
-        }
-
-        // 2. Create the new dice (They are created high up with initial spin)
-        const { meshes, bodies } = createDice(scene);
-        diceMeshes = meshes; 
-        diceBodies = bodies; 
-        
-        // 3. >> ADD IMPULSE FOR RANDOMIZATION HERE <<
-        const IMPULSE_MAGNITUDE = TILE_SIZE * 0; // Scale impulse based on tile size
-        const ANGULAR_BOOST = 5;
-
-        bodies.forEach(body => {
-            const cannonBody = body.physicsBody;
-            
-            // Horizontal Impulse (Random direction, low magnitude)
-            const impulseX = (Math.random() - 0.5) * IMPULSE_MAGNITUDE * 2;
-            const impulseZ = (Math.random() - 0.5) * IMPULSE_MAGNITUDE * 2;
-            
-            // Vertical Impulse (Small upward boost)
-            const impulseY = Math.random() * (IMPULSE_MAGNITUDE / 2) + 0.5;
-
-            const impulseVector = new BABYLON.Vector3(impulseX, impulseY, impulseZ);
-            
-            // Apply linear impulse at the center of mass
-            body.applyImpulse(impulseVector, body.mesh.getAbsolutePosition()); 
-
-            // Apply a bit more random spin (if you feel it's needed)
-            const currentAngular = body.getAngularVelocity();
-            const newAngular = new BABYLON.Vector3(
-                 currentAngular.x + (Math.random() - 0.5) * ANGULAR_BOOST,
-                 currentAngular.y + (Math.random() - 0.5) * ANGULAR_BOOST,
-                 currentAngular.z + (Math.random() - 0.5) * ANGULAR_BOOST
-            );
-            body.setAngularVelocity(newAngular);
-        });
-        // 4. Wait for both dice to settle
-        const diceSettlePromises = bodies.map(body => waitForDiceToSettle(body));
-
-        Promise.all(diceSettlePromises).then(results => {
-            // ... (rest of the logic remains the same)
-            let totalRoll = results.reduce((sum, current) => sum + current, 0);
-            $('#dice-roll-status').text(`Roll: ${results.join(' + ')} = ${totalRoll}`);
-
-            setTimeout(() => {
-                movePlayer(totalRoll);
-            }, 750); 
-            
-        }).catch(error => {
-            console.error("Dice roll failed:", error);
-            isRolling = false;
-            $('#roll-dice-button').prop('disabled', false).text('Roll Dice');
-        });
-    };
-    /*const getDiceValue = (diceMesh) => {
-        // 1. Define the six face-normal vectors (Local coordinates of the dice) 
-        // and their corresponding dice values (dots).
-        const faces = [
-            { dir: new BABYLON.Vector3(0, 1, 0), value: 1 },  // Top
-            { dir: new BABYLON.Vector3(0, -1, 0), value: 6 }, // Bottom
-            { dir: new BABYLON.Vector3(1, 0, 0), value: 5 },  // Right
-            { dir: new BABYLON.Vector3(-1, 0, 0), value: 2 }, // Left
-            { dir: new BABYLON.Vector3(0, 0, 1), value: 3 },  // Front
-            { dir: new BABYLON.Vector3(0, 0, -1), value: 4 }  // Back
+        const FACE_NORMALS = [
+            new BABYLON.Vector3(1, 0, 0),    // Right (+X)
+            new BABYLON.Vector3(-1, 0, 0),   // Left (-X)
+            new BABYLON.Vector3(0, 1, 0),    // Top (+Y)
+            new BABYLON.Vector3(0, -1, 0),   // Bottom (-Y)
+            new BABYLON.Vector3(0, 0, 1),    // Front (+Z)
+            new BABYLON.Vector3(0, 0, -1)    // Back (-Z)
         ];
 
-        // 2. The World's Up direction (normalized)
-        const worldUp = new BABYLON.Vector3(0, 1, 0);
-        
-        let maxDot = -Infinity;
-        let finalValue = 1;
+        // Use this corrected array:
+        const FACE_VALUES = [5, 2, 4, 3, 1, 6]; // Matches face order: Right, Left, Top, Bottom, Front, Back (as defined by faceValues array in createDice)
 
-        // 3. Check each face
-        for (const face of faces) {
-            // Transform the local face direction vector into the world coordinate system
-            const worldDir = BABYLON.Vector3.TransformNormal(face.dir, diceMesh.getWorldMatrix());
 
-            // Calculate the dot product between the face's world direction and the world's up vector.
-            // A value close to 1 means the face is pointing straight up.
-            const dotProduct = BABYLON.Vector3.Dot(worldDir, worldUp);
+        // Game State
+        let playerPositions = [1, 1]; // Player 1 and Player 2 start at tile 1
+        let currentPlayer = 0; // 0 for Player 1, 1 for Player 2
+        let isRolling = false;
+        let isMoving = false;
+        let scene = null;
+        let engine = null;
 
-            if (dotProduct > maxDot) {
-                maxDot = dotProduct;
-                finalValue = face.value;
+        // 3D Mesh References
+        let playerMeshes = [];
+        let diceMeshes = []; // Array for two dice
+        let diceBodies = []; // Array for two dice physics bodies
+
+        // Colors
+        const playerColors = [
+            new BABYLON.Color3.FromHexString("#FBBF24"), // Yellow (Player 1)
+            new BABYLON.Color3.FromHexString("#3B82F6"), // Blue (Player 2)
+        ];
+
+        // =================================================================
+        // UPDATED: WASD Camera Controls Function
+        // =================================================================
+        const addCameraWASDControls = (camera, canvas, scene) => {
+            const keys = {};
+            const speed = TILE_SIZE * 0.05; // Panning speed per frame, scaled by tile size
+
+            // Setup key state tracking (No change needed here)
+            document.addEventListener('keydown', (event) => {
+                const key = event.key.toLowerCase();
+                if (key === 'w' || key === 'a' || key === 's' || key === 'd') {
+                    keys[key] = true;
+                    event.preventDefault();
+                }
+            });
+
+            document.addEventListener('keyup', (event) => {
+                const key = event.key.toLowerCase();
+                if (key === 'w' || key === 'a' || key === 's' || key === 'd') {
+                    keys[key] = false;
+                }
+            });
+
+            // Apply movement on every frame
+            scene.onBeforeRenderObservable.add(() => {
+                let dx = 0;
+                let dz = 0;
+
+                // 1. Calculate the view direction vector on the X-Z plane based on camera.alpha
+                // We swap the sin/cos terms to correct the 90-degree offset observed in your controls.
+
+                // FORWARD vector (Camera to Target, on XZ plane):
+                // Original: (-sin(alpha), -cos(alpha)). Adjusted:
+                const forwardX = Math.cos(camera.alpha);  // Swapped sin/cos and adjusted sign
+                const forwardZ = Math.sin(camera.alpha);  // Swapped sin/cos and adjusted sign
+
+                // STRAFE vector (90 degrees to the right of the forward direction, on XZ plane):
+                // Original: (cos(alpha), -sin(alpha)). Adjusted:
+                const strafeX = -Math.sin(camera.alpha); // Swapped sin/cos and adjusted sign
+                const strafeZ = Math.cos(camera.alpha);  // Swapped sin/cos and adjusted sign
+
+                // --- STANDARD WASD MAPPING (UNCHANGED) ---
+
+                // W/S: Move along the FORWARD/BACKWARD vector
+                if (keys['s']) { // W: Move FORWARD 
+                    dx += forwardX * speed;
+                    dz += forwardZ * speed;
+                }
+                if (keys['w']) { // S: Move BACKWARD
+                    dx -= forwardX * speed;
+                    dz -= forwardZ * speed;
+                }
+
+                // A/D: Move along the STRAFE LEFT/RIGHT vector
+                if (keys['d']) { // D: Strafe RIGHT
+                    dx += strafeX * speed;
+                    dz += strafeZ * speed;
+                }
+                if (keys['a']) { // A: Strafe LEFT
+                    dx -= strafeX * speed;
+                    dz -= strafeZ * speed;
+                }
+
+                // --- END WASD MAPPING ---
+
+                if (dx !== 0 || dz !== 0) {
+                    // Translate the camera's target
+                    camera.target.x += dx;
+                    camera.target.z += dz;
+
+                    // Translate the camera's position to maintain the same perspective
+                    camera.position.x += dx;
+                    camera.position.z += dz;
+                }
+            });
+        };
+        // ------------------------------------------
+
+        // =================================================================
+        // Babylon/Cannon Setup
+        // =================================================================
+
+        const createScene = function () {
+            const canvas = document.getElementById("renderCanvas");
+            engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+
+            scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color3(0.1, 0.1, 0.1); // Dark background
+
+            // Enable Physics
+            scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), new BABYLON.CannonJSPlugin());
+
+            // Camera
+            const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 4, BOARD_WIDTH * 1.5, new BABYLON.Vector3(0, BOARD_WIDTH * 0.2, 0), scene);
+            camera.attachControl(canvas, true);
+            camera.lowerRadiusLimit = BOARD_WIDTH * 0.8;
+            camera.upperRadiusLimit = BOARD_WIDTH * 2.5;
+            camera.target = new BABYLON.Vector3(0, TILE_SIZE * 2, 0); // Focus a bit higher
+
+            // >>> ADDED: WASD Camera Controls <<<
+            addCameraWASDControls(camera, canvas, scene);
+
+            // Lighting
+            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+            light.intensity = 0.7;
+            const spotLight = new BABYLON.PointLight("spotLight", new BABYLON.Vector3(BOARD_WIDTH / 2, BOARD_WIDTH * 2, -BOARD_WIDTH / 2), scene);
+            spotLight.intensity = 0.8;
+
+            // Floor Plane (Physics ground for overall scene)
+            const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: BOARD_WIDTH * 3, height: BOARD_WIDTH * 3 }, scene);
+            ground.material = new BABYLON.StandardMaterial("groundMat", scene);
+            ground.material.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+            ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 0, restitution: 0.9 }, scene);
+
+
+            // Call functions to build game elements
+            createBoard(scene);
+            createDiceBoard(scene);
+            createPlayers(scene);
+            //createDice(scene);
+            createSLModels(scene); // --- NEW: Create 3D Snakes and Ladders Models ---
+
+            // The game loop
+            engine.runRenderLoop(() => {
+                scene.render();
+            });
+
+            // Handle window resizing
+            window.addEventListener("resize", function () {
+                engine.resize();
+            });
+
+            return scene;
+        };
+
+        // =================================================================
+        // 3D Geometry Generation
+        // =================================================================
+
+        // Function to calculate tile position (bottom-left of image is Tile 1)
+        const getTilePosition = (tileNumber) => {
+            if (tileNumber < 1 || tileNumber > TOTAL_TILES) return null;
+
+            const index = tileNumber - 1; // 0-99
+            let row = Math.floor(index / BOARD_SIZE); // 0 to 9
+            let col = index % BOARD_SIZE;           // 0 to 9
+
+            // Adjust for Boustrophedon (snake-like) numbering pattern
+            if (row % 2 === 1) { // Odd rows (from bottom: 1, 3, 5, ...) go right-to-left
+                col = BOARD_SIZE - 1 - col;
             }
-        }
-        
-        return finalValue;
-    };*/
 
-    /*const rollDice = () => {
-        if (isRolling || isMoving) return;
-        isRolling = true;
-        
-        $('#roll-dice-button').prop('disabled', true).text('Rolling...');
+            const x = (col * TILE_SIZE) + (TILE_SIZE / 2) - (BOARD_WIDTH / 2);
+            const z = (row * TILE_SIZE) + (TILE_SIZE / 2) - (BOARD_WIDTH / 2); // Z is depth/Y-axis on board
 
-        let totalRoll = 0;
-        let diceSettlePromises = [];
-        
-        // --- Realistic Roll Constants ---
-        const diceSize = TILE_SIZE * 0.4;
-        
-        // Increased spawn height for a higher, more visible roll (e.g., 5x size)
-        const rollHeight = diceSize * 5.0; 
-        
-        // Adjusted Impulse and Angular Velocity constants
-        const IMPULSE_MAGNITUDE_MAX = 5.0; // Max horizontal push (Kept low to stay contained)
-        const VERTICAL_IMPULSE = 3.0; // Small upward impulse for initial toss
-        const ANGULAR_VELOCITY_MAX = 10;    // Max spin
+            return new BABYLON.Vector3(x, 0.5, z); // Y is half the tile height for the pawn to sit on top
+        };
 
-        // The center point of the mat (assuming Y=0 is the mat's surface)
-        const diceBoardCenter = new BABYLON.Vector3(BOARD_WIDTH / 2 + TILE_SIZE * 3.5, 0, 0); 
-        
-        for (let i = 0; i < diceMeshes.length; i++) {
-            const diceMesh = diceMeshes[i];
-            const diceBody = diceBodies[i];
+        // --- UPDATED: To include alternating colors (individual tile meshes) ---
+        const createBoard = (scene) => {
+            // 1. Alternating Tile Meshes
+            const darkColor = BABYLON.Color3.FromHexString("#2C3E50"); // Dark Gray
+            const lightColor = BABYLON.Color3.FromHexString("#ECF0F1"); // Light Gray/White
 
-            const cannonBody = diceBody.physicsBody;
+            const numberPromises = [];
+            for (let i = 1; i <= TOTAL_TILES; i++) {
+                const pos = getTilePosition(i);
+                tilePositions[i] = pos; // Store positions
 
-            // 1. Reset State
-            cannonBody.angularVelocity.set(0, 0, 0);
-            cannonBody.velocity.set(0, 0, 0);
+                // Determine row and column for coloring
+                const index = i - 1;
+                let row = Math.floor(index / BOARD_SIZE);
+                let col = index % BOARD_SIZE;
 
-            // 2. Calculate new spawn position (Slightly scattered, using the higher rollHeight)
-            const scatterRange = diceSize * 0.2; 
-            const randomXOffset = (Math.random() * scatterRange) - (scatterRange / 2);
-            const randomZOffset = (Math.random() * scatterRange) - (scatterRange / 2);
-            
-            const newPosition = new BABYLON.Vector3(
-                diceBoardCenter.x + randomXOffset,
-                rollHeight + (i * diceSize * 0.1), // Higher spawn
-                diceBoardCenter.z + randomZOffset
+                // Determine alternating color based on standard chess pattern
+                const colorIndex = (row + col) % 2;
+                const tileColor = colorIndex === 0 ? darkColor : lightColor;
+
+                // Create individual tile mesh (height 0.5)
+                const tile = BABYLON.MeshBuilder.CreateBox(`tile_${i}`, { width: TILE_SIZE, height: 0.5, depth: TILE_SIZE }, scene);
+                tile.position = new BABYLON.Vector3(pos.x, 0.0, pos.z);
+
+                const tileMat = new BABYLON.StandardMaterial(`tileMat_${i}`, scene);
+                tileMat.diffuseColor = tileColor;
+                tile.material = tileMat;
+
+                //numberPromises.push(createTileNumber(i, pos));
+            }
+
+            // 2. Main Board Texture Plane (placed slightly above the tiles, semi-transparent)
+            const boardPlane = BABYLON.MeshBuilder.CreatePlane("boardPlane", { width: BOARD_WIDTH, height: BOARD_WIDTH }, scene);
+            boardPlane.rotation.x = Math.PI / 2;
+            boardPlane.position.y = 0.3; // Slightly above the tiles (0.5 height)
+
+            const boardMaterial = new BABYLON.StandardMaterial("boardMat", scene);
+
+            if (IMAGE_CONTENT_ID) {
+                boardMaterial.diffuseTexture = new BABYLON.Texture(IMAGE_CONTENT_ID, scene);
+                boardMaterial.hasAlpha = true;
+                boardMaterial.alpha = 0.8; // Make it slightly transparent so the colors beneath show through
+                boardMaterial.backFaceCulling = false;
+            } else {
+                console.warn("Could not load board image. Using default color.");
+                boardMaterial.diffuseColor = BABYLON.Color3.White();
+            }
+
+            boardMaterial.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+            boardPlane.material = boardMaterial;
+
+            // 3. Base box for the overall platform
+            const boardBase = BABYLON.MeshBuilder.CreateBox("boardBase", { width: BOARD_WIDTH + 2, height: 0.5, depth: BOARD_WIDTH + 2 }, scene);
+            boardBase.position.y = -0.25;
+            boardBase.material = new BABYLON.StandardMaterial("boardBaseMat", scene);
+            boardBase.material.diffuseColor = new BABYLON.Color3.FromHexString("#7F8C8D"); // Dark base
+        };
+
+        const createTileNumber = async (tileNumber, position) => {
+            // Rotation to lay the text flat on the board
+            const TILE_FLAT_ROTATION = Math.PI / 2;
+
+            // Public URL for Droid Sans Regular font JSON (from Babylon.js assets)
+            const FONT_URL = "https://assets.babylonjs.com/fonts/Droid Sans_Regular.json";
+            const TEXT = String(tileNumber);
+
+            // Fetch font data only once and cache it on the scene object
+            if (!scene.fontData) {
+                try {
+                    const response = await fetch(FONT_URL);
+                    scene.fontData = await response.json();
+                } catch (error) {
+                    console.error("Failed to load font data for 3D text:", error);
+                    return;
+                }
+            }
+
+            // Determine the row for rotation logic
+            const index = tileNumber - 1;
+            const row = Math.floor(index / BOARD_SIZE);
+
+            // Create the 3D text mesh
+            const textMesh = BABYLON.MeshBuilder.CreateText(
+                `tileNumber_${tileNumber}`,
+                TEXT,
+                scene.fontData,
+                {
+                    // *** CHANGE 1: Make the text smaller (e.g., TILE_SIZE * 0.3) ***
+                    size: TILE_SIZE * 0.3,
+                    resolution: 64,
+                    depth: TILE_SIZE * 0.05,
+                    sideOrientation: BABYLON.Mesh.DEFAULTSIDE
+                },
+                scene
             );
 
-            // 3. Teleport and Synchronize (Re-summon to starting point)
-            cannonBody.position.set(newPosition.x, newPosition.y, newPosition.z);
-            cannonBody.quaternion.set(0, 0, 0, 1);
-            diceBody.forceUpdate();
-            
-            // 4. Apply Impulse and Spin
-            
-            // Horizontal Impulse: Low magnitude, random direction
-            const impulseX = (Math.random() * IMPULSE_MAGNITUDE_MAX * 2) - IMPULSE_MAGNITUDE_MAX;
-            const impulseZ = (Math.random() * IMPULSE_MAGNITUDE_MAX * 2) - IMPULSE_MAGNITUDE_MAX;
-            // Vertical Impulse: Increased vertical impulse for a high initial push
-            const impulseY = Math.random() * VERTICAL_IMPULSE; 
-            
-            const impulseVector = new BABYLON.Vector3(impulseX, impulseY, impulseZ);
-            
-            // Angular Velocity: Apply random spin on all axes
-            const angularX = (Math.random() * ANGULAR_VELOCITY_MAX * 2) - ANGULAR_VELOCITY_MAX;
-            const angularY = (Math.random() * ANGULAR_VELOCITY_MAX * 2) - ANGULAR_VELOCITY_MAX;
-            const angularZ = (Math.random() * ANGULAR_VELOCITY_MAX * 2) - ANGULAR_VELOCITY_MAX;
-            
-            const angularVector = new BABYLON.Vector3(angularX, angularY, angularZ);
-            
-            // Apply linear impulse at the center of mass
-            diceBody.applyImpulse(impulseVector, diceMesh.getAbsolutePosition()); 
-            
-            // Apply angular velocity for spin
-            diceBody.setAngularVelocity(angularVector);
+            // Apply the base rotation to lay it flat on the XZ plane
+            textMesh.rotation.x = TILE_FLAT_ROTATION;
 
-            // 5. Wait for Dice to Settle & Read Result
-            diceSettlePromises.push(new Promise(resolve => {
-                let settleCheckCount = 0;
-                const maxChecks = 200; // Increased max checks for the longer roll time
-                const SETTLE_THRESHOLD = 0.05; 
-                const checkInterval = setInterval(() => {
-                    settleCheckCount++;
-                    const velocity = diceBody.getLinearVelocity();
-                    const angularVelocity = diceBody.getAngularVelocity();
-                    
-                    const isSettled = velocity.length() < SETTLE_THRESHOLD && angularVelocity.length() < SETTLE_THRESHOLD; 
+            // Position the text mesh at the tile center
+            textMesh.position.copyFrom(position);
+            textMesh.position.y = 0.05; // Slightly above the board's surface
 
-                    if (isSettled || settleCheckCount >= maxChecks) {
-                        clearInterval(checkInterval);
-                        
-                        // *** CRITICAL CHANGE: Get the actual dice face value ***
-                        const faceValue = getDiceValue(diceMesh); 
-                        resolve(faceValue); 
-                    }
-                }, 30); 
-            }));
-        }
+            // *** CHANGE 2 & 3: Fix text centering and alternating row rotation ***
 
-        Promise.all(diceSettlePromises).then(results => {
-            totalRoll = results.reduce((sum, current) => sum + current, 0);
-            $('#dice-roll-status').text(`Roll: ${results.join(' + ')} = ${totalRoll}`);
+            // 1. Text Centering Offset: By default, CreateText meshes are centered, 
+            //    but due to the rotation, a small offset is needed on the Z-axis for a perfect center.
+            //    We offset by half the size.
+            textMesh.position.z -= TILE_SIZE * 0.3 / 2;
 
-            isRolling = false; // Mark the physics part of the roll as finished
-            
-            // *** CRITICAL CHANGE: movePlayer is now called only after Promise.all resolves ***
-            // This guarantees the dice have finished rolling and settling.
-            setTimeout(() => {
-                movePlayer(totalRoll);
-            }, 500); // Small delay for visual confirmation
-        });
-    };*/
+            // 2. Fix Reversed Text: On alternate rows, the text direction reverses.
+            //    We need to rotate it by 180 degrees (PI) around the Y-axis to make it readable.
+            //    For odd rows (right-to-left):
+            if (row % 2 === 1) {
+                textMesh.rotation.y = Math.PI; // 180 degrees rotation on the Y-axis
 
-    const movePlayer = (roll) => {
-        isMoving = true;
-        
-        let currentPos = playerPositions[currentPlayer];
-        let targetPos = currentPos + roll;
-        targetPos = Math.min(targetPos, TOTAL_TILES); // Cap at 100
-
-        // If landing exactly on 100, they win
-        if (targetPos === TOTAL_TILES) {
-            animateMovement(currentPos, targetPos, roll, () => {
-                playerPositions[currentPlayer] = targetPos;
-                checkWinCondition();
-                isMoving = false;
-            });
-            return;
-        }
-
-        // Animate the main movement first
-        animateMovement(currentPos, targetPos, roll, () => {
-            playerPositions[currentPlayer] = targetPos;
-            
-            // Check for snake/ladder AFTER the main move animation finishes
-            if (slMap[targetPos]) {
-                const finalPos = slMap[targetPos];
-                const type = finalPos > targetPos ? 'Ladder' : 'Snake';
-                
-                // Show message
-                $('#dice-roll-status').text(`${type}! Moving to ${finalPos}...`);
-
-                // Animate the snake/ladder move
-                setTimeout(() => {
-                    animateSL(targetPos, finalPos, () => {
-                        playerPositions[currentPlayer] = finalPos;
-                        isMoving = false;
-                        checkWinCondition();
-                        nextTurn();
-                    });
-                }, 500); // Wait briefly before starting SL move
-
-            } else {
-                isMoving = false;
-                nextTurn();
+                // When rotated 180 degrees on Y, the Z-offset must also be reversed.
+                // We restore the offset by adding it back twice the original amount.
+                // Original Z: position.z - offset
+                // New Z: (position.z - offset) + (offset * 2) = position.z + offset
+                textMesh.position.z += TILE_SIZE * 0.3;
             }
-        });
-    };
 
-    const animateMovement = (startTile, endTile, steps, callback) => {
-        const playerMesh = playerMeshes[currentPlayer];
-        const initialOffset = currentPlayer === 0 ? -TILE_SIZE * 0.2 : TILE_SIZE * 0.2;
-        const animationTimePerStep = 200; // 200ms per step
+            // Add material
+            const textMaterial = new BABYLON.StandardMaterial(`textMat_${tileNumber}`, scene);
+            textMaterial.diffuseColor = BABYLON.Color3.FromHexString("#333333");
+            textMaterial.specularColor = BABYLON.Color3.Black();
+            textMesh.material = textMaterial;
+        };
 
-        let currentTile = startTile;
-        let stepCount = 0;
+        const createDiceBoard = (scene) => {
+            const diceBoardWidth = TILE_SIZE * 5;
+            const diceBoardHeight = TILE_SIZE * 0.5;
+            // Position X is calculated to be centered relative to the main board: BOARD_WIDTH / 2 + (5 * TILE_SIZE / 2) + TILE_SIZE
+            const diceBoardPosition = new BABYLON.Vector3(BOARD_WIDTH / 2 + diceBoardWidth / 2 + TILE_SIZE, diceBoardHeight / 2, 0); // To the right of the main board
 
-        const executeStep = () => {
-            stepCount++;
-            if (currentTile >= endTile) {
-                callback(); // Movement finished
+            const diceBoard = BABYLON.MeshBuilder.CreateBox("diceBoard", { width: diceBoardWidth, height: diceBoardHeight, depth: diceBoardWidth }, scene);
+            diceBoard.position = diceBoardPosition;
+
+            const diceBoardMaterial = new BABYLON.StandardMaterial("diceBoardMat", scene);
+            diceBoardMaterial.diffuseColor = BABYLON.Color3.FromHexString("#4B5563"); // Darker gray
+            diceBoardMaterial.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+            diceBoard.material = diceBoardMaterial;
+
+            // Reduced restitution on the board ensures less bounce overall
+            diceBoard.physicsImpostor = new BABYLON.PhysicsImpostor(diceBoard, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 0, restitution: 0.3, friction: 0.7 }, scene);
+        };
+
+
+        const createPlayers = (scene) => {
+            const radius = TILE_SIZE * 0.2; // Adjusted for larger tiles
+            const height = TILE_SIZE * 0.6; // Taller pawns
+            const offset = TILE_SIZE * 0.2; // Offset for two players on one tile
+
+            // Player 1 (Yellow Pawn)
+            const player1 = BABYLON.MeshBuilder.CreateCylinder("player1", { diameter: radius, height: height, tessellation: 24 }, scene);
+            player1.material = new BABYLON.StandardMaterial("p1Mat", scene);
+            player1.material.diffuseColor = playerColors[0];
+            player1.material.emissiveColor = playerColors[0].scale(0.2);
+
+            // Player 2 (Blue Pawn)
+            const player2 = BABYLON.MeshBuilder.CreateCylinder("player2", { diameter: radius, height: height, tessellation: 24 }, scene);
+            player2.material = new BABYLON.StandardMaterial("p2Mat", scene);
+            player2.material.diffuseColor = playerColors[1];
+            player2.material.emissiveColor = playerColors[1].scale(0.2);
+
+            playerMeshes = [player1, player2];
+
+            // Place players at start (Tile 1) with slight offset
+            updatePlayerMeshPosition(0, playerPositions[0], -offset);
+            updatePlayerMeshPosition(1, playerPositions[1], offset);
+        };
+
+        // Function to create dice dots on a canvas
+        const createDiceFaceTexture = (value, scene) => {
+            const textureResolution = 256;
+            const dynamicTexture = new BABYLON.DynamicTexture(`diceFace${value}Texture`, textureResolution, scene, true);
+            const ctx = dynamicTexture.getContext();
+
+            ctx.clearRect(0, 0, textureResolution, textureResolution);
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, textureResolution, textureResolution);
+            ctx.fillStyle = "black";
+            const dotRadius = textureResolution * 0.08; // Adjusted dot size
+
+            const center = textureResolution / 2;
+            const offset = textureResolution * 0.25;
+
+            // Draw dots based on dice value
+            switch (value) {
+                case 1:
+                    ctx.beginPath(); ctx.arc(center, center, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    break;
+                case 2:
+                    ctx.beginPath(); ctx.arc(center - offset, center + offset, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(center + offset, center - offset, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    break;
+                case 3:
+                    ctx.beginPath(); ctx.arc(center - offset, center + offset, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(center, center, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(center + offset, center - offset, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    break;
+                case 4:
+                    ctx.beginPath(); ctx.arc(center - offset, center - offset, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(center + offset, center - offset, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(center - offset, center + offset, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(center + offset, center + offset, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    break;
+                case 5:
+                    ctx.beginPath(); ctx.arc(center - offset, center - offset, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(center + offset, center - offset, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(center - offset, center + offset, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(center + offset, center + offset, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(center, center, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    break;
+                case 6:
+                    ctx.beginPath(); ctx.arc(center - offset, center - offset, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(center + offset, center - offset, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(center - offset, center, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(center + offset, center, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(center - offset, center + offset, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(center + offset, center + offset, dotRadius, 0, Math.PI * 2); ctx.fill();
+                    break;
+            }
+            dynamicTexture.update();
+            return dynamicTexture;
+        };
+
+        const createDice = (scene) => {
+            const size = TILE_SIZE * 0.4; // Adjusted for larger tiles
+            const faceUV = [];
+            // Map 3D dice faces to specific 2D texture coordinates or values
+            // Babylon.js box face order: right, left, top, bottom, front, back
+            // We'll map them to 1, 6, 5, 2, 4, 3 (common dice layout)
+            const faceValues = [1, 6, 5, 2, 4, 3];
+
+            // --- Dice Board Centering Logic ---
+            // Calculate the center X position of the dice board:
+            // (BOARD_WIDTH / 2 + TILE_SIZE) is the left edge of the board.
+            // (TILE_SIZE * 5) / 2 is half the board's width.
+            const DICE_BOARD_CENTER_X = (BOARD_WIDTH / 2 + TILE_SIZE) + (TILE_SIZE * 5) / 2;
+            const SPAWN_HEIGHT = TILE_SIZE * 4; // High enough to ensure a good drop onto the board
+            const DICE_SEPARATION_OFFSET = size * 0.75; // Small offset to keep the two dice separate
+            // -----------------------------------
+
+            // Create a multi-material for the dice to apply textures to specific faces
+            const multiMaterial = new BABYLON.MultiMaterial("diceMultiMat", scene);
+            for (let i = 0; i < 6; i++) {
+                const mat = new BABYLON.StandardMaterial(`diceFaceMat${faceValues[i]}`, scene);
+                mat.diffuseTexture = createDiceFaceTexture(faceValues[i], scene);
+                mat.specularColor = new BABYLON.Color3(0, 0, 0); // No shine
+                multiMaterial.subMaterials.push(mat);
+            }
+
+            const currentDiceMeshes = []; // Temporary array to hold the newly created meshes for return
+            const currentDiceBodies = []; // Temporary array to hold the newly created bodies for return
+
+            for (let i = 0; i < 2; i++) { // Create two dice
+                const diceMesh = BABYLON.MeshBuilder.CreateBox(`dice${i}`, { size: size, faceUV: faceUV, wrap: true }, scene);
+
+                // 1. Set Random Initial Face Orientation
+                diceMesh.rotation.x = Math.random() * Math.PI * 2;
+                diceMesh.rotation.y = Math.random() * Math.PI * 2;
+                diceMesh.rotation.z = Math.random() * Math.PI * 2;
+
+                // Calculate position to center dice above the dice board with a small separation
+                const xPos = DICE_BOARD_CENTER_X + (i === 0 ? -DICE_SEPARATION_OFFSET : DICE_SEPARATION_OFFSET);
+                diceMesh.position = new BABYLON.Vector3(xPos, SPAWN_HEIGHT, 0); // Initial position centered above the board
+
+                diceMesh.material = multiMaterial;
+
+                // Set submeshes to use the different materials (faces)
+                // This is a bit manual, but ensures correct dot mapping for a standard die
+                diceMesh.subMeshes = [];
+                diceMesh.subMeshes.push(new BABYLON.SubMesh(0, 0, diceMesh.getTotalVertices(), 0, 6, diceMesh)); // Face 1 (Right)
+                diceMesh.subMeshes.push(new BABYLON.SubMesh(1, 0, diceMesh.getTotalVertices(), 6, 6, diceMesh)); // Face 6 (Left)
+                diceMesh.subMeshes.push(new BABYLON.SubMesh(2, 0, diceMesh.getTotalVertices(), 12, 6, diceMesh)); // Face 5 (Top)
+                diceMesh.subMeshes.push(new BABYLON.SubMesh(3, 0, diceMesh.getTotalVertices(), 18, 6, diceMesh)); // Face 2 (Bottom)
+                diceMesh.subMeshes.push(new BABYLON.SubMesh(4, 0, diceMesh.getTotalVertices(), 24, 6, diceMesh)); // Face 4 (Front)
+                diceMesh.subMeshes.push(new BABYLON.SubMesh(5, 0, diceMesh.getTotalVertices(), 30, 6, diceMesh)); // Face 3 (Back)
+
+
+                const diceBody = new BABYLON.PhysicsImpostor(diceMesh, BABYLON.PhysicsImpostor.BoxImpostor, {
+                    mass: 0.5, // Reduced mass for a less heavy fall, simulating reduced gravity
+                    restitution: 0.2, // Significantly reduced bounce
+                    friction: 0.8 // Increased friction to help them stop rolling faster
+                }, scene);
+
+                diceBody.mesh = diceMesh;
+
+                // 2. Apply Random Angular Velocity to make the dice roll
+                const angularVelocityMagnitude = 10; // Controls the initial spin speed
+                const randomAngularVelocity = new BABYLON.Vector3(
+                    (Math.random() - 0.5) * angularVelocityMagnitude,
+                    (Math.random() - 0.5) * angularVelocityMagnitude,
+                    (Math.random() - 0.5) * angularVelocityMagnitude
+                );
+                diceBody.setAngularVelocity(randomAngularVelocity);
+
+                // Assuming diceMeshes/diceBodies are global arrays defined outside
+                // diceMeshes.push(diceMesh);
+                // diceBodies.push(diceBody);
+
+                currentDiceMeshes.push(diceMesh);
+                currentDiceBodies.push(diceBody);
+            }
+            return { meshes: currentDiceMeshes, bodies: currentDiceBodies }; // Return both meshes and bodies
+        };
+
+        const createLadderModel = (scene, startTile, endTile, ladderMaterial, getCenterPos, TILE_SIZE) => {
+            const pStart = getCenterPos(startTile, TILE_SIZE * 0.05);
+            const pEnd = getCenterPos(endTile, TILE_SIZE * 0.05);
+
+            const direction = pEnd.subtract(pStart);
+            const distance = direction.length();
+            const midPoint = pStart.add(direction.scale(0.5));
+
+            const ladderWidth = TILE_SIZE * 0.5;
+
+            // --- Ladder Component Dimensions and Materials ---
+            const railWidth = TILE_SIZE * 0.05;
+            const railDepth = TILE_SIZE * 0.05;
+            const rungRadius = TILE_SIZE * 0.035; // Diameter is 2x this
+            const rungThickness = ladderWidth * 0.8; // Rungs span most of the width
+
+            // Material for the rungs (Wood-like appearance)
+            const rungMaterial = new BABYLON.StandardMaterial(`rungMat_${startTile}`, scene);
+            rungMaterial.diffuseColor = BABYLON.Color3.FromHexString("#A0522D"); // Sienna brown
+            rungMaterial.specularColor = BABYLON.Color3.Black();
+
+            // 1. Create a container (TransformNode) for the ladder components
+            const ladderContainer = new BABYLON.TransformNode(`ladderContainer_${startTile}_${endTile}`, scene);
+
+            // 2. Create the two side rails (Boxes)
+            const railOffset = (ladderWidth / 2) - (railWidth / 2);
+
+            // Rail 1 (Left side)
+            const rail1 = BABYLON.MeshBuilder.CreateBox("rail1", {
+                width: railWidth,
+                height: distance, // Height is the distance between start and end
+                depth: railDepth
+            }, scene);
+            rail1.position.x = -railOffset;
+            rail1.material = ladderMaterial; // Green material for the sides
+            rail1.parent = ladderContainer;
+
+            // Rail 2 (Right side)
+            const rail2 = BABYLON.MeshBuilder.CreateBox("rail2", {
+                width: railWidth,
+                height: distance,
+                depth: railDepth
+            }, scene);
+            rail2.position.x = railOffset;
+            rail2.material = ladderMaterial; // Green material for the sides
+            rail2.parent = ladderContainer;
+
+            // 3. Create Rungs (Cylinders)
+            // NOTE: Multiplier changed from 1.5 to 3.0 to increase rung density (compress steps)
+            const numRungs = Math.max(3, Math.floor(distance / TILE_SIZE * 3.0)); // Dynamic number of rungs
+            const stepSize = distance / (numRungs + 1); // Spacing between rungs
+
+            for (let i = 0; i < numRungs; i++) {
+                // Calculate Y position relative to the container's center (0,0,0).
+                // The container's height is centered at midPoint.
+                const rungY = (-distance / 2) + stepSize * (i + 1);
+
+                const rung = BABYLON.MeshBuilder.CreateCylinder(`rung_${i}`, {
+                    height: rungThickness, // The length of the rung
+                    diameter: rungRadius * 2
+                }, scene);
+
+                rung.material = rungMaterial;
+                rung.position.y = rungY;
+                rung.rotation.z = Math.PI / 2; // Rotate 90 deg so length is along X (connecting the rails)
+                rung.parent = ladderContainer;
+            }
+
+            // 4. Position and Rotate the entire ladder container
+            ladderContainer.position = midPoint;
+
+            // Calculate rotation (yaw and pitch)
+            const angleY = Math.atan2(direction.x, direction.z);
+            const angleP = Math.atan2(direction.y, Math.sqrt(direction.x * direction.x + direction.z * direction.z));
+
+            // Apply rotation
+            ladderContainer.rotation.y = angleY;
+            // Rotate around X axis to match the angle of the slope. +90 deg because components are built along Y axis
+            ladderContainer.rotation.x = angleP + Math.PI / 2;
+
+            return ladderContainer;
+        };
+
+
+        const createSnakeModel = (scene, startTile, endTile, getCenterPos, TILE_SIZE) => {
+            const pStart = getCenterPos(startTile, TILE_SIZE * 0.05); // Start (Head)
+            const pEnd = getCenterPos(endTile, TILE_SIZE * 0.05);    // End (Tail)
+
+            const direction = pEnd.subtract(pStart);
+            const distance = direction.length();
+
+            // 1. Generate Winding Path
+            const path = [];
+            const numSegments = Math.max(10, Math.floor(distance / TILE_SIZE * 4));
+            const wiggleAmplitude = TILE_SIZE * 0.25;
+
+            const perpX = direction.z;
+            const perpZ = -direction.x;
+            const perpVector = new BABYLON.Vector3(perpX, 0, perpZ).normalize().scale(wiggleAmplitude);
+
+            for (let i = 0; i <= numSegments; i++) {
+                const t = i / numSegments;
+                let p = pStart.add(direction.scale(t));
+                const wiggleFactor = Math.sin(i * Math.PI * 2 / (numSegments / 2));
+                const sideOffset = wiggleFactor * (1 - t * 0.5);
+                p = p.add(perpVector.scale(sideOffset));
+                p.y += TILE_SIZE * 0.05 + Math.sin(t * Math.PI) * TILE_SIZE * 0.2;
+                path.push(p);
+            }
+
+            // 2. Define Tapering Radius Function
+            const radiusFunction = (i, totalSegments) => {
+                const headRadius = TILE_SIZE * 0.15;
+                const connectionRadius = TILE_SIZE * 0.03;
+                const t = i / totalSegments;
+                return headRadius * (1 - 0.8 * t);
+            };
+
+            const tailConnectionRadius = radiusFunction(numSegments, numSegments);
+
+            // 3. Create the snake body as a tube
+            const snakeBody = BABYLON.MeshBuilder.CreateTube(`snakeBody_${startTile}_${endTile}`, {
+                path: path,
+                radiusFunction: radiusFunction,
+                tessellation: 20,
+                updatable: false
+            }, scene);
+
+            // 4. Apply Material
+            const stripeColor1 = BABYLON.Color3.FromHexString("#E74C3C");
+            const stripeColor2 = BABYLON.Color3.FromHexString("#442E75");
+
+            const snakeTexture = new BABYLON.StandardMaterial(`snakeTex_${startTile}`, scene);
+            snakeTexture.diffuseColor = stripeColor1;
+            snakeTexture.ambientColor = stripeColor2.scale(0.8);
+            snakeTexture.specularColor = BABYLON.Color3.FromHexString("#FFFFFF");
+            snakeTexture.shininess = 20;
+            snakeBody.material = snakeTexture;
+
+            // 5. Add Head Features
+            const headContainer = new BABYLON.TransformNode(`snakeHeadContainer_${startTile}_${endTile}`, scene);
+            headContainer.position = path[0];
+
+            const firstSegment = path[1].subtract(path[0]);
+            headContainer.rotation.y = Math.atan2(firstSegment.x, firstSegment.z) + Math.PI;
+
+            const headDiameter = TILE_SIZE * 0.3;
+            const head = BABYLON.MeshBuilder.CreateSphere("snakeHead", { diameter: headDiameter }, scene);
+            head.material = snakeTexture;
+            head.parent = headContainer;
+            head.position.z = -headDiameter * 0.4;
+
+            const eyeMaterial = new BABYLON.StandardMaterial("eyeMat", scene);
+            eyeMaterial.diffuseColor = BABYLON.Color3.Black();
+
+            const eyeDiameter = TILE_SIZE * 0.04;
+            const eyeOffset = TILE_SIZE * 0.05;
+            const eyeForward = TILE_SIZE * 0.13;
+
+            const eye1 = BABYLON.MeshBuilder.CreateSphere("eye1", { diameter: eyeDiameter }, scene);
+            eye1.material = eyeMaterial;
+            eye1.parent = headContainer;
+            eye1.position.x = -eyeOffset;
+            eye1.position.y = TILE_SIZE * 0.05;
+            eye1.position.z = head.position.z + eyeForward;
+
+            const eye2 = BABYLON.MeshBuilder.CreateSphere("eye2", { diameter: eyeDiameter }, scene);
+            eye2.material = eyeMaterial;
+            eye2.parent = headContainer;
+            eye2.position.x = eyeOffset;
+            eye2.position.y = TILE_SIZE * 0.05;
+            eye2.position.z = head.position.z + eyeForward;
+
+            const mouth = BABYLON.MeshBuilder.CreateBox("mouth", {
+                width: TILE_SIZE * 0.2,
+                height: TILE_SIZE * 0.01,
+                depth: TILE_SIZE * 0.05
+            }, scene);
+            mouth.material = eyeMaterial;
+            mouth.parent = headContainer;
+            const mouthForward = TILE_SIZE * 0.18;
+            mouth.position.z = head.position.z + mouthForward;
+            mouth.position.y = -TILE_SIZE * 0.08;
+
+            // 6. Add Pointy Tail Mesh
+            const pTail = path[path.length - 1];
+            const pNeck = path[path.length - 2];
+
+            // The vector pointing AWAY from the body (used for positioning)
+            const tailDirectionVector = pTail.subtract(pNeck).normalize();
+
+            // **FIX 1: The vector pointing FORWARD (used for rotation), reversed from above.**
+            const tailRotationVector = tailDirectionVector.scale(-1);
+
+            const tailLength = TILE_SIZE * 0.25;
+            const tailTip = BABYLON.MeshBuilder.CreateCylinder("snakeTailTip", {
+                height: tailLength,
+                diameterTop: 0,
+                diameterBottom: tailConnectionRadius * 2,
+                tessellation: 20,
+                sideOrientation: BABYLON.Mesh.DOUBLESIDE // Prevents culling issues
+            }, scene);
+
+            tailTip.material = snakeTexture;
+
+            // Corrected Rotation Logic using the reversed vector
+            const yaw = Math.atan2(tailRotationVector.x, tailRotationVector.z);
+            const pitch = Math.asin(tailRotationVector.y);
+
+            const finalRotation = BABYLON.Quaternion.RotationYawPitchRoll(
+                yaw,
+                pitch,
+                0
+            );
+            tailTip.rotationQuaternion = finalRotation;
+
+            // Positioning: Uses the original (un-reversed) vector to tuck the base into the tube
+            const overlapFactor = 0.4;
+            tailTip.position = pTail.add(tailDirectionVector.scale(-tailLength * overlapFactor));
+
+            // Combine all parts into a single mesh
+            const snakeModel = BABYLON.Mesh.MergeMeshes([snakeBody, tailTip, head, eye1, eye2, mouth], true, true, undefined, false, true);
+            snakeModel.name = `fullSnake_${startTile}_${endTile}`;
+
+            return snakeModel;
+        };
+
+        const createSLModels = (scene) => {
+            // 1. Define shared materials (only ladder is shared, snake creates its own inside the helper)
+            const ladderMaterial = new BABYLON.StandardMaterial("ladderMat", scene);
+            ladderMaterial.diffuseColor = BABYLON.Color3.FromHexString("#2ECC71"); // Green (Ladders)
+
+            // The initial snakeMaterial defined in the original snippet is redundant since
+            // snakeTexture is created inside createSnakeModel, so we omit the unused definition here.
+
+            // 2. Helper to get the center position of a tile, adjusted for the model base
+            const getCenterPos = (tileNumber, heightOffset = 0) => {
+                const pos = tilePositions[tileNumber];
+                // Y position is the top of the tile (0.25) + optional offset
+                return new BABYLON.Vector3(pos.x, 0.25 + heightOffset, pos.z);
+            }
+
+            // 3. Iterate and create models
+            Object.keys(slMap).forEach(startTileKey => {
+                const startTile = parseInt(startTileKey);
+                const endTile = slMap[startTile];
+
+                const isLadder = endTile > startTile;
+
+                if (!isLadder) {
+                    // Snake (downwards movement)
+                    createSnakeModel(scene, startTile, endTile, getCenterPos, TILE_SIZE);
+                } else {
+                    // Ladder (upwards movement)
+                    createLadderModel(scene, startTile, endTile, ladderMaterial, getCenterPos, TILE_SIZE);
+                }
+            });
+        }
+
+
+        const updatePlayerMeshPosition = (playerIndex, tileNumber, offset) => {
+            const pos = tilePositions[tileNumber];
+            if (!pos) return;
+
+            playerMeshes[playerIndex].position = new BABYLON.Vector3(
+                pos.x + offset,
+                TILE_SIZE * 0.35, // Adjust for pawn height
+                pos.z + offset
+            );
+        }
+
+        // =================================================================
+        // Game Logic
+        // =================================================================
+
+        const getDiceResult = (diceMesh) => {
+            const UP_VECTOR = new BABYLON.Vector3(0, 1, 0);
+            let maxDot = -Infinity;
+            let result = 0;
+
+            // Iterate through all 6 faces
+            for (let i = 0; i < FACE_NORMALS.length; i++) {
+                // 1. Get the face's local normal
+                const localNormal = FACE_NORMALS[i];
+
+                // 2. Transform the local normal to world space using the mesh's World Matrix
+                const worldNormal = BABYLON.Vector3.TransformNormal(localNormal, diceMesh.getWorldMatrix());
+
+                // 3. Normalize the world normal (in case transform introduced scaling issues)
+                worldNormal.normalize();
+
+                // 4. Calculate the dot product between the world normal and the world UP vector
+                // A dot product close to 1 means the face is pointing directly up.
+                const dot = BABYLON.Vector3.Dot(worldNormal, UP_VECTOR);
+
+                if (dot > maxDot) {
+                    maxDot = dot;
+                    result = FACE_VALUES[i];
+                }
+            }
+            return result;
+        };
+
+        const waitForDiceToSettle = (body) => {
+            return new Promise(resolve => {
+                const VELOCITY_THRESHOLD = 0.05;     // Maximum allowed velocity magnitude
+                const REQUIRED_STABLE_FRAMES = 5;    // Must be stable for 5 consecutive frames
+                const MAX_WAIT_MS = 20000;            // 5-second safety timeout
+                let stableFrames = 0;
+                let observer = null;
+
+                // --- Safety Valve ---
+                // If the dice fail to settle after 5 seconds, resolve the promise anyway.
+                const timeoutId = setTimeout(() => {
+                    if (observer) {
+                        scene.onAfterRenderObservable.remove(observer);
+                    }
+                    console.warn("Dice stabilization timed out after 5s. Using current value.");
+                    resolve(getDiceResult(body.mesh));
+                }, MAX_WAIT_MS);
+
+
+                const checkSettlement = () => {
+                    // Safety check for physics body
+                    if (!body || !body.physicsBody || !body.mesh) {
+                        scene.onAfterRenderObservable.remove(observer);
+                        clearTimeout(timeoutId);
+                        resolve(1);
+                        return;
+                    }
+
+                    const linearVelocity = body.getLinearVelocity().length();
+                    const angularVelocity = body.getAngularVelocity().length();
+
+                    if (linearVelocity < VELOCITY_THRESHOLD && angularVelocity < VELOCITY_THRESHOLD) {
+                        stableFrames++;
+                    } else {
+                        stableFrames = 0;
+                    }
+
+                    if (stableFrames >= REQUIRED_STABLE_FRAMES) {
+                        // Die is truly settled
+                        scene.onAfterRenderObservable.remove(observer);
+                        clearTimeout(timeoutId);
+
+                        // *** Resolve with the result of your face function ***
+                        resolve(getDiceResult(body.mesh));
+                    }
+                };
+
+                // Add a persistent observer to run checkSettlement every frame.
+                // It MUST be removed when settling is complete or timed out.
+                observer = scene.onAfterRenderObservable.add(checkSettlement);
+            });
+        };
+
+        const handleDiceRoll = () => {
+            if (isRolling || isMoving) return;
+            isRolling = true;
+
+            // Disable button and update UI immediately
+            $('#roll-dice-button').prop('disabled', true).text('Rolling...');
+            $('#dice-roll-status').text(`Roll: Simulating...`);
+
+            // 1. Dispose of previous dice (Existing logic is fine)
+            if (diceMeshes.length > 0) {
+                diceMeshes.forEach(mesh => {
+                    if (mesh && mesh.physicsImpostor) mesh.physicsImpostor.dispose();
+                    if (mesh && mesh.dispose) mesh.dispose();
+                });
+                diceMeshes = [];
+                diceBodies = [];
+            }
+
+            // 2. Create the new dice (They are created high up with initial spin)
+            const { meshes, bodies } = createDice(scene);
+            diceMeshes = meshes;
+            diceBodies = bodies;
+
+            // 3. >> ADD IMPULSE FOR RANDOMIZATION HERE <<
+            const IMPULSE_MAGNITUDE = TILE_SIZE * 0; // Scale impulse based on tile size
+            const ANGULAR_BOOST = 5;
+
+            bodies.forEach(body => {
+                const cannonBody = body.physicsBody;
+
+                // Horizontal Impulse (Random direction, low magnitude)
+                const impulseX = (Math.random() - 0.5) * IMPULSE_MAGNITUDE * 2;
+                const impulseZ = (Math.random() - 0.5) * IMPULSE_MAGNITUDE * 2;
+
+                // Vertical Impulse (Small upward boost)
+                const impulseY = Math.random() * (IMPULSE_MAGNITUDE / 2) + 0.5;
+
+                const impulseVector = new BABYLON.Vector3(impulseX, impulseY, impulseZ);
+
+                // Apply linear impulse at the center of mass
+                body.applyImpulse(impulseVector, body.mesh.getAbsolutePosition());
+
+                // Apply a bit more random spin (if you feel it's needed)
+                const currentAngular = body.getAngularVelocity();
+                const newAngular = new BABYLON.Vector3(
+                    currentAngular.x + (Math.random() - 0.5) * ANGULAR_BOOST,
+                    currentAngular.y + (Math.random() - 0.5) * ANGULAR_BOOST,
+                    currentAngular.z + (Math.random() - 0.5) * ANGULAR_BOOST
+                );
+                body.setAngularVelocity(newAngular);
+            });
+            // 4. Wait for both dice to settle
+            const diceSettlePromises = bodies.map(body => waitForDiceToSettle(body));
+
+            Promise.all(diceSettlePromises).then(results => {
+                // ... (rest of the logic remains the same)
+                let totalRoll = results.reduce((sum, current) => sum + current, 0);
+                $('#dice-roll-status').text(`Roll: ${results.join(' + ')} = ${totalRoll}`);
+
+                setTimeout(() => {
+                    movePlayer(totalRoll);
+                }, 750);
+
+            }).catch(error => {
+                console.error("Dice roll failed:", error);
+                isRolling = false;
+                $('#roll-dice-button').prop('disabled', false).text('Roll Dice');
+            });
+        };
+        /*const getDiceValue = (diceMesh) => {
+            // 1. Define the six face-normal vectors (Local coordinates of the dice)
+            // and their corresponding dice values (dots).
+            const faces = [
+                { dir: new BABYLON.Vector3(0, 1, 0), value: 1 },  // Top
+                { dir: new BABYLON.Vector3(0, -1, 0), value: 6 }, // Bottom
+                { dir: new BABYLON.Vector3(1, 0, 0), value: 5 },  // Right
+                { dir: new BABYLON.Vector3(-1, 0, 0), value: 2 }, // Left
+                { dir: new BABYLON.Vector3(0, 0, 1), value: 3 },  // Front
+                { dir: new BABYLON.Vector3(0, 0, -1), value: 4 }  // Back
+            ];
+
+            // 2. The World's Up direction (normalized)
+            const worldUp = new BABYLON.Vector3(0, 1, 0);
+
+            let maxDot = -Infinity;
+            let finalValue = 1;
+
+            // 3. Check each face
+            for (const face of faces) {
+                // Transform the local face direction vector into the world coordinate system
+                const worldDir = BABYLON.Vector3.TransformNormal(face.dir, diceMesh.getWorldMatrix());
+
+                // Calculate the dot product between the face's world direction and the world's up vector.
+                // A value close to 1 means the face is pointing straight up.
+                const dotProduct = BABYLON.Vector3.Dot(worldDir, worldUp);
+
+                if (dotProduct > maxDot) {
+                    maxDot = dotProduct;
+                    finalValue = face.value;
+                }
+            }
+
+            return finalValue;
+        };*/
+
+        /*const rollDice = () => {
+            if (isRolling || isMoving) return;
+            isRolling = true;
+
+            $('#roll-dice-button').prop('disabled', true).text('Rolling...');
+
+            let totalRoll = 0;
+            let diceSettlePromises = [];
+
+            // --- Realistic Roll Constants ---
+            const diceSize = TILE_SIZE * 0.4;
+
+            // Increased spawn height for a higher, more visible roll (e.g., 5x size)
+            const rollHeight = diceSize * 5.0;
+
+            // Adjusted Impulse and Angular Velocity constants
+            const IMPULSE_MAGNITUDE_MAX = 5.0; // Max horizontal push (Kept low to stay contained)
+            const VERTICAL_IMPULSE = 3.0; // Small upward impulse for initial toss
+            const ANGULAR_VELOCITY_MAX = 10;    // Max spin
+
+            // The center point of the mat (assuming Y=0 is the mat's surface)
+            const diceBoardCenter = new BABYLON.Vector3(BOARD_WIDTH / 2 + TILE_SIZE * 3.5, 0, 0);
+
+            for (let i = 0; i < diceMeshes.length; i++) {
+                const diceMesh = diceMeshes[i];
+                const diceBody = diceBodies[i];
+
+                const cannonBody = diceBody.physicsBody;
+
+                // 1. Reset State
+                cannonBody.angularVelocity.set(0, 0, 0);
+                cannonBody.velocity.set(0, 0, 0);
+
+                // 2. Calculate new spawn position (Slightly scattered, using the higher rollHeight)
+                const scatterRange = diceSize * 0.2;
+                const randomXOffset = (Math.random() * scatterRange) - (scatterRange / 2);
+                const randomZOffset = (Math.random() * scatterRange) - (scatterRange / 2);
+
+                const newPosition = new BABYLON.Vector3(
+                    diceBoardCenter.x + randomXOffset,
+                    rollHeight + (i * diceSize * 0.1), // Higher spawn
+                    diceBoardCenter.z + randomZOffset
+                );
+
+                // 3. Teleport and Synchronize (Re-summon to starting point)
+                cannonBody.position.set(newPosition.x, newPosition.y, newPosition.z);
+                cannonBody.quaternion.set(0, 0, 0, 1);
+                diceBody.forceUpdate();
+
+                // 4. Apply Impulse and Spin
+
+                // Horizontal Impulse: Low magnitude, random direction
+                const impulseX = (Math.random() * IMPULSE_MAGNITUDE_MAX * 2) - IMPULSE_MAGNITUDE_MAX;
+                const impulseZ = (Math.random() * IMPULSE_MAGNITUDE_MAX * 2) - IMPULSE_MAGNITUDE_MAX;
+                // Vertical Impulse: Increased vertical impulse for a high initial push
+                const impulseY = Math.random() * VERTICAL_IMPULSE;
+
+                const impulseVector = new BABYLON.Vector3(impulseX, impulseY, impulseZ);
+
+                // Angular Velocity: Apply random spin on all axes
+                const angularX = (Math.random() * ANGULAR_VELOCITY_MAX * 2) - ANGULAR_VELOCITY_MAX;
+                const angularY = (Math.random() * ANGULAR_VELOCITY_MAX * 2) - ANGULAR_VELOCITY_MAX;
+                const angularZ = (Math.random() * ANGULAR_VELOCITY_MAX * 2) - ANGULAR_VELOCITY_MAX;
+
+                const angularVector = new BABYLON.Vector3(angularX, angularY, angularZ);
+
+                // Apply linear impulse at the center of mass
+                diceBody.applyImpulse(impulseVector, diceMesh.getAbsolutePosition());
+
+                // Apply angular velocity for spin
+                diceBody.setAngularVelocity(angularVector);
+
+                // 5. Wait for Dice to Settle & Read Result
+                diceSettlePromises.push(new Promise(resolve => {
+                    let settleCheckCount = 0;
+                    const maxChecks = 200; // Increased max checks for the longer roll time
+                    const SETTLE_THRESHOLD = 0.05;
+                    const checkInterval = setInterval(() => {
+                        settleCheckCount++;
+                        const velocity = diceBody.getLinearVelocity();
+                        const angularVelocity = diceBody.getAngularVelocity();
+
+                        const isSettled = velocity.length() < SETTLE_THRESHOLD && angularVelocity.length() < SETTLE_THRESHOLD;
+
+                        if (isSettled || settleCheckCount >= maxChecks) {
+                            clearInterval(checkInterval);
+
+                            // *** CRITICAL CHANGE: Get the actual dice face value ***
+                            const faceValue = getDiceValue(diceMesh);
+                            resolve(faceValue);
+                        }
+                    }, 30);
+                }));
+            }
+
+            Promise.all(diceSettlePromises).then(results => {
+                totalRoll = results.reduce((sum, current) => sum + current, 0);
+                $('#dice-roll-status').text(`Roll: ${results.join(' + ')} = ${totalRoll}`);
+
+                isRolling = false; // Mark the physics part of the roll as finished
+
+                // *** CRITICAL CHANGE: movePlayer is now called only after Promise.all resolves ***
+                // This guarantees the dice have finished rolling and settling.
+                setTimeout(() => {
+                    movePlayer(totalRoll);
+                }, 500); // Small delay for visual confirmation
+            });
+        };*/
+
+        const movePlayer = (roll) => {
+            isMoving = true;
+
+            let currentPos = playerPositions[currentPlayer];
+            let targetPos = currentPos + roll;
+            targetPos = Math.min(targetPos, TOTAL_TILES); // Cap at 100
+
+            // If landing exactly on 100, they win
+            if (targetPos === TOTAL_TILES) {
+                animateMovement(currentPos, targetPos, roll, () => {
+                    playerPositions[currentPlayer] = targetPos;
+                    checkWinCondition();
+                    isMoving = false;
+                });
                 return;
             }
 
-            currentTile++;
-            const targetPos = tilePositions[currentTile];
-            const finalPos = new BABYLON.Vector3(
-                targetPos.x + initialOffset,
-                TILE_SIZE * 0.35, // Adjust for pawn height
-                targetPos.z + initialOffset
-            );
+            // Animate the main movement first
+            animateMovement(currentPos, targetPos, roll, () => {
+                playerPositions[currentPlayer] = targetPos;
 
-            // Use Animation for smooth transition
-            BABYLON.Animation.CreateAndStartAnimation(
-                "moveAnim",
-                playerMesh,
-                "position",
-                30, // frames per second
-                animationTimePerStep / 1000 * 30, // total frames
-                playerMesh.position,
-                finalPos,
-                BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
-                new BABYLON.CubicEase(),
-                () => {
-                    // Check if more steps are needed
-                    if (stepCount < steps) {
-                        executeStep(); // Recursive call for the next step
-                    } else {
-                        callback(); // Movement finished
-                    }
+                // Check for snake/ladder AFTER the main move animation finishes
+                if (slMap[targetPos]) {
+                    const finalPos = slMap[targetPos];
+                    const type = finalPos > targetPos ? 'Ladder' : 'Snake';
+
+                    // Show message
+                    $('#dice-roll-status').text(`${type}! Moving to ${finalPos}...`);
+
+                    // Animate the snake/ladder move
+                    setTimeout(() => {
+                        animateSL(targetPos, finalPos, () => {
+                            playerPositions[currentPlayer] = finalPos;
+                            isMoving = false;
+                            checkWinCondition();
+                            nextTurn();
+                        });
+                    }, 500); // Wait briefly before starting SL move
+
+                } else {
+                    isMoving = false;
+                    nextTurn();
                 }
-            );
+            });
         };
 
-        executeStep();
-    }
+        const animateMovement = (startTile, endTile, steps, callback) => {
+            const playerMesh = playerMeshes[currentPlayer];
+            const initialOffset = currentPlayer === 0 ? -TILE_SIZE * 0.2 : TILE_SIZE * 0.2;
+            const animationTimePerStep = 200; // 200ms per step
 
-    const animateSL = (startTile, endTile, callback) => {
-        const playerMesh = playerMeshes[currentPlayer];
-        const startPos = tilePositions[startTile];
-        const endPos = tilePositions[endTile];
-        const initialOffset = currentPlayer === 0 ? -TILE_SIZE * 0.2 : TILE_SIZE * 0.2;
-        
-        // Define the intermediate jump/slide height
-        const jumpHeight = TILE_SIZE * 2;
-        const midPoint = startPos.add(endPos).scale(0.5);
+            let currentTile = startTile;
+            let stepCount = 0;
 
-        const keys = [];
-        keys.push({ frame: 0, value: playerMesh.position });
-        
-        // Midpoint (Jump/Slide high point)
-        keys.push({
-            frame: 30,
-            value: new BABYLON.Vector3(
-                midPoint.x + initialOffset,
-                jumpHeight,
-                midPoint.z + initialOffset
-            )
-        });
+            const executeStep = () => {
+                stepCount++;
+                if (currentTile >= endTile) {
+                    callback(); // Movement finished
+                    return;
+                }
 
-        // Final position
-        keys.push({
-            frame: 60,
-            value: new BABYLON.Vector3(
-                endPos.x + initialOffset,
-                TILE_SIZE * 0.35, // Adjust for pawn height
-                endPos.z + initialOffset
-            )
-        });
+                currentTile++;
+                const targetPos = tilePositions[currentTile];
+                const finalPos = new BABYLON.Vector3(
+                    targetPos.x + initialOffset,
+                    TILE_SIZE * 0.35, // Adjust for pawn height
+                    targetPos.z + initialOffset
+                );
 
-        const slAnim = new BABYLON.Animation("slAnim", "position", 30, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
-        slAnim.setKeys(keys);
+                // Use Animation for smooth transition
+                BABYLON.Animation.CreateAndStartAnimation(
+                    "moveAnim",
+                    playerMesh,
+                    "position",
+                    30, // frames per second
+                    animationTimePerStep / 1000 * 30, // total frames
+                    playerMesh.position,
+                    finalPos,
+                    BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+                    new BABYLON.CubicEase(),
+                    () => {
+                        // Check if more steps are needed
+                        if (stepCount < steps) {
+                            executeStep(); // Recursive call for the next step
+                        } else {
+                            callback(); // Movement finished
+                        }
+                    }
+                );
+            };
 
-        scene.beginDirectAnimation(playerMesh, [slAnim], 0, 60, false, 1.5, callback);
-    }
+            executeStep();
+        }
 
-    const nextTurn = () => {
-        currentPlayer = 1 - currentPlayer; // Switch player (0 -> 1, 1 -> 0)
-        isRolling = false;
-        
-        const playerColorName = currentPlayer === 0 ? "Yellow (P1)" : "Blue (P2)";
-        $('#current-player-status').text(`Current Player: ${playerColorName}`);
-        $('#roll-dice-button').prop('disabled', false).text('Roll Dice');
-    }
+        const animateSL = (startTile, endTile, callback) => {
+            const playerMesh = playerMeshes[currentPlayer];
+            const startPos = tilePositions[startTile];
+            const endPos = tilePositions[endTile];
+            const initialOffset = currentPlayer === 0 ? -TILE_SIZE * 0.2 : TILE_SIZE * 0.2;
 
-    const checkWinCondition = () => {
-        if (playerPositions[currentPlayer] === TOTAL_TILES) {
-            const winner = currentPlayer === 0 ? "Player 1 (Yellow)" : "Player 2 (Blue)";
-            $('#win-message').text(`${winner} Wins!`);
-            $('#win-modal').removeClass('hidden').addClass('flex');
-            
-            // Disable roll button and reset game button
+            // Define the intermediate jump/slide height
+            const jumpHeight = TILE_SIZE * 2;
+            const midPoint = startPos.add(endPos).scale(0.5);
+
+            const keys = [];
+            keys.push({ frame: 0, value: playerMesh.position });
+
+            // Midpoint (Jump/Slide high point)
+            keys.push({
+                frame: 30,
+                value: new BABYLON.Vector3(
+                    midPoint.x + initialOffset,
+                    jumpHeight,
+                    midPoint.z + initialOffset
+                )
+            });
+
+            // Final position
+            keys.push({
+                frame: 60,
+                value: new BABYLON.Vector3(
+                    endPos.x + initialOffset,
+                    TILE_SIZE * 0.35, // Adjust for pawn height
+                    endPos.z + initialOffset
+                )
+            });
+
+            const slAnim = new BABYLON.Animation("slAnim", "position", 30, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+            slAnim.setKeys(keys);
+
+            scene.beginDirectAnimation(playerMesh, [slAnim], 0, 60, false, 1.5, callback);
+        }
+
+        const nextTurn = () => {
+            currentPlayer = 1 - currentPlayer; // Switch player (0 -> 1, 1 -> 0)
+            isRolling = false;
+
+            const playerColorName = currentPlayer === 0 ? "Yellow (P1)" : "Blue (P2)";
+            $('#current-player-status').text(`Current Player: ${playerColorName}`);
+            $('#roll-dice-button').prop('disabled', false).text('Roll Dice');
+        }
+
+        const checkWinCondition = () => {
+            if (playerPositions[currentPlayer] === TOTAL_TILES) {
+                const winner = currentPlayer === 0 ? "Player 1 (Yellow)" : "Player 2 (Blue)";
+                $('#win-message').text(`${winner} Wins!`);
+                $('#win-modal').removeClass('hidden').addClass('flex');
+
+                // Disable roll button and reset game button
+                $('#roll-dice-button').prop('disabled', true);
+                isRolling = true;
+                isMoving = true;
+                return true;
+            }
+            return false;
+        }
+
+        const resetGame = () => {
+            playerPositions = [1, 1];
+            currentPlayer = 0;
+            isRolling = false;
+            isMoving = false;
+
+            // Reset player positions on the board
+            updatePlayerMeshPosition(0, 1, -TILE_SIZE * 0.2);
+            updatePlayerMeshPosition(1, 1, TILE_SIZE * 0.2);
+
+            // Reset UI and show menu
+            $('#dice-roll-status').text(`Roll: -`);
+            $('#current-player-status').text(`Game Menu`);
             $('#roll-dice-button').prop('disabled', true);
-            isRolling = true;
-            isMoving = true;
-            return true;
+
+            // Show main menu
+            $('#win-modal').removeClass('flex').addClass('hidden');
+            $('#game-menu-modal').removeClass('hidden').addClass('flex');
         }
-        return false;
-    }
 
-    const resetGame = () => {
-        playerPositions = [1, 1];
-        currentPlayer = 0;
-        isRolling = false;
-        isMoving = false;
-
-        // Reset player positions on the board
-        updatePlayerMeshPosition(0, 1, -TILE_SIZE * 0.2);
-        updatePlayerMeshPosition(1, 1, TILE_SIZE * 0.2);
-        
-        // Reset UI and show menu
-        $('#dice-roll-status').text(`Roll: -`);
-        $('#current-player-status').text(`Game Menu`);
-        $('#roll-dice-button').prop('disabled', true);
-
-        // Show main menu
-        $('#win-modal').removeClass('flex').addClass('hidden');
-        $('#game-menu-modal').removeClass('hidden').addClass('flex');
-    }
-
-    const startGame = () => {
-        $('#game-menu-modal').removeClass('flex').addClass('hidden');
-        nextTurn(); // Sets up P1 turn and enables roll button
-    }
-
-    // =================================================================
-    // JQuery DOM/UI Handling
-    // =================================================================
-
-    $(document).ready(function() {
-        // Initialize 3D scene
-        if (document.getElementById("renderCanvas")) {
-            createScene();
-        } else {
-            console.error("Canvas element not found!");
-            return;
+        const startGame = () => {
+            $('#game-menu-modal').removeClass('flex').addClass('hidden');
+            nextTurn(); // Sets up P1 turn and enables roll button
         }
-        
-        // Show initial menu
-        $('#game-menu-modal').removeClass('hidden').addClass('flex');
 
-        // Event Handlers
-        $('#start-game-button').on('click', startGame);
-        $('#roll-dice-button').on('click', handleDiceRoll); 
-        $('#reset-game-button').on('click', resetGame);
-        $('#play-again-button').on('click', resetGame);
-        
-        // Rules Modal Handlers
-        $('#show-rules-button').on('click', function() {
-            $('#rules-modal').removeClass('hidden').addClass('flex');
-        });
-        
-        $('#close-rules-button').on('click', function() {
-            $('#rules-modal').removeClass('flex').addClass('hidden');
-        });
-    });
+        // =================================================================
+        // JQuery DOM/UI Handling
+        // =================================================================
 
-</script>
+        const toggleFullScreen = () => {
+            // --- UPDATED: Target the canvas wrapper instead of the canvas ---
+            const wrapper = document.getElementById("canvas-wrapper");
+            const doc = window.document;
+
+            // Check if currently in full screen
+            const isFullScreen = doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement;
+
+            const $icon = $('#fullscreen-icon');
+            if (!isFullScreen) {
+                // Enter Full Screen
+                if (wrapper.requestFullscreen) {
+                    wrapper.requestFullscreen();
+                } else if (wrapper.mozRequestFullScreen) { // Firefox
+                    wrapper.mozRequestFullScreen();
+                } else if (wrapper.webkitRequestFullscreen) { // Chrome, Safari and Opera
+                    wrapper.webkitRequestFullscreen();
+                } else if (wrapper.msRequestFullscreen) { // IE/Edge
+                    wrapper.msRequestFullscreen();
+                }
+                $('body').addClass('is-fullscreen'); // Add class to body
+                $icon.removeClass('fa-expand').addClass('fa-compress');
+            } else {
+                // Exit Full Screen
+                if (doc.exitFullscreen) {
+                    doc.exitFullscreen();
+                } else if (doc.mozCancelFullScreen) { // Firefox
+                    doc.mozCancelFullScreen();
+                } else if (doc.webkitExitFullscreen) { // Chrome, Safari and Opera
+                    doc.webkitExitFullscreen();
+                } else if (doc.msExitFullscreen) { // IE/Edge
+                    doc.msExitFullscreen();
+                }
+                $('body').removeClass('is-fullscreen'); // Remove class from body
+                $icon.removeClass('fa-compress').addClass('fa-expand');
+            }
+
+            // Must manually resize the Babylon engine when full-screen state changes
+            setTimeout(() => {
+                if (engine) {
+                    engine.resize();
+                }
+            }, 100);
+        };
+
+        $(document).ready(function () {
+            // Initialize 3D scene
+            if (document.getElementById("renderCanvas")) {
+                createScene();
+            } else {
+                console.error("Canvas element not found!");
+                return;
+            }
+
+            // Show initial menu
+            $('#game-menu-modal').removeClass('hidden').addClass('flex');
+
+            // Event Handlers
+            $('#start-game-button').on('click', startGame);
+            $('#roll-dice-button').on('click', handleDiceRoll);
+            $('#reset-game-button').on('click', resetGame);
+            $('#play-again-button').on('click', resetGame);
+
+            // --- NEW: Fullscreen Button Handler ---
+            $('#fullscreen-button').on('click', toggleFullScreen);
+
+            // Rules Modal Handlers
+            $('#show-rules-button').on('click', function () {
+                $('#rules-modal').removeClass('hidden').addClass('flex');
+            });
+
+            $('#close-rules-button').on('click', function () {
+                $('#rules-modal').removeClass('flex').addClass('hidden');
+            });
+
+            // --- NEW: Handle browser's native fullscreen exit ---
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement) {
+                    $('body').removeClass('is-fullscreen');
+                    if (engine) engine.resize();
+                }
+            });
+        });
+
+    </script>
 </body>
 </html>
