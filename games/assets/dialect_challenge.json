@@ -1,0 +1,3002 @@
+[
+  {
+    "id": 1,
+    "type": "Taiwanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Taiwanese Hokkien (Tâi-gí) word for 'Thank you'?",
+    "latex_svg_content": "Tâi-gí: \\text{Thank you}",
+    "choices": [
+      "Hoan-gêng (歡迎)",
+      "Tō-siā (多謝)",
+      "Lí-hó (你好)",
+      "Chài-kiàn (再見)"
+    ],
+    "answer": "Tō-siā (多謝)"
+  },
+  {
+    "id": 2,
+    "type": "Taiwanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which of these means 'Hello' in Taiwanese Hokkien?",
+    "latex_svg_content": "Tâi-gí: \\text{Hello}",
+    "choices": [
+      "Lí-hó (你好)",
+      "Sia-sia (謝謝)",
+      "Tō-siā (多謝)",
+      "Gó͘-chái (午食)"
+    ],
+    "answer": "Lí-hó (你好)"
+  },
+  {
+    "id": 3,
+    "type": "Taiwanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "In Taiwanese Hokkien, what character is often used for 'I' or 'me' (góa)?",
+    "latex_svg_content": "Tâi-gí: \\text{I/me}",
+    "choices": [
+      "他",
+      "汝",
+      "我",
+      "你"
+    ],
+    "answer": "我"
+  },
+  {
+    "id": 4,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the phrase 'chia̍h-pá bōe?' (食飽未) literally mean in Taiwanese Hokkien?",
+    "latex_svg_content": "Tâi-gí: \\text{Eat full yet}",
+    "choices": [
+      "Are you busy?",
+      "Have you eaten yet?",
+      "How old are you?",
+      "Where are you going?"
+    ],
+    "answer": "Have you eaten yet?"
+  },
+  {
+    "id": 5,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Which word corresponds to 'drink' (lim) in Taiwanese Hokkien?",
+    "latex_svg_content": "Tâi-gí: \\text{Drink}",
+    "choices": [
+      "食 (chia̍h)",
+      "呣 (m̄)",
+      "啉 (lim)",
+      "走 (cháu)"
+    ],
+    "answer": "啉 (lim)"
+  },
+  {
+    "id": 6,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "In Taiwanese Hokkien, which term is used for 'money'?",
+    "latex_svg_content": "Tâi-gí: \\text{Money}",
+    "choices": [
+      "Chiu (手)",
+      "Chhîⁿ (錢)",
+      "Hoe (花)",
+      "Phiah (票)"
+    ],
+    "answer": "Chhîⁿ (錢)"
+  },
+  {
+    "id": 7,
+    "type": "Taiwanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "The Taiwanese word for 'beautiful' is suí (媠). Which character is the correct one?",
+    "latex_svg_content": "Tâi-gí: \\text{Beautiful}",
+    "choices": [
+      "美",
+      "媠",
+      "好",
+      "麗"
+    ],
+    "answer": "媠"
+  },
+  {
+    "id": 8,
+    "type": "Taiwanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which Traditional Chinese character is used for the Tâi-gí word 'long' (chhoân)?",
+    "latex_svg_content": "Tâi-gí: \\text{Long}",
+    "choices": [
+      "長",
+      "遠",
+      "常",
+      "串"
+    ],
+    "answer": "長"
+  },
+  {
+    "id": 9,
+    "type": "Taiwanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "The Taiwanese Hokkien word for 'person' is **lâng**. Which character corresponds to this word?",
+    "latex_svg_content": "Tâi-gí: \\text{Lâng}",
+    "choices": [
+      "山 (san)",
+      "人 (jîn)",
+      "語 (gú)",
+      "天 (thian)"
+    ],
+    "answer": "人 (jîn)"
+  },
+  {
+    "id": 10,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "How do you say 'to see/look' (khòaⁿ) in Taiwanese Hokkien?",
+    "latex_svg_content": "Tâi-gí: \\text{To See}",
+    "choices": [
+      "聽 (thiaⁿ)",
+      "看 (khòaⁿ)",
+      "講 (kóng)",
+      "行 (kiâⁿ)"
+    ],
+    "answer": "看 (khòaⁿ)"
+  },
+  {
+    "id": 11,
+    "type": "Taiwanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which number is 'saⁿ' (三) in Taiwanese Hokkien?",
+    "latex_svg_content": "Tâi-gí: \\text{Three}",
+    "choices": [
+      "一 (it)",
+      "二 (jī)",
+      "三 (saⁿ)",
+      "四 (sì)"
+    ],
+    "answer": "三 (saⁿ)"
+  },
+  {
+    "id": 12,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Which phrase is the equivalent of 'How are you?' in a direct translation from Tâi-gí?",
+    "latex_svg_content": "Tâi-gí: \\text{How are you}",
+    "choices": [
+      "Lí kám hó?",
+      "Lí chia̍h-pá bōe?",
+      "Góa siáⁿ-mih?",
+      "Sia-sia."
+    ],
+    "answer": "Lí kám hó?"
+  },
+  {
+    "id": 13,
+    "type": "Taiwanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Taiwanese Hokkien word for 'father'?",
+    "latex_svg_content": "Tâi-gí: \\text{Father}",
+    "choices": [
+      "A-má (阿媽)",
+      "A-chek (阿叔)",
+      "A-pa (阿爸)",
+      "A-chiá (阿姐)"
+    ],
+    "answer": "A-pa (阿爸)"
+  },
+  {
+    "id": 14,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "The word for 'dog' in Tâi-gí is káu. What is the corresponding Chinese character?",
+    "latex_svg_content": "Tâi-gí: \\text{Dog}",
+    "choices": [
+      "貓 (niau)",
+      "鳥 (chiáu)",
+      "狗 (káu)",
+      "豬 (ti)"
+    ],
+    "answer": "狗 (káu)"
+  },
+  {
+    "id": 15,
+    "type": "Taiwanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which of these Tâi-gí words means 'yesterday'?",
+    "latex_svg_content": "Tâi-gí: \\text{Yesterday}",
+    "choices": [
+      "Chò-ji̍t (昨日)",
+      "Bîn-á-ji̍t (暝仔日)",
+      "Kīn-ji̍t (近日)",
+      "Jia̍t-ji̍t (熱日)"
+    ],
+    "answer": "Chò-ji̍t (昨日)"
+  },
+  {
+    "id": 16,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the word 'kám' (敢) mean when used as a question particle in Tâi-gí?",
+    "latex_svg_content": "Tâi-gí: \\text{Question particle}",
+    "choices": [
+      "Why?",
+      "When?",
+      "Is it?",
+      "Where?"
+    ],
+    "answer": "Is it?"
+  },
+  {
+    "id": 17,
+    "type": "Taiwanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'car' (chhia) in Taiwanese Hokkien?",
+    "latex_svg_content": "Tâi-gí: \\text{Car}",
+    "choices": [
+      "船 (chûn)",
+      "車 (chhia)",
+      "飛機 (pue-ki)",
+      "路 (lō͘)"
+    ],
+    "answer": "車 (chhia)"
+  },
+  {
+    "id": 18,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Which Tâi-gí word means 'hot' (as in temperature)?",
+    "latex_svg_content": "Tâi-gí: \\text{Hot}",
+    "choices": [
+      "Khi (氣)",
+      "Ko (膏)",
+      "Jia̍t (熱)",
+      "Chhiah (赤)"
+    ],
+    "answer": "Jia̍t (熱)"
+  },
+  {
+    "id": 19,
+    "type": "Taiwanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which of these characters means 'to know' or 'to understand' (chai) in Tâi-gí?",
+    "latex_svg_content": "Tâi-gí: \\text{To know}",
+    "choices": [
+      "聽",
+      "知",
+      "讀",
+      "問"
+    ],
+    "answer": "知"
+  },
+  {
+    "id": 20,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the correct Pêh-ōe-jī (POJ) romanization for the word 'now' (present)?",
+    "latex_svg_content": "Tâi-gí: \\text{Now}",
+    "choices": [
+      "Hiān-chāi",
+      "Jîm-chāi",
+      "Hian-chai",
+      "Him-chai"
+    ],
+    "answer": "Hiān-chāi"
+  },
+  {
+    "id": 21,
+    "type": "Taiwanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'one' (it) in Taiwanese Hokkien?",
+    "latex_svg_content": "Tâi-gí: \\text{One}",
+    "choices": [
+      "零 (lêng)",
+      "五 (gō͘)",
+      "一 (it)",
+      "十 (si̍p)"
+    ],
+    "answer": "一 (it)"
+  },
+  {
+    "id": 22,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the term 'cha-bó͘-lâng' (查某人) mean in Tâi-gí?",
+    "latex_svg_content": "Tâi-gí: \\text{Woman}",
+    "choices": [
+      "Man",
+      "Child",
+      "Woman",
+      "Elder"
+    ],
+    "answer": "Woman"
+  },
+  {
+    "id": 23,
+    "type": "Taiwanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which Tâi-gí particle is used to indicate a state or ongoing action, similar to '-ing'?",
+    "latex_svg_content": "Tâi-gí: \\text{Aspect particle}",
+    "choices": [
+      "Eh (會)",
+      "Loh (落)",
+      "Tng (當)",
+      "Ho͘ (乎)"
+    ],
+    "answer": "Tng (當)"
+  },
+  {
+    "id": 24,
+    "type": "Taiwanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which Tâi-gí word means 'house' or 'home'?",
+    "latex_svg_content": "Tâi-gí: \\text{House}",
+    "choices": [
+      "Tâng (桶)",
+      "Chhù (厝)",
+      "Tē (地)",
+      "Hoe (花)"
+    ],
+    "answer": "Chhù (厝)"
+  },
+  {
+    "id": 25,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "The word for 'to teach' in Tâi-gí is kà. What is the corresponding Chinese character?",
+    "latex_svg_content": "Tâi-gí: \\text{To Teach}",
+    "choices": [
+      "學 (o̍h)",
+      "問 (mn̄g)",
+      "教 (kà)",
+      "看 (khòaⁿ)"
+    ],
+    "answer": "教 (kà)"
+  },
+  {
+    "id": 26,
+    "type": "Taiwanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "In Taiwanese Hokkien, what does 'Chhoân-chiah' (全食) typically mean?",
+    "latex_svg_content": "Tâi-gí: \\text{All eat}",
+    "choices": [
+      "Everyone eats together",
+      "Completely eaten",
+      "Eat fast",
+      "Eat slowly"
+    ],
+    "answer": "Completely eaten"
+  },
+  {
+    "id": 27,
+    "type": "Taiwanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Taiwanese Hokkien word for 'milk'?",
+    "latex_svg_content": "Tâi-gí: \\text{Milk}",
+    "choices": [
+      "Tê (茶)",
+      "Chhòa (菜)",
+      "Gû-leng (牛乳)",
+      "Pah (麵)"
+    ],
+    "answer": "Gû-leng (牛乳)"
+  },
+  {
+    "id": 28,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Which of these means 'How many?' in Tâi-gí?",
+    "latex_svg_content": "Tâi-gí: \\text{How many}",
+    "choices": [
+      "Kúi-ê (幾个)",
+      "To-siàu (多少)",
+      "Tī-tó (佇佗)",
+      "Siaⁿ-mih (啥物)"
+    ],
+    "answer": "Kúi-ê (幾个)"
+  },
+  {
+    "id": 29,
+    "type": "Taiwanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "The word for 'beautiful' is suí (媠). What is its literary (written) pronunciation in Tâi-gí?",
+    "latex_svg_content": "Tâi-gí: \\text{Literary 'beautiful'}",
+    "choices": [
+      "Bí (美)",
+      "Sui (帥)",
+      "Suí (媠)",
+      "Li (麗)"
+    ],
+    "answer": "Bí (美)"
+  },
+  {
+    "id": 30,
+    "type": "Taiwanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What Tâi-gí word means 'big'?",
+    "latex_svg_content": "Tâi-gí: \\text{Big}",
+    "choices": [
+      "Sio (小)",
+      "Toā (大)",
+      "Teng (短)",
+      "Káu (久)"
+    ],
+    "answer": "Toā (大)"
+  },
+  {
+    "id": 31,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Which Tâi-gí word means 'where'?",
+    "latex_svg_content": "Tâi-gí: \\text{Where}",
+    "choices": [
+      "Siáⁿ-mih (啥物)",
+      "Tī-tó (佇佗)",
+      "Sî-chūn (時陣)",
+      "Kám (敢)"
+    ],
+    "answer": "Tī-tó (佇佗)"
+  },
+  {
+    "id": 32,
+    "type": "Taiwanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which character represents the word 'gîm' (吟), meaning 'to sing' in a literary context?",
+    "latex_svg_content": "Tâi-gí: \\text{To Sing}",
+    "choices": [
+      "唱 (chhiùⁿ)",
+      "唸 (liām)",
+      "吟 (gîm)",
+      "樂 (lo̍k)"
+    ],
+    "answer": "吟 (gîm)"
+  },
+  {
+    "id": 33,
+    "type": "Taiwanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What Tâi-gí word means 'mother'?",
+    "latex_svg_content": "Tâi-gí: \\text{Mother}",
+    "choices": [
+      "A-pa (阿爸)",
+      "A-bú (阿母)",
+      "A-chiá (阿姐)",
+      "A-bó͘ (阿某)"
+    ],
+    "answer": "A-bú (阿母)"
+  },
+  {
+    "id": 34,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "In Tâi-gí, what is the word for 'fish'?",
+    "latex_svg_content": "Tâi-gí: \\text{Fish}",
+    "choices": [
+      "肉 (bah)",
+      "菜 (chhài)",
+      "米 (bí)",
+      "魚 (hî)"
+    ],
+    "answer": "魚 (hî)"
+  },
+  {
+    "id": 35,
+    "type": "Taiwanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which Tâi-gí word is a contraction meaning 'Do you want to...?'",
+    "latex_svg_content": "Tâi-gí: \\text{Contraction}",
+    "choices": [
+      "Kám-ài (敢愛)",
+      "M̄-ài (呣愛)",
+      "Bô-ài (無愛)",
+      "Ū-ài (有愛)"
+    ],
+    "answer": "Kám-ài (敢愛)"
+  },
+  {
+    "id": 36,
+    "type": "Taiwanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'to eat' (chia̍h) in Taiwanese Hokkien?",
+    "latex_svg_content": "Tâi-gí: \\text{To Eat}",
+    "choices": [
+      "飲 (lim)",
+      "食 (chia̍h)",
+      "行 (kiâⁿ)",
+      "坐 (chē)"
+    ],
+    "answer": "食 (chia̍h)"
+  },
+  {
+    "id": 37,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "The term for 'computer' in Tâi-gí is tiān-náu (電腦). What does the first character mean?",
+    "latex_svg_content": "Tâi-gí: \\text{Computer}",
+    "choices": [
+      "Brain",
+      "Electric",
+      "Machine",
+      "Screen"
+    ],
+    "answer": "Electric"
+  },
+  {
+    "id": 38,
+    "type": "Taiwanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which Tâi-gí word means 'rain'?",
+    "latex_svg_content": "Tâi-gí: \\text{Rain}",
+    "choices": [
+      "Hō͘ (雨)",
+      "Sui (水)",
+      "Hu̍t (發)",
+      "Lîm (淋)"
+    ],
+    "answer": "Hō͘ (雨)"
+  },
+  {
+    "id": 39,
+    "type": "Taiwanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Tâi-gí word for 'no' or 'not'?",
+    "latex_svg_content": "Tâi-gí: \\text{No}",
+    "choices": [
+      "Hó (好)",
+      "Ū (有)",
+      "M̄ (呣)",
+      "Tō (多)"
+    ],
+    "answer": "M̄ (呣)"
+  },
+  {
+    "id": 40,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "In Tâi-gí, what is the word for 'table' or 'desk'?",
+    "latex_svg_content": "Tâi-gí: \\text{Table}",
+    "choices": [
+      "Tàu-á (桶仔)",
+      "Tiuⁿ (桌)",
+      "Chhù-lāi (厝內)",
+      "Su (書)"
+    ],
+    "answer": "Tiuⁿ (桌)"
+  },
+  {
+    "id": 41,
+    "type": "Taiwanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which of these characters means 'to buy' (bé) in Tâi-gí?",
+    "latex_svg_content": "Tâi-gí: \\text{To Buy}",
+    "choices": [
+      "賣 (bē)",
+      "買 (bé)",
+      "換 (oāⁿ)",
+      "取 (chhú)"
+    ],
+    "answer": "買 (bé)"
+  },
+  {
+    "id": 42,
+    "type": "Taiwanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'goodbye' (chài-kiàn) in Taiwanese Hokkien?",
+    "latex_svg_content": "Tâi-gí: \\text{Goodbye}",
+    "choices": [
+      "Lí-hó (你好)",
+      "Tō-siā (多謝)",
+      "Chài-kiàn (再見)",
+      "Sia-sia (謝謝)"
+    ],
+    "answer": "Chài-kiàn (再見)"
+  },
+  {
+    "id": 43,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the common Tâi-gí word for 'apple'?",
+    "latex_svg_content": "Tâi-gí: \\text{Apple}",
+    "choices": [
+      "Kam-á (柑仔)",
+      "Phōng-kó (蘋果)",
+      "Chhài-thâu (菜頭)",
+      "Nāi-kó (荔果)"
+    ],
+    "answer": "Phōng-kó (蘋果)"
+  },
+  {
+    "id": 44,
+    "type": "Taiwanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which Tâi-gí phrase means 'It's too expensive!'?",
+    "latex_svg_content": "Tâi-gí: \\text{Too expensive}",
+    "choices": [
+      "Chiâⁿ hó-chia̍h (足好食)",
+      "Thài ko-ke (太高價)",
+      "M̄-ài bē (呣愛賣)",
+      "Bô chhîⁿ (無錢)"
+    ],
+    "answer": "Thài ko-ke (太高價)"
+  },
+  {
+    "id": 45,
+    "type": "Taiwanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What Tâi-gí word means 'hand'?",
+    "latex_svg_content": "Tâi-gí: \\text{Hand}",
+    "choices": [
+      "Chhùi (喙)",
+      "Ba̍k (目)",
+      "Chhiú (手)",
+      " Kha (跤)"
+    ],
+    "answer": "Chhiú (手)"
+  },
+  {
+    "id": 46,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "In Tâi-gí, what is the word for 'school'?",
+    "latex_svg_content": "Tâi-gí: \\text{School}",
+    "choices": [
+      "Chhù-lāi (厝內)",
+      "Ha̍k-hāu (學校)",
+      "Tô͘-su-kóan (圖書館)",
+      "Siā-khu (社區)"
+    ],
+    "answer": "Ha̍k-hāu (學校)"
+  },
+  {
+    "id": 47,
+    "type": "Taiwanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which of these characters means 'to laugh' (chhiò) in Tâi-gí?",
+    "latex_svg_content": "Tâi-gí: \\text{To Laugh}",
+    "choices": [
+      "哭 (khàu)",
+      "笑 (chhiò)",
+      "講 (kóng)",
+      "歡 (hoaⁿ)"
+    ],
+    "answer": "笑 (chhiò)"
+  },
+  {
+    "id": 48,
+    "type": "Taiwanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What Tâi-gí word means 'red'?",
+    "latex_svg_content": "Tâi-gí: \\text{Red}",
+    "choices": [
+      "Chheng (青)",
+      "N̂g (黃)",
+      "Hô͘ (黑)",
+      "Âng (紅)"
+    ],
+    "answer": "Âng (紅)"
+  },
+  {
+    "id": 49,
+    "type": "Taiwanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the Tâi-gí phrase 'bô-iāu-kín' (無要緊) mean?",
+    "latex_svg_content": "Tâi-gí: \\text{Never mind}",
+    "choices": [
+      "It's urgent",
+      "No problem / Never mind",
+      "I don't want",
+      "Please help"
+    ],
+    "answer": "No problem / Never mind"
+  },
+  {
+    "id": 50,
+    "type": "Taiwanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which Tâi-gí word is used for the concept of 'fate' or 'destiny'?",
+    "latex_svg_content": "Tâi-gí: \\text{Fate}",
+    "choices": [
+      "Sêng-chiu (成就)",
+      "Miā-ūn (命運)",
+      "Iuⁿ-kńg (央講)",
+      "Bêng-chiòng (明狀)"
+    ],
+    "answer": "Miā-ūn (命運)"
+  },
+  {
+    "id": 51,
+    "type": "Japanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which is the Hiragana character for the sound 'A'?",
+    "latex_svg_content": "Hiragana: \\text{A}",
+    "choices": [
+      "い (i)",
+      "あ (a)",
+      "う (u)",
+      "え (e)"
+    ],
+    "answer": "あ (a)"
+  },
+  {
+    "id": 52,
+    "type": "Japanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'Goodbye' in standard Japanese?",
+    "latex_svg_content": "Japanese: \\text{Goodbye}",
+    "choices": [
+      "Ohayō gozaimasu",
+      "Konbanwa",
+      "Sayōnara",
+      "Arigatō"
+    ],
+    "answer": "Sayōnara"
+  },
+  {
+    "id": 53,
+    "type": "Japanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the Katakana for 'Coffee' (コーヒー)?",
+    "latex_svg_content": "Katakana: \\text{Coffee}",
+    "choices": [
+      "こーひー",
+      "コーヒー",
+      "こうひい",
+      "こおひい"
+    ],
+    "answer": "コーヒー"
+  },
+  {
+    "id": 54,
+    "type": "Japanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which of these is the Kanji character for 'Mountain'?",
+    "latex_svg_content": "Kanji: \\text{Mountain}",
+    "choices": [
+      "川",
+      "山",
+      "田",
+      "水"
+    ],
+    "answer": "山"
+  },
+  {
+    "id": 55,
+    "type": "Japanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the Japanese word for 'Cat'?",
+    "latex_svg_content": "Japanese: \\text{Cat}",
+    "choices": [
+      "Inu (いぬ)",
+      "Neko (ねこ)",
+      "Tori (とり)",
+      "Sakana (さかな)"
+    ],
+    "answer": "Neko (ねこ)"
+  },
+  {
+    "id": 56,
+    "type": "Japanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What is the correct on'yomi (Sino-Japanese reading) for the Kanji '学' (to study/learn)?",
+    "latex_svg_content": "Kanji: \\text{Study}",
+    "choices": [
+      "Gaku",
+      "Mana",
+      "Kyo",
+      "Ben"
+    ],
+    "answer": "Gaku"
+  },
+  {
+    "id": 57,
+    "type": "Japanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which of these means 'Thank you' in Japanese (polite form)?",
+    "latex_svg_content": "Japanese: \\text{Thank you}",
+    "choices": [
+      "Gomennasai",
+      "Otsukaresama deshita",
+      "Arigatō gozaimasu",
+      "Itadakimasu"
+    ],
+    "answer": "Arigatō gozaimasu"
+  },
+  {
+    "id": 58,
+    "type": "Japanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "The particle 'に (ni)' is most commonly used to indicate what?",
+    "latex_svg_content": "Japanese: \\text{Particle 'ni'}",
+    "choices": [
+      "The topic of the sentence",
+      "The direct object",
+      "Location or time",
+      "The subject of the sentence"
+    ],
+    "answer": "Location or time"
+  },
+  {
+    "id": 59,
+    "type": "Japanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which form of the verb 'to eat' (食べる - taberu) is the dictionary/plain form?",
+    "latex_svg_content": "Japanese: \\text{To Eat}",
+    "choices": [
+      "Tabemasu",
+      "Tabeta",
+      "Tabenai",
+      "Taberu"
+    ],
+    "answer": "Taberu"
+  },
+  {
+    "id": 60,
+    "type": "Japanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which syllabary is typically used for foreign loanwords in Japanese?",
+    "latex_svg_content": "Japanese: \\text{Loanwords}",
+    "choices": [
+      "Hiragana",
+      "Kanji",
+      "Rōmaji",
+      "Katakana"
+    ],
+    "answer": "Katakana"
+  },
+  {
+    "id": 61,
+    "type": "Japanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "The Kanji '日' can be read as 'Hi' or 'Nichi'. What is its primary meaning?",
+    "latex_svg_content": "Kanji: \\text{Day/Sun}",
+    "choices": [
+      "Moon",
+      "Fire",
+      "Sun / Day",
+      "Star"
+    ],
+    "answer": "Sun / Day"
+  },
+  {
+    "id": 62,
+    "type": "Japanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What is the polite form of the verb 'to go' (行く - iku)?",
+    "latex_svg_content": "Japanese: \\text{To Go (polite)}",
+    "choices": [
+      "Ikaru",
+      "Ikimasu",
+      "Itte",
+      "Ikō"
+    ],
+    "answer": "Ikimasu"
+  },
+  {
+    "id": 63,
+    "type": "Japanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What Japanese word means 'House' or 'Home'?",
+    "latex_svg_content": "Japanese: \\text{House}",
+    "choices": [
+      "Gakkō",
+      "Ie",
+      "Shiro",
+      "Machi"
+    ],
+    "answer": "Ie"
+  },
+  {
+    "id": 64,
+    "type": "Japanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the correct Japanese word for 'Delicious' or 'Good Taste'?",
+    "latex_svg_content": "Japanese: \\text{Delicious}",
+    "choices": [
+      "Mazui",
+      "Oishii",
+      "Ureshii",
+      "Samui"
+    ],
+    "answer": "Oishii"
+  },
+  {
+    "id": 65,
+    "type": "Japanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which of these is the correct counter for small, round objects (like apples)?",
+    "latex_svg_content": "Japanese: \\text{Counter}",
+    "choices": [
+      "-Hon",
+      "-Satsu",
+      "-Ko",
+      "-Mai"
+    ],
+    "answer": "-Ko"
+  },
+  {
+    "id": 66,
+    "type": "Japanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Japanese word for 'No'?",
+    "latex_svg_content": "Japanese: \\text{No}",
+    "choices": [
+      "Hai",
+      "Ē",
+      "Iie",
+      "Moshi moshi"
+    ],
+    "answer": "Iie"
+  },
+  {
+    "id": 67,
+    "type": "Japanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does 'wakarimasu' (わかります) mean?",
+    "latex_svg_content": "Japanese: \\text{Wakarimasu}",
+    "choices": [
+      "I don't know",
+      "I see",
+      "I understand",
+      "I agree"
+    ],
+    "answer": "I understand"
+  },
+  {
+    "id": 68,
+    "type": "Japanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which form of the adjective 'samui' (cold) is used to link it to a noun (e.g., cold day)?",
+    "latex_svg_content": "Japanese: \\text{Cold adjective}",
+    "choices": [
+      "Samukunai",
+      "Samukute",
+      "Samui",
+      "Samukatta"
+    ],
+    "answer": "Samui"
+  },
+  {
+    "id": 69,
+    "type": "Japanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Japanese word for 'Dog'?",
+    "latex_svg_content": "Japanese: \\text{Dog}",
+    "choices": [
+      "Neko",
+      "Inu",
+      "Uma",
+      "Tori"
+    ],
+    "answer": "Inu"
+  },
+  {
+    "id": 70,
+    "type": "Japanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the phrase 'Sumimasen' (すみません) usually mean?",
+    "latex_svg_content": "Japanese: \\text{Sumimasen}",
+    "choices": [
+      "Thank you",
+      "Please / Excuse me / Sorry",
+      "I love you",
+      "What is this?"
+    ],
+    "answer": "Please / Excuse me / Sorry"
+  },
+  {
+    "id": 71,
+    "type": "Japanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What is the passive form of the verb 'Yomu' (読む - to read)?",
+    "latex_svg_content": "Japanese: \\text{Passive 'to read'}",
+    "choices": [
+      "Yomareru",
+      "Yomaseru",
+      "Yometa",
+      "Yondeiru"
+    ],
+    "answer": "Yomareru"
+  },
+  {
+    "id": 72,
+    "type": "Japanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'one' (ichi) in Japanese?",
+    "latex_svg_content": "Japanese: \\text{One}",
+    "choices": [
+      "San",
+      "Ni",
+      "Ichi",
+      "Yon"
+    ],
+    "answer": "Ichi"
+  },
+  {
+    "id": 73,
+    "type": "Japanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "The particle 'と (to)' is used to link two nouns in what way?",
+    "latex_svg_content": "Japanese: \\text{Particle 'to'}",
+    "choices": [
+      "As an example ('and so on')",
+      "To express contrast",
+      "To mean 'with' or 'and'",
+      "To indicate direction"
+    ],
+    "answer": "To mean 'with' or 'and'"
+  },
+  {
+    "id": 74,
+    "type": "Japanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which of these is the humble (kenjōgo) equivalent of the verb 'to look' (見る - miru)?",
+    "latex_svg_content": "Japanese: \\text{Humble 'to look'}",
+    "choices": [
+      "Goranninaru",
+      "Miseru",
+      "Haigen suru",
+      "Mimasu"
+    ],
+    "answer": "Haigen suru"
+  },
+  {
+    "id": 75,
+    "type": "Japanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Japanese word for 'Water'?",
+    "latex_svg_content": "Japanese: \\text{Water}",
+    "choices": [
+      "Ocha",
+      "Mizu",
+      "Kaze",
+      "Sora"
+    ],
+    "answer": "Mizu"
+  },
+  {
+    "id": 76,
+    "type": "Japanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the meaning of the Kanji '雨'?",
+    "latex_svg_content": "Kanji: \\text{Rain}",
+    "choices": [
+      "Snow",
+      "Cloud",
+      "Rain",
+      "Wind"
+    ],
+    "answer": "Rain"
+  },
+  {
+    "id": 77,
+    "type": "Japanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What is the causative form of the verb 'Shinu' (死ぬ - to die)?",
+    "latex_svg_content": "Japanese: \\text{Causative 'to die'}",
+    "choices": [
+      "Shinaseru",
+      "Shinda",
+      "Shinimasu",
+      "Shinitai"
+    ],
+    "answer": "Shinaseru"
+  },
+  {
+    "id": 78,
+    "type": "Japanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'How are you?' (informal) in Japanese?",
+    "latex_svg_content": "Japanese: \\text{How are you}",
+    "choices": [
+      "Otsukaresama deshita",
+      "Genki desu ka?",
+      "Konbanwa",
+      "Tadaima"
+    ],
+    "answer": "Genki desu ka?"
+  },
+  {
+    "id": 79,
+    "type": "Japanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the adjective 'atsui' (暑い) mean?",
+    "latex_svg_content": "Japanese: \\text{Atsui}",
+    "choices": [
+      "Cold",
+      "Hot (temperature)",
+      "New",
+      "Small"
+    ],
+    "answer": "Hot (temperature)"
+  },
+  {
+    "id": 80,
+    "type": "Japanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which of these is the correct conditional 'if' form of the verb 'kaku' (書く - to write)?",
+    "latex_svg_content": "Japanese: \\text{Conditional 'to write'}",
+    "choices": [
+      "Kakeba",
+      "Kakitara",
+      "Kaku to",
+      "Kaku nara"
+    ],
+    "answer": "Kakeba"
+  },
+  {
+    "id": 81,
+    "type": "Japanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Japanese word for 'mother'?",
+    "latex_svg_content": "Japanese: \\text{Mother}",
+    "choices": [
+      "Otōsan",
+      "Okāsan",
+      "Onīsan",
+      "Imōto"
+    ],
+    "answer": "Okāsan"
+  },
+  {
+    "id": 82,
+    "type": "Japanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the meaning of the Kanji '時'?",
+    "latex_svg_content": "Kanji: \\text{Time/Hour}",
+    "choices": [
+      "Place",
+      "Person",
+      "Thing",
+      "Time / Hour"
+    ],
+    "answer": "Time / Hour"
+  },
+  {
+    "id": 83,
+    "type": "Japanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What is the causative-passive form of the verb 'Hashiru' (走る - to run)?",
+    "latex_svg_content": "Japanese: \\text{Causative-Passive 'to run'}",
+    "choices": [
+      "Hashiraserareru",
+      "Hashiraseru",
+      "Hashitteiru",
+      "Hashiru"
+    ],
+    "answer": "Hashiraserareru"
+  },
+  {
+    "id": 84,
+    "type": "Japanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which word is 'yes' in Japanese?",
+    "latex_svg_content": "Japanese: \\text{Yes}",
+    "choices": [
+      "Iie",
+      "Chigau",
+      "Hai",
+      "Gomennasai"
+    ],
+    "answer": "Hai"
+  },
+  {
+    "id": 85,
+    "type": "Japanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the phrase 'Shitsurei shimasu' (失礼します) mean when leaving someone's office?",
+    "latex_svg_content": "Japanese: \\text{Shitsurei shimasu}",
+    "choices": [
+      "Thank you for the meal",
+      "Excuse me / Goodbye (polite)",
+      "Welcome",
+      "I will do my best"
+    ],
+    "answer": "Excuse me / Goodbye (polite)"
+  },
+  {
+    "id": 86,
+    "type": "Japanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which is the honorific (sonkeigo) equivalent of 'to go' (行く - iku)?",
+    "latex_svg_content": "Japanese: \\text{Honorific 'to go'}",
+    "choices": [
+      "Iku",
+      "Irassharu",
+      "Mairu",
+      "Ikimasu"
+    ],
+    "answer": "Irassharu"
+  },
+  {
+    "id": 87,
+    "type": "Japanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Japanese word for 'Book'?",
+    "latex_svg_content": "Japanese: \\text{Book}",
+    "choices": [
+      "Pen",
+      "Kaban",
+      "Hon",
+      "Eiga"
+    ],
+    "answer": "Hon"
+  },
+  {
+    "id": 88,
+    "type": "Japanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the adjective 'chiisai' (小さい) mean?",
+    "latex_svg_content": "Japanese: \\text{Chiisai}",
+    "choices": [
+      "Big",
+      "Fast",
+      "Small",
+      "New"
+    ],
+    "answer": "Small"
+  },
+  {
+    "id": 89,
+    "type": "Japanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which Kanji means 'Truth' or 'Reality'?",
+    "latex_svg_content": "Kanji: \\text{Truth}",
+    "choices": [
+      "実",
+      "虚",
+      "論",
+      "議"
+    ],
+    "answer": "実"
+  },
+  {
+    "id": 90,
+    "type": "Japanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'Good morning' in Japanese (casual)?",
+    "latex_svg_content": "Japanese: \\text{Good morning}",
+    "choices": [
+      "Konbanwa",
+      "Konnichiwa",
+      "Oyasumi",
+      "Ohayō"
+    ],
+    "answer": "Ohayō"
+  },
+  {
+    "id": 91,
+    "type": "Japanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the phrase 'Dōitashimashite' (どういたしまして) mean?",
+    "latex_svg_content": "Japanese: \\text{Dōitashimashite}",
+    "choices": [
+      "You're welcome",
+      "I'm sorry",
+      "Hello",
+      "Wait a moment"
+    ],
+    "answer": "You're welcome"
+  },
+  {
+    "id": 92,
+    "type": "Japanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What is the correct conjugation for the negative past tense of 'Iku' (行く - to go)?",
+    "latex_svg_content": "Japanese: \\text{Negative Past 'to go'}",
+    "choices": [
+      "Ikanai deshita",
+      "Ikanakatta",
+      "Ikimasen deshita",
+      "Ikimasu deshita"
+    ],
+    "answer": "Ikanakatta"
+  },
+  {
+    "id": 93,
+    "type": "Japanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Japanese word for 'Car'?",
+    "latex_svg_content": "Japanese: \\text{Car}",
+    "choices": [
+      "Densha",
+      "Kuruma",
+      "Jitensha",
+      "Fune"
+    ],
+    "answer": "Kuruma"
+  },
+  {
+    "id": 94,
+    "type": "Japanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the Japanese word for 'Friend'?",
+    "latex_svg_content": "Japanese: \\text{Friend}",
+    "choices": [
+      "Sensei",
+      "Tomodachi",
+      "Haha",
+      "Ane"
+    ],
+    "answer": "Tomodachi"
+  },
+  {
+    "id": 95,
+    "type": "Japanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which verb is typically used for 'to give' (to a superior or highly respected person)?",
+    "latex_svg_content": "Japanese: \\text{To Give (humble)}",
+    "choices": [
+      "Ageru",
+      "Yaru",
+      "Sashiageru",
+      "Kureru"
+    ],
+    "answer": "Sashiageru"
+  },
+  {
+    "id": 96,
+    "type": "Japanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which of these means 'Today' in Japanese?",
+    "latex_svg_content": "Japanese: \\text{Today}",
+    "choices": [
+      "Kinō",
+      "Ashita",
+      "Kyō",
+      "Asatte"
+    ],
+    "answer": "Kyō"
+  },
+  {
+    "id": 97,
+    "type": "Japanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the counter '杯 (hai)' typically count?",
+    "latex_svg_content": "Japanese: \\text{Counter for cups}",
+    "choices": [
+      "Long, cylindrical objects",
+      "Flat, thin objects",
+      "Small, round objects",
+      "Cups or glasses of liquid"
+    ],
+    "answer": "Cups or glasses of liquid"
+  },
+  {
+    "id": 98,
+    "type": "Japanese",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What is the meaning of the idiomatic expression 'Mimi ga itai' (耳が痛い)?",
+    "latex_svg_content": "Japanese: \\text{Ears hurt}",
+    "choices": [
+      "To have an earache",
+      "To be forced to listen",
+      "The truth hurts to hear",
+      "To have a ringing in one's ears"
+    ],
+    "answer": "The truth hurts to hear"
+  },
+  {
+    "id": 99,
+    "type": "Japanese",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What Japanese word means 'Big'?",
+    "latex_svg_content": "Japanese: \\text{Big}",
+    "choices": [
+      "Chiisai",
+      "Ookii",
+      "Samui",
+      "Muzukashii"
+    ],
+    "answer": "Ookii"
+  },
+  {
+    "id": 100,
+    "type": "Japanese",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Which Hiragana character represents the sound 'TSU'?",
+    "latex_svg_content": "Hiragana: \\text{Tsu}",
+    "choices": [
+      "て",
+      "と",
+      "つ",
+      "た"
+    ],
+    "answer": "つ"
+  },
+  {
+    "id": 101,
+    "type": "Korean",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which Hangeul letter represents the sound 'N'?",
+    "latex_svg_content": "Hangeul: \\text{N}",
+    "choices": [
+      "ㄱ (g/k)",
+      "ㄴ (n)",
+      "ㄷ (d/t)",
+      "ㄹ (r/l)"
+    ],
+    "answer": "ㄴ (n)"
+  },
+  {
+    "id": 102,
+    "type": "Korean",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'Hello' (polite form) in Korean?",
+    "latex_svg_content": "Korean: \\text{Hello}",
+    "choices": [
+      "Annyeong",
+      "Gamsahamnida",
+      "Annyeonghaseyo",
+      "Jal gayo"
+    ],
+    "answer": "Annyeonghaseyo"
+  },
+  {
+    "id": 103,
+    "type": "Korean",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the English meaning of the Korean word **학교** (hakgyo)?",
+    "latex_svg_content": "Hangeul: \\text{학교}",
+    "choices": [
+      "Student",
+      "Teacher",
+      "School",
+      "Book"
+    ],
+    "answer": "School"
+  },
+  {
+    "id": 104,
+    "type": "Korean",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Korean word for 'Thank you' (polite form)?",
+    "latex_svg_content": "Korean: \\text{Thank you}",
+    "choices": [
+      "Mianhae",
+      "Gamsahamnida",
+      "Jal meokgesseumnida",
+      "Gwenchana"
+    ],
+    "answer": "Gamsahamnida"
+  },
+  {
+    "id": 105,
+    "type": "Korean",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "The particle '은/는 (eun/neun)' is primarily used to indicate what?",
+    "latex_svg_content": "Korean: \\text{Topic Particle}",
+    "choices": [
+      "The direct object",
+      "The subject",
+      "The topic",
+      "Location"
+    ],
+    "answer": "The topic"
+  },
+  {
+    "id": 106,
+    "type": "Korean",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What is the standard honorific suffix attached to verb stems in Korean (e.g., to respect the subject)?",
+    "latex_svg_content": "Korean: \\text{Honorific suffix}",
+    "choices": [
+      "-go",
+      "-sseo",
+      "-si/-(eu)si",
+      "-mnida"
+    ],
+    "answer": "-si/-(eu)si"
+  },
+  {
+    "id": 107,
+    "type": "Korean",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'Yes' in Korean?",
+    "latex_svg_content": "Korean: \\text{Yes}",
+    "choices": [
+      "Aniyo",
+      "Jal",
+      "Ne/Ye",
+      "Juseyo"
+    ],
+    "answer": "Ne/Ye"
+  },
+  {
+    "id": 108,
+    "type": "Korean",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the Korean word for 'Water'?",
+    "latex_svg_content": "Korean: \\text{Water}",
+    "choices": [
+      "Bul",
+      "Mul",
+      "Gonggi",
+      "Sogeum"
+    ],
+    "answer": "Mul"
+  },
+  {
+    "id": 109,
+    "type": "Korean",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "The verb 'to know' (알다 - alda) is an irregular verb. What is its standard past tense form?",
+    "latex_svg_content": "Korean: \\text{Past tense 'to know'}",
+    "choices": [
+      "Al-eosseo",
+      "Araseo",
+      "Algisseoyo",
+      "Alatdeon"
+    ],
+    "answer": "Araseo"
+  },
+  {
+    "id": 110,
+    "type": "Korean",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which Hangeul letter represents the sound 'M'?",
+    "latex_svg_content": "Hangeul: \\text{M}",
+    "choices": [
+      "ㅂ (b/p)",
+      "ㅁ (m)",
+      "ㅅ (s)",
+      "ㅈ (j/ch)"
+    ],
+    "answer": "ㅁ (m)"
+  },
+  {
+    "id": 111,
+    "type": "Korean",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the Korean word for 'House' or 'Home'?",
+    "latex_svg_content": "Korean: \\text{House}",
+    "choices": [
+      "Chingdae",
+      "Cha",
+      "Jib",
+      "Gongwon"
+    ],
+    "answer": "Jib"
+  },
+  {
+    "id": 112,
+    "type": "Korean",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which of these is the correct counter for counting sheets of paper or maps?",
+    "latex_svg_content": "Korean: \\text{Counter for sheets}",
+    "choices": [
+      "Gae (개)",
+      "Jang (장)",
+      "Myeong (명)",
+      "Gwon (권)"
+    ],
+    "answer": "Jang (장)"
+  },
+  {
+    "id": 113,
+    "type": "Korean",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Korean word for 'Food'?",
+    "latex_svg_content": "Korean: \\text{Food}",
+    "choices": [
+      "Bap",
+      "Gogiga",
+      "Sok",
+      "Haksaeng"
+    ],
+    "answer": "Bap"
+  },
+  {
+    "id": 114,
+    "type": "Korean",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the phrase 'Jal meokgesseumnida' (잘 먹겠습니다) mean?",
+    "latex_svg_content": "Korean: \\text{Jal meokgesseumnida}",
+    "choices": [
+      "I am full",
+      "I will eat well (before eating)",
+      "Thank you for the food (after eating)",
+      "Let's eat together"
+    ],
+    "answer": "I will eat well (before eating)"
+  },
+  {
+    "id": 115,
+    "type": "Korean",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What is the irregular past tense of the descriptive verb 'to be yellow' (노랗다 - norata)?",
+    "latex_svg_content": "Korean: \\text{Past tense 'yellow'}",
+    "choices": [
+      "Norat-eosseo",
+      "Noraesseo",
+      "Norang-haesseo",
+      "Noraetda"
+    ],
+    "answer": "Noraesseo"
+  },
+  {
+    "id": 116,
+    "type": "Korean",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'one' (Hana) in pure Korean numbers?",
+    "latex_svg_content": "Korean: \\text{One (Pure)}",
+    "choices": [
+      "Dul",
+      "Set",
+      "Hana",
+      "Yeol"
+    ],
+    "answer": "Hana"
+  },
+  {
+    "id": 117,
+    "type": "Korean",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Which particle is used to indicate the time or day when something occurs?",
+    "latex_svg_content": "Korean: \\text{Time Particle}",
+    "choices": [
+      "-ga/-i",
+      "-eul/-reul",
+      "-e",
+      "-wa/-gwa"
+    ],
+    "answer": "-e"
+  },
+  {
+    "id": 118,
+    "type": "Korean",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "The conjunction '-jiman' (지만) connects clauses to express what meaning?",
+    "latex_svg_content": "Korean: \\text{Conjunction '-jiman'}",
+    "choices": [
+      "Because / Since",
+      "In order to",
+      "But / Although",
+      "While doing"
+    ],
+    "answer": "But / Although"
+  },
+  {
+    "id": 119,
+    "type": "Korean",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Korean word for 'Father'?",
+    "latex_svg_content": "Korean: \\text{Father}",
+    "choices": [
+      "Eomma",
+      "Appa",
+      "Hyeong",
+      "Nuna"
+    ],
+    "answer": "Appa"
+  },
+  {
+    "id": 120,
+    "type": "Korean",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the Korean word for 'Friend'?",
+    "latex_svg_content": "Korean: \\text{Friend}",
+    "choices": [
+      "Seonsaengnim",
+      "Gongbu",
+      "Chingu",
+      "Hagsaeng"
+    ],
+    "answer": "Chingu"
+  },
+  {
+    "id": 121,
+    "type": "Korean",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which is the correct Sino-Korean number for '10,000'?",
+    "latex_svg_content": "Korean: \\text{10,000}",
+    "choices": [
+      "Cheon",
+      "Man",
+      "Baek",
+      "Ship"
+    ],
+    "answer": "Man"
+  },
+  {
+    "id": 122,
+    "type": "Korean",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'No' in Korean (polite form)?",
+    "latex_svg_content": "Korean: \\text{No (polite)}",
+    "choices": [
+      "Ne",
+      "Aniyo",
+      "Gwenchana",
+      "Mianhae"
+    ],
+    "answer": "Aniyo"
+  },
+  {
+    "id": 123,
+    "type": "Korean",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the descriptive verb '크다 (keuda)' mean?",
+    "latex_svg_content": "Korean: \\text{Keuda}",
+    "choices": [
+      "To be small",
+      "To be big",
+      "To be new",
+      "To be long"
+    ],
+    "answer": "To be big"
+  },
+  {
+    "id": 124,
+    "type": "Korean",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What is the honorific noun for 'Age'?",
+    "latex_svg_content": "Korean: \\text{Age (honorific)}",
+    "choices": [
+      "Nai (나이)",
+      "Yeol (열)",
+      "Yeonse (연세)",
+      "Se (세)"
+    ],
+    "answer": "Yeonse (연세)"
+  },
+  {
+    "id": 125,
+    "type": "Korean",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which word means 'Student' in Korean?",
+    "latex_svg_content": "Korean: \\text{Student}",
+    "choices": [
+      "Seonsaengnim",
+      "Hagsaeng",
+      "Jib",
+      "Hakgyo"
+    ],
+    "answer": "Hagsaeng"
+  },
+  {
+    "id": 126,
+    "type": "Korean",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "The particle '-do' (도) is used to express what meaning?",
+    "latex_svg_content": "Korean: \\text{Particle '-do'}",
+    "choices": [
+      "Only",
+      "Also / Too",
+      "From",
+      "To"
+    ],
+    "answer": "Also / Too"
+  },
+  {
+    "id": 127,
+    "type": "Korean",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What is the honorific equivalent of the verb 'to exist' (있다 - itda)?",
+    "latex_svg_content": "Korean: \\text{Honorific 'to exist'}",
+    "choices": [
+      "Itda",
+      "Gyesida",
+      "Gaseo",
+      "Eopda"
+    ],
+    "answer": "Gyesida"
+  },
+  {
+    "id": 128,
+    "type": "Korean",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Korean word for 'Book'?",
+    "latex_svg_content": "Korean: \\text{Book}",
+    "choices": [
+      "Pyeonji",
+      "Kongchaek",
+      "Chaek",
+      "Yeonpil"
+    ],
+    "answer": "Chaek"
+  },
+  {
+    "id": 129,
+    "type": "Korean",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the phrase 'Gwenchanayo' (괜찮아요) mean?",
+    "latex_svg_content": "Korean: \\text{Gwenchanayo}",
+    "choices": [
+      "I am sick",
+      "I am sorry",
+      "It's okay / I am fine",
+      "I am hungry"
+    ],
+    "answer": "It's okay / I am fine"
+  },
+  {
+    "id": 130,
+    "type": "Korean",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What is the correct way to form the future tense using the suffix '-(eu)l geoda' (을 것이다)?",
+    "latex_svg_content": "Korean: \\text{Future tense}",
+    "choices": [
+      "Hago geoda",
+      "Halsu isseoyo",
+      "Hal geoyeyo",
+      "Haessda"
+    ],
+    "answer": "Hal geoyeyo"
+  },
+  {
+    "id": 131,
+    "type": "Korean",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'two' (Dul) in pure Korean numbers?",
+    "latex_svg_content": "Korean: \\text{Two (Pure)}",
+    "choices": [
+      "Hana",
+      "Dul",
+      "Set",
+      "Net"
+    ],
+    "answer": "Dul"
+  },
+  {
+    "id": 132,
+    "type": "Korean",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Which word means 'Today' in Korean?",
+    "latex_svg_content": "Korean: \\text{Today}",
+    "choices": [
+      "Eoje",
+      "Naeil",
+      "Oneul",
+      "Morae"
+    ],
+    "answer": "Oneul"
+  },
+  {
+    "id": 133,
+    "type": "Korean",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "The verb 'to hear' (듣다 - deutda) is a 'ㄷ' irregular verb. What is its past tense form?",
+    "latex_svg_content": "Korean: \\text{Past tense 'to hear'}",
+    "choices": [
+      "Deut-eosseo",
+      "Deureosseo",
+      "Deutgida",
+      "Deutgosipda"
+    ],
+    "answer": "Deureosseo"
+  },
+  {
+    "id": 134,
+    "type": "Korean",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Korean word for 'Dog'?",
+    "latex_svg_content": "Korean: \\text{Dog}",
+    "choices": [
+      "Goyang-i",
+      "Ga-e",
+      "Gae",
+      "Mal"
+    ],
+    "answer": "Gae"
+  },
+  {
+    "id": "135",
+    "type": "Korean",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the Sino-Korean word for 'February'?",
+    "latex_svg_content": "Korean: \\text{February}",
+    "choices": [
+      "Il-wol",
+      "I-wol",
+      "Sam-wol",
+      "Si-wol"
+    ],
+    "answer": "I-wol"
+  },
+  {
+    "id": 136,
+    "type": "Korean",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "The verb 'to be beautiful' (아름답다 - areumdapda) is a 'ㅂ' irregular verb. What is its standard present tense form?",
+    "latex_svg_content": "Korean: \\text{Present tense 'beautiful'}",
+    "choices": [
+      "Areumdap-eoyo",
+      "Areumdao",
+      "Areumdawoyo",
+      "Areumdapda"
+    ],
+    "answer": "Areumdawoyo"
+  },
+  {
+    "id": 137,
+    "type": "Korean",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which word means 'Car' in Korean?",
+    "latex_svg_content": "Korean: \\text{Car}",
+    "choices": [
+      "Cha",
+      "Jeonhwa",
+      "Baikeu",
+      "Gicha"
+    ],
+    "answer": "Cha"
+  },
+  {
+    "id": 138,
+    "type": "Korean",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the Korean word for 'Store' or 'Shop'?",
+    "latex_svg_content": "Korean: \\text{Store}",
+    "choices": [
+      "Gyeot",
+      "Sijang",
+      "Gage",
+      "Namja"
+    ],
+    "answer": "Gage"
+  },
+  {
+    "id": 139,
+    "type": "Korean",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What is the negative imperative form of the verb 'to go' (가다 - gada)?",
+    "latex_svg_content": "Korean: \\text{Negative Imperative 'to go'}",
+    "choices": [
+      "Gajima",
+      "Gaseyo",
+      "Gaji anhseubnida",
+      "Gayo"
+    ],
+    "answer": "Gajima"
+  },
+  {
+    "id": 140,
+    "type": "Korean",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Korean word for 'Hot' (temperature)?",
+    "latex_svg_content": "Korean: \\text{Hot}",
+    "choices": [
+      "Chupda",
+      "Deopda",
+      "Ttatteut",
+      "Malleun"
+    ],
+    "answer": "Deopda"
+  },
+  {
+    "id": 141,
+    "type": "Korean",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the particle '-eul/reul' (을/를) indicate?",
+    "latex_svg_content": "Korean: \\text{Object Particle}",
+    "choices": [
+      "The subject",
+      "The topic",
+      "The direct object",
+      "Location"
+    ],
+    "answer": "The direct object"
+  },
+  {
+    "id": 142,
+    "type": "Korean",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "The connective ending '-(eu)nikka' (으니까) is used to express what meaning?",
+    "latex_svg_content": "Korean: \\text{Reason Ending}",
+    "choices": [
+      "Condition ('If')",
+      "Intention ('Will')",
+      "Reason ('Because')",
+      "Sequence ('And then')"
+    ],
+    "answer": "Reason ('Because')"
+  },
+  {
+    "id": 143,
+    "type": "Korean",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'Good morning' in Korean (formal/highly polite)?",
+    "latex_svg_content": "Korean: \\text{Good morning (formal)}",
+    "choices": [
+      "Annyeong",
+      "Annyeonghi gyeseyo",
+      "Annyeonghasimnika",
+      "Jal jayo"
+    ],
+    "answer": "Annyeonghasimnika"
+  },
+  {
+    "id": 144,
+    "type": "Korean",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the Korean word for 'Yesterday'?",
+    "latex_svg_content": "Korean: \\text{Yesterday}",
+    "choices": [
+      "Naeil",
+      "Oneul",
+      "Eoje",
+      "Morae"
+    ],
+    "answer": "Eoje"
+  },
+  {
+    "id": 145,
+    "type": "Korean",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What is the meaning of the idiom '손을 씻다' (Son-eul ssitda)?",
+    "latex_svg_content": "Korean: \\text{Wash hands}",
+    "choices": [
+      "To wash one's hands",
+      "To stop being involved in something",
+      "To apologize",
+      "To take a break"
+    ],
+    "answer": "To stop being involved in something"
+  },
+  {
+    "id": 146,
+    "type": "Korean",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which word means 'Cat' in Korean?",
+    "latex_svg_content": "Korean: \\text{Cat}",
+    "choices": [
+      "Gae",
+      "Mal",
+      "Goyang-i",
+      "Sae"
+    ],
+    "answer": "Goyang-i"
+  },
+  {
+    "id": 147,
+    "type": "Korean",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the Korean word for 'Work' or 'Job'?",
+    "latex_svg_content": "Korean: \\text{Work}",
+    "choices": [
+      "Nolgi",
+      "Hakgyo",
+      "Il",
+      "Gongbu"
+    ],
+    "answer": "Il"
+  },
+  {
+    "id": 148,
+    "type": "Korean",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What is the honorific equivalent of the noun 'Rice/Meal' (밥 - bap)?",
+    "latex_svg_content": "Korean: \\text{Rice (honorific)}",
+    "choices": [
+      "Sikryo",
+      "Gonggibap",
+      "Jinji",
+      "Ssal"
+    ],
+    "answer": "Jinji"
+  },
+  {
+    "id": 149,
+    "type": "Korean",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which word means 'Good' in Korean?",
+    "latex_svg_content": "Korean: \\text{Good}",
+    "choices": [
+      "Nappeun",
+      "Joheun",
+      "Mianhan",
+      "Himsseun"
+    ],
+    "answer": "Joheun"
+  },
+  {
+    "id": 150,
+    "type": "Korean",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Which Korean word means 'Doctor'?",
+    "latex_svg_content": "Korean: \\text{Doctor}",
+    "choices": [
+      "Hagsaeng",
+      "Seonsaengnim",
+      "Uisa",
+      "Gongmuwon"
+    ],
+    "answer": "Uisa"
+  },
+  {
+    "id": 151,
+    "type": "Tagalog",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Tagalog word for 'Yes'?",
+    "latex_svg_content": "Tagalog: \\text{Yes}",
+    "choices": [
+      "Sige",
+      "Hindi",
+      "Oo",
+      "Mabuti"
+    ],
+    "answer": "Oo"
+  },
+  {
+    "id": 152,
+    "type": "Tagalog",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Tagalog phrase for 'Good morning'?",
+    "latex_svg_content": "Tagalog: \\text{Good morning}",
+    "choices": [
+      "Magandang hapon",
+      "Salamat",
+      "Magandang umaga",
+      "Paalam"
+    ],
+    "answer": "Magandang umaga"
+  },
+  {
+    "id": 153,
+    "type": "Tagalog",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the Tagalog word 'masarap' mean?",
+    "latex_svg_content": "Tagalog: \\text{Masarap}",
+    "choices": [
+      "Fast",
+      "Expensive",
+      "Delicious",
+      "Beautiful"
+    ],
+    "answer": "Delicious"
+  },
+  {
+    "id": 154,
+    "type": "Tagalog",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'Thank you' in Tagalog?",
+    "latex_svg_content": "Tagalog: \\text{Thank you}",
+    "choices": [
+      "Mabuhay",
+      "Salamat",
+      "Kumusta",
+      "Paalam"
+    ],
+    "answer": "Salamat"
+  },
+  {
+    "id": 155,
+    "type": "Tagalog",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "The affix '-in' (as in 'basahin') is used to indicate what kind of focus in a verb?",
+    "latex_svg_content": "Tagalog: \\text{Affix '-in'}",
+    "choices": [
+      "Actor Focus",
+      "Object Focus",
+      "Directional Focus",
+      "Benefactive Focus"
+    ],
+    "answer": "Object Focus"
+  },
+  {
+    "id": 156,
+    "type": "Tagalog",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What does the word 'kailan' mean?",
+    "latex_svg_content": "Tagalog: \\text{Kailan}",
+    "choices": [
+      "Where",
+      "Why",
+      "When",
+      "How much"
+    ],
+    "answer": "When"
+  },
+  {
+    "id": 157,
+    "type": "Tagalog",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Tagalog word for 'No' or 'Not'?",
+    "latex_svg_content": "Tagalog: \\text{No}",
+    "choices": [
+      "Oo",
+      "Ayaw",
+      "Wala",
+      "Hindi"
+    ],
+    "answer": "Hindi"
+  },
+  {
+    "id": 158,
+    "type": "Tagalog",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the word 'bahay' mean in Tagalog?",
+    "latex_svg_content": "Tagalog: \\text{Bahay}",
+    "choices": [
+      "Car",
+      "House",
+      "Tree",
+      "Water"
+    ],
+    "answer": "House"
+  },
+  {
+    "id": 159,
+    "type": "Tagalog",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which of these is the correct Actor Focus verb for 'to eat' (past tense)?",
+    "latex_svg_content": "Tagalog: \\text{Past Tense 'to eat'}",
+    "choices": [
+      "Kinain",
+      "Kumakain",
+      "Kumain",
+      "Kakainin"
+    ],
+    "answer": "Kumain"
+  },
+  {
+    "id": 160,
+    "type": "Tagalog",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'Water' in Tagalog?",
+    "latex_svg_content": "Tagalog: \\text{Water}",
+    "choices": [
+      "Hangin",
+      "Tubig",
+      "Lupa",
+      "Apoy"
+    ],
+    "answer": "Tubig"
+  },
+  {
+    "id": 161,
+    "type": "Tagalog",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the Tagalog word for 'Book'?",
+    "latex_svg_content": "Tagalog: \\text{Book}",
+    "choices": [
+      "Lapis",
+      "Aklat",
+      "Papel",
+      "Mesa"
+    ],
+    "answer": "Aklat"
+  },
+  {
+    "id": 162,
+    "type": "Tagalog",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "The linker '-ng' (na + ng) is used to connect a modified word to a word that ends in what?",
+    "latex_svg_content": "Tagalog: \\text{Linker '-ng'}",
+    "choices": [
+      "A vowel or /n/",
+      "A consonant (not /n/)",
+      "The letter 'i'",
+      "The letter 'o'"
+    ],
+    "answer": "A vowel or /n/"
+  },
+  {
+    "id": 163,
+    "type": "Tagalog",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which word means 'One' in Tagalog?",
+    "latex_svg_content": "Tagalog: \\text{One}",
+    "choices": [
+      "Dalawa",
+      "Tatló",
+      "Isa",
+      "Apat"
+    ],
+    "answer": "Isa"
+  },
+  {
+    "id": 164,
+    "type": "Tagalog",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the Tagalog word for 'Teacher'?",
+    "latex_svg_content": "Tagalog: \\text{Teacher}",
+    "choices": [
+      "Mag-aaral",
+      "Guro",
+      "Pulis",
+      "Doktor"
+    ],
+    "answer": "Guro"
+  },
+  {
+    "id": 165,
+    "type": "Tagalog",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What does the verb form 'mag-aral' mean in Tagalog (Actor Focus)?",
+    "latex_svg_content": "Tagalog: \\text{Mag-aral}",
+    "choices": [
+      "To be taught",
+      "To study",
+      "To go to school",
+      "To teach"
+    ],
+    "answer": "To study"
+  },
+  {
+    "id": 166,
+    "type": "Tagalog",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'Dog' in Tagalog?",
+    "latex_svg_content": "Tagalog: \\text{Dog}",
+    "choices": [
+      "Pusa",
+      "Aso",
+      "Ibon",
+      "Isda"
+    ],
+    "answer": "Aso"
+  },
+  {
+    "id": 167,
+    "type": "Tagalog",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "The word 'mga' is used to indicate what grammatical feature?",
+    "latex_svg_content": "Tagalog: \\text{Pluralizer}",
+    "choices": [
+      "Past tense",
+      "Plural",
+      "Future tense",
+      "Feminine gender"
+    ],
+    "answer": "Plural"
+  },
+  {
+    "id": 168,
+    "type": "Tagalog",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What does the expression 'Sayang!' (Sayang!) mean?",
+    "latex_svg_content": "Tagalog: \\text{Sayang}",
+    "choices": [
+      "Congratulations!",
+      "I'm sorry!",
+      "What a waste! / Too bad!",
+      "I'm tired!"
+    ],
+    "answer": "What a waste! / Too bad!"
+  },
+  {
+    "id": 169,
+    "type": "Tagalog",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Tagalog word for 'Mother'?",
+    "latex_svg_content": "Tagalog: \\text{Mother}",
+    "choices": [
+      "Tatay",
+      "Kuya",
+      "Ate",
+      "Nanay"
+    ],
+    "answer": "Nanay"
+  },
+  {
+    "id": 170,
+    "type": "Tagalog",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the word 'kanin' mean in Tagalog?",
+    "latex_svg_content": "Tagalog: \\text{Kanin}",
+    "choices": [
+      "Raw rice",
+      "Cooked rice",
+      "Bread",
+      "Noodles"
+    ],
+    "answer": "Cooked rice"
+  },
+  {
+    "id": 171,
+    "type": "Tagalog",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which of these is the correct Location Focus verb for 'to buy' (bili) in the future tense?",
+    "latex_svg_content": "Tagalog: \\text{Future Location Focus 'to buy'}",
+    "choices": [
+      "Bibibilihin",
+      "Bibilihan",
+      "Bumili",
+      "Binibili"
+    ],
+    "answer": "Bibilihan"
+  },
+  {
+    "id": 172,
+    "type": "Tagalog",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'You' (singular, informal) in Tagalog?",
+    "latex_svg_content": "Tagalog: \\text{You}",
+    "choices": [
+      "Kami",
+      "Ikaw",
+      "Sila",
+      "Tayo"
+    ],
+    "answer": "Ikaw"
+  },
+  {
+    "id": 173,
+    "type": "Tagalog",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the question word 'bakit' mean?",
+    "latex_svg_content": "Tagalog: \\text{Bakit}",
+    "choices": [
+      "Where",
+      "What",
+      "How",
+      "Why"
+    ],
+    "answer": "Why"
+  },
+  {
+    "id": 174,
+    "type": "Tagalog",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "The word 'niyan' is used to refer to a noun that is where?",
+    "latex_svg_content": "Tagalog: \\text{Niyan}",
+    "choices": [
+      "Near the speaker",
+      "Near the listener",
+      "Far from both speaker and listener",
+      "Inside a container"
+    ],
+    "answer": "Near the listener"
+  },
+  {
+    "id": 175,
+    "type": "Tagalog",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Tagalog word for 'Good'?",
+    "latex_svg_content": "Tagalog: \\text{Good}",
+    "choices": [
+      "Pangit",
+      "Mabuti",
+      "Mahirap",
+      "Mali"
+    ],
+    "answer": "Mabuti"
+  },
+  {
+    "id": 176,
+    "type": "Tagalog",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the expression 'Ingat!' (Ingat!) mean?",
+    "latex_svg_content": "Tagalog: \\text{Ingat}",
+    "choices": [
+      "Be careful / Take care",
+      "Get well soon",
+      "Goodbye forever",
+      "Wait for me"
+    ],
+    "answer": "Be careful / Take care"
+  },
+  {
+    "id": 177,
+    "type": "Tagalog",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "The verb 'Makita' (to see/be able to see) is what kind of verb form?",
+    "latex_svg_content": "Tagalog: \\text{Makita}",
+    "choices": [
+      "Actor Focus",
+      "Causative Focus",
+      "Non-Actor Focus",
+      "Accidental/Involuntary Focus"
+    ],
+    "answer": "Accidental/Involuntary Focus"
+  },
+  {
+    "id": 178,
+    "type": "Tagalog",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'I' (singular) in Tagalog?",
+    "latex_svg_content": "Tagalog: \\text{I}",
+    "choices": [
+      "Ikaw",
+      "Ako",
+      "Tayo",
+      "Sila"
+    ],
+    "answer": "Ako"
+  },
+  {
+    "id": 179,
+    "type": "Tagalog",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the Tagalog word for 'Today'?",
+    "latex_svg_content": "Tagalog: \\text{Today}",
+    "choices": [
+      "Bukas",
+      "Kahapon",
+      "Ngayon",
+      "Mamaya"
+    ],
+    "answer": "Ngayon"
+  },
+  {
+    "id": 180,
+    "type": "Tagalog",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "The reduplication of the first syllable of a verb root (e.g., *ka*kain) indicates what aspect?",
+    "latex_svg_content": "Tagalog: \\text{Reduplication}",
+    "choices": [
+      "Past tense",
+      "Completed action",
+      "Future tense",
+      "Contemplated action"
+    ],
+    "answer": "Future tense"
+  },
+  {
+    "id": 181,
+    "type": "Tagalog",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Tagalog word for 'Small'?",
+    "latex_svg_content": "Tagalog: \\text{Small}",
+    "choices": [
+      "Malaki",
+      "Maliit",
+      "Mabilis",
+      "Mahina"
+    ],
+    "answer": "Maliit"
+  },
+  {
+    "id": 182,
+    "type": "Tagalog",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the Tagalog word for 'Hospital'?",
+    "latex_svg_content": "Tagalog: \\text{Hospital}",
+    "choices": [
+      "Palengke",
+      "Ospital",
+      "Eskuwela",
+      "Simbahan"
+    ],
+    "answer": "Ospital"
+  },
+  {
+    "id": 183,
+    "type": "Tagalog",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What does the affix 'ipa-' (as in 'ipasyal') indicate?",
+    "latex_svg_content": "Tagalog: \\text{Affix 'ipa-'}",
+    "choices": [
+      "Reciprocal action",
+      "Benefactive focus",
+      "Causative / To cause to do",
+      "Ability to do"
+    ],
+    "answer": "Causative / To cause to do"
+  },
+  {
+    "id": 184,
+    "type": "Tagalog",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'Cat' in Tagalog?",
+    "latex_svg_content": "Tagalog: \\text{Cat}",
+    "choices": [
+      "Manok",
+      "Baka",
+      "Pusa",
+      "Daga"
+    ],
+    "answer": "Pusa"
+  },
+  {
+    "id": 185,
+    "type": "Tagalog",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the Tagalog word for 'Street' or 'Road'?",
+    "latex_svg_content": "Tagalog: \\text{Street}",
+    "choices": [
+      "Bato",
+      "Daan",
+      "Tubig",
+      "Halaman"
+    ],
+    "answer": "Daan"
+  },
+  {
+    "id": 186,
+    "type": "Tagalog",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "The word 'raw' is used after a vowel-ending word to mean what?",
+    "latex_svg_content": "Tagalog: \\text{Reportive Particle}",
+    "choices": [
+      "It is true",
+      "It is not true",
+      "It is said / According to",
+      "It is a question"
+    ],
+    "answer": "It is said / According to"
+  },
+  {
+    "id": 187,
+    "type": "Tagalog",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Tagalog word for 'Father'?",
+    "latex_svg_content": "Tagalog: \\text{Father}",
+    "choices": [
+      "Nanay",
+      "Ate",
+      "Tatay",
+      "Tiyo"
+    ],
+    "answer": "Tatay"
+  },
+  {
+    "id": 188,
+    "type": "Tagalog",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the Tagalog word 'gusto' mean?",
+    "latex_svg_content": "Tagalog: \\text{Gusto}",
+    "choices": [
+      "To hate",
+      "To want / To like",
+      "To run",
+      "To sing"
+    ],
+    "answer": "To want / To like"
+  },
+  {
+    "id": 189,
+    "type": "Tagalog",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Which of these is the correct Oblique Personal Marker (used for proper names)?",
+    "latex_svg_content": "Tagalog: \\text{Oblique Personal Marker}",
+    "choices": [
+      "Si",
+      "Ni",
+      "Kay",
+      "Ang"
+    ],
+    "answer": "Kay"
+  },
+  {
+    "id": 190,
+    "type": "Tagalog",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'Goodbye' in Tagalog?",
+    "latex_svg_content": "Tagalog: \\text{Goodbye}",
+    "choices": [
+      "Salamat",
+      "Paalam",
+      "Kumusta",
+      "Mabuhay"
+    ],
+    "answer": "Paalam"
+  },
+  {
+    "id": 191,
+    "type": "Tagalog",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the Tagalog word for 'New'?",
+    "latex_svg_content": "Tagalog: \\text{New}",
+    "choices": [
+      "Bago",
+      "Luma",
+      "Mabuti",
+      "Mahaba"
+    ],
+    "answer": "Bago"
+  },
+  {
+    "id": 192,
+    "type": "Tagalog",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What does the Tagalog word 'pook' mean?",
+    "latex_svg_content": "Tagalog: \\text{Pook}",
+    "choices": [
+      "Person",
+      "Place / Location",
+      "Object",
+      "Time"
+    ],
+    "answer": "Place / Location"
+  },
+  {
+    "id": 193,
+    "type": "Tagalog",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which word means 'We' (inclusive - speaker and listener) in Tagalog?",
+    "latex_svg_content": "Tagalog: \\text{We (inclusive)}",
+    "choices": [
+      "Kami",
+      "Sila",
+      "Tayo",
+      "Ako"
+    ],
+    "answer": "Tayo"
+  },
+  {
+    "id": 194,
+    "type": "Tagalog",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What does the Tagalog word 'mahal' mean?",
+    "latex_svg_content": "Tagalog: \\text{Mahal}",
+    "choices": [
+      "Cheap / Inexpensive",
+      "Expensive / Dear / Beloved",
+      "Fast / Quick",
+      "Bad / Evil"
+    ],
+    "answer": "Expensive / Dear / Beloved"
+  },
+  {
+    "id": 195,
+    "type": "Tagalog",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "The affix '-an' (as in 'laruan') is used to form nouns that mean what?",
+    "latex_svg_content": "Tagalog: \\text{Affix '-an'}",
+    "choices": [
+      "A person who does the action",
+      "A tool for the action",
+      "A place for the action",
+      "The result of the action"
+    ],
+    "answer": "A place for the action"
+  },
+  {
+    "id": 196,
+    "type": "Tagalog",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How do you say 'Good afternoon' in Tagalog?",
+    "latex_svg_content": "Tagalog: \\text{Good afternoon}",
+    "choices": [
+      "Magandang gabi",
+      "Magandang tanghali",
+      "Magandang hapon",
+      "Magandang umaga"
+    ],
+    "answer": "Magandang hapon"
+  },
+  {
+    "id": 197,
+    "type": "Tagalog",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Which Tagalog word means 'Wait' or 'Wait a moment'?",
+    "latex_svg_content": "Tagalog: \\text{Wait}",
+    "choices": [
+      "Lakad",
+      "Teka / Sandali",
+      "Dito",
+      "Aalis"
+    ],
+    "answer": "Teka / Sandali"
+  },
+  {
+    "id": 198,
+    "type": "Tagalog",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What does the expression 'Naku po!' (Naku po!) typically convey?",
+    "latex_svg_content": "Tagalog: \\text{Naku po!}",
+    "choices": [
+      "Surprise / Distress / Oh dear!",
+      "Agreement / Yes, sir!",
+      "I love you!",
+      "Thank you very much!"
+    ],
+    "answer": "Surprise / Distress / Oh dear!"
+  },
+  {
+    "id": 199,
+    "type": "Tagalog",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the Tagalog word for 'Here' (near the speaker)?",
+    "latex_svg_content": "Tagalog: \\text{Here}",
+    "choices": [
+      "Doon",
+      "Diyan",
+      "Dito",
+      "Kayo"
+    ],
+    "answer": "Dito"
+  },
+  {
+    "id": 200,
+    "type": "Tagalog",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Which Tagalog word means 'Yesterday'?",
+    "latex_svg_content": "Tagalog: \\text{Yesterday}",
+    "choices": [
+      "Bukas",
+      "Kahapon",
+      "Ngayon",
+      "Sa isang linggo"
+    ],
+    "answer": "Kahapon"
+  }
+]
