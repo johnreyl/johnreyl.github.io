@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Assessment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        /* Custom Styling for a professional, adaptive look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6); /* Professional blue gradient */
+            min-height: 100vh;
+        }
+
+        .quiz-card {
+            background-color: #ffffff;
+            border: 4px solid #10b981; /* Green accent */
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .choice-button {
+            /* Ensures long text choices are readable and fill the container */
+            transition: all 0.2s;
+            text-align: left;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+
+            .choice-button:hover:not(.correct, .incorrect, .disabled) {
+                background-color: #f3f4f6;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+
+        .correct {
+            background-color: #10b981 !important; /* Green */
+            color: white !important;
+            border: 1px solid #059669;
+        }
+
+        .incorrect {
+            background-color: #ef4444 !important; /* Red */
+            color: white !important;
+            border: 1px solid #dc2626;
+        }
+
+        .pulse-animation {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.02);
+            }
+        }
+
+        /* Modal specific styling */
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        /* Ensure MathJax elements also respect text wrapping */
+        .question-text {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* Mobile adjustments for the main container */
+        @media (max-width: 768px) {
+            .quiz-card {
+                margin: 1rem;
+                padding: 1rem;
+            }
+
+            .title-text {
+                font-size: 1.5rem;
+            }
+
+            .question-text {
+                font-size: 1.125rem;
+            }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+
+    <div id="quiz-card" class="quiz-card w-full max-w-4xl p-8 rounded-xl shadow-2xl pulse-animation">
+
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 border-b pb-4">
+            <h1 class="title-text text-3xl font-bold text-gray-800 text-center md:text-left mb-4 md:mb-0">
+                <i class="fas fa-brain text-indigo-600 mr-2"></i> Knowledge Assessment
+            </h1>
+            <div class="flex space-x-2">
+                <button id="rulesButton" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors shadow-md">
+                    <i class="fas fa-book"></i> Rules
+                </button>
+                <button id="historyButton" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-md">
+                    <i class="fas fa-history"></i> History
+                </button>
+                <button id="fullscreenButton" class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors shadow-md hidden md:inline-flex">
+                    <i class="fas fa-expand"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="quizStatus" class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex flex-col">
+                <label for="typeSelect" class="text-sm font-medium text-gray-700 mb-1">Exam Type:</label>
+                <select id="typeSelect" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2">
+                </select>
+            </div>
+
+            <div class="flex flex-col">
+                <p class="text-sm font-medium text-gray-700 mb-1">Status:</p>
+                <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md shadow-inner">
+                    <span id="scoreDisplay" class="text-lg font-semibold text-indigo-600">Score: 0</span>
+                    <span id="timerDisplay" class="text-lg font-semibold text-gray-600">Time: 00:00</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="quizContent">
+
+            <div id="questionContainer" class="mb-8">
+                <div class="flex justify-between items-center mb-2">
+                    <p id="questionNumber" class="text-sm font-medium text-indigo-600 uppercase tracking-wider"></p>
+                    <div id="difficultyBadge" class="text-xs font-bold px-3 py-1 rounded-full"></div>
+                </div>
+                <div id="currentQuestion" class="question-text text-xl font-semibold text-gray-900 min-h-[50px] bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    Loading challenge...
+                </div>
+            </div>
+
+            <div id="choicesContainer" class="flex flex-col space-y-3">
+            </div>
+
+            <div class="mt-8 flex justify-center">
+                <button id="startButton" class="px-8 py-3 text-lg font-bold bg-green-500 text-white rounded-xl hover:bg-green-600 transition-transform transform hover:scale-105 shadow-xl disabled:bg-gray-400" disabled>
+                    Start Challenge
+                </button>
+                <button id="nextButton" class="px-8 py-3 text-lg font-bold bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 transition-transform transform hover:scale-105 shadow-xl hidden" disabled>
+                    Next Question <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="resultsScreen" class="hidden text-center p-10">
+            <h2 class="text-4xl font-extrabold text-indigo-600 mb-4"><i class="fas fa-trophy mr-2"></i> Challenge Complete!</h2>
+            <p id="finalScore" class="text-2xl text-gray-800 mb-4"></p>
+            <p id="finalAccuracy" class="text-xl text-gray-600 mb-6"></p>
+            <button id="restartButton" class="px-6 py-3 text-lg font-bold bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors transform hover:scale-105 shadow-lg">
+                <i class="fas fa-redo mr-2"></i> Try Again
+            </button>
+        </div>
+    </div>
+
+    <div id="modalBackdrop" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div id="modalContent" class="bg-white rounded-xl p-6 md:p-8 max-w-2xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <h3 id="modalTitle" class="text-2xl font-bold text-gray-800 border-b pb-3 mb-4"></h3>
+            <div id="modalBody" class="text-gray-700 prose max-w-none">
+            </div>
+            <button id="closeModal" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        $(document).ready(function () {
+
+            // --- 1. Constants and Global State ---
+            const QUIZ_RULES = `
+                            <p>Welcome to the Knowledge Interview Challenge! Test your skills across various technical and professional domains.</p>
+                            <ul class="list-disc list-inside space-y-2 mt-4">
+                                <li><strong>Filtering:</strong> Use the dropdowns to select a specific Exam Type.</li>
+                                <li><strong>Duration:</strong> Each question is timed, but the total time is accumulated for your score.</li>
+                                <li><strong>Goal:</strong> Answer as many questions correctly as possible. Your final score is based on accuracy and speed.</li>
+                                <li><strong>History:</strong> Use the History button to review your past attempts.</li>
+                            </ul>
+                        `;
+            const API_KEY = ""; // Placeholder for Gemini API Key if needed for future expansion
+
+            let ALL_QUESTIONS = [];
+            let FILTERED_QUESTIONS = [];
+            let currentQuestion = null;
+            let currentQuestionIndex = 0;
+            let history = [];
+            let isQuizActive = false;
+            let timerInterval = null;
+            let secondsElapsed = 0;
+            let availableTypes = [];
+            let availableDifficulties = []; // Kept for consistency but no longer populated/used
+
+            // --- 2. Element Selectors (jQuery) ---
+            const $startButton = $('#startButton');
+            const $nextButton = $('#nextButton');
+            const $restartButton = $('#restartButton');
+            const $typeSelect = $('#typeSelect');
+            // const $difficultySelect = $('#difficultySelect'); // REMOVED
+            const $currentQuestion = $('#currentQuestion');
+            const $questionNumber = $('#questionNumber');
+            const $choicesContainer = $('#choicesContainer');
+            const $scoreDisplay = $('#scoreDisplay');
+            const $timerDisplay = $('#timerDisplay');
+            const $quizContent = $('#quizContent');
+            const $resultsScreen = $('#resultsScreen');
+            const $modalBackdrop = $('#modalBackdrop');
+            const $modalContent = $('#modalContent');
+            const $modalTitle = $('#modalTitle');
+            const $modalBody = $('#modalBody');
+            const $closeModal = $('#closeModal');
+            const $rulesButton = $('#rulesButton');
+            const $historyButton = $('#historyButton');
+            const $fullscreenButton = $('#fullscreenButton');
+            const $difficultyBadge = $('#difficultyBadge');
+
+            // --- 3. Utility Functions ---
+
+            /** Shuffles an array (Fisher-Yates algorithm). */
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            /** Displays a custom modal. */
+            function displayModal(title, content) {
+                $modalTitle.text(title);
+                $modalBody.html(content);
+                $modalBackdrop.removeClass('hidden').addClass('flex');
+            }
+
+            /** Closes the custom modal. */
+            function closeModal() {
+                $modalBackdrop.addClass('hidden').removeClass('flex');
+            }
+
+            /** Updates the state of the Start button based on loaded questions. */
+            function updateStartButtonState() {
+                const isValid = ALL_QUESTIONS.length > 0;
+                $startButton.prop('disabled', !isValid);
+                $startButton.text(isValid ? 'Start Challenge' : 'Loading Questions...');
+            }
+
+            /** Initializes the quiz state and applies filters. */
+            function initializeQuiz() {
+                const MAX_QUESTIONS = 20;
+
+                if (!ALL_QUESTIONS.length) {
+                    console.warn("Questions not yet loaded.");
+                    updateStartButtonState();
+                    return;
+                }
+
+                const selectedType = $typeSelect.val();
+
+                // 1. Filter Questions (only by type now)
+                FILTERED_QUESTIONS = ALL_QUESTIONS.filter(q => {
+                    // Only filter by type. Difficulty filter logic removed.
+                    return selectedType === 'Random' || q.type === selectedType;
+                });
+
+                shuffleArray(FILTERED_QUESTIONS); // Shuffle the filtered set
+
+                // 2. Reset Quiz State
+                isQuizActive = false;
+                currentQuestionIndex = 0;
+                history = [];
+                secondsElapsed = 0;
+                clearInterval(timerInterval);
+                $timerDisplay.text('Time: 00:00');
+                $scoreDisplay.text('Score: 0');
+
+                // 3. Update UI
+                $quizContent.show();
+                $resultsScreen.hide();
+                $nextButton.hide();
+                $startButton.show();
+
+                // Check if enough questions exist for the challenge (20 required)
+                const isChallengePossible = FILTERED_QUESTIONS.length >= MAX_QUESTIONS;
+
+                $startButton.prop('disabled', !isChallengePossible);
+                $startButton.text(isChallengePossible ? 'Start Challenge' : `Need at least ${MAX_QUESTIONS} questions for this type.`);
+
+                // Update instructional text to show 20
+                $currentQuestion.html(`Press "Start Challenge" to begin your filtered quiz of <strong>${MAX_QUESTIONS}</strong> questions.`);
+                $questionNumber.text('READY');
+                $choicesContainer.empty();
+
+                // Remove pulse animation after initial load/reset
+                $('#quiz-card').removeClass('pulse-animation');
+            }
+
+            /** Starts the quiz (or begins the first question). */
+            function startQuiz() {
+                const MAX_QUESTIONS = 20;
+
+                if (FILTERED_QUESTIONS.length < MAX_QUESTIONS) {
+                    displayModal("Cannot Start", `This exam type only has ${FILTERED_QUESTIONS.length} questions. Please select an exam type with at least ${MAX_QUESTIONS} questions.`);
+                    return;
+                }
+
+                // Limit the questions to a random subset of 20 (already shuffled in initializeQuiz)
+                FILTERED_QUESTIONS = FILTERED_QUESTIONS.slice(0, MAX_QUESTIONS);
+
+
+                isQuizActive = true;
+                $startButton.hide();
+                $nextButton.hide();
+
+                // Start timer
+                timerInterval = setInterval(() => {
+                    secondsElapsed++;
+                    const minutes = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+                    const seconds = String(secondsElapsed % 60).padStart(2, '0');
+                    $timerDisplay.text(`Time: ${minutes}:${seconds}`);
+                }, 1000);
+
+                loadQuestion();
+            }
+
+            /** Loads the current question into the UI. */
+            function loadQuestion() {
+                if (currentQuestionIndex >= FILTERED_QUESTIONS.length) {
+                    showResults();
+                    return;
+                }
+
+                currentQuestion = FILTERED_QUESTIONS[currentQuestionIndex];
+
+                // Update header
+                $questionNumber.text(`QUESTION ${currentQuestionIndex + 1} / ${FILTERED_QUESTIONS.length}`);
+
+                let difficultyClass = '';
+                let difficultyIcon = '';
+                let difficultyText = currentQuestion.difficulty;
+
+                switch (currentQuestion.difficulty.toLowerCase()) {
+                    case 'easy':
+                        difficultyClass = 'bg-green-200 text-green-800';
+                        difficultyIcon = '<i class="fas fa-leaf mr-1"></i>';
+                        break;
+                    case 'medium':
+                        difficultyClass = 'bg-yellow-200 text-yellow-800';
+                        difficultyIcon = '<i class="fas fa-code mr-1"></i>';
+                        break;
+                    case 'hard':
+                        difficultyClass = 'bg-red-200 text-red-800';
+                        difficultyIcon = '<i class="fas fa-fire mr-1"></i>';
+                        break;
+                    case 'very hard':
+                        difficultyClass = 'bg-purple-200 text-purple-800';
+                        difficultyIcon = '<i class="fas fa-skull-crossbones mr-1"></i>';
+                        difficultyText = 'Expert'; // Display "Expert" for "Very Hard"
+                        break;
+                    default:
+                        difficultyClass = 'bg-gray-200 text-gray-800';
+                        difficultyIcon = '<i class="fas fa-question-circle mr-1"></i>';
+                }
+
+                $difficultyBadge.html(`${difficultyIcon} ${difficultyText}`).removeClass().addClass(`text-xs font-bold px-3 py-1 rounded-full ${difficultyClass}`);
+
+                // --- MathJax Delimiters ---
+                // Replace $...$ with \(...\) for inline TeX rendering reliability
+                const questionWithDelimiters = currentQuestion.question.replace(/\$([^$]+)\$/g, '\\($1\\)');
+
+                // Display Question Text
+                $currentQuestion.html(questionWithDelimiters);
+
+                // --- MathJax Typeset Question ---
+                if (typeof MathJax !== 'undefined' && MathJax.typeset) {
+                    MathJax.typesetPromise([$currentQuestion[0]]).catch((err) => {
+                        console.error("MathJax typesetting error for question:", err);
+                    });
+                }
+
+                // Display Choices
+                displayChoices(currentQuestion.choices, currentQuestion.id);
+
+                // Reset buttons
+                $nextButton.prop('disabled', true).hide();
+            }
+
+            /** Generates the choice buttons. */
+            function displayChoices(choices, questionId) {
+                // 1. Clear existing choices
+                $choicesContainer.empty();
+
+                // 2. Randomly shuffle choices
+                const shuffledChoices = shuffleArray([...choices]);
+
+                // 3. Render buttons
+                shuffledChoices.forEach((choice, index) => {
+                    // --- MathJax Delimiters for Choice Display ---
+                    // Replace $...$ with \(...\) for proper inline TeX rendering
+                    const choiceWithDelimiters = choice.replace(/\$([^$]+)\$/g, '\\($1\\)');
+
+                    const button = $('<button>', {
+                        class: 'choice-button w-full text-left p-3 my-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-75',
+                        'data-choice-id': index,
+                        'data-question-id': questionId,
+                        // --- FIX: Store the clean, raw JSON answer string in a data attribute ---
+                        'data-answer-value': choice.trim()
+                    }).html(choiceWithDelimiters); // Use the processed HTML content
+
+                    // Attach click handler (using delegation ensures it works after re-rendering)
+                    button.on('click', handleChoice);
+
+                    $choicesContainer.append(button);
+                });
+
+                // 4. --- MathJax Typeset Choices ---
+                if (window.MathJax) {
+                    MathJax.typesetPromise([$choicesContainer.get(0)]).catch((err) => {
+                        console.error("MathJax typesetting error:", err);
+                    });
+                }
+            }
+
+            /** Handles user clicking a choice. */
+            function handleChoice(event) {
+                if (!isQuizActive || $nextButton.prop('disabled') === false) return; // Already answered
+
+                const $selectedButton = $(event.currentTarget);
+
+                // --- FIX: Use the data attribute for comparison and trim all comparison strings ---
+                const userAnswerRaw = $selectedButton.data('answer-value');
+                const correctAnswerRaw = currentQuestion.answer.trim();
+
+                const isCorrect = userAnswerRaw === correctAnswerRaw;
+
+                const startTime = secondsElapsed - (currentQuestion.minutes_to_solve * 60); // Mock start time calculation
+
+                // Record result
+                const result = {
+                    id: currentQuestion.id,
+                    question: currentQuestion.question,
+                    type: currentQuestion.type,
+                    difficulty: currentQuestion.difficulty,
+                    // Use the clean raw answer strings for logging/history
+                    userAnswer: userAnswerRaw,
+                    correctAnswer: correctAnswerRaw,
+                    isCorrect: isCorrect,
+                    timeTaken: secondsElapsed - startTime // Crude way to show time spent on this question
+                };
+                history.push(result);
+
+                // Update Score Display
+                const correctCount = history.filter(h => h.isCorrect).length;
+                $scoreDisplay.text(`Score: ${correctCount}`);
+
+                // Visual Feedback
+                $choicesContainer.find('.choice-button').each(function () {
+                    const $button = $(this);
+                    $button.prop('disabled', true); // Disable all choices
+
+                    // --- FIX: Use data attribute for visual check as well ---
+                    const buttonAnswerValue = $button.data('answer-value');
+
+                    if (buttonAnswerValue === correctAnswerRaw) {
+                        $button.addClass('correct');
+                    } else if (buttonAnswerValue === userAnswerRaw) {
+                        $button.addClass('incorrect');
+                    } else {
+                        $button.addClass('disabled bg-gray-50'); // Dim unselected, incorrect choices
+                    }
+                });
+
+                $nextButton.prop('disabled', false).show();
+            }
+
+            /** Moves to the next question or finishes the quiz. */
+            function handleNext() {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < FILTERED_QUESTIONS.length) {
+                    loadQuestion();
+                } else {
+                    showResults();
+                }
+            }
+
+            /** Displays the final results screen. */
+            function showResults() {
+                isQuizActive = false;
+                clearInterval(timerInterval);
+                $quizContent.hide();
+                $resultsScreen.show();
+                $('#quiz-card').addClass('pulse-animation');
+
+                const totalQuestions = history.length;
+                const correctCount = history.filter(h => h.isCorrect).length;
+                const accuracy = (totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0).toFixed(1);
+
+                $finalScore.html(`You answered <span class="text-green-500">${correctCount}</span> out of <span class="text-gray-800">${totalQuestions}</span> questions correctly.`);
+                $finalAccuracy.html(`Your accuracy: <span class="text-xl font-bold ${accuracy >= 70 ? 'text-green-600' : accuracy >= 50 ? 'text-yellow-600' : 'text-red-600'}">${accuracy}%</span>. Total time: ${$timerDisplay.text().split(': ')[1]}.`);
+            }
+
+            /** Displays the quiz history in a modal. */
+            function viewHistory() {
+                if (history.length === 0) {
+                    displayModal("Quiz History", "<p>No questions have been attempted yet.</p>");
+                    return;
+                }
+
+                let content = '<div class="space-y-4">';
+                history.forEach((h, index) => {
+                    const statusClass = h.isCorrect ? 'text-green-600' : 'text-red-600';
+                    const statusIcon = h.isCorrect ? '<i class="fas fa-check-circle"></i> Correct' : '<i class="fas fa-times-circle"></i> Incorrect';
+
+                    content += `
+                                    <div class="p-3 border rounded-lg ${h.isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}">
+                                        <p class="font-bold mb-1">Q${index + 1} (${h.type} - ${h.difficulty}):</p>
+                                        <p class="text-sm italic mb-2">${h.question}</p>
+                                        <p class="text-sm">Your Answer: <span class="font-semibold">${h.userAnswer}</span></p>
+                                        <p class="text-sm mb-2">Correct Answer: <span class="font-semibold text-green-700">${h.correctAnswer}</span></p>
+                                        <p class="text-sm font-bold ${statusClass}">${statusIcon}</p>
+                                    </div>
+                                `;
+                });
+                content += '</div>';
+
+                displayModal("Quiz History (" + history.length + " Attempts)", content);
+            }
+
+            /** Loads the interview_questions.json file. */
+            function loadOfflineQuestions() {
+                // IMPORTANT: Replace this with the correct path to your JSON file.
+                // Assuming "assets/interview_questions.json" based on typical file structures.
+                $.getJSON("assets/interview_questions.json", function (data) {
+                    if (Array.isArray(data) && data.length > 0) {
+                        ALL_QUESTIONS = data;
+
+                        // Extract unique Types (Difficulty extraction removed)
+                        availableTypes = [...new Set(data.map(q => q.type))].sort();
+
+                        // Populate Select Dropdowns
+                        $typeSelect.empty().append('<option value="">--Select--</option>');
+                        availableTypes.forEach(type => {
+                            $typeSelect.append(`<option value="${type}">${type}</option>`);
+                        });
+
+                        // Difficulty select population removed
+
+                        // Now that questions are loaded, initialize the quiz
+                        initializeQuiz();
+
+                        // Render MathJax for any initial content loaded by initializeQuiz()
+                        if (window.MathJax) {
+                            MathJax.typesetPromise();
+                        }
+                    } else {
+                        console.error("JSON file content is not a valid array or is empty.");
+                        $currentQuestion.text("Error: Failed to load questions from file.");
+                    }
+                })
+                    .fail(function (jqxhr, textStatus, error) {
+                        const err = textStatus + ", " + error;
+                        console.error("Error loading offline questions:", err);
+                        $currentQuestion.text("Error: Could not load questions file. Check console and file path ('assets/interview_questions.json').");
+                        updateStartButtonState(); // Disable start button
+                    });
+            }
+
+            // --- 4. Event Listeners ---
+            $startButton.on('click', startQuiz);
+            $nextButton.on('click', handleNext);
+            $restartButton.on('click', initializeQuiz);
+            $typeSelect.on('change', initializeQuiz);
+            // Difficulty select change listener removed
+
+            $closeModal.on('click', closeModal);
+            $modalBackdrop.on('click', function (e) {
+                if (e.target === this) closeModal();
+            }); // Close modal when clicking backdrop
+
+            $rulesButton.on('click', function () {
+                displayModal("Challenge Rules", QUIZ_RULES);
+            });
+            $historyButton.on('click', viewHistory);
+
+            // Fullscreen Toggle
+            $fullscreenButton.on('click', function () {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                    $fullscreenButton.html('<i class="fas fa-compress"></i>');
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                        $fullscreenButton.html('<i class="fas fa-expand"></i>');
+                    }
+                }
+            });
+
+
+            // --- 5. Initial Setup ---
+            loadOfflineQuestions();
+
+        }); // End $(document).ready()
+    </script>
+
+</body>
+</html>
