@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Challenge (jQuery)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        /* Custom Font for a Game-like feel */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1f2937, #374151); /* Darker, techy background */
+        }
+
+        .quiz-card {
+            background-color: #ffffff;
+            border: 4px solid #4f46e5;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-header {
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 1px 1px 2px rgba(79, 70, 229, 0.5);
+        }
+
+        .option-card {
+            border: 2px solid #e5e7eb;
+            transition: all 0.2s;
+            min-height: 80px;
+        }
+
+            .option-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+
+        .selected-option {
+            background-color: #eef2ff !important;
+            border-color: #4f46e5 !important;
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.5);
+        }
+
+        .option-figure-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+            .option-figure-container svg {
+                width: 70px;
+                height: 70px;
+            }
+
+        /* CSS to make the question's source SVG smaller */
+        #source-figure-container svg {
+            max-width: 150px;
+            max-height: 150px;
+            height: auto;
+            width: auto;
+        }
+
+        /* Desktop-specific adjustments (md breakpoint and up) */
+        @media (min-width: 768px) {
+            .quiz-card-desktop {
+                max-width: 900px;
+            }
+
+            .grid-cols-3-desktop {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        /* Mobile-specific adjustments */
+        @media (max-width: 640px) {
+            .game-header {
+                font-size: 2rem;
+            }
+
+            #question-text {
+                font-size: 1.25rem !important;
+            }
+
+            .grid-cols-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .option-figure-container svg {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="quiz-container" class="quiz-card rounded-2xl w-full max-w-2xl lg:max-w-4xl p-6 md:p-10 quiz-card-desktop">
+
+        <header class="text-center mb-6">
+            <h1 class="game-header text-3xl md:text-4xl font-extrabold text-gray-800">
+                <i class="fas fa-calculator"></i> ArithmoTest Challenge
+            </h1>
+        </header>
+
+        <div id="status-and-tools" class="flex justify-start items-center space-x-4 mb-8">
+            <button id="fullscreen-button"
+                    class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold p-2 rounded-lg shadow-md transition duration-150 text-sm flex items-center">
+                <i class="fa-solid fa-compress"></i> Full Screen
+            </button>
+            <button id="rules-button"
+                    class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold p-2 rounded-lg shadow-md transition duration-150 text-sm flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg>
+                Rules
+            </button>
+            <button id="history-button"
+                    class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold p-2 rounded-lg shadow-md transition duration-150 text-sm flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18" /><path d="m18 10-6 6-4-4-5 5" /></svg>
+                History
+            </button>
+        </div>
+        <div id="status-bar" class="hidden flex flex-col sm:flex-row justify-between items-center mb-8 p-4 bg-indigo-500 text-white rounded-xl shadow-lg">
+            <div class="text-lg font-semibold flex items-center mb-2 sm:mb-0">
+                Q: &nbsp;<span id="current-q-number">0</span> / <span id="total-q-number">20</span>
+            </div>
+            <div class="text-xl font-bold bg-white text-red-600 p-1 px-3 rounded-lg shadow-md">
+                <i class="fa-solid fa-stopwatch"></i> Time: <span id="timer">05:00</span>
+            </div>
+        </div>
+
+        <div id="start-area" class="text-center py-8">
+            <p class="text-lg text-gray-700 mb-6">
+                Test your arithmetic, numerical reasoning, and problem-solving skills.
+                <br class="hidden sm:block">
+                <span class="font-semibold text-indigo-600">The challenge defaults to 20 questions for a Standard Math Proficiency Estimate.</span> Choose your mode, difficulty, and type!
+            </p>
+
+            <div class="mb-8 p-4 bg-gray-50 rounded-xl shadow-inner flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-4">
+
+                <div class="flex-1">
+                    <label for="challenge-difficulty" class="text-base md:text-lg text-gray-700 font-semibold flex items-center justify-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H7l5 5-5 5H17" /></svg>
+                        Difficulty:
+                    </label>
+                    <select id="challenge-difficulty" class="bg-white border border-indigo-300 rounded-lg p-3 text-lg shadow-md focus:ring-indigo-500 focus:border-indigo-500 w-full transition duration-150">
+                        <option value="Random" selected>Random Difficulty</option>
+                    </select>
+                </div>
+
+                <div class="flex-1">
+                    <label for="challenge-type" class="text-base md:text-lg text-gray-700 font-semibold flex items-center justify-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6M8 13h2M8 17h2M14 13h2M14 17h2" /></svg>
+                        Type:
+                    </label>
+                    <select id="challenge-type" class="bg-white border border-indigo-300 rounded-lg p-3 text-lg shadow-md focus:ring-indigo-500 focus:border-indigo-500 w-full transition duration-150">
+                        <option value="Random" selected>Random Type</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="mb-8 p-4 bg-gray-50 rounded-xl shadow-inner flex items-center justify-center space-x-4">
+                <span class="text-base font-semibold text-gray-700">Offline Mode</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" value="" id="mode-toggle" class="sr-only peer" checked>
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                </label>
+                <span class="text-base font-semibold text-gray-700">Online Mode</span>
+            </div>
+
+            <p id="loading-message" class="text-base text-indigo-600 font-medium hidden mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="animate-spin inline w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>
+                Loading / Generating questions... Please wait.
+            </p>
+
+            <div class="flex justify-center">
+                <button id="start-button"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-10 rounded-full shadow-xl transition duration-150 transform hover:scale-105 disabled:bg-gray-400">
+                    Start Challenge (Online)
+                </button>
+            </div>
+
+            <p id="error-message" class="text-red-500 mt-4 text-sm hidden"></p>
+        </div>
+
+        <div id="question-area" class="hidden">
+            <p id="question-text" class="text-xl sm:text-2xl font-bold text-gray-800 mb-6 leading-relaxed p-2 bg-gray-50 rounded-lg border-l-4 border-indigo-400"></p>
+
+            <div id="source-figure-container" class="my-6 p-4 bg-gray-100 rounded-xl shadow-inner flex justify-center items-center min-h-[100px] hidden">
+            </div>
+
+            <div id="options-container" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            </div>
+
+            <div class="mt-10 flex justify-end">
+                <button id="next-button"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-150 disabled:bg-indigo-400 disabled:shadow-none transform hover:scale-[1.02]"
+                        disabled>
+                    Next Question
+                </button>
+            </div>
+        </div>
+
+        <div id="results-area" class="hidden text-center py-6">
+            <h2 class="text-4xl md:text-5xl font-extrabold text-green-600 mb-2 game-header">Challenge Complete! 🏆</h2>
+
+            <p id="iq-title" class="text-2xl md:text-3xl font-extrabold text-indigo-700 mb-6"></p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 text-white">
+                <div class="bg-indigo-600 p-4 rounded-xl shadow-md border-b-4 border-indigo-800">
+                    <p class="text-sm opacity-80 flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 6 4-4 4 4" /><path d="M12 22v-4" /><path d="M12 14v-4" /><path d="M8 18h8" /></svg>Score</p>
+                    <p class="text-3xl font-extrabold"><span id="final-score"></span>/<span id="final-total"></span></p>
+                </div>
+                <div class="bg-indigo-600 p-4 rounded-xl shadow-md border-b-4 border-indigo-800">
+                    <p class="text-sm opacity-80 flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>Time Taken</p>
+                    <p id="time-taken" class="text-3xl font-extrabold"></p>
+                </div>
+                <div class="bg-indigo-600 p-4 rounded-xl shadow-md border-b-4 border-indigo-800">
+                    <p class="text-sm opacity-80 flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 19H5c-1.1 0-2-.9-2-2V7c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2v10c0 1.1-.9 2-2 2z" /><circle cx="12" cy="12" r="3" /><path d="M21 12H3" /></svg>Math Proficiency Est.</p>
+                    <p id="iq-estimate" class="text-3xl font-extrabold">...</p>
+                </div>
+            </div>
+
+            <div id="fun-fact-panel" class="bg-yellow-50 text-yellow-800 p-4 rounded-xl shadow-md border-l-4 border-yellow-500 mb-8">
+                <p class="font-bold mb-1 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
+                    Arithmo-Fact:
+                </p>
+                <p id="iq-fun-fact" class="text-sm"></p>
+            </div>
+
+
+            <h3 class="text-xl md:text-2xl font-bold text-gray-700 mb-3">AI Analysis & Recommendation</h3>
+            <div id="analysis-container" class="bg-gray-100 p-6 rounded-xl text-left shadow-inner border border-gray-200">
+                <div id="analysis-loading" class="text-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-t-2 border-indigo-600 mx-auto mb-2"></div>
+                    <p class="text-sm text-gray-500">Generating personalized analysis...</p>
+                </div>
+                <p id="result-message" class="text-gray-700 hidden text-base"></p>
+            </div>
+
+            <button onclick="window.location.reload()"
+                    class="mt-8 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-150 transform hover:scale-105">
+                <svg xmlns="http://www.w3.org/2000/svg" class="inline w-5 h-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6" /><path d="M3 12a9 9 0 0 1 15-6.75L18 8" /><path d="M3 22v-6h6" /><path d="M21 12a9 9 0 0 1-15 6.75L6 16" /></svg>
+                Retry Challenge
+            </button>
+        </div>
+
+    </div>
+
+    <div id="custom-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 transition-opacity duration-300 opacity-0" aria-modal="true" role="dialog">
+        <div id="modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 transform transition-transform duration-300 scale-90">
+            <h3 id="modal-title" class="text-2xl font-bold text-gray-800 mb-3"></h3>
+            <p id="modal-message" class="text-gray-600 mb-6"></p>
+            <div class="flex justify-end">
+                <button id="modal-close" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-150">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Use the jQuery $(document).ready() function
+        $(document).ready(function () {
+
+            // --- API Configuration ---
+            const MODEL_NAME = "gemini-2.5-flash-preview-09-2025";
+            const apiKey = "";
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${apiKey}`;
+
+            const SELECTED_CLASSES = ['bg-indigo-100', 'border-indigo-500', 'ring-2', 'ring-indigo-500', 'font-semibold', 'selected-option'];
+
+            // --- QUIZ RULES CONTENT (Updated for Math Challenge) ---
+            const QUIZ_RULES = `
+                                <ul class="list-disc pl-5 space-y-2 text-left text-gray-700">
+                                    <li>Each question is a **multiple-choice** mathematical or arithmetic problem.</li>
+                                    <li>Select the correct answer by performing the required calculation or identifying the mathematical pattern.</li>
+                                    <li>You cannot go back to previous questions once you press "Next Question."</li>
+                                    <li>Your **Math Proficiency Estimate** is provisional, based on your score and time, and should not be considered a formal academic assessment.</li>
+                                </ul>
+                                <p class="mt-4 text-sm text-gray-500 italic">The challenge is timed based on the number of questions selected.</p>
+                            `;
+
+
+            // --- PRE-GENERATED OFFLINE QUESTIONS (50 Questions) ---
+            const OFFLINE_QUESTIONS = [];
+            const DEFAULT_QUESTION_COUNT = 20; // Target 20 questions for offline mode
+
+            // 1. State Variables
+            let allQuestions = [];
+            let numQuestions = DEFAULT_QUESTION_COUNT;
+            let currentQuestionIndex = 0;
+            let timerInterval;
+            const DEFAULT_TIME_LIMIT_SECONDS = DEFAULT_QUESTION_COUNT * 90; // 90 seconds per question
+            let timeLeft = DEFAULT_TIME_LIMIT_SECONDS;
+            let userAnswers = [];
+            let quizStartTime;
+            let isOnlineMode = true;
+
+            // 2. DOM Elements (using jQuery selectors)
+            const $startArea = $('#start-area');
+            const $startButton = $('#start-button');
+            const $difficultySelect = $('#challenge-difficulty');
+            const $typeSelect = $('#challenge-type');
+            const $modeToggle = $('#mode-toggle');
+            const $loadingMessage = $('#loading-message');
+            const $errorMessage = $('#error-message');
+            const $statusBar = $('#status-bar');
+            const $questionArea = $('#question-area');
+            const $optionsContainer = $('#options-container');
+            const $nextButton = $('#next-button');
+            const $timer = $('#timer');
+            const $currentQNumber = $('#current-q-number');
+            const $totalQNumber = $('#total-q-number');
+            const $resultsArea = $('#results-area');
+            const $finalScore = $('#final-score');
+            const $finalTotal = $('#final-total');
+            const $timeTaken = $('#time-taken');
+            const $iqEstimate = $('#iq-estimate');
+            const $iqTitle = $('#iq-title');
+            const $iqFunFact = $('#iq-fun-fact');
+            const $analysisLoading = $('#analysis-loading');
+            const $resultMessage = $('#result-message');
+            const $modal = $('#custom-modal');
+            const $modalTitle = $('#modal-title');
+            const $modalMessage = $('#modal-message');
+            const $modalClose = $('#modal-close');
+            const $fullscreenButton = $('#fullscreen-button');
+            const $sourceFigureContainer = $('#source-figure-container');
+            const $rulesButton = $('#rules-button');
+            const $historyButton = $('#history-button');
+
+            // --- API Key Check and Mode Lock ---
+            if (!apiKey) {
+                isOnlineMode = false;
+                // Force checkbox to unchecked (Offline Mode) and disable it
+                $modeToggle.prop('checked', false).prop('disabled', true);
+
+                // Add a visible message after the mode toggle block
+                const $apiError = $('<p id="api-key-warning" class="text-sm text-red-500 font-semibold mt-4 text-center">⚠️ API Key missing. Online mode is disabled.</p>');
+                $modeToggle.closest('.mb-8.p-4.bg-gray-50').after($apiError);
+            }
+            // ------------------------------------
+
+
+            // 3. Utility Functions
+
+            function displayModal(title, message, callback = null) {
+                $modalTitle.text(title);
+                $modalMessage.html(message); // Use .html() to render list/formatting/table
+                // Resize modal for history table if content is a table
+                const $modalContent = $('#modal-content');
+                if (message.includes('table class="min-w-full')) {
+                    $modalContent.removeClass('max-w-sm').addClass('max-w-lg');
+                } else {
+                    $modalContent.addClass('max-w-sm').removeClass('max-w-lg');
+                }
+
+                $modal.removeClass('hidden').addClass('opacity-100');
+
+                $modalClose.off('click').on('click', function () {
+                    $modal.removeClass('opacity-100').addClass('opacity-0');
+                    setTimeout(() => { $modal.addClass('hidden'); }, 300);
+                    if (callback) callback();
+                });
+            }
+
+            function formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const remainderSeconds = seconds % 60;
+                return `${minutes.toString().padStart(2, '0')}:${remainderSeconds.toString().padStart(2, '0')}`;
+            }
+
+            function startTimer() {
+                quizStartTime = Date.now();
+                // Dynamically adjust time limit based on number of questions, e.g., 90 seconds per question
+                // Note: numQuestions is set in initializeQuiz or fetchQuestionsOffline
+                const newTimeLimit = numQuestions * 90;
+                timeLeft = newTimeLimit;
+                $timer.text(formatTime(newTimeLimit));
+
+
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    $timer.text(formatTime(timeLeft));
+                    if (timeLeft <= 30 && timeLeft > 0) {
+                        $timer.addClass('text-yellow-400').removeClass('text-red-600');
+                    } else if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        $timer.text("00:00");
+                        displayModal("Time's Up!", "The time limit has been reached. Your results will now be calculated.", () => showResults());
+                    }
+                }, 1000);
+            }
+
+            function updateStartButtonState() {
+                // Checkbox checked state is true for Online Mode
+                // If the key is missing, isOnlineMode is already set to false and the checkbox is disabled.
+                isOnlineMode = $modeToggle.prop('checked');
+                const modeText = isOnlineMode ? "Online" : "Offline";
+                $startButton.text(`Start Challenge (${modeText})`);
+
+                if (!isOnlineMode && OFFLINE_QUESTIONS.length === 0) {
+                    $startButton.prop('disabled', true);
+                    $startButton.text("Offline Data Failed to Load");
+                    $errorMessage.text(`Offline mode is unavailable. The math_challenge.json file failed to load or is empty.`).removeClass('hidden');
+                } else {
+                    $startButton.prop('disabled', false);
+                    $errorMessage.addClass('hidden');
+                }
+            }
+
+            function initializeQuiz() {
+                // For offline, numQuestions is set in fetchQuestionsOffline, for online it's set in fetchQuestionsOnline
+                // We reset the display to the default of 20 questions here.
+                numQuestions = DEFAULT_QUESTION_COUNT;
+                $totalQNumber.text(numQuestions);
+                // Reset time display based on default 20 questions (90s/q)
+                const newTimeLimit = numQuestions * 90;
+                timeLeft = newTimeLimit;
+                $timer.text(formatTime(newTimeLimit));
+
+                // Use jQuery .hide() and .show() or .addClass('hidden')
+                $startArea.removeClass('hidden');
+                $statusBar.addClass('hidden');
+                $questionArea.addClass('hidden');
+                $resultsArea.addClass('hidden');
+                $loadingMessage.addClass('hidden');
+                $errorMessage.addClass('hidden');
+
+                updateStartButtonState();
+            }
+
+            function getMathMetadata(score) {
+                let title, fact;
+
+                if (score < 80) {
+                    title = "Basic Arithmetic";
+                    fact = "Focusing on fundamental operations (addition, subtraction, multiplication, division) can rapidly improve your score. Practice those basic number facts!";
+                } else if (score < 90) {
+                    title = "Developing Skills";
+                    fact = "You have a grasp of basic concepts. Try reinforcing your knowledge of fractions, decimals, and percentages for a stronger foundation.";
+                } else if (score < 110) {
+                    title = "Solid Proficiency";
+                    fact = "This is a strong result, indicating good command of general mathematics. You are likely capable of handling everyday numerical tasks efficiently.";
+                } else if (score < 120) {
+                    title = "Above Average";
+                    fact = "Excellent job! People in this range often excel in quantitative fields. Challenge yourself with algebra and geometry problems next.";
+                } else if (score < 130) {
+                    title = "Advanced Mastery";
+                    fact = "Highly impressive! Your strong performance suggests an ability to quickly analyze and solve complex mathematical problems. Keep up the high level of accuracy.";
+                } else if (score < 145) {
+                    title = "Expert Level";
+                    fact = "Exceptional! This level is associated with deep conceptual understanding. You might find competitive mathematics or advanced calculus rewarding.";
+                } else {
+                    title = "Mathematical Genius";
+                    fact = "Phenomenal! Your speed and accuracy are truly outstanding. You demonstrate an extremely rare level of mathematical insight and skill.";
+                }
+                return { title, fact };
+            }
+
+            // --- NEW: History Functions ---
+
+            // Function to save the quiz result to localStorage
+            function saveResult(score, total, timeElapsed, mathEstimate) {
+                const now = new Date();
+                const result = {
+                    id: Date.now(),
+                    date: now.toLocaleDateString(),
+                    time: now.toLocaleTimeString(),
+                    duration: formatTime(timeElapsed),
+                    score: score,
+                    total: total,
+                    math: mathEstimate // Changed from 'iq' to 'math'
+                };
+
+                let history = JSON.parse(localStorage.getItem('quizHistory') || '[]');
+                history.push(result);
+                // Keep only the last 50 results to prevent storage bloat
+                if (history.length > 50) {
+                    history.sort((a, b) => b.id - a.id); // Sort descending by ID (date)
+                    history = history.slice(0, 50);
+                }
+                localStorage.setItem('quizHistory', JSON.stringify(history));
+            }
+
+            // Function to display the history modal
+            function viewHistory() {
+                let history = JSON.parse(localStorage.getItem('quizHistory') || '[]');
+
+                if (history.length === 0) {
+                    displayModal("Result History", "You haven't completed any challenges yet. Start a quiz to save your first result!");
+                    return;
+                }
+
+                // Sort results in descending order by ID (which is the timestamp)
+                history.sort((a, b) => b.id - a.id);
+
+                let tableHtml = `
+                                    <div class="max-h-80 overflow-y-auto">
+                                        <table class="min-w-full divide-y divide-gray-200">
+                                            <thead class="bg-gray-50 sticky top-0">
+                                                <tr>
+                                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date/Time</th>
+                                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
+                                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Math Est.</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y divide-gray-200 text-sm">
+                                `;
+
+                history.forEach(result => {
+                    tableHtml += `
+                                        <tr>
+                                            <td class="px-3 py-2 whitespace-nowrap">${result.date}<br><span class="text-xs text-gray-500">${result.time}</span></td>
+                                            <td class="px-3 py-2 whitespace-nowrap font-semibold text-indigo-600">${result.score}/${result.total}</td>
+                                            <td class="px-3 py-2 whitespace-nowrap">${result.duration}</td>
+                                            <td class="px-3 py-2 whitespace-nowrap font-extrabold text-gray-800">${result.math}</td>
+                                        </tr>
+                                    `;
+                });
+
+                tableHtml += `
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-4 text-center">Results are stored locally in your browser and are not shared.</p>
+                                `;
+
+                displayModal("Challenge History", tableHtml);
+            }
+            // --- END: History Functions ---
+
+            // 4. API Fetching Logic (Using jQuery $.ajax)
+
+            async function fetchQuestionsOnline(retries = 3) {
+                if (!apiKey) {
+                    throw new Error("API Key is missing. Online mode is disabled.");
+                }
+
+                $errorMessage.addClass('hidden');
+                $startButton.prop('disabled', true);
+                $loadingMessage.removeClass('hidden');
+
+                const num = DEFAULT_QUESTION_COUNT; // Online mode uses the fixed default count
+
+                // Updated System Prompt for Math Questions
+                const SYSTEM_PROMPT = `You are an expert mathematical and numerical reasoning question generator. Create a JSON array of ${num} math challenge questions.
+                                    Each question MUST follow this structure:
+                                    {
+                                      "question": "The question text, e.g., If x+5=12, what is x? Or, Which number completes the series?",
+                                      "choices": [
+                                        // Each choice must be a string (e.g., "7", "1/2", "3.14"). For math puzzles involving complex geometry, the string MAY be an inline SVG element (a complete <svg> block) representing the figure, contained within an 80x80 viewBox.
+                                      ],
+                                      "answer": "The correct answer string, exactly matching one choice string or one SVG element.",
+                                      "source_figure": "OPTIONAL: If the question requires a visual prompt (like a diagram, chart, or matrix) *before* the choices, this field MUST contain the visual data.
+                                          1. For geometric/visual math problems, use an inline SVG element (80x80 viewBox). The SVG figures MUST be logically coherent, non-duplicate, and contain correct SVG code.
+                                          2. FOR NUMBER MATRIX QUESTIONS, this MUST be ONLY a raw, unescaped HTML <table>...</table> string. The table MUST contain only <tr> and <td> tags with numbers or '?'. ABSOLUTELY DO NOT wrap the HTML table in backticks, markdown quotes (>), or any other wrapper characters. Example: <table><tr><td>10</td><td>5</td><td>15</td></tr><tr><td>12</td><td>6</td><td>?</td></tr></table>"
+                                    }
+                                    Ensure roughly 80% are numerical/arithmetic questions (including number series and matrices) and 20% are geometric/visual math problems (if applicable). Ensure the total number of questions is exactly ${num}.`;
+
+
+                const simplePayload = {
+                    contents: [{ parts: [{ text: `Generate ${num} math challenge questions.` }] }],
+                    systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    "question": { "type": "string" },
+                                    "choices": { "type": "ARRAY", "items": { "type": "string" } },
+                                    "answer": { "type": "string" },
+                                    "source_figure": { "type": "string", "description": "SVG string for geometric patterns or raw HTML table string for numerical matrices." }
+                                },
+                                required: ["question", "choices", "answer"]
+                            }
+                        }
+                    }
+                };
+
+
+                for (let attempt = 1; attempt <= retries; attempt++) {
+                    try {
+                        // Using jQuery's $.ajax for a promise-based approach
+                        const result = await $.ajax({
+                            url: API_URL,
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            data: JSON.stringify(simplePayload),
+                            dataType: 'json'
+                        });
+
+                        const jsonString = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (!jsonString) throw new Error("Empty response from AI service.");
+
+                        const questions = JSON.parse(jsonString);
+                        if (!Array.isArray(questions) || questions.length === 0) throw new Error("Invalid question structure received.");
+
+                        // Success: Store and randomize questions
+                        allQuestions = questions.sort(() => Math.random() - 0.5);
+                        numQuestions = allQuestions.length;
+                        userAnswers = new Array(numQuestions).fill(null);
+                        $totalQNumber.text(numQuestions); // Update count
+                        return true;
+
+                    } catch (error) {
+                        const errorMessage = error.responseJSON?.error?.message || error.statusText || error.message || "Unknown error.";
+                        console.error(`Attempt ${attempt} failed:`, errorMessage);
+                        if (attempt === retries) {
+                            throw new Error(`Error loading questions after multiple retries. The connection to the AI service failed: ${errorMessage}`);
+                        }
+                        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt - 1)));
+                    }
+                }
+            }
+
+            function fetchQuestionsOffline() {
+                const selectedDifficulty = $difficultySelect.val();
+                const selectedType = $typeSelect.val();
+
+                if (OFFLINE_QUESTIONS.length === 0) {
+                    $errorMessage.text(`Offline mode is unavailable. The math_challenge.json file failed to load or is empty.`).removeClass('hidden');
+                    return false;
+                }
+
+                // 1. Filter questions based on user selection, allowing 'Random' to match all
+                const filteredQuestions = OFFLINE_QUESTIONS.filter(q => {
+                    // Assuming question objects have 'difficulty' and 'type' fields
+                    const diffMatch = selectedDifficulty === 'Random' || q.difficulty === selectedDifficulty;
+                    const typeMatch = selectedType === 'Random' || q.type === selectedType;
+                    return diffMatch && typeMatch;
+                });
+
+                const availableQuestionsCount = filteredQuestions.length;
+
+                if (availableQuestionsCount === 0) {
+                    $errorMessage.text(`No questions found for the selected Difficulty (${selectedDifficulty}) and Type (${selectedType}).`).removeClass('hidden');
+                    return false;
+                }
+
+                // Set the final count: target 20, but not more than available
+                const finalQuestionCount = Math.min(DEFAULT_QUESTION_COUNT, availableQuestionsCount);
+                numQuestions = finalQuestionCount;
+
+                if (availableQuestionsCount < DEFAULT_QUESTION_COUNT) {
+                    $errorMessage.text(`Warning: Only ${availableQuestionsCount} questions available. Running a short challenge of ${numQuestions} questions.`).removeClass('hidden');
+                }
+
+                // Update total question display and time limit based on final count
+                $totalQNumber.text(numQuestions);
+                const newTimeLimit = numQuestions * 90;
+                timeLeft = newTimeLimit;
+                $timer.text(formatTime(newTimeLimit));
+
+
+                // 3. Shuffle the entire filtered set and take the final required number
+                allQuestions = filteredQuestions
+                    .sort(() => Math.random() - 0.5) // Shuffle the available set
+                    .slice(0, numQuestions);          // Take the final required number
+
+                userAnswers = new Array(numQuestions).fill(null);
+
+                return true;
+            }
+
+            function startQuiz() {
+                $errorMessage.addClass('hidden');
+                $startButton.prop('disabled', true);
+
+                // Reset numQuestions to the correct value for the mode before starting
+                if (isOnlineMode) {
+                    numQuestions = DEFAULT_QUESTION_COUNT;
+                }
+
+
+                let fetchPromise;
+
+                if (isOnlineMode) {
+                    $loadingMessage.removeClass('hidden');
+                    fetchPromise = fetchQuestionsOnline();
+                } else {
+                    const success = fetchQuestionsOffline();
+                    if (!success) {
+                        $startButton.prop('disabled', false);
+                        return;
+                    }
+                    // Create a resolved promise to continue the .then chain
+                    fetchPromise = Promise.resolve();
+                }
+
+                // Use .then() for consistency with async/await/Promise
+                Promise.resolve(fetchPromise)
+                    .then(() => {
+                        $startArea.addClass('hidden');
+                        $loadingMessage.addClass('hidden');
+                        $statusBar.removeClass('hidden');
+                        $questionArea.removeClass('hidden');
+
+                        currentQuestionIndex = 0;
+                        renderQuestion();
+                        startTimer();
+                    })
+                    .catch(error => {
+                        $loadingMessage.addClass('hidden');
+                        $startButton.prop('disabled', false);
+                        $errorMessage.text(error.message).removeClass('hidden');
+                    });
+            }
+
+            // 5. Quiz Logic Functions
+
+            function cleanContent(content) {
+                if (!content) return '';
+                let cleaned = content.trim()
+                    .replace(/^```json\s*/i, '')
+                    .replace(/```$/, '')
+                    .replace(/^>* ?/, '');
+                return cleaned.trim();
+            }
+
+            function cleanTableMatrix(content) {
+                if (!content) return '';
+                // Aggressively remove all '>' characters inside tables
+                return content.replace(/>/g, '').replace('class="matrix-table"', '');
+            }
+
+
+            function renderQuestion() {
+                if (currentQuestionIndex >= allQuestions.length) {
+                    showResults();
+                    return;
+                }
+
+                const q = allQuestions[currentQuestionIndex];
+
+                // --- FIX: Apply MathJax delimiters to question text ---
+                // Replaces $...$ with \(...\) for inline TeX rendering
+                const questionWithDelimiters = q.question.replace(/\$([^$]+)\$/g, '\\($1\\)');
+                $('#question-text').html(`${currentQuestionIndex + 1}. ${questionWithDelimiters}`);
+
+                $currentQNumber.text(currentQuestionIndex + 1);
+                $optionsContainer.empty();
+                $nextButton.text(currentQuestionIndex === allQuestions.length - 1 ? 'Finish Test' : 'Next Question');
+
+                // --- Handle Source Figure Display (SVG or Table) ---
+                let sourceContent = cleanContent(q.source_figure);
+                $sourceFigureContainer.empty().addClass('hidden').removeClass('p-4');
+
+                if (sourceContent) {
+                    if (sourceContent.startsWith('<svg')) {
+                        $sourceFigureContainer.html(sourceContent).removeClass('hidden').addClass('p-4');
+                    } else if (sourceContent.startsWith('<table')) {
+                        sourceContent = cleanTableMatrix(sourceContent);
+
+                        // Apply Tailwind styling to the table structure
+                        const styledTable = sourceContent
+                            //.removeClass('matrix-table')
+                            .replace('<table', '<table class="min-w-[150px] border-collapse border border-gray-300 shadow-lg mx-auto bg-white rounded-xl overflow-hidden">')
+                            .replace(/<tr/g, '<tr class="hover:bg-gray-50 transition duration-100">')
+                            .replace(/<td/g, '<td class="border border-gray-200 p-4 text-center text-2xl font-bold font-mono text-gray-800">')
+                            .replace(/\?/g, '<span class="text-red-600 font-extrabold text-3xl">?</span>');
+
+                        $sourceFigureContainer.html(styledTable).removeClass('hidden');
+                    }
+                }
+                // -----------------------------------------
+
+                const savedAnswerIndex = userAnswers[currentQuestionIndex];
+
+                $.each(q.choices, function (index, choice) {
+                    const choiceContent = cleanContent(choice);
+                    const isSelected = savedAnswerIndex !== null && savedAnswerIndex === index;
+
+                    const $optionEl = $('<div>')
+                        .addClass('option-card cursor-pointer p-4 border rounded-xl transition duration-150 shadow-md flex items-center justify-center text-lg')
+                        .attr('data-index', index);
+
+                    if (choiceContent.startsWith('<svg')) {
+                        $optionEl.html(`<div class="option-figure-container p-2">${choiceContent}</div>`);
+                    } else {
+                        // FIX: Apply MathJax delimiters to choice content for rendering
+                        $optionEl.html(`<span class="font-bold text-indigo-700 mr-2">${String.fromCharCode(65 + index)}.</span><span class="math-content">\\(${choiceContent}\\)</span>`);
+                    }
+
+                    if (isSelected) {
+                        $optionEl.addClass(SELECTED_CLASSES.join(' '));
+                    }
+
+                    $optionEl.on('click', function () {
+                        // Use jQuery for selection logic
+                        $optionsContainer.find('.option-card').removeClass(SELECTED_CLASSES.join(' '));
+                        $(this).addClass(SELECTED_CLASSES.join(' '));
+
+                        userAnswers[currentQuestionIndex] = index;
+                        $nextButton.prop('disabled', false);
+                    });
+
+                    $optionsContainer.append($optionEl);
+                });
+                $nextButton.prop('disabled', savedAnswerIndex === null);
+
+                // FIX: Use MathJax.typesetPromise() for asynchronous rendering
+                if (window.MathJax) {
+                    MathJax.typesetPromise().catch((err) => console.error("MathJax typesetting failed:", err));
+                }
+            }
+
+            function handleNext() {
+                if (userAnswers[currentQuestionIndex] === null) {
+                    displayModal("Selection Required", "Please select an answer before proceeding to the next question.", null);
+                    return;
+                }
+
+                currentQuestionIndex++;
+                if (currentQuestionIndex < allQuestions.length) {
+                    renderQuestion();
+                } else {
+                    showResults();
+                }
+            }
+
+            function calculateScore() {
+                let finalScore = 0;
+                for (let i = 0; i < allQuestions.length; i++) {
+                    const userAnswerIndex = userAnswers[i];
+                    if (userAnswerIndex !== null) {
+                        const question = allQuestions[i];
+                        const cleanedChoice = cleanContent(question.choices[userAnswerIndex]);
+                        const cleanedAnswer = cleanContent(question.answer);
+
+                        if (cleanedChoice === cleanedAnswer) {
+                            finalScore++;
+                        }
+                    }
+                }
+                return finalScore;
+            }
+
+            function showResults() {
+                clearInterval(timerInterval);
+                const finalScore = calculateScore();
+                // Recalculate time elapsed since start time for accurate duration
+                const timeElapsed = Math.floor((Date.now() - quizStartTime) / 1000);
+
+                $statusBar.addClass('hidden');
+                $questionArea.addClass('hidden');
+                $resultsArea.removeClass('hidden');
+
+                $finalScore.text(finalScore);
+                $finalTotal.text(allQuestions.length);
+                $timeTaken.text(formatTime(timeElapsed));
+
+                generateAnalysis(finalScore, allQuestions.length, timeElapsed);
+            }
+
+            // 6. Analysis Logic with Fallback (Using jQuery $.ajax)
+
+            function getMathEstimate(score, total) {
+                // Generates a Math Proficiency score centered around 100 (average)
+                const percentage = score / total;
+                return Math.round(75 + (percentage * 50));
+            }
+
+            function getFallbackRecommendation(score, total) {
+                const percentage = score / total;
+                if (percentage >= 0.9) {
+                    return "Exceptional result! Your score indicates a very high level of mathematical speed and accuracy. Focus on complex, multi-step problems for continued growth.";
+                } else if (percentage >= 0.7) {
+                    return "Strong performance! You show consistent proficiency in numerical reasoning. Your strength lies in structured problem-solving; perhaps explore different areas of applied mathematics.";
+                } else if (percentage >= 0.5) {
+                    return "Solid effort! Your results are consistent with average mathematical proficiency. Continued practice with mental math and word problems will help boost your score.";
+                } else {
+                    return "Good start! The results suggest room for improvement in foundational arithmetic skills. We recommend focusing on recognizing patterns, order of operations, and basic algebraic concepts.";
+                }
+            }
+
+            async function generateAnalysis(score, total, time) {
+                $analysisLoading.removeClass('hidden');
+                $resultMessage.addClass('hidden');
+                $iqEstimate.text('...');
+
+                const scorePercentage = (score / total) * 100;
+                let finalMathScore = getMathEstimate(score, total);
+
+                const prompt = `
+                                            The user scored ${score} out of ${total} (${scorePercentage.toFixed(0)}%) on a mathematical challenge completed in ${formatTime(time)}. Provide a concise analysis (2-3 sentences max) of their likely numerical and analytical strengths and a single, plausible, but purely indicative Math Proficiency score estimate.
+
+                                            Format the response as a JSON object with two fields:
+                                            1. "math_estimate": A single number (e.g., 120) representing the estimated score.
+                                            2. "recommendation": The 2-3 sentence analysis text.
+                                        `;
+
+                const analysisPayload = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                math_estimate: { "type": "number" },
+                                recommendation: { "type": "string" }
+                            },
+                            required: ["math_estimate", "recommendation"]
+                        }
+                    }
+                };
+
+                try {
+                    if (apiKey) {
+                        const data = await $.ajax({
+                            url: API_URL,
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            data: JSON.stringify(analysisPayload),
+                            dataType: 'json'
+                        });
+
+                        const analysisText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (!analysisText) throw new Error("AI response was empty.");
+
+                        const analysis = JSON.parse(analysisText);
+
+                        finalMathScore = analysis.math_estimate || finalMathScore;
+                        $resultMessage.text(analysis.recommendation || getFallbackRecommendation(score, total));
+                    } else {
+                        throw new Error("API Key not set. Using fallback logic.");
+                    }
+
+                } catch (error) {
+                    console.error("AI Analysis Failed. Applying Fallback Logic:", error);
+                    $resultMessage.text(getFallbackRecommendation(score, total));
+
+                } finally {
+                    $iqEstimate.text(finalMathScore);
+                    const metadata = getMathMetadata(finalMathScore);
+
+                    $iqTitle.text(metadata.title);
+                    $iqFunFact.text(metadata.fact);
+
+                    // --- NEW: Save the result after all calculations are done ---
+                    saveResult(score, total, time, finalMathScore);
+                    // -----------------------------------------------------------
+
+                    $analysisLoading.addClass('hidden');
+                    $resultMessage.removeClass('hidden');
+                }
+            }
+
+            // 7. Fullscreen Implementation (Unchanged)
+            function toggleFullscreen() {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                } else {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        console.error("Error attempting to enable fullscreen:", err);
+                        displayModal("Fullscreen Error", "Fullscreen mode could not be activated. Your browser may restrict this feature outside of a direct user action.");
+                    });
+                }
+            }
+
+            // 8. Offline Question Loading (using $.getJSON)
+            function loadOfflineQuestions() {
+                const originalText = $startButton.text();
+
+                $startButton.prop('disabled', true);
+                $startButton.text("Loading Offline Data...");
+
+                // Use jQuery $.getJSON for a simple GET request
+                $.getJSON('assets/math_challenge.json') // *** UPDATED FILE PATH ***
+                    .done(function (data) {
+                        if (Array.isArray(data)) {
+                            OFFLINE_QUESTIONS.push(...data);
+                            console.log(`Successfully loaded ${OFFLINE_QUESTIONS.length} offline questions.`);
+
+                            // --- NEW: Populate Difficulty and Type Dropdowns ---
+                            const uniqueDifficulties = new Set(data.map(q => q.difficulty).filter(d => d));
+                            const uniqueTypes = new Set(data.map(q => q.type).filter(t => t));
+
+                            $difficultySelect.empty();
+                            // Add and pre-select "Random"
+                            $difficultySelect.append('<option value="Random" selected>Random Difficulty</option>');
+                            uniqueDifficulties.forEach(d => {
+                                const qCount = data.filter(q => q.difficulty === d).length;
+                                $difficultySelect.append(`<option value="${d}">${d} (${qCount} Qs)</option>`);
+                            });
+
+                            $typeSelect.empty();
+                            // Add and pre-select "Random"
+                            $typeSelect.append('<option value="Random" selected>Random Type</option>');
+                            uniqueTypes.forEach(t => {
+                                $typeSelect.append(`<option value="${t}">${t}</option>`);
+                            });
+                            // --- END NEW ---
+
+                            $startButton.text(originalText).prop('disabled', false);
+                            updateStartButtonState();
+                            // Re-initialize to ensure state is based on default selections
+                            initializeQuiz();
+                        } else {
+                            throw new Error("JSON file content is not a valid array.");
+                        }
+                    })
+                    .fail(function (jqxhr, textStatus, error) {
+                        const err = textStatus + ", " + error;
+                        console.error("Error loading offline questions:", err);
+                        // Provide fallback options if JSON fails, but keep start button disabled for offline
+                        $difficultySelect.html('<option value="Random">Random Difficulty</option>');
+                        $typeSelect.html('<option value="Random">Random Type</option>');
+                        updateStartButtonState();
+                    });
+            }
+
+
+            // 9. Event Listeners (Using jQuery .on())
+            $startButton.on('click', startQuiz);
+            $modeToggle.on('change', initializeQuiz);
+            $difficultySelect.on('change', initializeQuiz); // NEW
+            $typeSelect.on('change', initializeQuiz);        // NEW
+            $nextButton.on('click', handleNext);
+            $fullscreenButton.on('click', toggleFullscreen);
+            $rulesButton.on('click', function () {
+                displayModal("Challenge Rules", QUIZ_RULES);
+            });
+            $historyButton.on('click', viewHistory);
+
+            // Run setup
+            initializeQuiz();
+            loadOfflineQuestions();
+
+        }); // End $(document).ready()
+    </script>
+
+</body>
+</html>
