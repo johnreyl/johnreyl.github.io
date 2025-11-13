@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Learning Adventure (Persistent)</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind to use Inter font and custom colors -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #eef2f6; /* Light gray background */
+        }
+
+        .card {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+
+            .card:hover {
+                transform: translateY(-2px);
+            }
+
+        .btn-primary {
+            transition: background-color 0.15s ease, transform 0.1s ease;
+        }
+
+            .btn-primary:hover {
+                transform: translateY(-1px);
+            }
+
+        .quiz-option {
+            cursor: pointer;
+            border: 2px solid #e5e7eb;
+            transition: background-color 0.15s ease, border-color 0.15s ease;
+        }
+
+            .quiz-option:hover:not(.selected) {
+                background-color: #f3f4f6;
+            }
+
+        .module-item {
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+            .module-item:hover {
+                border-color: #3b82f6;
+                background-color: #f0f8ff;
+            }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen flex items-start justify-center">
+
+    <!-- Main Game Container -->
+    <div id="game-container" class="w-full max-w-4xl bg-white rounded-xl card p-6 md:p-10 my-8">
+        <!-- Content will be injected here -->
+        <div class="text-center text-gray-500 py-12">Loading HTML Adventure...</div>
+    </div>
+
+    <!-- JavaScript Game Logic -->
+    <script>
+        // --- State Management ---
+        const appState = {
+            currentPage: 'home', // 'home', 'dashboard', 'lesson', 'quiz', 'game', 'results', 'history'
+            currentModuleId: null, // The ID of the module currently active
+            score: 0,
+            quizAnswers: {}, // Stores answers globally keyed by moduleId-questionIndex
+            completedModules: [], // Stores IDs of completed modules
+            quizHistory: [], // NEW: Stores detailed results of completed quizzes
+            tagGame: {
+                correctMatches: 0,
+                pendingTags: [],
+                currentSelection: null
+            }
+        };
+
+        // --- LocalStorage Persistence Functions ---
+
+        function saveState() {
+            try {
+                // Only save the necessary state for persistence
+                const stateToSave = {
+                    score: appState.score,
+                    completedModules: appState.completedModules,
+                    quizHistory: appState.quizHistory,
+                    quizAnswers: appState.quizAnswers
+                };
+                const serialisedState = JSON.stringify(stateToSave);
+                localStorage.setItem('htmlAdventureStateV2', serialisedState);
+            } catch (error) {
+                console.error("Could not save state to localStorage:", error);
+            }
+        }
+
+        function loadState() {
+            try {
+                const serialisedState = localStorage.getItem('htmlAdventureStateV2');
+                if (serialisedState === null) return;
+                const loadedState = JSON.parse(serialisedState);
+
+                // Merge loaded state into appState
+                appState.score = loadedState.score || 0;
+                appState.completedModules = loadedState.completedModules || [];
+                appState.quizHistory = loadedState.quizHistory || [];
+                appState.quizAnswers = loadedState.quizAnswers || {};
+
+            } catch (error) {
+                console.error("Could not load state from localStorage:", error);
+            }
+        }
+
+        // --- Game Content Data ---
+
+        const modules = [
+            // Level 1: FOUNDATION
+            {
+                id: 101, type: 'lesson', title: '1.1 The Core HTML Structure', tags: ['Beginner'], xp: 10,
+                content: `<p class="mb-4">HTML (HyperText Markup Language) provides the structure for all web pages.</p>
+                        <h3 class="text-xl font-semibold mt-6 mb-2 text-blue-600">Essential Elements:</h3>
+                        <ul class="list-disc ml-6 space-y-2">
+                            <li><code>&lt;!DOCTYPE html&gt;</code>: **Always first.** Defines the document type and standard (HTML5).</li>
+                            <li><code>&lt;html&gt;</code>: The root element, containing everything else.</li>
+                            <li><code>&lt;head&gt;</code>: Contains **metadata** (non-visible data like the page title and links to CSS/JS).</li>
+                            <li><code>&lt;body&gt;</code>: Contains the **visible content** of the page (text, images, links).</li>
+                        </ul>`
+            },
+            {
+                id: 102, type: 'lesson', title: '1.2 Text, Headings & Attributes', tags: ['Beginner'], xp: 10,
+                content: `<p class="mb-4">Headings and paragraphs give your content hierarchy.</p>
+                        <h3 class="text-xl font-semibold mt-6 mb-2 text-blue-600">Formatting Tags:</h3>
+                        <ul class="list-disc ml-6 space-y-2">
+                            <li><code>&lt;h1&gt;</code> to <code>&lt;h6&gt;</code>: Headings. Use them to structure your document's outline.</li>
+                            <li><code>&lt;p&gt;</code>: Paragraphs.</li>
+                            <li><code>&lt;strong&gt;</code>: Importance (usually bold).</li>
+                            <li><code>&lt;em&gt;</code>: Emphasis (usually italic).</li>
+                        </ul>
+                        <h3 class="text-xl font-semibold mt-6 mb-2 text-blue-600">Attributes:</h3>
+                        <p>Attributes provide extra information about an element, usually in the opening tag, like <code>&lt;p **class="highlight"**&gt;</code>.</p>
+                        `
+            },
+            {
+                id: 105, type: 'lesson', title: '1.3 Block vs. Inline Elements (DIV & SPAN)', tags: ['Beginner', 'Tags'], xp: 15,
+                content: `<p class="mb-4">The fundamental difference in HTML layout comes down to two display types: **Block** and **Inline**.</p>
+                        <h3 class="text-xl font-semibold mt-6 mb-2 text-blue-600">Block Elements (e.g., <code>&lt;div&gt;</code>, <code>&lt;p&gt;</code>):</h3>
+                        <ul class="list-disc ml-6 space-y-2">
+                            <li>Always start on a new line and take up the full width available.</li>
+                            <li>Used for major structural components.</li>
+                            <li>**Example:** The <code>&lt;div&gt;</code> is the most common generic block container.</li>
+                        </ul>
+                        <h3 class="text-xl font-semibold mt-6 mb-2 text-blue-600">Inline Elements (e.g., <code>&lt;span&gt;</code>, <code>&lt;a&gt;</code>):</h3>
+                        <ul class="list-disc ml-6 space-y-2">
+                            <li>Only take up as much width as necessary.</li>
+                            <li>Do not force line breaks.</li>
+                            <li>**Example:** The <code>&lt;span&gt;</code> is the most common generic inline container, often used to style a small piece of text within a paragraph.</li>
+                        </ul>
+                        `
+            },
+            {
+                id: 104, type: 'fact', title: 'Did You Know? XHTML Strictness', tags: ['Beginner'], xp: 5,
+                content: `<p class="mb-4">Before HTML5, there was a strict version called **XHTML** (Extensible HyperText Markup Language). It enforced rules like closing every tag (even self-closing ones like <code>&lt;br /&gt;</code>) and making all attribute names lowercase. HTML5 is much more forgiving!</p>`
+            },
+            {
+                id: 103, type: 'quiz', title: 'Quiz: Foundation Mastery', tags: ['Beginner'], xpPerQ: 25,
+                quiz: [
+                    { question: "Which tag is the root element that contains all other HTML elements?", options: ["<head>", "<body>", "<html>", "<root>"], answer: "<html>" },
+                    { question: "What is the primary function of the <body> tag?", options: ["Define the document title", "Contain visible page content", "Load external stylesheets", "Specify character encoding"], answer: "Contain visible page content" },
+                    { question: "Which element is an inline container?", options: ["<div>", "<p>", "<span>", "<h1>"], answer: "<span>" }
+                ]
+            },
+
+            // Level 2: MEDIA & INTERACTIVITY
+            {
+                id: 201, type: 'lesson', title: '2.1 Links (Anchors) and Images', tags: ['Intermediate'], xp: 10,
+                content: `<p class="mb-4">The web is defined by hyperlinks and media.</p>
+                        <h3 class="text-xl font-semibold mt-6 mb-2 text-blue-600">The Anchor Tag:</h3>
+                        <ul class="list-disc ml-6 space-y-2">
+                            <li><code>&lt;a&gt;</code>: Used for links. The **href** attribute (Hypertext Reference) is mandatory to specify the destination URL.</li>
+                            <li><code>target="_blank"</code>: An attribute that opens the link in a new browser tab.</li>
+                        </ul>
+                        <h3 class="text-xl font-semibold mt-6 mb-2 text-blue-600">The Image Tag:</h3>
+                        <ul class="list-disc ml-6 space-y-2">
+                            <li><code>&lt;img&gt;</code>: A **self-closing** tag (no <code>&lt;/img&gt;</code>).</li>
+                            <li>**src**: Specifies the path to the image file.</li>
+                            <li>**alt**: Provides alternative text for screen readers and when the image fails to load (Crucial for accessibility!).</li>
+                        </ul>`
+            },
+            { id: 202, type: 'game', title: 'Game: Tag Matcher', tags: ['Intermediate'], xpPerMatch: 50, instructions: 'Match the opening tag to its closing tag to make a valid element. Match three pairs to continue!' },
+            {
+                id: 203, type: 'lesson', title: '2.3 Lists and Tables', tags: ['Intermediate'], xp: 10,
+                content: `<p class="mb-4">Organizing data is key in HTML.</p>
+                        <h3 class="text-xl font-semibold mt-6 mb-2 text-blue-600">Lists:</h3>
+                        <ul class="list-disc ml-6 space-y-2">
+                            <li><code>&lt;ul&gt;</code>: Unordered List (bullets).</li>
+                            <li><code>&lt;ol&gt;</code>: Ordered List (numbers).</li>
+                            <li><code>&lt;li&gt;</code>: List Item (used inside both ul and ol).</li>
+                        </ul>
+                        <h3 class="text-xl font-semibold mt-6 mb-2 text-blue-600">Tables:</h3>
+                        <p>Tables use <code>&lt;table&gt;</code> for the container, <code>&lt;tr&gt;</code> for rows, and <code>&lt;td&gt;</code> (data cell) or <code>&lt;th&gt;</code> (header cell) for columns.</p>`
+            },
+            {
+                id: 204, type: 'quiz', title: 'Quiz: Media & Structure', tags: ['Intermediate'], xpPerQ: 25,
+                quiz: [
+                    { question: "Which attribute is mandatory for the <img> tag and specifies the image location?", options: ["alt", "href", "src", "link"], answer: "src" },
+                    { question: "What list tag automatically uses numbers for its items?", options: ["<ul>", "<dl>", "<ol>", "<li>"], answer: "<ol>" },
+                    { question: "What is the HTML tag for a table row?", options: ["<td>", "<th>", "<tr>", "<th>"], answer: "<tr>" }
+                ]
+            },
+
+            // Level 3: LAYOUT & FORMS
+            {
+                id: 301, type: 'lesson', title: '3.1 Semantic Layout (HTML5)', tags: ['Advanced'], xp: 10,
+                content: `<p class="mb-4">HTML5 introduced semantic tags to give meaning to content containers, replacing generic <code>&lt;div&gt;</code> tags where appropriate.</p>
+                        <h3 class="text-xl font-semibold mt-6 mb-2 text-blue-600">Key Semantic Tags:</h3>
+                        <ul class="list-disc ml-6 space-y-2">
+                            <li><code>&lt;header&gt;</code>: Introductory content, often navigational.</li>
+                            <li><code>&lt;nav&gt;</code>: Contains navigation links.</li>
+                            <li><code>&lt;main&gt;</code>: The primary, unique content of the document.</li>
+                            <li><code>&lt;article&gt;</code>: Self-contained, independent content (like a blog post).</li>
+                            <li><code>&lt;section&gt;</code>: A thematic grouping of content, usually with a heading.</li>
+                            <li><code>&lt;footer&gt;</code>: Contains copyright info, author info, or secondary links.</li>
+                        </ul>`
+            },
+            {
+                id: 302, type: 'fact', title: 'Did You Know? The Power of Semantics', tags: ['Advanced'], xp: 5,
+                content: `<p class="mb-4">Using semantic tags like <code>&lt;nav&gt;</code> and <code>&lt;main&gt;</code> helps accessibility tools (like screen readers) and search engine bots understand the structure and importance of your content. A page built with correct semantics is often considered higher quality!</p>`
+            },
+            {
+                id: 303, type: 'lesson', title: '3.3 Forms & Input Types', tags: ['Advanced'], xp: 10,
+                content: `<p class="mb-4">Forms are how you collect data from the user.</p>
+                        <h3 class="text-xl font-semibold mt-6 mb-2 text-blue-600">Form Essentials:</h3>
+                        <ul class="list-disc ml-6 space-y-2">
+                            <li><code>&lt;form&gt;</code>: The container for the inputs. Requires <code>action</code> and <code>method</code> attributes to specify where and how data is sent.</li>
+                            <li><code>&lt;input&gt;</code>: The most versatile tag. Its behavior is determined by the **type** attribute (e.g., <code>text</code>, <code>email</code>, <code>password</code>, <code>submit</code>).</li>
+                            <li><code>&lt;label&gt;</code>: Links text to an input field (essential for accessibility).</li>
+                            <li><code>&lt;button&gt;</code>: Used for user actions, often to submit the form.</li>
+                        </ul>`
+            },
+            {
+                id: 305, type: 'lesson', title: '3.4 Client-Side Storage (localStorage)', tags: ['Advanced', 'Storage'], xp: 15,
+                content: `<p class="mb-4">HTML5 introduced Web Storage APIs, allowing web applications to store data locally within the user's browser, persisting even after the browser window is closed.</p>
+                        <h3 class="text-xl font-semibold mt-6 mb-2 text-blue-600">localStorage:</h3>
+                        <ul class="list-disc ml-6 space-y-2">
+                            <li>Stores data with no expiration date (persistent).</li>
+                            <li>Data is stored as key/value pairs, **always as strings**.</li>
+                            <li>**Example Methods:** <code>localStorage.setItem('key', 'value')</code>, <code>localStorage.getItem('key')</code>, <code>localStorage.removeItem('key')</code>.</li>
+                            <li>**Capacity:** Typically offers 5-10MB of storage per domain.</li>
+                        </ul>
+                        <p class="mt-4 bg-yellow-100 p-3 rounded-lg text-sm text-yellow-800">
+                            **Note:** For complex data (like JavaScript objects or arrays), you must use <code>JSON.stringify()</code> before storing and <code>JSON.parse()</code> after retrieving.
+                        </p>`
+            },
+            {
+                id: 304, type: 'quiz', title: 'Quiz: Advanced HTML', tags: ['Advanced'], xpPerQ: 25,
+                quiz: [
+                    { question: "Which tag is a generic, non-semantic container tag often replaced by HTML5 tags?", options: ["<section>", "<article>", "<div>", "<main>"], answer: "<div>" },
+                    { question: "What is the primary function of the 'action' attribute on a <form> tag?", options: ["Defines the input type", "Specifies the URL to send the data to", "Sets the HTTP method", "Adds client-side validation"], answer: "Specifies the URL to send the data to" },
+                    { question: "What format is data stored in using localStorage?", options: ["JSON objects", "Binary files", "Key/Value strings", "Arrays"], answer: "Key/Value strings" }
+                ]
+            }
+        ];
+
+        // Group modules for display on the dashboard
+        const moduleGroups = [
+            { id: 1, title: 'Level 1: Foundation (Structure, Text & Block/Inline)', tag: 'Beginner', moduleIds: [101, 102, 105, 104, 103] },
+            { id: 2, title: 'Level 2: Media & Interactivity', tag: 'Intermediate', moduleIds: [201, 202, 203, 204] },
+            { id: 3, title: 'Level 3: Layout, Forms & Persistence', tag: 'Advanced', moduleIds: [301, 302, 303, 305, 304] }
+        ];
+
+        // --- Utility Functions ---
+
+        /**
+         * Converts plain text to HTML for safe insertion.
+         */
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        /**
+         * Toggles the entire document into or out of fullscreen mode.
+         */
+        function toggleFullscreen() {
+            const docElm = document.documentElement; // Target the whole HTML document
+
+            if (document.fullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            } else {
+                if (docElm.requestFullscreen) {
+                    docElm.requestFullscreen();
+                } else if (docElm.mozRequestFullScreen) { /* Firefox */
+                    docElm.mozRequestFullScreen();
+                } else if (docElm.webkitRequestFullScreen) { /* Chrome, Safari & Opera */
+                    docElm.webkitRequestFullScreen();
+                } else if (docElm.msRequestFullscreen) { /* IE/Edge */
+                    docElm.msRequestFullscreen();
+                }
+            }
+        }
+
+        /**
+         * Finds the module data based on the current ID.
+         */
+        function getCurrentModuleData() {
+            return modules.find(m => m.id === appState.currentModuleId);
+        }
+
+        /**
+         * Finds module data by ID.
+         */
+        function getModuleDataById(id) {
+            return modules.find(m => m.id === id);
+        }
+
+        /**
+         * Marks a module as completed and updates the score.
+         * @param {number} moduleId - The ID of the module to complete.
+         * @param {number} xpEarned - The total XP earned from this module activity.
+         */
+        function completeModule(moduleId, xpEarned) {
+            if (!appState.completedModules.includes(moduleId)) {
+                appState.completedModules.push(moduleId);
+            }
+            appState.score += xpEarned;
+            saveState(); // Save state after completing
+        }
+
+        /**
+         * Navigates to the dashboard after completing an activity.
+         */
+        function goToDashboard() {
+            appState.currentPage = 'dashboard';
+            appState.currentModuleId = null;
+            appState.tagGame.currentSelection = null; // Reset game state
+            appState.tagGame.correctMatches = 0; // Reset game state
+            renderPage();
+        }
+
+        /**
+         * Starts a specific module.
+         * @param {number} moduleId - The ID of the module to start.
+         */
+        function startModule(moduleId) {
+            const module = getModuleDataById(moduleId);
+            if (!module) return;
+
+            appState.currentModuleId = moduleId;
+            appState.currentPage = module.type;
+            renderPage();
+        }
+
+        /**
+         * Renders the main title and score.
+         */
+        function renderHeader() {
+            const totalModules = modules.length;
+            const completedCount = appState.completedModules.length;
+            const percentage = totalModules > 0 ? Math.round((completedCount / totalModules) * 100) : 0;
+
+            let headerHTML = `
+                    <div class="flex flex-col md:flex-row items-center justify-between mb-2">
+                        <h1 class="text-4xl font-extrabold text-gray-800">
+                            HTML Adventure
+                        </h1>
+                        <div class="flex items-center space-x-3 mt-2 md:mt-0">
+                            <!-- NEW: Toggle Fullscreen Button -->
+                            <button onclick="toggleFullscreen()" class="text-sm font-medium bg-gray-200 text-gray-700 px-3 py-1 rounded-full hover:bg-gray-300 transition shadow-sm">
+                                <span class="hidden sm:inline">Toggle </span>Fullscreen
+                            </button>
+
+                            <span class="text-sm font-medium bg-blue-100 text-blue-600 px-3 py-1 rounded-full shadow-sm">${appState.score} XP</span>
+                            <button onclick="appState.currentPage = 'history'; renderPage();" class="text-sm font-medium bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full hover:bg-indigo-200 transition shadow-sm">
+                                Quiz History
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-6">Learning the language of the web, step by step!</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mb-8">
+                        <div class="bg-blue-500 h-2.5 rounded-full" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+            return headerHTML;
+        }
+
+        // --- Page Renderers ---
+
+        function renderHome() {
+            const container = document.getElementById('game-container');
+            container.innerHTML = `
+                    ${renderHeader()}
+                    <div class="text-center p-8 bg-blue-50 rounded-lg border border-blue-200">
+                        <p class="text-2xl font-bold text-gray-700 mb-4">Welcome to the HTML Adventure!</p>
+                        <p class="text-gray-600 mb-6">Master HTML from the ground up through guided lessons, interactive games, and quizzes. Your journey to become a web developer starts now. Your progress is saved in your browser's local storage!</p>
+                        <button onclick="goToDashboard()" class="btn-primary bg-blue-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-600 shadow-md">
+                            View Modules →
+                        </button>
+                    </div>
+                `;
+        }
+
+        function renderDashboard() {
+            const container = document.getElementById('game-container');
+
+            const allModulesCompleted = appState.completedModules.length === modules.length;
+
+            const groupHtml = moduleGroups.map(group => {
+                const moduleItems = group.moduleIds.map(id => {
+                    const module = getModuleDataById(id);
+                    if (!module) return '';
+                    const isCompleted = appState.completedModules.includes(id);
+                    const icon = isCompleted ? '✅' : (module.type === 'quiz' ? '❓' : (module.type === 'game' ? '🎮' : '📖'));
+                    const color = isCompleted ? 'text-green-600 border-green-300' : 'text-gray-700 border-gray-300';
+                    let xpDisplay;
+                    if (module.type === 'quiz') {
+                        xpDisplay = `(Up to ${module.quiz.length * module.xpPerQ} XP)`;
+                    } else if (module.type === 'game') {
+                        xpDisplay = `(${module.xpPerMatch * 3} XP)`; // 3 matches in the game
+                    } else {
+                        xpDisplay = `(${module.xp} XP)`;
+                    }
+
+                    return `
+                            <div class="module-item flex items-center justify-between p-4 bg-white rounded-lg border-2 ${color}" onclick="startModule(${id})">
+                                <span class="text-lg font-medium flex items-center">
+                                    ${icon} <span class="ml-3">${module.title}</span>
+                                    <span class="ml-2 px-2 py-0.5 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-600">${module.tags.join(', ')}</span>
+                                </span>
+                                <span class="text-sm font-semibold text-gray-500">${xpDisplay}</span>
+                            </div>
+                        `;
+                }).join('');
+
+                return `
+                        <div class="mb-8">
+                            <h3 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">${group.title}</h3>
+                            <div class="space-y-3">
+                                ${moduleItems}
+                            </div>
+                        </div>
+                    `;
+            }).join('');
+
+
+            container.innerHTML = `
+                    ${renderHeader()}
+                    <h2 class="text-3xl font-bold mb-6 text-blue-700">Learning Dashboard</h2>
+                    ${allModulesCompleted ? `
+                        <div class="text-center p-4 mb-6 bg-yellow-100 rounded-lg border border-yellow-300">
+                            <p class="font-semibold text-yellow-800">You've mastered all current modules!</p>
+                        </div>
+                    ` : ''}
+                    ${groupHtml}
+                    <div class="mt-8 text-center">
+                        <button onclick="appState.currentPage = 'results'; renderPage();" class="btn-primary bg-indigo-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-600 shadow-lg">
+                            View Final Results
+                        </button>
+                    </div>
+                `;
+        }
+
+        function renderLesson(module) {
+            const container = document.getElementById('game-container');
+            const xp = module.xp;
+
+            container.innerHTML = `
+                    ${renderHeader()}
+                    <h2 class="text-3xl font-bold mb-4 text-green-700">${module.title}</h2>
+                    <div class="lesson-content bg-white p-6 rounded-xl border border-gray-200 card">
+                        ${module.content}
+                    </div>
+                    <div class="mt-6 flex justify-between items-center">
+                        <button onclick="goToDashboard();" class="text-gray-500 hover:text-gray-800 font-semibold transition">
+                            ← Back to Dashboard
+                        </button>
+                        <button onclick="completeModule(${module.id}, ${xp}); goToDashboard();" class="btn-primary bg-green-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-600 shadow-md">
+                            I Understand! (Complete Lesson) +${xp} XP →
+                        </button>
+                    </div>
+                `;
+        }
+
+        function renderFact(module) {
+            const container = document.getElementById('game-container');
+            const xp = module.xp;
+
+            container.innerHTML = `
+                    ${renderHeader()}
+                    <h2 class="text-3xl font-bold mb-4 text-yellow-700">${module.title}</h2>
+                    <div class="fact-content bg-yellow-50 p-6 rounded-xl border-l-4 border-yellow-500 card">
+                        <p class="text-4xl mb-4" role="img" aria-label="Lightbulb">&#128161;</p>
+                        <h3 class="text-xl font-semibold mb-3 text-yellow-800">Extra Knowledge!</h3>
+                        ${module.content}
+                    </div>
+                    <div class="mt-6 flex justify-between items-center">
+                        <button onclick="goToDashboard();" class="text-gray-500 hover:text-gray-800 font-semibold transition">
+                            ← Back to Dashboard
+                        </button>
+                        <button onclick="completeModule(${module.id}, ${xp}); goToDashboard();" class="btn-primary bg-yellow-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-yellow-600 shadow-md">
+                            Done Reading (Back to Dashboard) +${xp} XP →
+                        </button>
+                    </div>
+                `;
+        }
+
+        // --- Quiz Logic ---
+
+        function handleQuizAnswer(moduleId, questionIndex, selectedOption) {
+            // Store the user's current selection using a unique key
+            appState.quizAnswers[`${moduleId}-${questionIndex}`] = selectedOption;
+
+            // Update the display to show selection
+            const quizElement = document.getElementById(`quiz-${questionIndex}`);
+            if (quizElement) {
+                quizElement.querySelectorAll('.quiz-option').forEach(el => {
+                    el.classList.remove('bg-blue-100', 'border-blue-500', 'selected');
+                    el.classList.add('border-gray-200');
+                    // Check if the trimmed text content matches the selected option
+                    if (el.textContent.trim() === selectedOption.trim()) {
+                        el.classList.add('bg-blue-100', 'border-blue-500', 'selected');
+                    }
+                });
+            }
+        }
+
+        function submitQuiz() {
+            const module = getCurrentModuleData();
+            let correctCount = 0;
+            const totalQuestions = module.quiz.length;
+            const xpPerQuestion = module.xpPerQ || 25;
+
+            module.quiz.forEach((q, index) => {
+                const userAnswer = appState.quizAnswers[`${module.id}-${index}`];
+                if (userAnswer === q.answer) {
+                    correctCount++;
+                }
+            });
+
+            // Calculate total XP and provide feedback
+            const xpEarned = correctCount * xpPerQuestion;
+            completeModule(module.id, xpEarned);
+
+            // Add result to history
+            appState.quizHistory.unshift({
+                id: Date.now(),
+                title: module.title,
+                score: correctCount,
+                totalQuestions: totalQuestions,
+                xpEarned: xpEarned,
+                date: new Date().toLocaleString()
+            });
+
+            saveState(); // Save state after history update
+
+            const feedback = correctCount === totalQuestions ?
+                `Perfect Score! You mastered all ${totalQuestions} questions.` :
+                `Solid effort! You got ${correctCount} out of ${totalQuestions} correct.`;
+
+            // Display results modal/message
+            const container = document.getElementById('game-container');
+            container.innerHTML = `
+                    ${renderHeader()}
+                    <div class="text-center p-8 bg-purple-50 rounded-lg border border-purple-200 card">
+                        <p class="text-3xl font-extrabold text-purple-700 mb-4">Quiz Complete!</p>
+                        <p class="text-xl text-gray-700 mb-2">${feedback}</p>
+                        <p class="text-2xl font-bold text-gray-800 mb-6">+${xpEarned} XP Earned</p>
+                        <button onclick="goToDashboard()" class="btn-primary bg-purple-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-600 shadow-md mr-4">
+                            Back to Dashboard →
+                        </button>
+                        <button onclick="appState.currentPage = 'history'; renderPage();" class="btn-primary bg-gray-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-600 shadow-md">
+                            View History
+                        </button>
+                    </div>
+                `;
+        }
+
+        function renderQuiz(module) {
+            const container = document.getElementById('game-container');
+            const totalXP = module.quiz.length * (module.xpPerQ || 25);
+
+            const quizQuestionsHtml = module.quiz.map((q, qIndex) => `
+                    <div id="quiz-${qIndex}" class="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-lg font-semibold mb-3 text-gray-800">${qIndex + 1}. ${escapeHtml(q.question)}</p>
+                        <div class="space-y-2">
+                            ${q.options.map(option => `
+                                <div class="quiz-option p-3 rounded-lg bg-white" onclick="handleQuizAnswer(${module.id}, ${qIndex}, '${escapeHtml(option)}')">
+                                    ${escapeHtml(option)}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+
+            container.innerHTML = `
+                    ${renderHeader()}
+                    <h2 class="text-3xl font-bold mb-4 text-purple-700">${module.title}</h2>
+                    <p class="text-gray-600 mb-6">Select the best option for each question. Total potential XP: ${totalXP}.</p>
+                    ${quizQuestionsHtml}
+                    <div class="mt-6 flex justify-between">
+                        <button onclick="goToDashboard();" class="text-gray-500 hover:text-gray-800 font-semibold transition">
+                            ← Back to Dashboard
+                        </button>
+                        <button onclick="submitQuiz()" class="btn-primary bg-purple-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-purple-600 shadow-md">
+                            Submit Quiz
+                        </button>
+                    </div>
+                `;
+
+            // Re-apply selections on render (Crucial for persistence when navigating)
+            module.quiz.forEach((q, qIndex) => {
+                const selected = appState.quizAnswers[`${module.id}-${qIndex}`];
+                if (selected) {
+                    handleQuizAnswer(module.id, qIndex, selected);
+                }
+            });
+        }
+
+        // --- Quiz History Renderer (NEW) ---
+
+        function renderHistory() {
+            const container = document.getElementById('game-container');
+            const history = appState.quizHistory;
+
+            let historyContent;
+
+            if (history.length === 0) {
+                historyContent = `
+                        <div class="text-center p-8 bg-gray-50 rounded-xl border border-gray-200">
+                            <p class="text-xl text-gray-600 font-medium">You haven't completed any quizzes yet!</p>
+                            <p class="text-gray-500 mt-2">Finish a quiz to see your performance history here.</p>
+                        </div>
+                    `;
+            } else {
+                historyContent = `
+                        <div class="space-y-4">
+                            ${history.map(record => `
+                                <div class="flex flex-col md:flex-row items-start md:items-center justify-between p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-lg font-semibold text-gray-800 truncate">${record.title}</p>
+                                        <p class="text-sm text-gray-500">${record.date}</p>
+                                    </div>
+                                    <div class="mt-2 md:mt-0 md:ml-4 text-right">
+                                        <span class="text-xl font-bold ${record.score === record.totalQuestions ? 'text-green-600' : 'text-orange-500'}">
+                                            ${record.score}/${record.totalQuestions}
+                                        </span>
+                                        <span class="text-sm text-gray-600 ml-2">Correct</span>
+                                        <span class="text-sm font-semibold bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full ml-4">
+                                            +${record.xpEarned} XP
+                                        </span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+            }
+
+            container.innerHTML = `
+                    ${renderHeader()}
+                    <h2 class="text-3xl font-bold mb-6 text-indigo-700">Quiz History & Results</h2>
+                    ${historyContent}
+                    <div class="mt-8 text-left">
+                        <button onclick="goToDashboard()" class="btn-primary bg-indigo-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-600 shadow-md">
+                            ← Back to Dashboard
+                        </button>
+                    </div>
+                `;
+        }
+
+        // --- Game Logic (Tag Matcher - Not modified) ---
+
+        function initTagGame(moduleId) {
+            const tags = ['div', 'p', 'span', 'h1', 'a', 'img'];
+            const selectedTags = [];
+            while (selectedTags.length < 3) {
+                const randomTag = tags[Math.floor(Math.random() * tags.length)];
+                if (!selectedTags.includes(randomTag)) {
+                    selectedTags.push(randomTag);
+                }
+            }
+
+            const gameElements = [];
+            selectedTags.forEach(tag => {
+                gameElements.push({ tag: tag, type: 'open' });
+                if (tag !== 'img') {
+                    gameElements.push({ tag: tag, type: 'close' });
+                }
+            });
+
+            if (gameElements.length < 6) {
+                const additionalTag = tags.find(t => !selectedTags.includes(t) && t !== 'img');
+                if (additionalTag && gameElements.length === 5) {
+                    gameElements.push({ tag: additionalTag, type: 'open' });
+                    gameElements.push({ tag: additionalTag, type: 'close' });
+                    selectedTags.push(additionalTag);
+                } else if (gameElements.length === 5) {
+                    gameElements.push({ tag: 'p', type: 'open' });
+                }
+            }
+
+            for (let i = gameElements.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [gameElements[i], gameElements[j]] = [gameElements[i], gameElements[j]];
+            }
+
+            appState.tagGame.pendingTags = gameElements.slice(0, 6);
+        }
+
+        function handleTagClick(tagData, index) {
+            const { tag, type } = tagData;
+            const { currentSelection } = appState.tagGame;
+            const element = document.getElementById(`tag-item-${index}`);
+
+            if (element.classList.contains('pointer-events-none')) return;
+
+            if (!currentSelection) {
+                appState.tagGame.currentSelection = { tag, type, index };
+                element.classList.remove('bg-white', 'hover:bg-gray-100');
+                element.classList.add('bg-blue-300', 'border-blue-500', 'ring-4', 'ring-blue-200');
+                return;
+            }
+
+            if (currentSelection.index === index) {
+                element.classList.remove('bg-blue-300', 'border-blue-500', 'ring-4', 'ring-blue-200');
+                element.classList.add('bg-white', 'hover:bg-gray-100');
+                appState.tagGame.currentSelection = null;
+                return;
+            }
+
+            let isMatch = false;
+
+            if (currentSelection.tag === tag) {
+                if (tag === 'img') {
+                    isMatch = (currentSelection.type === type && currentSelection.index !== index);
+                } else {
+                    isMatch = (currentSelection.type !== type);
+                }
+            }
+
+            if (isMatch) {
+                appState.tagGame.correctMatches++;
+                const xpPerMatch = getCurrentModuleData().xpPerMatch || 50;
+                appState.score += xpPerMatch;
+                saveState(); // Save state after game match XP
+
+                const selectedElement = document.getElementById(`tag-item-${currentSelection.index}`);
+
+                element.classList.add('bg-green-500', 'text-white', 'opacity-50', 'pointer-events-none');
+                selectedElement.classList.remove('bg-blue-300', 'border-blue-500', 'ring-4', 'ring-blue-200');
+                selectedElement.classList.add('bg-green-500', 'text-white', 'opacity-50', 'pointer-events-none');
+
+                appState.tagGame.currentSelection = null;
+
+                if (appState.tagGame.correctMatches === (appState.tagGame.pendingTags.length / 2)) {
+                    setTimeout(() => gameWin(), 500);
+                }
+
+            } else {
+                const selectedElement = document.getElementById(`tag-item-${currentSelection.index}`);
+
+                element.classList.add('bg-red-500', 'text-white', 'animate-pulse');
+                selectedElement.classList.add('bg-red-500', 'text-white', 'animate-pulse');
+
+                setTimeout(() => {
+                    selectedElement.classList.remove('bg-blue-300', 'border-blue-500', 'ring-4', 'ring-blue-200', 'bg-red-500', 'animate-pulse');
+                    selectedElement.classList.add('bg-white', 'hover:bg-gray-100');
+
+                    element.classList.remove('bg-red-500', 'text-white', 'animate-pulse');
+
+                    appState.tagGame.currentSelection = null;
+                }, 500);
+            }
+        }
+
+        function gameWin() {
+            const container = document.getElementById('game-container');
+            const module = getCurrentModuleData();
+            const totalXP = appState.tagGame.correctMatches * (module.xpPerMatch || 50);
+
+            completeModule(module.id, totalXP);
+
+            container.innerHTML = `
+                    ${renderHeader()}
+                    <div class="text-center p-8 bg-green-50 rounded-lg border border-green-200 card">
+                        <p class="text-4xl mb-4" role="img" aria-label="Tada">&#127881;</p>
+                        <p class="text-3xl font-extrabold text-green-700 mb-4">Challenge Complete!</p>
+                        <p class="text-xl text-gray-700 mb-6">You correctly matched all the opening and closing tags. Excellent use of syntax!</p>
+                        <p class="text-2xl font-bold text-gray-800 mb-6">+${totalXP} XP Earned</p>
+                        <button onclick="goToDashboard()" class="btn-primary bg-green-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-600 shadow-md">
+                            Back to Dashboard →
+                        </button>
+                    </div>
+                `;
+        }
+
+        function renderGame(module) {
+            if (appState.tagGame.pendingTags.length === 0 || module.id !== appState.currentModuleId) {
+                initTagGame(module.id);
+            }
+
+            const tagsHtml = appState.tagGame.pendingTags.map((t, index) => {
+                let display = t.type === 'open' ? `&lt;${t.tag}&gt;` : `&lt;/${t.tag}&gt;`;
+                if (t.tag === 'img' && t.type === 'open') {
+                    display = `&lt;${t.tag} src="..." alt="..."/&gt;`;
+                }
+
+                return `
+                        <div id="tag-item-${index}"
+                             class="tag-item bg-white p-4 rounded-xl border-2 border-gray-200 text-center text-xl font-mono cursor-pointer transition hover:bg-gray-100 card"
+                             onclick="handleTagClick({tag: '${t.tag}', type: '${t.type}'}, ${index})">
+                            ${display}
+                        </div>
+                    `;
+            }).join('');
+
+            const container = document.getElementById('game-container');
+            container.innerHTML = `
+                    ${renderHeader()}
+                    <h2 class="text-3xl font-bold mb-4 text-orange-700">${module.title}</h2>
+                    <p class="text-gray-600 mb-6">${module.instructions}</p>
+
+                    <div class="p-6 bg-orange-50 rounded-xl border border-orange-200 card">
+                        <h3 class="text-2xl font-semibold mb-4 text-orange-800">Match the Pairs!</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            ${tagsHtml}
+                        </div>
+                        <p class="text-sm text-gray-500 mt-4 text-right">Matches: ${appState.tagGame.correctMatches}/${appState.tagGame.pendingTags.length / 2}</p>
+                    </div>
+                    <div class="mt-6 flex justify-start">
+                        <button onclick="goToDashboard();" class="text-gray-500 hover:text-gray-800 font-semibold transition">
+                            ← Back to Dashboard
+                        </button>
+                    </div>
+                `;
+        }
+
+        function renderResults() {
+            const container = document.getElementById('game-container');
+            const totalModules = modules.length;
+            const completedCount = appState.completedModules.length;
+
+            container.innerHTML = `
+                    <div class="text-center py-10">
+                        <p class="text-6xl mb-6" role="img" aria-label="Celebration">&#127881;</p>
+                        <h1 class="text-4xl font-extrabold mb-4 text-blue-600">Adventure Summary</h1>
+                        <p class="text-xl text-gray-700 mb-6">You've reached the end of the current modules! Keep building your skills.</p>
+
+                        <div class="bg-blue-50 p-6 rounded-xl inline-block mb-8 border border-blue-200 card">
+                            <p class="text-3xl font-bold text-gray-800">Final Score: <span class="text-blue-500">${appState.score} XP</span></p>
+                            <p class="text-lg font-bold text-gray-800 mt-2">Modules Completed: <span class="text-green-500">${completedCount}/${totalModules}</span></p>
+                        </div>
+
+                        <p class="text-gray-600 mb-8">Review the dashboard or check your history below.</p>
+
+                        <button onclick="goToDashboard()" class="btn-primary bg-indigo-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-600 shadow-md mr-4">
+                            Return to Dashboard
+                        </button>
+                        <button onclick="appState.currentPage = 'history'; renderPage();" class="btn-primary bg-purple-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-600 shadow-md">
+                            View Quiz History
+                        </button>
+                    </div>
+                `;
+        }
+
+
+        /**
+         * Main render function that determines which content to show.
+         */
+        function renderPage() {
+            const currentModuleData = getCurrentModuleData();
+
+            switch (appState.currentPage) {
+                case 'home':
+                    renderHome();
+                    break;
+                case 'dashboard':
+                    renderDashboard();
+                    break;
+                case 'lesson':
+                    renderLesson(currentModuleData);
+                    break;
+                case 'quiz':
+                    renderQuiz(currentModuleData);
+                    break;
+                case 'game':
+                    renderGame(currentModuleData);
+                    break;
+                case 'fact':
+                    renderFact(currentModuleData);
+                    break;
+                case 'results':
+                    renderResults();
+                    break;
+                case 'history': // NEW
+                    renderHistory();
+                    break;
+                default:
+                    renderHome();
+            }
+        }
+
+        // Initialize the app on load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState(); // Load progress immediately
+            renderPage();
+        });
+    </script>
+</body>
+</html>
