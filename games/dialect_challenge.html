@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dialect Challenge (jQuery)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        /* Custom Font for a Game-like feel */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1f2937, #374151); /* Darker, techy background */
+        }
+
+        .quiz-card {
+            background-color: #ffffff;
+            border: 4px solid #4f46e5;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-header {
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 1px 1px 2px rgba(79, 70, 229, 0.5);
+        }
+
+        .option-card {
+            border: 2px solid #e5e7eb;
+            transition: all 0.2s;
+            min-height: 80px;
+        }
+
+            .option-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+
+        .selected-option {
+            background-color: #eef2ff !important;
+            border-color: #4f46e5 !important;
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.5);
+        }
+
+        .option-figure-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            font-size: 1.5rem; /* Larger font for characters/words */
+            font-weight: bold;
+        }
+
+        /* CSS to make the question's source SVG smaller */
+        #source-figure-container {
+            font-size: 2rem;
+        }
+
+            #source-figure-container svg {
+                max-width: 200px;
+                max-height: 100px;
+                height: auto;
+                width: auto;
+            }
+
+        /* Desktop-specific adjustments (md breakpoint and up) */
+        @media (min-width: 768px) {
+            .quiz-card-desktop {
+                max-width: 900px;
+            }
+
+            .grid-cols-3-desktop {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        /* Mobile-specific adjustments */
+        @media (max-width: 640px) {
+            .game-header {
+                font-size: 2rem;
+            }
+
+            #question-text {
+                font-size: 1.25rem !important;
+            }
+
+            .grid-cols-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .option-figure-container svg {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="quiz-container" class="quiz-card rounded-2xl w-full max-w-2xl lg:max-w-4xl p-6 md:p-10 quiz-card-desktop">
+
+        <header class="text-center mb-6">
+            <h1 class="game-header text-3xl md:text-4xl font-extrabold text-gray-800">
+                <i class="fas fa-language"></i> Global Dialect Challenge
+            </h1>
+        </header>
+
+        <div id="status-and-tools" class="flex justify-start items-center space-x-4 mb-8">
+            <button id="fullscreen-button"
+                    class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold p-2 rounded-lg shadow-md transition duration-150 text-sm flex items-center">
+                <i class="fa-solid fa-compress"></i> Full Screen
+            </button>
+            <button id="rules-button"
+                    class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold p-2 rounded-lg shadow-md transition duration-150 text-sm flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg>
+                Rules
+            </button>
+            <button id="history-button"
+                    class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold p-2 rounded-lg shadow-md transition duration-150 text-sm flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18" /><path d="m18 10-6 6-4-4-5 5" /></svg>
+                History
+            </button>
+        </div>
+        <div id="status-bar" class="hidden flex flex-col sm:flex-row justify-between items-center mb-8 p-4 bg-indigo-500 text-white rounded-xl shadow-lg">
+            <div class="text-lg font-semibold flex items-center mb-2 sm:mb-0">
+                Q: &nbsp;<span id="current-q-number">0</span> / <span id="total-q-number">9</span>
+            </div>
+            <div class="text-xl font-bold bg-white text-red-600 p-1 px-3 rounded-lg shadow-md">
+                <i class="fa-solid fa-stopwatch"></i> Time: <span id="timer">00:00</span>
+            </div>
+        </div>
+
+        <div id="start-area" class="text-center py-8">
+            <p class="text-lg text-gray-700 mb-6">
+                Test your knowledge of various East and Southeast Asian languages and dialects.
+                <br class="hidden sm:block">
+                <span class="font-semibold text-indigo-600">The challenge uses a set number of available questions for an Offline Language Estimate.</span> Choose your language and difficulty!
+            </p>
+
+            <div class="mb-8 p-4 bg-gray-50 rounded-xl shadow-inner flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-4">
+
+                <div class="flex-1">
+                    <label for="challenge-difficulty" class="text-base md:text-lg text-gray-700 font-semibold flex items-center justify-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H7l5 5-5 5H17" /></svg>
+                        Difficulty:
+                    </label>
+                    <select id="challenge-difficulty" class="bg-white border border-indigo-300 rounded-lg p-3 text-lg shadow-md focus:ring-indigo-500 focus:border-indigo-500 w-full transition duration-150">
+                        <option value="Random" selected>Random Difficulty</option>
+                    </select>
+                </div>
+
+                <div class="flex-1">
+                    <label for="challenge-type" class="text-base md:text-lg text-gray-700 font-semibold flex items-center justify-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 12h-12c-.75 0-1.5-.25-2-.75s-.75-1.25-.75-2.25v-2m0 0a2.5 2.5 0 0 1 2.5-2.5h12m0 0a2.5 2.5 0 0 1 2.5 2.5v2c0 1-.25 1.75-.75 2.25s-1.25.75-2.25.75H6M12 2v20M17 5H7l5 5-5 5H17" /></svg>
+                        Language/Dialect:
+                    </label>
+                    <select id="challenge-type" class="bg-white border border-indigo-300 rounded-lg p-3 text-lg shadow-md focus:ring-indigo-500 focus:border-indigo-500 w-full transition duration-150">
+                        <option value="Random" selected>Random Language</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="mb-8 p-4 bg-gray-50 rounded-xl shadow-inner flex items-center justify-center space-x-4">
+                <span class="text-base font-semibold text-gray-700">Offline Mode</span>
+                <label class="relative inline-flex items-center cursor-not-allowed">
+                    <input type="checkbox" value="" id="mode-toggle" class="sr-only peer" checked disabled>
+                    <div class="w-11 h-6 bg-indigo-600 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600"></div>
+                </label>
+                <span class="text-base font-semibold text-gray-400">Online Mode (Disabled)</span>
+            </div>
+
+            <p id="loading-message" class="text-base text-indigo-600 font-medium hidden mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="animate-spin inline w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>
+                Loading / Generating questions... Please wait.
+            </p>
+
+            <div class="flex justify-center">
+                <button id="start-button"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-10 rounded-full shadow-xl transition duration-150 transform hover:scale-105 disabled:bg-gray-400">
+                    Start Challenge (Offline)
+                </button>
+            </div>
+
+            <p id="error-message" class="text-red-500 mt-4 text-sm hidden"></p>
+        </div>
+
+        <div id="question-area" class="hidden">
+            <p id="question-text" class="text-xl sm:text-2xl font-bold text-gray-800 mb-6 leading-relaxed p-2 bg-gray-50 rounded-lg border-l-4 border-indigo-400"></p>
+
+            <div id="source-figure-container" class="my-6 p-4 bg-gray-100 rounded-xl shadow-inner flex justify-center items-center min-h-[100px] hidden">
+            </div>
+
+            <div id="options-container" class="grid grid-cols-2 md:grid-cols-2 gap-4">
+            </div>
+
+            <div class="mt-10 flex justify-end">
+                <button id="next-button"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-150 disabled:bg-indigo-400 disabled:shadow-none transform hover:scale-[1.02]"
+                        disabled>
+                    Next Question
+                </button>
+            </div>
+        </div>
+
+        <div id="results-area" class="hidden text-center py-6">
+            <h2 class="text-4xl md:text-5xl font-extrabold text-green-600 mb-2 game-header">Challenge Complete! 🏆</h2>
+
+            <p id="iq-title" class="text-2xl md:text-3xl font-extrabold text-indigo-700 mb-6"></p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 text-white">
+                <div class="bg-indigo-600 p-4 rounded-xl shadow-md border-b-4 border-indigo-800">
+                    <p class="text-sm opacity-80 flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 6 4-4 4 4" /><path d="M12 22v-4" /><path d="M12 14v-4" /><path d="M8 18h8" /></svg>Score</p>
+                    <p class="text-3xl font-extrabold"><span id="final-score"></span>/<span id="final-total"></span></p>
+                </div>
+                <div class="bg-indigo-600 p-4 rounded-xl shadow-md border-b-4 border-indigo-800">
+                    <p class="text-sm opacity-80 flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>Time Taken</p>
+                    <p id="time-taken" class="text-3xl font-extrabold"></p>
+                </div>
+                <div class="bg-indigo-600 p-4 rounded-xl shadow-md border-b-4 border-indigo-800">
+                    <p class="text-sm opacity-80 flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 19H5c-1.1 0-2-.9-2-2V7c0-1.1.9-2 2-2h14c1.1 0 2 .9 2 2v10c0 1.1-.9 2-2 2z" /><circle cx="12" cy="12" r="3" /><path d="M21 12H3" /></svg>Language Proficiency Est.</p>
+                    <p id="iq-estimate" class="text-3xl font-extrabold">...</p>
+                </div>
+            </div>
+
+            <div id="fun-fact-panel" class="bg-yellow-50 text-yellow-800 p-4 rounded-xl shadow-md border-l-4 border-yellow-500 mb-8">
+                <p class="font-bold mb-1 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
+                    Dialect-Fact:
+                </p>
+                <p id="iq-fun-fact" class="text-sm"></p>
+            </div>
+
+
+            <h3 class="text-xl md:text-2xl font-bold text-gray-700 mb-3">Analysis & Recommendation</h3>
+            <div id="analysis-container" class="bg-gray-100 p-6 rounded-xl text-left shadow-inner border border-gray-200">
+                <div id="analysis-loading" class="text-center hidden">
+                </div>
+                <p id="result-message" class="text-gray-700 text-base"></p>
+            </div>
+
+            <button onclick="window.location.reload()"
+                    class="mt-8 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-150 transform hover:scale-105">
+                <svg xmlns="http://www.w3.org/2000/svg" class="inline w-5 h-5 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6" /><path d="M3 12a9 9 0 0 1 15-6.75L18 8" /><path d="M3 22v-6h6" /><path d="M21 12a9 9 0 0 1-15 6.75L6 16" /></svg>
+                Retry Challenge
+            </button>
+        </div>
+
+    </div>
+
+    <div id="custom-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 transition-opacity duration-300 opacity-0" aria-modal="true" role="dialog">
+        <div id="modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 transform transition-transform duration-300 scale-90">
+            <h3 id="modal-title" class="text-2xl font-bold text-gray-800 mb-3"></h3>
+            <p id="modal-message" class="text-gray-600 mb-6"></p>
+            <div class="flex justify-end">
+                <button id="modal-close" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-150">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Use the jQuery $(document).ready() function
+        $(document).ready(function () {
+
+            // --- OFFLINE DIALECT DATA (Loaded from the JSON file content) ---
+            const OFFLINE_QUESTIONS = [];
+
+            const SELECTED_CLASSES = ['bg-indigo-100', 'border-indigo-500', 'ring-2', 'ring-indigo-500', 'font-semibold', 'selected-option'];
+
+            // --- QUIZ RULES CONTENT (Updated for Dialect Challenge) ---
+            const QUIZ_RULES = `
+                                    <ul class="list-disc pl-5 space-y-2 text-left text-gray-700">
+                                        <li>Each question tests your knowledge of a specific language/dialect.</li>
+                                        <li>The challenge covers vocabulary, phrases, or script identification.</li>
+                                        <li>The **Language Proficiency Estimate** is purely indicative, based on your score and time.</li>
+                                        <li>The challenge uses a fixed set of questions and is **Offline Only**.</li>
+                                    </ul>
+                                    <p class="mt-4 text-sm text-gray-500 italic">The time limit is calculated based on the difficulty of the selected questions.</p>
+                                `;
+
+
+            // 1. State Variables
+            let allQuestions = [];
+            let numQuestions = OFFLINE_QUESTIONS.length; // Default to all questions
+            let currentQuestionIndex = 0;
+            let timerInterval;
+            let totalTimeLimitSeconds = 0; // Calculated dynamically
+            let timeLeft = totalTimeLimitSeconds;
+            let userAnswers = [];
+            let quizStartTime;
+            const isOnlineMode = false; // Forced Offline Mode
+
+            // 2. DOM Elements (using jQuery selectors)
+            const $startArea = $('#start-area');
+            const $startButton = $('#start-button');
+            const $difficultySelect = $('#challenge-difficulty');
+            const $typeSelect = $('#challenge-type');
+            const $loadingMessage = $('#loading-message');
+            const $errorMessage = $('#error-message');
+            const $statusBar = $('#status-bar');
+            const $questionArea = $('#question-area');
+            const $optionsContainer = $('#options-container');
+            const $nextButton = $('#next-button');
+            const $timer = $('#timer');
+            const $currentQNumber = $('#current-q-number');
+            const $totalQNumber = $('#total-q-number');
+            const $resultsArea = $('#results-area');
+            const $finalScore = $('#final-score');
+            const $finalTotal = $('#final-total');
+            const $timeTaken = $('#time-taken');
+            const $iqEstimate = $('#iq-estimate');
+            const $iqTitle = $('#iq-title');
+            const $iqFunFact = $('#iq-fun-fact');
+            const $resultMessage = $('#result-message');
+            const $modal = $('#custom-modal');
+            const $modalTitle = $('#modal-title');
+            const $modalMessage = $('#modal-message');
+            const $modalClose = $('#modal-close');
+            const $fullscreenButton = $('#fullscreen-button');
+            const $sourceFigureContainer = $('#source-figure-container');
+            const $rulesButton = $('#rules-button');
+            const $historyButton = $('#history-button');
+
+
+            // 3. Utility Functions
+
+            function displayModal(title, message, callback = null) {
+                $modalTitle.text(title);
+                $modalMessage.html(message); // Use .html() to render list/formatting/table
+                // Resize modal for history table if content is a table
+                const $modalContent = $('#modal-content');
+                if (message.includes('table class="min-w-full')) {
+                    $modalContent.removeClass('max-w-sm').addClass('max-w-lg');
+                } else {
+                    $modalContent.addClass('max-w-sm').removeClass('max-w-lg');
+                }
+
+                $modal.removeClass('hidden').addClass('opacity-100');
+
+                $modalClose.off('click').on('click', function () {
+                    $modal.removeClass('opacity-100').addClass('opacity-0');
+                    setTimeout(() => { $modal.addClass('hidden'); }, 300);
+                    if (callback) callback();
+                });
+            }
+
+            function formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const remainderSeconds = seconds % 60;
+                return `${minutes.toString().padStart(2, '0')}:${remainderSeconds.toString().padStart(2, '0')}`;
+            }
+
+            function startTimer() {
+                quizStartTime = Date.now();
+                // Total time limit is calculated in fetchQuestionsOffline
+                timeLeft = totalTimeLimitSeconds;
+                $timer.text(formatTime(totalTimeLimitSeconds));
+
+
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    $timer.text(formatTime(timeLeft));
+                    if (timeLeft <= 30 && timeLeft > 0) {
+                        $timer.addClass('text-yellow-400').removeClass('text-red-600');
+                    } else if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        $timer.text("00:00");
+                        displayModal("Time's Up!", "The time limit has been reached. Your results will now be calculated.", () => showResults());
+                    }
+                }, 1000);
+            }
+
+            function updateStartButtonState() {
+                if (OFFLINE_QUESTIONS.length === 0) {
+                    $startButton.prop('disabled', true);
+                    $startButton.text("Offline Data Failed to Load");
+                    $errorMessage.text(`Offline mode is unavailable. The dialect_challenge.json data failed to load or is empty.`).removeClass('hidden');
+                } else {
+                    $startButton.prop('disabled', false);
+                    $startButton.text(`Start Challenge (Offline)`);
+                    $errorMessage.addClass('hidden');
+                }
+            }
+
+            function initializeQuiz() {
+                // Reset numQuestions to the full available count initially
+                numQuestions = OFFLINE_QUESTIONS.length;
+                $totalQNumber.text(numQuestions);
+                // Reset time display to a default (will be calculated upon starting)
+                timeLeft = 0;
+                $timer.text("00:00");
+
+                $startArea.removeClass('hidden');
+                $statusBar.addClass('hidden');
+                $questionArea.addClass('hidden');
+                $resultsArea.addClass('hidden');
+                $loadingMessage.addClass('hidden');
+                $errorMessage.addClass('hidden');
+
+                updateStartButtonState();
+                // Ensure dropdowns are correctly populated and initial state is set
+                //loadOfflineQuestions(true); // Populate dropdowns only
+            }
+
+            function getLanguageMetadata(score) {
+                let title, fact;
+
+                if (score < 80) {
+                    title = "Foundational Knowledge";
+                    fact = "You've made a great start! Focus on the most common vocabulary and basic sentence structures in your target language for rapid improvement.";
+                } else if (score < 90) {
+                    title = "Beginner Proficiency (A1)";
+                    fact = "You can understand and use familiar everyday expressions. Try integrating more common verbs and phrases to build confidence in conversation.";
+                } else if (score < 110) {
+                    title = "Intermediate Proficiency (A2/B1)";
+                    fact = "Solid performance! You handle basic communication well. Challenge yourself with more complex grammatical structures and extended reading or listening practice.";
+                } else if (score < 120) {
+                    title = "Upper-Intermediate (B2)";
+                    fact = "Excellent job! You can deal with a wide range of topics and are highly effective in familiar situations. Focus on nuanced vocabulary and idiomatic expressions next.";
+                } else if (score < 130) {
+                    title = "Advanced Proficiency (C1)";
+                    fact = "Highly impressive! Your strong performance suggests fluency and a deep understanding of the language. To reach mastery, explore literature and formal media.";
+                } else {
+                    title = "Near-Native Mastery (C2)";
+                    fact = "Phenomenal! Your speed and accuracy are outstanding. You demonstrate an extremely rare level of linguistic insight and skill.";
+                }
+                return { title, fact };
+            }
+
+            // --- History Functions ---
+
+            // Function to save the quiz result to localStorage
+            function saveResult(score, total, timeElapsed, languageEstimate) {
+                const now = new Date();
+                const result = {
+                    id: Date.now(),
+                    date: now.toLocaleDateString(),
+                    time: now.toLocaleTimeString(),
+                    duration: formatTime(timeElapsed),
+                    score: score,
+                    total: total,
+                    lang: languageEstimate // Changed from 'math' to 'lang'
+                };
+
+                let history = JSON.parse(localStorage.getItem('dialectQuizHistory') || '[]'); // Changed key
+                history.push(result);
+                // Keep only the last 50 results to prevent storage bloat
+                if (history.length > 50) {
+                    history.sort((a, b) => b.id - a.id); // Sort descending by ID (date)
+                    history = history.slice(0, 50);
+                }
+                localStorage.setItem('dialectQuizHistory', JSON.stringify(history)); // Changed key
+            }
+
+            // Function to display the history modal
+            function viewHistory() {
+                let history = JSON.parse(localStorage.getItem('dialectQuizHistory') || '[]'); // Changed key
+
+                if (history.length === 0) {
+                    displayModal("Result History", "You haven't completed any challenges yet. Start a quiz to save your first result!");
+                    return;
+                }
+
+                // Sort results in descending order by ID (which is the timestamp)
+                history.sort((a, b) => b.id - a.id);
+
+                let tableHtml = `
+                                        <div class="max-h-80 overflow-y-auto">
+                                            <table class="min-w-full divide-y divide-gray-200">
+                                                <thead class="bg-gray-50 sticky top-0">
+                                                    <tr>
+                                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date/Time</th>
+                                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
+                                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lang. Est.</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="bg-white divide-y divide-gray-200 text-sm">
+                                    `;
+
+                history.forEach(result => {
+                    tableHtml += `
+                                            <tr>
+                                                <td class="px-3 py-2 whitespace-nowrap">${result.date}<br><span class="text-xs text-gray-500">${result.time}</span></td>
+                                                <td class="px-3 py-2 whitespace-nowrap font-semibold text-indigo-600">${result.score}/${result.total}</td>
+                                                <td class="px-3 py-2 whitespace-nowrap">${result.duration}</td>
+                                                <td class="px-3 py-2 whitespace-nowrap font-extrabold text-gray-800">${result.lang}</td>
+                                            </tr>
+                                        `;
+                });
+
+                tableHtml += `
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-4 text-center">Results are stored locally in your browser and are not shared.</p>
+                                    `;
+
+                displayModal("Challenge History", tableHtml);
+            }
+            // --- END: History Functions ---
+
+
+            // 4. Offline Question Loading (Updated)
+
+            function fetchQuestionsOffline(populateOnly = false) {
+                const selectedDifficulty = $difficultySelect.val();
+                const selectedType = $typeSelect.val();
+
+                if (OFFLINE_QUESTIONS.length === 0) {
+                    $errorMessage.text(`Offline mode is unavailable. The dialect_challenge.json data failed to load or is empty.`).removeClass('hidden');
+                    return false;
+                }
+
+                // Populate Dropdowns if requested or if they are empty
+                if (populateOnly || $difficultySelect.find('option').length <= 1) {
+                    const uniqueDifficulties = new Set(OFFLINE_QUESTIONS.map(q => q.difficulty).filter(d => d));
+                    const uniqueTypes = new Set(OFFLINE_QUESTIONS.map(q => q.type).filter(t => t));
+
+                    $difficultySelect.empty().append('<option value="Random" selected>Random Difficulty</option>');
+                    uniqueDifficulties.forEach(d => {
+                        const qCount = OFFLINE_QUESTIONS.filter(q => q.difficulty === d).length;
+                        $difficultySelect.append(`<option value="${d}">${d} (${qCount} Qs)</option>`);
+                    });
+
+                    $typeSelect.empty().append('<option value="Random" selected>Random Language</option>');
+                    uniqueTypes.forEach(t => {
+                        const qCount = OFFLINE_QUESTIONS.filter(q => q.type === t).length;
+                        $typeSelect.append(`<option value="${t}">${t} (${qCount} Qs)</option>`);
+                    });
+
+                    // Restore selected values if they still exist
+                    $difficultySelect.val(selectedDifficulty);
+                    $typeSelect.val(selectedType);
+
+                    if (populateOnly) return; // Stop here if only populating
+                }
+
+                // 1. Filter questions based on user selection
+                const filteredQuestions = OFFLINE_QUESTIONS.filter(q => {
+                    const diffMatch = selectedDifficulty === 'Random' || q.difficulty === selectedDifficulty;
+                    const typeMatch = selectedType === 'Random' || q.type === selectedType;
+                    return diffMatch && typeMatch;
+                });
+
+                const availableQuestionsCount = filteredQuestions.length;
+
+                if (availableQuestionsCount === 0) {
+                    $errorMessage.text(`No questions found for the selected Difficulty (${selectedDifficulty}) and Language (${selectedType}).`).removeClass('hidden');
+                    return false;
+                }
+
+                // Set the final count: all available questions
+                numQuestions = availableQuestionsCount;
+
+                // 2. Calculate dynamic time limit based on 'minutes_to_solve' field
+                totalTimeLimitSeconds = filteredQuestions.reduce((sum, q) => sum + (q.minutes_to_solve * 60), 0);
+                if (totalTimeLimitSeconds === 0) totalTimeLimitSeconds = numQuestions * 60; // Fallback: 60s per Q
+
+                // Update total question display and time limit based on final count
+                $totalQNumber.text(numQuestions);
+                timeLeft = totalTimeLimitSeconds;
+                $timer.text(formatTime(totalTimeLimitSeconds));
+
+                // 3. Shuffle the entire filtered set
+                allQuestions = filteredQuestions.sort(() => Math.random() - 0.5);
+
+                userAnswers = new Array(numQuestions).fill(null);
+
+                return true;
+            }
+
+            function startQuiz() {
+                $errorMessage.addClass('hidden');
+                $startButton.prop('disabled', true);
+
+                const success = fetchQuestionsOffline();
+                if (!success) {
+                    $startButton.prop('disabled', false);
+                    return;
+                }
+
+                $startArea.addClass('hidden');
+                $loadingMessage.addClass('hidden');
+                $statusBar.removeClass('hidden');
+                $questionArea.removeClass('hidden');
+
+                currentQuestionIndex = 0;
+                renderQuestion();
+                startTimer();
+            }
+
+            // 5. Quiz Logic Functions
+
+            function cleanContent(content) {
+                if (!content) return '';
+                // No cleaning needed for this simple JSON structure
+                return content.trim();
+            }
+
+            function renderQuestion() {
+                if (currentQuestionIndex >= allQuestions.length) {
+                    showResults();
+                    return;
+                }
+
+                const q = allQuestions[currentQuestionIndex];
+
+                // Question text
+                $('#question-text').html(`${currentQuestionIndex + 1}. ${q.question}`);
+
+                $currentQNumber.text(currentQuestionIndex + 1);
+                $optionsContainer.empty();
+                // Change grid to 2 columns for cleaner look with language choices
+                $optionsContainer.removeClass('md:grid-cols-3').addClass('md:grid-cols-2');
+                $nextButton.text(currentQuestionIndex === allQuestions.length - 1 ? 'Finish Test' : 'Next Question');
+
+
+                // --- Handle Source Figure Display (LaTeX/SVG) ---
+                let sourceContent = cleanContent(q.latex_svg_content);
+                $sourceFigureContainer.empty().addClass('hidden').removeClass('p-4');
+
+                if (sourceContent) {
+                    // Assume latex_svg_content is a TeX string for MathJax
+                    $sourceFigureContainer.html(`\\(${sourceContent}\\)`).removeClass('hidden').addClass('p-4');
+                }
+                // -----------------------------------------
+
+                const savedAnswerIndex = userAnswers[currentQuestionIndex];
+
+                $.each(q.choices, function (index, choice) {
+                    const choiceContent = cleanContent(choice);
+                    const isSelected = savedAnswerIndex !== null && savedAnswerIndex === index;
+
+                    const $optionEl = $('<div>')
+                        .addClass('option-card cursor-pointer p-4 border rounded-xl transition duration-150 shadow-md flex items-center text-lg text-left')
+                        .attr('data-index', index);
+
+                    // For choice, we just display the raw text. Use MathJax for rendering if applicable.
+                    $optionEl.html(`<span class="font-bold text-indigo-700 mr-2">${String.fromCharCode(65 + index)}.</span><span class="language-content">\\(${choiceContent}\\)</span>`);
+
+
+                    if (isSelected) {
+                        $optionEl.addClass(SELECTED_CLASSES.join(' '));
+                    }
+
+                    $optionEl.on('click', function () {
+                        // Use jQuery for selection logic
+                        $optionsContainer.find('.option-card').removeClass(SELECTED_CLASSES.join(' '));
+                        $(this).addClass(SELECTED_CLASSES.join(' '));
+
+                        userAnswers[currentQuestionIndex] = index;
+                        $nextButton.prop('disabled', false);
+                    });
+
+                    $optionsContainer.append($optionEl);
+                });
+                $nextButton.prop('disabled', savedAnswerIndex === null);
+
+                // Use MathJax.typesetPromise() for asynchronous rendering
+                if (window.MathJax) {
+                    MathJax.typesetPromise().catch((err) => console.error("MathJax typesetting failed:", err));
+                }
+            }
+
+            function handleNext() {
+                if (userAnswers[currentQuestionIndex] === null) {
+                    displayModal("Selection Required", "Please select an answer before proceeding to the next question.", null);
+                    return;
+                }
+
+                currentQuestionIndex++;
+                if (currentQuestionIndex < allQuestions.length) {
+                    renderQuestion();
+                } else {
+                    showResults();
+                }
+            }
+
+            function calculateScore() {
+                let finalScore = 0;
+                for (let i = 0; i < allQuestions.length; i++) {
+                    const userAnswerIndex = userAnswers[i];
+                    if (userAnswerIndex !== null) {
+                        const question = allQuestions[i];
+                        const cleanedChoice = cleanContent(question.choices[userAnswerIndex]);
+                        const cleanedAnswer = cleanContent(question.answer);
+
+                        if (cleanedChoice === cleanedAnswer) {
+                            finalScore++;
+                        }
+                    }
+                }
+                return finalScore;
+            }
+
+            function showResults() {
+                clearInterval(timerInterval);
+                const finalScore = calculateScore();
+                // Recalculate time elapsed since start time for accurate duration
+                const timeElapsed = Math.floor((Date.now() - quizStartTime) / 1000);
+
+                $statusBar.addClass('hidden');
+                $questionArea.addClass('hidden');
+                $resultsArea.removeClass('hidden');
+
+                $finalScore.text(finalScore);
+                $finalTotal.text(allQuestions.length);
+                $timeTaken.text(formatTime(timeElapsed));
+
+                // Call simplified analysis function
+                generateAnalysis(finalScore, allQuestions.length, timeElapsed);
+            }
+
+            // 6. Analysis Logic (Updated for Language)
+
+            function getLanguageEstimate(score, total) {
+                // Generates a Language Proficiency score centered around 100 (average)
+                // Maps score to an estimate roughly based on CEFR levels
+                const percentage = score / total;
+                let estimate;
+
+                if (percentage >= 0.9) {
+                    estimate = 125; // Advanced/C1
+                } else if (percentage >= 0.7) {
+                    estimate = 110; // Upper-Intermediate/B2
+                } else if (percentage >= 0.5) {
+                    estimate = 95; // Intermediate/B1
+                } else if (percentage >= 0.3) {
+                    estimate = 85; // Beginner/A2
+                } else {
+                    estimate = 75; // Foundational/A1
+                }
+                return estimate;
+            }
+
+            function getFallbackRecommendation(score, total) {
+                const percentage = score / total;
+                let recommendation = "Your current selection included questions from the following languages: ";
+                const distinctTypes = [...new Set(allQuestions.map(q => q.type))];
+                recommendation += distinctTypes.join(', ') + ". ";
+
+                if (percentage >= 0.9) {
+                    recommendation += "Exceptional result! Your score indicates a mastery of the vocabulary and writing systems tested. Consider focusing on fluency and cultural context next.";
+                } else if (percentage >= 0.7) {
+                    recommendation += "Strong performance! You have a good grasp of foundational concepts in the tested languages. Try practicing conjugation or complex sentence construction for improvement.";
+                } else if (percentage >= 0.5) {
+                    recommendation += "Solid effort! Your results are consistent with an intermediate language learner. To improve, we recommend targeted practice in your weakest areas (e.g., character recognition or specific language types).";
+                } else {
+                    recommendation += "Good start! The results suggest room for improvement in foundational dialect knowledge. We recommend focusing on basic greetings and core vocabulary from the selected languages.";
+                }
+                return recommendation;
+            }
+
+            function generateAnalysis(score, total, time) {
+                // Removed AI API calls, using fallback logic directly
+                const finalLanguageScore = getLanguageEstimate(score, total);
+                const recommendation = getFallbackRecommendation(score, total);
+                const metadata = getLanguageMetadata(finalLanguageScore);
+
+                $iqEstimate.text(finalLanguageScore);
+                $iqTitle.text(metadata.title);
+                $iqFunFact.text(metadata.fact);
+                $resultMessage.text(recommendation);
+
+                // Save the result
+                saveResult(score, total, time, finalLanguageScore);
+
+                $resultMessage.removeClass('hidden');
+            }
+
+            // 7. Fullscreen Implementation
+            function toggleFullscreen() {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                } else {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        console.error("Error attempting to enable fullscreen:", err);
+                        displayModal("Fullscreen Error", "Fullscreen mode could not be activated. Your browser may restrict this feature outside of a direct user action.");
+                    });
+                }
+            }
+
+            // 8. Offline Question Loading (Initial setup only)
+            function loadOfflineQuestions() {
+                const originalText = $startButton.text();
+
+                $startButton.prop('disabled', true);
+                $startButton.text("Loading Offline Data...");
+
+                // Use jQuery $.getJSON for a simple GET request
+                $.getJSON('assets/dialect_challenge.json') // *** UPDATED FILE PATH ***
+                    .done(function (data) {
+                        if (Array.isArray(data)) {
+                            OFFLINE_QUESTIONS.push(...data);
+                            console.log(`Successfully loaded ${OFFLINE_QUESTIONS.length} offline questions.`);
+
+                            // --- NEW: Populate Difficulty and Type Dropdowns ---
+                            const uniqueDifficulties = new Set(data.map(q => q.difficulty).filter(d => d));
+                            const uniqueTypes = new Set(data.map(q => q.type).filter(t => t));
+
+                            $difficultySelect.empty();
+                            // Add and pre-select "Random"
+                            $difficultySelect.append('<option value="Random" selected>Random Difficulty</option>');
+                            uniqueDifficulties.forEach(d => {
+                                const qCount = data.filter(q => q.difficulty === d).length;
+                                $difficultySelect.append(`<option value="${d}">${d} (${qCount} Qs)</option>`);
+                            });
+
+                            $typeSelect.empty();
+                            // Add and pre-select "Random"
+                            $typeSelect.append('<option value="Random" selected>Random Type</option>');
+                            uniqueTypes.forEach(t => {
+                                $typeSelect.append(`<option value="${t}">${t}</option>`);
+                            });
+                            // --- END NEW ---
+
+                            $startButton.text(originalText).prop('disabled', false);
+                            updateStartButtonState();
+                            // Re-initialize to ensure state is based on default selections
+                            initializeQuiz();
+                        } else {
+                            throw new Error("JSON file content is not a valid array.");
+                        }
+                    })
+                    .fail(function (jqxhr, textStatus, error) {
+                        const err = textStatus + ", " + error;
+                        console.error("Error loading offline questions:", err);
+                        // Provide fallback options if JSON fails, but keep start button disabled for offline
+                        $difficultySelect.html('<option value="Random">Random Difficulty</option>');
+                        $typeSelect.html('<option value="Random">Random Type</option>');
+                        updateStartButtonState();
+                    });
+            }
+
+
+            // 9. Event Listeners
+            $startButton.on('click', startQuiz);
+            // Re-initialize state and re-filter questions when selection changes
+            $difficultySelect.on('change', initializeQuiz);
+            $typeSelect.on('change', initializeQuiz);
+            $nextButton.on('click', handleNext);
+            $fullscreenButton.on('click', toggleFullscreen);
+            $rulesButton.on('click', function () {
+                displayModal("Challenge Rules", QUIZ_RULES);
+            });
+            $historyButton.on('click', viewHistory);
+
+            // Run setup
+            initializeQuiz();
+            loadOfflineQuestions();
+        }); // End $(document).ready()
+    </script>
+
+</body>
+</html>
