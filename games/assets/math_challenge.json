@@ -1,0 +1,3302 @@
+[
+  {
+    "id": 1,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $10 - 2 \\times 3 + 4$",
+    "latex_svg_content": "10 - 2 \\times 3 + 4",
+    "choices": [
+      "28",
+      "8",
+      "6",
+      "22"
+    ],
+    "answer": "8"
+  },
+  {
+    "id": 2,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $18 \\div 6 + (5 \\times 2)$",
+    "latex_svg_content": "18 \\div 6 + (5 \\times 2)",
+    "choices": [
+      "13",
+      "11",
+      "6",
+      "15"
+    ],
+    "answer": "13"
+  },
+  {
+    "id": 3,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $4^2 + 3 \\times (9 - 5)$",
+    "latex_svg_content": "4^2 + 3 \\times (9 - 5)",
+    "choices": [
+      "52",
+      "28",
+      "40",
+      "22"
+    ],
+    "answer": "28"
+  },
+  {
+    "id": 4,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $7 \\times (\\frac{15}{3}) - 10$",
+    "latex_svg_content": "7 \\times \\left(\\frac{15}{3}\\right) - 10",
+    "choices": [
+      "25",
+      "29",
+      "55",
+      "11"
+    ],
+    "answer": "25"
+  },
+  {
+    "id": 5,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $60 \\div [12 - (2 \\times 3)] + 5$",
+    "latex_svg_content": "60 \\div [12 - (2 \\times 3)] + 5",
+    "choices": [
+      "15",
+      "10",
+      "25",
+      "35"
+    ],
+    "answer": "15"
+  },
+  {
+    "id": 6,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $25 - 5 \\times 4$",
+    "latex_svg_content": "25 - 5 \\times 4",
+    "choices": [
+      "5",
+      "80",
+      "20",
+      "40"
+    ],
+    "answer": "5"
+  },
+  {
+    "id": 7,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $3 \\times (4 + 6)$",
+    "latex_svg_content": "3 \\times (4 + 6)",
+    "choices": [
+      "14",
+      "30",
+      "22",
+      "40"
+    ],
+    "answer": "30"
+  },
+  {
+    "id": 8,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $9 \\times 2^2 + 1$",
+    "latex_svg_content": "9 \\times 2^2 + 1",
+    "choices": [
+      "37",
+      "82",
+      "19",
+      "25"
+    ],
+    "answer": "37"
+  },
+  {
+    "id": 9,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $100 \\div (5 \\times 4) + 2$",
+    "latex_svg_content": "100 \\div (5 \\times 4) + 2",
+    "choices": [
+      "10",
+      "7",
+      "27",
+      "8"
+    ],
+    "answer": "7"
+  },
+  {
+    "id": 10,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $3 \\times [(10 - 4)^2 - 1]$",
+    "latex_svg_content": "3 \\times [(10 - 4)^2 - 1]",
+    "choices": [
+      "105",
+      "108",
+      "35",
+      "180"
+    ],
+    "answer": "105"
+  },
+  {
+    "id": 11,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $1 + 2 + 3 \\times 4$",
+    "latex_svg_content": "1 + 2 + 3 \\times 4",
+    "choices": [
+      "24",
+      "15",
+      "13",
+      "12"
+    ],
+    "answer": "15"
+  },
+  {
+    "id": 12,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $(10 + 5) \\div 3$",
+    "latex_svg_content": "(10 + 5) \\div 3",
+    "choices": [
+      "5",
+      "15",
+      "30",
+      "2"
+    ],
+    "answer": "5"
+  },
+  {
+    "id": 13,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $\\sqrt{25} \\times 4 - 10$",
+    "latex_svg_content": "\\sqrt{25} \\times 4 - 10",
+    "choices": [
+      "0",
+      "10",
+      "50",
+      "2"
+    ],
+    "answer": "10"
+  },
+  {
+    "id": 14,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $2^3 + 3^2 - 1$",
+    "latex_svg_content": "2^3 + 3^2 - 1",
+    "choices": [
+      "16",
+      "20",
+      "12",
+      "18"
+    ],
+    "answer": "16"
+  },
+  {
+    "id": 15,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $100 - (5^2 \\times 2) \\div 5$",
+    "latex_svg_content": "100 - (5^2 \\times 2) \\div 5",
+    "choices": [
+      "90",
+      "98",
+      "95",
+      "100"
+    ],
+    "answer": "90"
+  },
+  {
+    "id": 16,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $20 \\div 5 \\times 2$",
+    "latex_svg_content": "20 \\div 5 \\times 2",
+    "choices": [
+      "2",
+      "8",
+      "4",
+      "10"
+    ],
+    "answer": "8"
+  },
+  {
+    "id": 17,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $14 - (6 + 3)$",
+    "latex_svg_content": "14 - (6 + 3)",
+    "choices": [
+      "8",
+      "5",
+      "17",
+      "3"
+    ],
+    "answer": "5"
+  },
+  {
+    "id": 18,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $2 \\times (3 + 5) - 4$",
+    "latex_svg_content": "2 \\times (3 + 5) - 4",
+    "choices": [
+      "12",
+      "8",
+      "16",
+      "10"
+    ],
+    "answer": "12"
+  },
+  {
+    "id": 19,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $\\frac{1}{2} \\times (10 - 2)^2$",
+    "latex_svg_content": "\\frac{1}{2} \\times (10 - 2)^2",
+    "choices": [
+      "64",
+      "32",
+      "16",
+      "8"
+    ],
+    "answer": "32"
+  },
+  {
+    "id": 20,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $2 \\times 3 + 4^2 - 10 \\div 5$",
+    "latex_svg_content": "2 \\times 3 + 4^2 - 10 \\div 5",
+    "choices": [
+      "20",
+      "22",
+      "26",
+      "28"
+    ],
+    "answer": "20"
+  },
+  {
+    "id": 21,
+    "type": "Exponents",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $3^2 + 4^1$",
+    "latex_svg_content": "3^2 + 4^1",
+    "choices": [
+      "13",
+      "12",
+      "10",
+      "7"
+    ],
+    "answer": "13"
+  },
+  {
+    "id": 22,
+    "type": "Exponents",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Simplify the expression: $x^5 \\cdot x^3 \\div x^2$",
+    "latex_svg_content": "x^5 \\cdot x^3 \\div x^2",
+    "choices": [
+      "x^4",
+      "x^6",
+      "x^{10}",
+      "x^{15}"
+    ],
+    "answer": "x^6"
+  },
+  {
+    "id": 23,
+    "type": "Exponents",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $(5^2)^3 \\div 5^4$",
+    "latex_svg_content": "(5^2)^3 \\div 5^4",
+    "choices": [
+      "25",
+      "125",
+      "1",
+      "5"
+    ],
+    "answer": "25"
+  },
+  {
+    "id": 24,
+    "type": "Exponents",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $(\\frac{4}{5})^{-2}$",
+    "latex_svg_content": "\\left(\\frac{4}{5}\\right)^{-2}",
+    "choices": [
+      "16/25",
+      "25/16",
+      "0.8",
+      "1.25"
+    ],
+    "answer": "25/16"
+  },
+  {
+    "id": 25,
+    "type": "Exponents",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $\\sqrt{81} + (27^{1/3})$",
+    "latex_svg_content": "\\sqrt{81} + (27^{1/3})",
+    "choices": [
+      "30",
+      "12",
+      "9",
+      "27"
+    ],
+    "answer": "12"
+  },
+  {
+    "id": 26,
+    "type": "Exponents",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $2^4 - 6$",
+    "latex_svg_content": "2^4 - 6",
+    "choices": [
+      "2",
+      "10",
+      "4",
+      "8"
+    ],
+    "answer": "10"
+  },
+  {
+    "id": 27,
+    "type": "Exponents",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $5^3$",
+    "latex_svg_content": "5^3",
+    "choices": [
+      "15",
+      "25",
+      "125",
+      "50"
+    ],
+    "answer": "125"
+  },
+  {
+    "id": 28,
+    "type": "Exponents",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Simplify: $y^7 \\cdot y^{-3}$",
+    "latex_svg_content": "y^7 \\cdot y^{-3}",
+    "choices": [
+      "y^{10}",
+      "y^4",
+      "y^{21}",
+      "y^{-4}"
+    ],
+    "answer": "y^4"
+  },
+  {
+    "id": 29,
+    "type": "Exponents",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $9^{1/2} + 2^0$",
+    "latex_svg_content": "9^{1/2} + 2^0",
+    "choices": [
+      "3",
+      "4",
+      "10",
+      "6"
+    ],
+    "answer": "4"
+  },
+  {
+    "id": 30,
+    "type": "Exponents",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Simplify: $(\\frac{a^4}{b^2})^{-1}$",
+    "latex_svg_content": "\\left(\\frac{a^4}{b^2}\\right)^{-1}",
+    "choices": [
+      "a^4 b^2",
+      "\\frac{a^4}{b^2}",
+      "\\frac{b^2}{a^4}",
+      "a^2 b^{-4}"
+    ],
+    "answer": "\\frac{b^2}{a^4}"
+  },
+  {
+    "id": 31,
+    "type": "Exponents",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $10^2 - 1$",
+    "latex_svg_content": "10^2 - 1",
+    "choices": [
+      "19",
+      "99",
+      "101",
+      "10"
+    ],
+    "answer": "99"
+  },
+  {
+    "id": 32,
+    "type": "Exponents",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $(-2)^3$",
+    "latex_svg_content": "(-2)^3",
+    "choices": [
+      "8",
+      "-8",
+      "6",
+      "-6"
+    ],
+    "answer": "-8"
+  },
+  {
+    "id": 33,
+    "type": "Exponents",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Simplify: $(2x^2)^3$",
+    "latex_svg_content": "(2x^2)^3",
+    "choices": [
+      "6x^5",
+      "8x^6",
+      "6x^6",
+      "8x^5"
+    ],
+    "answer": "8x^6"
+  },
+  {
+    "id": 34,
+    "type": "Exponents",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $(100)^{0.5}$",
+    "latex_svg_content": "(100)^{0.5}",
+    "choices": [
+      "50",
+      "10",
+      "20",
+      "5"
+    ],
+    "answer": "10"
+  },
+  {
+    "id": 35,
+    "type": "Exponents",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $8^{\\frac{2}{3}}$",
+    "latex_svg_content": "8^{\\frac{2}{3}}",
+    "choices": [
+      "4",
+      "2",
+      "16",
+      "64"
+    ],
+    "answer": "4"
+  },
+  {
+    "id": 36,
+    "type": "Exponents",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $1^9 + 9^1$",
+    "latex_svg_content": "1^9 + 9^1",
+    "choices": [
+      "1",
+      "9",
+      "10",
+      "18"
+    ],
+    "answer": "10"
+  },
+  {
+    "id": 37,
+    "type": "Exponents",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Simplify: $a^5 \\div a$",
+    "latex_svg_content": "a^5 \\div a",
+    "choices": [
+      "a^4",
+      "a^5",
+      "a^6",
+      "1"
+    ],
+    "answer": "a^4"
+  },
+  {
+    "id": 38,
+    "type": "Exponents",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $16^{1/4} \\times 2$",
+    "latex_svg_content": "16^{1/4} \\times 2",
+    "choices": [
+      "4",
+      "8",
+      "16",
+      "2"
+    ],
+    "answer": "4"
+  },
+  {
+    "id": 39,
+    "type": "Exponents",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Simplify: $\\frac{10y^6}{2y^4}$",
+    "latex_svg_content": "\\frac{10y^6}{2y^4}",
+    "choices": [
+      "5y^2",
+      "8y^2",
+      "5y^{10}",
+      "y^2"
+    ],
+    "answer": "5y^2"
+  },
+  {
+    "id": 40,
+    "type": "Exponents",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $(\\sqrt{9})^3 \\div 3^2$",
+    "latex_svg_content": "(\\sqrt{9})^3 \\div 3^2",
+    "choices": [
+      "9",
+      "3",
+      "1",
+      "27"
+    ],
+    "answer": "3"
+  },
+  {
+    "id": 41,
+    "type": "Algebra",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Solve for $x$: $x + 12 = 30$",
+    "latex_svg_content": "x + 12 = 30",
+    "choices": [
+      "42",
+      "18",
+      "2.5",
+      "1.5"
+    ],
+    "answer": "18"
+  },
+  {
+    "id": 42,
+    "type": "Algebra",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Solve for $y$: $5y - 8 = 17$",
+    "latex_svg_content": "5y - 8 = 17",
+    "choices": [
+      "3",
+      "5",
+      "25",
+      "4.2"
+    ],
+    "answer": "5"
+  },
+  {
+    "id": 43,
+    "type": "Algebra",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Expand: $(x + 3)(x - 2)$",
+    "latex_svg_content": "(x + 3)(x - 2)",
+    "choices": [
+      "x^2-6",
+      "x^2+x-6",
+      "x^2+5x-6",
+      "x^2-x-6"
+    ],
+    "answer": "x^2+x-6"
+  },
+  {
+    "id": 44,
+    "type": "Algebra",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Solve for $x$: $\\frac{2x}{3} + 5 = 11$",
+    "latex_svg_content": "\\frac{2x}{3} + 5 = 11",
+    "choices": [
+      "18",
+      "9",
+      "4",
+      "3"
+    ],
+    "answer": "9"
+  },
+  {
+    "id": 45,
+    "type": "Algebra",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Simplify: $\\frac{3a^2 b}{9ab^3}$",
+    "latex_svg_content": "\\frac{3a^2 b}{9ab^3}",
+    "choices": [
+      "\\frac{a}{3b^2}",
+      "\\frac{a}{3b}",
+      "\\frac{b^2}{3a}",
+      "\\frac{a^3}{3b^4}"
+    ],
+    "answer": "\\frac{a}{3b^2}"
+  },
+  {
+    "id": 46,
+    "type": "Algebra",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Solve for $z$: $2z = 24$",
+    "latex_svg_content": "2z = 24",
+    "choices": [
+      "12",
+      "10",
+      "48",
+      "2"
+    ],
+    "answer": "12"
+  },
+  {
+    "id": 47,
+    "type": "Algebra",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "If $a=3$ and $b=4$, what is $a^2 + b$?",
+    "latex_svg_content": "a^2 + b",
+    "choices": [
+      "7",
+      "13",
+      "12",
+      "16"
+    ],
+    "answer": "13"
+  },
+  {
+    "id": 48,
+    "type": "Algebra",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Factor the expression: $x^2 + 5x + 6$",
+    "latex_svg_content": "x^2 + 5x + 6",
+    "choices": [
+      "(x+6)(x+1)",
+      "(x+3)(x+2)",
+      "(x-3)(x-2)",
+      "(x+5)(x+1)"
+    ],
+    "answer": "(x+3)(x+2)"
+  },
+  {
+    "id": 49,
+    "type": "Algebra",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Solve for $w$: $4w + 2 = w + 8$",
+    "latex_svg_content": "4w + 2 = w + 8",
+    "choices": [
+      "3",
+      "6",
+      "2",
+      "4"
+    ],
+    "answer": "2"
+  },
+  {
+    "id": 50,
+    "type": "Algebra",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Solve the system: $x+y=10$, $x-y=2$. Find $x$.",
+    "latex_svg_content": "\\begin{cases} x+y=10 \\\\ x-y=2 \\end{cases}",
+    "choices": [
+      "6",
+      "4",
+      "8",
+      "5"
+    ],
+    "answer": "6"
+  },
+  {
+    "id": 51,
+    "type": "Algebra",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Combine like terms: $5x + 3y - 2x$",
+    "latex_svg_content": "5x + 3y - 2x",
+    "choices": [
+      "3x+3y",
+      "7x+3y",
+      "6xy",
+      "6x"
+    ],
+    "answer": "3x+3y"
+  },
+  {
+    "id": 52,
+    "type": "Algebra",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Solve for $k$: $\\frac{k}{5} = 10$",
+    "latex_svg_content": "\\frac{k}{5} = 10",
+    "choices": [
+      "50",
+      "2",
+      "5",
+      "15"
+    ],
+    "answer": "50"
+  },
+  {
+    "id": 53,
+    "type": "Algebra",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Solve the quadratic equation: $x^2 - 9 = 0$.",
+    "latex_svg_content": "x^2 - 9 = 0",
+    "choices": [
+      "x=9",
+      "x=3, x=-3",
+      "x=3",
+      "x=0"
+    ],
+    "answer": "x=3, x=-3"
+  },
+  {
+    "id": 54,
+    "type": "Algebra",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Simplify: $2(x - 3) - x + 5$",
+    "latex_svg_content": "2(x - 3) - x + 5",
+    "choices": [
+      "3x-1",
+      "x-1",
+      "x+2",
+      "3x+2"
+    ],
+    "answer": "x-1"
+  },
+  {
+    "id": 55,
+    "type": "Algebra",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Solve for $x$: $x^2 + 2x - 15 = 0$. (Positive root)",
+    "latex_svg_content": "x^2 + 2x - 15 = 0",
+    "choices": [
+      "3",
+      "-5",
+      "5",
+      "-3"
+    ],
+    "answer": "3"
+  },
+  {
+    "id": 56,
+    "type": "Algebra",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "If $p=5$, what is $3p - 1$?",
+    "latex_svg_content": "3p - 1",
+    "choices": [
+      "14",
+      "15",
+      "10",
+      "16"
+    ],
+    "answer": "14"
+  },
+  {
+    "id": 57,
+    "type": "Algebra",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Simplify: $a + 2b + 3a$",
+    "latex_svg_content": "a + 2b + 3a",
+    "choices": [
+      "4a+2b",
+      "6ab",
+      "5a+b",
+      "a+5b"
+    ],
+    "answer": "4a+2b"
+  },
+  {
+    "id": 58,
+    "type": "Algebra",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Solve for $x$: $6x - 1 = 3x + 11$",
+    "latex_svg_content": "6x - 1 = 3x + 11",
+    "choices": [
+      "3",
+      "4",
+      "12",
+      "1/2"
+    ],
+    "answer": "4"
+  },
+  {
+    "id": 59,
+    "type": "Algebra",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Factor the expression: $4x^2 - 1$",
+    "latex_svg_content": "4x^2 - 1",
+    "choices": [
+      "(2x-1)^2",
+      "4(x-1)^2",
+      "(2x-1)(2x+1)",
+      "(4x-1)(4x+1)"
+    ],
+    "answer": "(2x-1)(2x+1)"
+  },
+  {
+    "id": 60,
+    "type": "Algebra",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "If $f(x) = x^2 - 1$, what is $f(5)$?",
+    "latex_svg_content": "f(x) = x^2 - 1",
+    "choices": [
+      "24",
+      "26",
+      "9",
+      "4"
+    ],
+    "answer": "24"
+  },
+  {
+    "id": 61,
+    "type": "Sequences",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the next term in the arithmetic sequence: $3, 7, 11, 15, \\dots$",
+    "latex_svg_content": "3, 7, 11, 15, \\dots",
+    "choices": [
+      "17",
+      "19",
+      "20",
+      "23"
+    ],
+    "answer": "19"
+  },
+  {
+    "id": 62,
+    "type": "Sequences",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the next term in the geometric sequence: $2, 6, 18, 54, \\dots$",
+    "latex_svg_content": "2, 6, 18, 54, \\dots",
+    "choices": [
+      "108",
+      "162",
+      "216",
+      "60"
+    ],
+    "answer": "162"
+  },
+  {
+    "id": 63,
+    "type": "Sequences",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Find the $10^{th}$ term of the sequence with formula $a_n = 5n - 1$",
+    "latex_svg_content": "a_n = 5n - 1",
+    "choices": [
+      "49",
+      "50",
+      "51",
+      "54"
+    ],
+    "answer": "49"
+  },
+  {
+    "id": 64,
+    "type": "Sequences",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the $n^{th}$ term formula for the sequence: $1, 4, 9, 16, \\dots$",
+    "latex_svg_content": "1, 4, 9, 16, \\dots",
+    "choices": [
+      "n+3",
+      "2n^2",
+      "n^2",
+      "4n-3"
+    ],
+    "answer": "n^2"
+  },
+  {
+    "id": 65,
+    "type": "Sequences",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What is the next term in the Fibonacci sequence: $1, 1, 2, 3, 5, 8, \\dots$",
+    "latex_svg_content": "1, 1, 2, 3, 5, 8, \\dots",
+    "choices": [
+      "12",
+      "13",
+      "14",
+      "16"
+    ],
+    "answer": "13"
+  },
+  {
+    "id": 66,
+    "type": "Sequences",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Next term: $10, 8, 6, 4, \\dots$",
+    "latex_svg_content": "10, 8, 6, 4, \\dots",
+    "choices": [
+      "0",
+      "1",
+      "2",
+      "3"
+    ],
+    "answer": "2"
+  },
+  {
+    "id": 67,
+    "type": "Sequences",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Next term: $1, 2, 4, 8, \\dots$",
+    "latex_svg_content": "1, 2, 4, 8, \\dots",
+    "choices": [
+      "10",
+      "12",
+      "14",
+      "16"
+    ],
+    "answer": "16"
+  },
+  {
+    "id": 68,
+    "type": "Sequences",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Find the common difference of the sequence: $2, -1, -4, -7, \\dots$",
+    "latex_svg_content": "2, -1, -4, -7, \\dots",
+    "choices": [
+      "3",
+      "-3",
+      "2",
+      "1"
+    ],
+    "answer": "-3"
+  },
+  {
+    "id": 69,
+    "type": "Sequences",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Find the $n^{th}$ term formula for the sequence: $6, 12, 18, 24, \\dots$",
+    "latex_svg_content": "6, 12, 18, 24, \\dots",
+    "choices": [
+      "n+6",
+      "6n",
+      "n^6",
+      "6n+1"
+    ],
+    "answer": "6n"
+  },
+  {
+    "id": 70,
+    "type": "Sequences",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Find the sum of the first 4 terms of $a_n = 2n^2$.",
+    "latex_svg_content": "a_n = 2n^2",
+    "choices": [
+      "30",
+      "40",
+      "50",
+      "60"
+    ],
+    "answer": "60"
+  },
+  {
+    "id": 71,
+    "type": "Sequences",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Next term: $15, 12, 9, 6, \\dots$",
+    "latex_svg_content": "15, 12, 9, 6, \\dots",
+    "choices": [
+      "3",
+      "0",
+      "4",
+      "5"
+    ],
+    "answer": "3"
+  },
+  {
+    "id": 72,
+    "type": "Sequences",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Next term: $100, 50, 25, 12.5, \\dots$",
+    "latex_svg_content": "100, 50, 25, 12.5, \\dots",
+    "choices": [
+      "6.25",
+      "5",
+      "10",
+      "3"
+    ],
+    "answer": "6.25"
+  },
+  {
+    "id": 73,
+    "type": "Sequences",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the $5^{th}$ term of $a_n = 3^n$",
+    "latex_svg_content": "a_n = 3^n",
+    "choices": [
+      "15",
+      "243",
+      "81",
+      "30"
+    ],
+    "answer": "243"
+  },
+  {
+    "id": 74,
+    "type": "Sequences",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Find the common ratio of the sequence: $1, 5, 25, 125, \\dots$",
+    "latex_svg_content": "1, 5, 25, 125, \\dots",
+    "choices": [
+      "4",
+      "5",
+      "25",
+      "124"
+    ],
+    "answer": "5"
+  },
+  {
+    "id": 75,
+    "type": "Sequences",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "The first term is 4, common difference is 3. Find the $7^{th}$ term.",
+    "latex_svg_content": "a_1 = 4, d = 3",
+    "choices": [
+      "22",
+      "25",
+      "18",
+      "21"
+    ],
+    "answer": "22"
+  },
+  {
+    "id": 76,
+    "type": "Sequences",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Next term: $1, 3, 5, 7, \\dots$",
+    "latex_svg_content": "1, 3, 5, 7, \\dots",
+    "choices": [
+      "9",
+      "10",
+      "11",
+      "12"
+    ],
+    "answer": "9"
+  },
+  {
+    "id": 77,
+    "type": "Sequences",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Next term: $20, 15, 10, 5, \\dots$",
+    "latex_svg_content": "20, 15, 10, 5, \\dots",
+    "choices": [
+      "0",
+      "-5",
+      "1",
+      "4"
+    ],
+    "answer": "0"
+  },
+  {
+    "id": 78,
+    "type": "Sequences",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the $4^{th}$ term of $a_n = n^2 - 1$",
+    "latex_svg_content": "a_n = n^2 - 1",
+    "choices": [
+      "15",
+      "16",
+      "8",
+      "10"
+    ],
+    "answer": "15"
+  },
+  {
+    "id": 79,
+    "type": "Sequences",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Nth term for: $10, 20, 30, 40, \\dots$",
+    "latex_svg_content": "10, 20, 30, 40, \\dots",
+    "choices": [
+      "10n",
+      "n+10",
+      "10n-1",
+      "n^2"
+    ],
+    "answer": "10n"
+  },
+  {
+    "id": 80,
+    "type": "Sequences",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "The $n^{th}$ term is $a_n = 2^{n-1}$. What is the $6^{th}$ term?",
+    "latex_svg_content": "a_n = 2^{n-1}",
+    "choices": [
+      "32",
+      "64",
+      "16",
+      "128"
+    ],
+    "answer": "32"
+  },
+  {
+    "id": 81,
+    "type": "Geometry",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Find the area of a rectangle with length 8 cm and width 5 cm.",
+    "latex_svg_content": "\\text{Area} = l \\times w",
+    "choices": [
+      "13 cm^2",
+      "40 cm^2",
+      "26 cm^2",
+      "20 cm^2"
+    ],
+    "answer": "40 cm^2"
+  },
+  {
+    "id": 82,
+    "type": "Geometry",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the perimeter of a square with side length 6 meters?",
+    "latex_svg_content": "\\text{Perimeter} = 4s",
+    "choices": [
+      "24 meters",
+      "36 meters",
+      "12 meters",
+      "18 meters"
+    ],
+    "answer": "24 meters"
+  },
+  {
+    "id": 83,
+    "type": "Geometry",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Calculate the area of a circle with radius 3 units (use $\\pi \\approx 3.14$).",
+    "latex_svg_content": "A = \\pi r^2",
+    "choices": [
+      "9.42",
+      "18.84",
+      "28.26",
+      "12.56"
+    ],
+    "answer": "28.26"
+  },
+  {
+    "id": 84,
+    "type": "Geometry",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "If two angles are complementary and one is $40^{\\circ}$, what is the other angle?",
+    "latex_svg_content": "A + B = 90^{\\circ}",
+    "choices": [
+      "50^{\\circ}",
+      "140^{\\circ}",
+      "90^{\\circ}",
+      "60^{\\circ}"
+    ],
+    "answer": "50^{\\circ}"
+  },
+  {
+    "id": 85,
+    "type": "Geometry",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Find the volume of a rectangular prism with length 4, width 3, and height 5.",
+    "latex_svg_content": "V = l \\times w \\times h",
+    "choices": [
+      "12 units^3",
+      "60 units^3",
+      "47 units^3",
+      "20 units^3"
+    ],
+    "answer": "60 units^3"
+  },
+  {
+    "id": 86,
+    "type": "Geometry",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "A right triangle has legs of length 6 and 8. Find the length of the hypotenuse.",
+    "latex_svg_content": "a^2 + b^2 = c^2",
+    "choices": [
+      "10",
+      "14",
+      "\\sqrt{28}",
+      "100"
+    ],
+    "answer": "10"
+  },
+  {
+    "id": 87,
+    "type": "Geometry",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the area of a triangle with base 10 cm and height 4 cm?",
+    "latex_svg_content": "A = \\frac{1}{2}bh",
+    "choices": [
+      "40 cm^2",
+      "20 cm^2",
+      "14 cm^2",
+      "50 cm^2"
+    ],
+    "answer": "20 cm^2"
+  },
+  {
+    "id": 88,
+    "type": "Geometry",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Find the circumference of a circle with diameter 10 feet (leave $\\pi$ in the answer).",
+    "latex_svg_content": "C = \\pi d",
+    "choices": [
+      "5\\pi",
+      "20\\pi",
+      "10\\pi",
+      "25\\pi"
+    ],
+    "answer": "10\\pi"
+  },
+  {
+    "id": 89,
+    "type": "Geometry",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "A cone has a radius of 3 m and a height of 4 m. Find its volume (leave $\\pi$ in the answer).",
+    "latex_svg_content": "V = \\frac{1}{3} \\pi r^2 h",
+    "choices": [
+      "12\\pi m^3",
+      "36\\pi m^3",
+      "9\\pi m^3",
+      "4\\pi m^3"
+    ],
+    "answer": "12\\pi m^3"
+  },
+  {
+    "id": 90,
+    "type": "Geometry",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Two similar rectangles have a ratio of corresponding sides of 2:3. If the smaller area is 12, what is the larger area?",
+    "latex_svg_content": "\\text{Area Ratio} = (\\text{Side Ratio})^2",
+    "choices": [
+      "18",
+      "27",
+      "36",
+      "8"
+    ],
+    "answer": "27"
+  },
+  {
+    "id": 91,
+    "type": "Geometry",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the measure of the third angle in a triangle if two angles are $60^{\\circ}$ and $70^{\\circ}$?",
+    "latex_svg_content": "\\text{Sum of angles} = 180^{\\circ}",
+    "choices": [
+      "130^{\\circ}",
+      "50^{\\circ}",
+      "60^{\\circ}",
+      "40^{\\circ}"
+    ],
+    "answer": "50^{\\circ}"
+  },
+  {
+    "id": 92,
+    "type": "Geometry",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "If two angles are supplementary and one is $110^{\\circ}$, what is the other angle?",
+    "latex_svg_content": "A + B = 180^{\\circ}",
+    "choices": [
+      "90^{\\circ}",
+      "70^{\\circ}",
+      "180^{\\circ}",
+      "50^{\\circ}"
+    ],
+    "answer": "70^{\\circ}"
+  },
+  {
+    "id": 93,
+    "type": "Geometry",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Find the area of a trapezoid with bases $b_1=5$, $b_2=7$ and height $h=4$.",
+    "latex_svg_content": "A = \\frac{1}{2}(b_1 + b_2)h",
+    "choices": [
+      "12",
+      "24",
+      "48",
+      "35"
+    ],
+    "answer": "24"
+  },
+  {
+    "id": 94,
+    "type": "Geometry",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the distance between the points (1, 2) and (4, 6) in the coordinate plane?",
+    "latex_svg_content": "\\sqrt{(x_2-x_1)^2 + (y_2-y_1)^2}",
+    "choices": [
+      "7",
+      "6",
+      "5",
+      "\\sqrt{20}"
+    ],
+    "answer": "5"
+  },
+  {
+    "id": 95,
+    "type": "Geometry",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Calculate the surface area of a cube with a side length of 5 cm.",
+    "latex_svg_content": "SA = 6s^2",
+    "choices": [
+      "25 cm^2",
+      "125 cm^2",
+      "150 cm^2",
+      "60 cm^2"
+    ],
+    "answer": "150 cm^2"
+  },
+  {
+    "id": 96,
+    "type": "Geometry",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Find the area of a parallelogram with base 9 inches and height 5 inches.",
+    "latex_svg_content": "A = b \\times h",
+    "choices": [
+      "14 in^2",
+      "45 in^2",
+      "25 in^2",
+      "28 in^2"
+    ],
+    "answer": "45 in^2"
+  },
+  {
+    "id": 97,
+    "type": "Geometry",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "A circle has a diameter of 8 units. What is its radius?",
+    "latex_svg_content": "r = d/2",
+    "choices": [
+      "16 units",
+      "4 units",
+      "8 units",
+      "2 units"
+    ],
+    "answer": "4 units"
+  },
+  {
+    "id": 98,
+    "type": "Geometry",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Find the perimeter of a regular hexagon with side length 7.",
+    "latex_svg_content": "\\text{Perimeter} = 6s",
+    "choices": [
+      "42",
+      "35",
+      "49",
+      "70"
+    ],
+    "answer": "42"
+  },
+  {
+    "id": 99,
+    "type": "Geometry",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "The area of a square is $64 \\text{ cm}^2$. What is its side length?",
+    "latex_svg_content": "A = s^2",
+    "choices": [
+      "32 cm",
+      "4 cm",
+      "16 cm",
+      "8 cm"
+    ],
+    "answer": "8 cm"
+  },
+  {
+    "id": 100,
+    "type": "Geometry",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Calculate the volume of a sphere with radius 3 units (leave $\\pi$ in the answer).",
+    "latex_svg_content": "V = \\frac{4}{3} \\pi r^3",
+    "choices": [
+      "36\\pi units^3",
+      "12\\pi units^3",
+      "9\\pi units^3",
+      "27\\pi units^3"
+    ],
+    "answer": "36\\pi units^3"
+  },
+  {
+    "id": 101,
+    "type": "Geometry",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the slope of the line passing through points (0, 0) and (2, 4)?",
+    "latex_svg_content": "m = \\frac{y_2 - y_1}{x_2 - x_1}",
+    "choices": [
+      "1/2",
+      "2",
+      "4",
+      "1"
+    ],
+    "answer": "2"
+  },
+  {
+    "id": 102,
+    "type": "Geometry",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "How many degrees are in a straight angle?",
+    "latex_svg_content": "180^{\\circ}",
+    "choices": [
+      "90^{\\circ}",
+      "360^{\\circ}",
+      "180^{\\circ}",
+      "45^{\\circ}"
+    ],
+    "answer": "180^{\\circ}"
+  },
+  {
+    "id": 103,
+    "type": "Geometry",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "A cylinder has a radius of 2 m and a height of 5 m. Find its lateral surface area (leave $\\pi$ in the answer).",
+    "latex_svg_content": "LSA = 2 \\pi r h",
+    "choices": [
+      "10\\pi m^2",
+      "20\\pi m^2",
+      "28\\pi m^2",
+      "24\\pi m^2"
+    ],
+    "answer": "20\\pi m^2"
+  },
+  {
+    "id": 104,
+    "type": "Geometry",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Find the coordinates of the midpoint between (2, 5) and (6, 1).",
+    "latex_svg_content": "M = \\left(\\frac{x_1+x_2}{2}, \\frac{y_1+y_2}{2}\\right)",
+    "choices": [
+      "(4, 3)",
+      "(3, 4)",
+      "(8, 6)",
+      "(2, 2)"
+    ],
+    "answer": "(4, 3)"
+  },
+  {
+    "id": 105,
+    "type": "Geometry",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Find the hypotenuse of a 45-45-90 triangle if the leg length is $5\\sqrt{2}$.",
+    "latex_svg_content": "\\text{Hypotenuse} = \\text{leg} \\times \\sqrt{2}",
+    "choices": [
+      "10\\sqrt{2}",
+      "10",
+      "5",
+      "25"
+    ],
+    "answer": "10"
+  },
+  {
+    "id": 106,
+    "type": "Geometry",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "A quadrilateral has angles $90^{\\circ}, 80^{\\circ}, 100^{\\circ}$. What is the fourth angle?",
+    "latex_svg_content": "\\text{Sum of angles} = 360^{\\circ}",
+    "choices": [
+      "110^{\\circ}",
+      "90^{\\circ}",
+      "100^{\\circ}",
+      "80^{\\circ}"
+    ],
+    "answer": "90^{\\circ}"
+  },
+  {
+    "id": 107,
+    "type": "Geometry",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "The perimeter of a rectangle is 20. If the length is 6, what is the width?",
+    "latex_svg_content": "P = 2l + 2w",
+    "choices": [
+      "8",
+      "4",
+      "14",
+      "2"
+    ],
+    "answer": "4"
+  },
+  {
+    "id": 108,
+    "type": "Geometry",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "A square is inscribed in a circle with diameter 10. What is the side length of the square?",
+    "latex_svg_content": "\\text{Diagonal} = d",
+    "choices": [
+      "5\\sqrt{2}",
+      "10\\sqrt{2}",
+      "5",
+      "10"
+    ],
+    "answer": "5\\sqrt{2}"
+  },
+  {
+    "id": 109,
+    "type": "Geometry",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Find the area of a sector with a radius of 6 and a central angle of $60^{\\circ}$ (leave $\\pi$ in the answer).",
+    "latex_svg_content": "A = \\frac{\\theta}{360} \\pi r^2",
+    "choices": [
+      "6\\pi",
+      "12\\pi",
+      "3\\pi",
+      "36\\pi"
+    ],
+    "answer": "6\\pi"
+  },
+  {
+    "id": 110,
+    "type": "Geometry",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "What is the length of the diagonal of a cube with side length 3 units?",
+    "latex_svg_content": "d = s\\sqrt{3}",
+    "choices": [
+      "3\\sqrt{2}",
+      "9",
+      "3\\sqrt{3}",
+      "\\sqrt{27}"
+    ],
+    "answer": "3\\sqrt{3}"
+  },
+  {
+    "id": 111,
+    "type": "Geometry",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Convert $90^{\\circ}$ to radians.",
+    "latex_svg_content": "\\text{radians} = \\text{degrees} \\times \\frac{\\pi}{180}",
+    "choices": [
+      "\\pi/4",
+      "\\pi/2",
+      "\\pi",
+      "2\\pi"
+    ],
+    "answer": "\\pi/2"
+  },
+  {
+    "id": 112,
+    "type": "Geometry",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the sum of the interior angles of a pentagon?",
+    "latex_svg_content": "\\text{Sum} = (n-2) \\times 180^{\\circ}",
+    "choices": [
+      "360^{\\circ}",
+      "540^{\\circ}",
+      "720^{\\circ}",
+      "900^{\\circ}"
+    ],
+    "answer": "540^{\\circ}"
+  },
+  {
+    "id": 113,
+    "type": "Geometry",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "A circle has a circumference of $18\\pi$. What is its radius?",
+    "latex_svg_content": "C = 2\\pi r",
+    "choices": [
+      "9",
+      "18",
+      "3",
+      "6"
+    ],
+    "answer": "9"
+  },
+  {
+    "id": 114,
+    "type": "Geometry",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Find the tangent of the angle $\\theta$ in a right triangle where the opposite side is 12 and the adjacent side is 5.",
+    "latex_svg_content": "\\tan(\\theta) = \\frac{\\text{opposite}}{\\text{adjacent}}",
+    "choices": [
+      "12/13",
+      "5/12",
+      "12/5",
+      "5/13"
+    ],
+    "answer": "12/5"
+  },
+  {
+    "id": 115,
+    "type": "Geometry",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Find the length of an arc with radius 4 and central angle $90^{\\circ}$ (leave $\\pi$ in the answer).",
+    "latex_svg_content": "\\text{Arc Length} = \\frac{\\theta}{360} \\times 2 \\pi r",
+    "choices": [
+      "\\pi",
+      "2\\pi",
+      "4\\pi",
+      "8\\pi"
+    ],
+    "answer": "2\\pi"
+  },
+  {
+    "id": 116,
+    "type": "Geometry",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "If two lines are parallel, what can be said about their slopes?",
+    "latex_svg_content": "m_1 = m_2",
+    "choices": [
+      "Slopes are opposites",
+      "Slopes are equal",
+      "Slopes are negative reciprocals",
+      "Slopes multiply to -1"
+    ],
+    "answer": "Slopes are equal"
+  },
+  {
+    "id": 117,
+    "type": "Geometry",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "A triangle with all sides of different lengths is called what?",
+    "latex_svg_content": "\\text{Triangle Classification}",
+    "choices": [
+      "Isosceles",
+      "Equilateral",
+      "Scalene",
+      "Right"
+    ],
+    "answer": "Scalene"
+  },
+  {
+    "id": 118,
+    "type": "Geometry",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Find the area of a rhombus with diagonals $d_1=6$ and $d_2=8$.",
+    "latex_svg_content": "A = \\frac{1}{2} d_1 d_2",
+    "choices": [
+      "14",
+      "24",
+      "48",
+      "28"
+    ],
+    "answer": "24"
+  },
+  {
+    "id": 119,
+    "type": "Geometry",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the volume of a square pyramid with base side 6 and height 7?",
+    "latex_svg_content": "V = \\frac{1}{3} B h",
+    "choices": [
+      "42",
+      "84",
+      "126",
+      "252"
+    ],
+    "answer": "84"
+  },
+  {
+    "id": 120,
+    "type": "Geometry",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "A 30-60-90 triangle has a hypotenuse of 10. What is the length of the side opposite the $60^{\\circ}$ angle?",
+    "latex_svg_content": "s_{\\text{long}} = s_{\\text{short}} \\times \\sqrt{3}",
+    "choices": [
+      "5",
+      "10\\sqrt{3}",
+      "5\\sqrt{3}",
+      "5\\sqrt{2}"
+    ],
+    "answer": "5\\sqrt{3}"
+  },
+  {
+    "id": 121,
+    "type": "Statistics",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Find the mean of the data set: 2, 4, 6, 8, 10.",
+    "latex_svg_content": "\\text{Mean} = \\frac{\\sum x}{n}",
+    "choices": [
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "answer": "6"
+  },
+  {
+    "id": 122,
+    "type": "Statistics",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Find the median of the data set: 1, 3, 7, 9, 10.",
+    "latex_svg_content": "\\text{Median}",
+    "choices": [
+      "3",
+      "7",
+      "6",
+      "9"
+    ],
+    "answer": "7"
+  },
+  {
+    "id": 123,
+    "type": "Statistics",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the mode of the data set: 5, 2, 8, 2, 5, 2?",
+    "latex_svg_content": "\\text{Mode}",
+    "choices": [
+      "5",
+      "8",
+      "2",
+      "Both 2 and 5"
+    ],
+    "answer": "2"
+  },
+  {
+    "id": 124,
+    "type": "Statistics",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Find the range of the data set: 12, 5, 20, 8, 15.",
+    "latex_svg_content": "\\text{Range} = \\text{Max} - \\text{Min}",
+    "choices": [
+      "12",
+      "15",
+      "8",
+      "5"
+    ],
+    "answer": "15"
+  },
+  {
+    "id": 125,
+    "type": "Statistics",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "A coin is tossed three times. What is the probability of getting exactly two heads?",
+    "latex_svg_content": "\\text{Probability} = \\frac{\\text{favorable outcomes}}{\\text{total outcomes}}",
+    "choices": [
+      "1/8",
+      "3/8",
+      "1/2",
+      "2/3"
+    ],
+    "answer": "3/8"
+  },
+  {
+    "id": 126,
+    "type": "Statistics",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the median of the data set: 1, 5, 6, 10, 12, 15?",
+    "latex_svg_content": "\\text{Median}",
+    "choices": [
+      "7.5",
+      "8",
+      "9",
+      "10"
+    ],
+    "answer": "8"
+  },
+  {
+    "id": 127,
+    "type": "Statistics",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the probability of rolling a number greater than 4 on a standard six-sided die?",
+    "latex_svg_content": "\\text{P}(x>4)",
+    "choices": [
+      "1/6",
+      "1/3",
+      "1/2",
+      "2/3"
+    ],
+    "answer": "1/3"
+  },
+  {
+    "id": 128,
+    "type": "Statistics",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "In a class of 20 students, 12 are girls. What is the ratio of boys to girls?",
+    "latex_svg_content": "\\text{Ratio}",
+    "choices": [
+      "3:5",
+      "2:3",
+      "3:2",
+      "5:3"
+    ],
+    "answer": "2:3"
+  },
+  {
+    "id": 129,
+    "type": "Statistics",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Calculate the sample standard deviation for the data set {5, 5, 5}.",
+    "latex_svg_content": "s = \\sqrt{\\frac{\\sum(x_i - \\bar{x})^2}{n-1}}",
+    "choices": [
+      "0",
+      "1",
+      "5",
+      "\\sqrt{5}"
+    ],
+    "answer": "0"
+  },
+  {
+    "id": 130,
+    "type": "Statistics",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "If you draw one card from a standard 52-card deck, what is the probability of drawing a King or a Queen?",
+    "latex_svg_content": "\\text{P}(A \\cup B) = \\text{P}(A) + \\text{P}(B)",
+    "choices": [
+      "1/13",
+      "2/13",
+      "4/13",
+      "1/26"
+    ],
+    "answer": "2/13"
+  },
+  {
+    "id": 131,
+    "type": "Statistics",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Find the median of the data set: 10, 15, 5, 20, 10.",
+    "latex_svg_content": "\\text{Median}",
+    "choices": [
+      "10",
+      "12",
+      "15",
+      "5"
+    ],
+    "answer": "10"
+  },
+  {
+    "id": 132,
+    "type": "Statistics",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the probability of flipping a coin and getting tails?",
+    "latex_svg_content": "\\text{P}(Tails)",
+    "choices": [
+      "1/4",
+      "1/2",
+      "1/3",
+      "0"
+    ],
+    "answer": "1/2"
+  },
+  {
+    "id": 133,
+    "type": "Statistics",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "The mean of five numbers is 10. If four of the numbers are 8, 12, 9, 11, what is the fifth number?",
+    "latex_svg_content": "\\sum x = n \\times \\bar{x}",
+    "choices": [
+      "5",
+      "10",
+      "12",
+      "14"
+    ],
+    "answer": "10"
+  },
+  {
+    "id": 134,
+    "type": "Statistics",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "A box contains 3 red, 4 blue, and 5 green marbles. What is the probability of picking a blue marble?",
+    "latex_svg_content": "\\text{P}(Blue)",
+    "choices": [
+      "3/12",
+      "4/12",
+      "5/12",
+      "1/12"
+    ],
+    "answer": "4/12"
+  },
+  {
+    "id": 135,
+    "type": "Statistics",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "How many different ways can the letters of the word 'MATH' be arranged?",
+    "latex_svg_content": "n!",
+    "choices": [
+      "4",
+      "12",
+      "24",
+      "16"
+    ],
+    "answer": "24"
+  },
+  {
+    "id": 136,
+    "type": "Statistics",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which measure of central tendency is least affected by outliers?",
+    "latex_svg_content": "\\text{Outliers}",
+    "choices": [
+      "Mean",
+      "Median",
+      "Mode",
+      "Range"
+    ],
+    "answer": "Median"
+  },
+  {
+    "id": 137,
+    "type": "Statistics",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Find the mode of the data set: 1, 2, 2, 3, 4, 4, 5.",
+    "latex_svg_content": "\\text{Mode}",
+    "choices": [
+      "3",
+      "2",
+      "4",
+      "Both 2 and 4"
+    ],
+    "answer": "Both 2 and 4"
+  },
+  {
+    "id": 138,
+    "type": "Statistics",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "A bag has 5 red and 5 black balls. What is the probability of drawing two red balls without replacement?",
+    "latex_svg_content": "\\text{P}(A \\cap B)",
+    "choices": [
+      "25/100",
+      "1/10",
+      "2/9",
+      "5/18"
+    ],
+    "answer": "2/9"
+  },
+  {
+    "id": 139,
+    "type": "Statistics",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the Interquartile Range (IQR) for the data set: 1, 3, 5, 7, 9, 11, 13?",
+    "latex_svg_content": "IQR = Q_3 - Q_1",
+    "choices": [
+      "4",
+      "6",
+      "8",
+      "10"
+    ],
+    "answer": "8"
+  },
+  {
+    "id": 140,
+    "type": "Statistics",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "A committee of 3 people is to be chosen from a group of 5 men and 4 women. How many ways can the committee be formed?",
+    "latex_svg_content": "\\binom{n}{k}",
+    "choices": [
+      "84",
+      "28",
+      "35",
+      "12"
+    ],
+    "answer": "84"
+  },
+  {
+    "id": 141,
+    "type": "Statistics",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the total number of outcomes when rolling two six-sided dice?",
+    "latex_svg_content": "\\text{Total Outcomes}",
+    "choices": [
+      "12",
+      "36",
+      "6",
+      "18"
+    ],
+    "answer": "36"
+  },
+  {
+    "id": 142,
+    "type": "Statistics",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "If the mean is 20 and the median is 18, what type of skewness does the data likely have?",
+    "latex_svg_content": "\\text{Skewness}",
+    "choices": [
+      "Symmetrical",
+      "Right-skewed (Positive)",
+      "Left-skewed (Negative)",
+      "Bimodal"
+    ],
+    "answer": "Right-skewed (Positive)"
+  },
+  {
+    "id": 143,
+    "type": "Statistics",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "A survey of 100 people found that 40 prefer product A. What is the probability that a randomly chosen person prefers product A?",
+    "latex_svg_content": "\\text{P}(A)",
+    "choices": [
+      "0.2",
+      "0.4",
+      "0.6",
+      "0.8"
+    ],
+    "answer": "0.4"
+  },
+  {
+    "id": 144,
+    "type": "Statistics",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Calculate the variance for the data set {2, 4, 6, 8, 10}.",
+    "latex_svg_content": "\\sigma^2 = \\frac{\\sum(x_i - \\mu)^2}{n}",
+    "choices": [
+      "2",
+      "4",
+      "8",
+      "10"
+    ],
+    "answer": "8"
+  },
+  {
+    "id": 145,
+    "type": "Statistics",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "How many ways can 5 books be arranged on a shelf if 2 specific books must be together?",
+    "latex_svg_content": "\\text{Permutations with restriction}",
+    "choices": [
+      "24",
+      "48",
+      "120",
+      "60"
+    ],
+    "answer": "48"
+  },
+  {
+    "id": 146,
+    "type": "Statistics",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the average of the first five positive whole numbers?",
+    "latex_svg_content": "\\text{Average}",
+    "choices": [
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "answer": "3"
+  },
+  {
+    "id": 147,
+    "type": "Statistics",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "The sum of the probabilities of all possible outcomes in a sample space is always what value?",
+    "latex_svg_content": "\\text{Total Probability}",
+    "choices": [
+      "0.5",
+      "0",
+      "1",
+      "2"
+    ],
+    "answer": "1"
+  },
+  {
+    "id": 148,
+    "type": "Statistics",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "What is the $75^{th}$ percentile ($Q_3$) of the data set: 1, 2, 3, 4, 5, 6, 7, 8?",
+    "latex_svg_content": "Q_3",
+    "choices": [
+      "6",
+      "6.5",
+      "7",
+      "7.5"
+    ],
+    "answer": "6.5"
+  },
+  {
+    "id": 149,
+    "type": "Statistics",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "If two events A and B are independent, and $P(A)=0.5$ and $P(B)=0.4$, what is $P(A \\text{ and } B)$?",
+    "latex_svg_content": "P(A \\cap B) = P(A) \\times P(B)",
+    "choices": [
+      "0.9",
+      "0.2",
+      "0.1",
+      "0.3"
+    ],
+    "answer": "0.2"
+  },
+  {
+    "id": 150,
+    "type": "Statistics",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "A normal distribution has a mean ($\\mu$) of 50 and a standard deviation ($\\sigma$) of 5. What is the Z-score for a value of 60?",
+    "latex_svg_content": "Z = \\frac{x - \\mu}{\\sigma}",
+    "choices": [
+      "1",
+      "2",
+      "-2",
+      "0.5"
+    ],
+    "answer": "2"
+  },
+  {
+    "id": 151,
+    "type": "Statistics",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the total number of possible outcomes when flipping a coin and rolling a die?",
+    "latex_svg_content": "\\text{Total Outcomes}",
+    "choices": [
+      "8",
+      "12",
+      "6",
+      "2"
+    ],
+    "answer": "12"
+  },
+  {
+    "id": 152,
+    "type": "Statistics",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "If you randomly pick a day of the week, what is the probability it is a weekend day (Saturday or Sunday)?",
+    "latex_svg_content": "\\text{P}(\\text{Weekend})",
+    "choices": [
+      "1/7",
+      "2/7",
+      "3/7",
+      "1/2"
+    ],
+    "answer": "2/7"
+  },
+  {
+    "id": 153,
+    "type": "Statistics",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "In a set of data, the $25^{th}$ percentile ($Q_1$) is 15 and the $75^{th}$ percentile ($Q_3$) is 25. What is the IQR?",
+    "latex_svg_content": "IQR = Q_3 - Q_1",
+    "choices": [
+      "5",
+      "10",
+      "15",
+      "20"
+    ],
+    "answer": "10"
+  },
+  {
+    "id": 154,
+    "type": "Statistics",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "A bag contains 5 apples and 3 bananas. If two fruits are drawn without replacement, what is the probability that both are apples?",
+    "latex_svg_content": "\\text{P}(A \\cap B)",
+    "choices": [
+      "25/64",
+      "10/64",
+      "5/14",
+      "15/56"
+    ],
+    "answer": "5/14"
+  },
+  {
+    "id": 155,
+    "type": "Statistics",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "The number of permutations of $n$ items taken $r$ at a time is given by $P(n, r) = \\frac{n!}{(n-r)!}$. Calculate $P(5, 2)$.",
+    "latex_svg_content": "P(5, 2)",
+    "choices": [
+      "10",
+      "20",
+      "60",
+      "120"
+    ],
+    "answer": "20"
+  },
+  {
+    "id": 156,
+    "type": "Statistics",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "What is the average of 1, 1, 1, 1, 1?",
+    "latex_svg_content": "\\text{Average}",
+    "choices": [
+      "0",
+      "1",
+      "5",
+      "1/5"
+    ],
+    "answer": "1"
+  },
+  {
+    "id": 157,
+    "type": "Statistics",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Which term describes the data item that occurs most frequently in a data set?",
+    "latex_svg_content": "\\text{Frequency}",
+    "choices": [
+      "Mean",
+      "Median",
+      "Range",
+      "Mode"
+    ],
+    "answer": "Mode"
+  },
+  {
+    "id": 158,
+    "type": "Statistics",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "The scores on a test are normally distributed with $\\mu=70$ and $\\sigma=10$. Which score is one standard deviation above the mean?",
+    "latex_svg_content": "\\mu + \\sigma",
+    "choices": [
+      "60",
+      "70",
+      "80",
+      "90"
+    ],
+    "answer": "80"
+  },
+  {
+    "id": 159,
+    "type": "Statistics",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "There are 4 different colors of shirts and 3 different colors of pants. How many different outfits can be made?",
+    "latex_svg_content": "\\text{Multiplication Principle}",
+    "choices": [
+      "7",
+      "12",
+      "4",
+      "3"
+    ],
+    "answer": "12"
+  },
+  {
+    "id": 160,
+    "type": "Statistics",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "How many distinct arrangements of the letters in 'SUCCESS' are possible?",
+    "latex_svg_content": "\\frac{n!}{n_1! n_2! \\dots}",
+    "choices": [
+      "420",
+      "840",
+      "210",
+      "120"
+    ],
+    "answer": "420"
+  },
+  {
+    "id": 161,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $100 - 50 + 2 \\times 5$",
+    "latex_svg_content": "100 - 50 + 2 \\times 5",
+    "choices": [
+      "55",
+      "60",
+      "50",
+      "40"
+    ],
+    "answer": "60"
+  },
+  {
+    "id": 162,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $(15 + 5) \\div 4$",
+    "latex_svg_content": "(15 + 5) \\div 4",
+    "choices": [
+      "20",
+      "5",
+      "10",
+      "4"
+    ],
+    "answer": "5"
+  },
+  {
+    "id": 163,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $9 \\times 3 - 7$",
+    "latex_svg_content": "9 \\times 3 - 7",
+    "choices": [
+      "20",
+      "6",
+      "10",
+      "16"
+    ],
+    "answer": "20"
+  },
+  {
+    "id": 164,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $40 \\div (5 \\times 2)$",
+    "latex_svg_content": "40 \\div (5 \\times 2)",
+    "choices": [
+      "8",
+      "4",
+      "16",
+      "10"
+    ],
+    "answer": "4"
+  },
+  {
+    "id": 165,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $2 + 2 \\times 2 + 2$",
+    "latex_svg_content": "2 + 2 \\times 2 + 2",
+    "choices": [
+      "12",
+      "8",
+      "10",
+      "6"
+    ],
+    "answer": "8"
+  },
+  {
+    "id": 166,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $12 - 6 \\div 3$",
+    "latex_svg_content": "12 - 6 \\div 3",
+    "choices": [
+      "2",
+      "10",
+      "6",
+      "4"
+    ],
+    "answer": "10"
+  },
+  {
+    "id": 167,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $3^2 + 1$",
+    "latex_svg_content": "3^2 + 1",
+    "choices": [
+      "7",
+      "10",
+      "6",
+      "9"
+    ],
+    "answer": "10"
+  },
+  {
+    "id": 168,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $\\sqrt{49} + 3$",
+    "latex_svg_content": "\\sqrt{49} + 3",
+    "choices": [
+      "10",
+      "7",
+      "52",
+      "14"
+    ],
+    "answer": "10"
+  },
+  {
+    "id": 169,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $10 - (10 - 5)$",
+    "latex_svg_content": "10 - (10 - 5)",
+    "choices": [
+      "10",
+      "5",
+      "15",
+      "0"
+    ],
+    "answer": "5"
+  },
+  {
+    "id": 170,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $20 \\div 4 + 1$",
+    "latex_svg_content": "20 \\div 4 + 1",
+    "choices": [
+      "6",
+      "5",
+      "20",
+      "21"
+    ],
+    "answer": "6"
+  },
+  {
+    "id": 171,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $5 \\times 5 - 10$",
+    "latex_svg_content": "5 \\times 5 - 10",
+    "choices": [
+      "15",
+      "0",
+      "20",
+      "35"
+    ],
+    "answer": "15"
+  },
+  {
+    "id": 172,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $16 \\div 2 \\div 4$",
+    "latex_svg_content": "16 \\div 2 \\div 4",
+    "choices": [
+      "8",
+      "4",
+      "2",
+      "1"
+    ],
+    "answer": "2"
+  },
+  {
+    "id": 173,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $1 + 1^2 + 1$",
+    "latex_svg_content": "1 + 1^2 + 1",
+    "choices": [
+      "4",
+      "2",
+      "3",
+      "1"
+    ],
+    "answer": "3"
+  },
+  {
+    "id": 174,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $30 - (5 \\times 5)$",
+    "latex_svg_content": "30 - (5 \\times 5)",
+    "choices": [
+      "5",
+      "25",
+      "0",
+      "2"
+    ],
+    "answer": "5"
+  },
+  {
+    "id": 175,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $2 \\times (1 + 7) - 10$",
+    "latex_svg_content": "2 \\times (1 + 7) - 10",
+    "choices": [
+      "4",
+      "6",
+      "16",
+      "12"
+    ],
+    "answer": "6"
+  },
+  {
+    "id": 176,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $1 + 2 \\times 3 \\times 4$",
+    "latex_svg_content": "1 + 2 \\times 3 \\times 4",
+    "choices": [
+      "36",
+      "24",
+      "25",
+      "15"
+    ],
+    "answer": "25"
+  },
+  {
+    "id": 177,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $50 \\div 10 + 20$",
+    "latex_svg_content": "50 \\div 10 + 20",
+    "choices": [
+      "25",
+      "2",
+      "5",
+      "70"
+    ],
+    "answer": "25"
+  },
+  {
+    "id": 178,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $10^1 + 10^0$",
+    "latex_svg_content": "10^1 + 10^0",
+    "choices": [
+      "20",
+      "11",
+      "10",
+      "1"
+    ],
+    "answer": "11"
+  },
+  {
+    "id": 179,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $100 - 2 \\times 30$",
+    "latex_svg_content": "100 - 2 \\times 30",
+    "choices": [
+      "40",
+      "120",
+      "30",
+      "10"
+    ],
+    "answer": "40"
+  },
+  {
+    "id": 180,
+    "type": "PEMDAS",
+    "difficulty": "Easy",
+    "minutes_to_solve": 1,
+    "question": "Evaluate: $(3 + 7) \\times 5 - 50$",
+    "latex_svg_content": "(3 + 7) \\times 5 - 50",
+    "choices": [
+      "5",
+      "10",
+      "0",
+      "50"
+    ],
+    "answer": "0"
+  },
+  {
+    "id": 181,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $2 \\times (5^2 - 10)$",
+    "latex_svg_content": "2 \\times (5^2 - 10)",
+    "choices": [
+      "15",
+      "30",
+      "40",
+      "60"
+    ],
+    "answer": "30"
+  },
+  {
+    "id": 182,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $\\frac{1}{4} \\times (10 - 6)^2 + 1$",
+    "latex_svg_content": "\\frac{1}{4} \\times (10 - 6)^2 + 1",
+    "choices": [
+      "16",
+      "5",
+      "4",
+      "17"
+    ],
+    "answer": "5"
+  },
+  {
+    "id": 183,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $10 + 3 \\times \\sqrt{36} - 5$",
+    "latex_svg_content": "10 + 3 \\times \\sqrt{36} - 5",
+    "choices": [
+      "23",
+      "13",
+      "18",
+      "28"
+    ],
+    "answer": "23"
+  },
+  {
+    "id": 184,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $(15 \\div 3) + 2 \\times 4$",
+    "latex_svg_content": "(15 \\div 3) + 2 \\times 4",
+    "choices": [
+      "13",
+      "12",
+      "16",
+      "10"
+    ],
+    "answer": "13"
+  },
+  {
+    "id": 185,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $12^2 \\div (4 + 2) \\times 1$",
+    "latex_svg_content": "12^2 \\div (4 + 2) \\times 1",
+    "choices": [
+      "24",
+      "36",
+      "12",
+      "144"
+    ],
+    "answer": "24"
+  },
+  {
+    "id": 186,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $4(3 + 2)^2 - 100$",
+    "latex_svg_content": "4(3 + 2)^2 - 100",
+    "choices": [
+      "0",
+      "4",
+      "100",
+      "25"
+    ],
+    "answer": "0"
+  },
+  {
+    "id": 187,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $8 + 2(10 - 3) + 5$",
+    "latex_svg_content": "8 + 2(10 - 3) + 5",
+    "choices": [
+      "22",
+      "25",
+      "27",
+      "30"
+    ],
+    "answer": "27"
+  },
+  {
+    "id": 188,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $25 - (3 \\times 2^2) + 1$",
+    "latex_svg_content": "25 - (3 \\times 2^2) + 1",
+    "choices": [
+      "14",
+      "13",
+      "17",
+      "18"
+    ],
+    "answer": "14"
+  },
+  {
+    "id": 189,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $3^3 - 2^4 + 1$",
+    "latex_svg_content": "3^3 - 2^4 + 1",
+    "choices": [
+      "10",
+      "11",
+      "12",
+      "15"
+    ],
+    "answer": "12"
+  },
+  {
+    "id": 190,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $50 \\div [2 \\times (3 + 2)]$",
+    "latex_svg_content": "50 \\div [2 \\times (3 + 2)]",
+    "choices": [
+      "2",
+      "5",
+      "10",
+      "25"
+    ],
+    "answer": "5"
+  },
+  {
+    "id": 191,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $(10 + 5) \\div (20 - 15)$",
+    "latex_svg_content": "(10 + 5) \\div (20 - 15)",
+    "choices": [
+      "5",
+      "3",
+      "15",
+      "1"
+    ],
+    "answer": "3"
+  },
+  {
+    "id": 192,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $3 \\times (4 - 2)^3$",
+    "latex_svg_content": "3 \\times (4 - 2)^3",
+    "choices": [
+      "18",
+      "24",
+      "6",
+      "12"
+    ],
+    "answer": "24"
+  },
+  {
+    "id": 193,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $20 + 20 \\div 2 + 10$",
+    "latex_svg_content": "20 + 20 \\div 2 + 10",
+    "choices": [
+      "30",
+      "25",
+      "50",
+      "40"
+    ],
+    "answer": "40"
+  },
+  {
+    "id": 194,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $1 + 2(5 + 5)^2$",
+    "latex_svg_content": "1 + 2(5 + 5)^2",
+    "choices": [
+      "101",
+      "201",
+      "401",
+      "36"
+    ],
+    "answer": "201"
+  },
+  {
+    "id": 195,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $4 \\times 5 + 6 \\times 7$",
+    "latex_svg_content": "4 \\times 5 + 6 \\times 7",
+    "choices": [
+      "62",
+      "82",
+      "42",
+      "20"
+    ],
+    "answer": "62"
+  },
+  {
+    "id": 196,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $2(15 - 5) - 1$",
+    "latex_svg_content": "2(15 - 5) - 1",
+    "choices": [
+      "19",
+      "20",
+      "10",
+      "18"
+    ],
+    "answer": "19"
+  },
+  {
+    "id": 197,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $100 - 3^2 \\times 10$",
+    "latex_svg_content": "100 - 3^2 \\times 10",
+    "choices": [
+      "10",
+      "90",
+      "100",
+      "10"
+    ],
+    "answer": "10"
+  },
+  {
+    "id": 198,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $3 \\times 4 \\div 6 + 1$",
+    "latex_svg_content": "3 \\times 4 \\div 6 + 1",
+    "choices": [
+      "2",
+      "3",
+      "4",
+      "7"
+    ],
+    "answer": "3"
+  },
+  {
+    "id": 199,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $2 \\times \\sqrt{100} + 5$",
+    "latex_svg_content": "2 \\times \\sqrt{100} + 5",
+    "choices": [
+      "20",
+      "30",
+      "25",
+      "15"
+    ],
+    "answer": "25"
+  },
+  {
+    "id": 200,
+    "type": "PEMDAS",
+    "difficulty": "Medium",
+    "minutes_to_solve": 2,
+    "question": "Evaluate: $8^2 \\div 4 + 4$",
+    "latex_svg_content": "8^2 \\div 4 + 4",
+    "choices": [
+      "16",
+      "20",
+      "17",
+      "24"
+    ],
+    "answer": "20"
+  },
+  {
+    "id": 201,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $[(3 \\times 4)^2 - 4] \\div 10$",
+    "latex_svg_content": "[(3 \\times 4)^2 - 4] \\div 10",
+    "choices": [
+      "14",
+      "140",
+      "10",
+      "15"
+    ],
+    "answer": "14"
+  },
+  {
+    "id": 202,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $2 \\times 5^3 - 100 \\div 4$",
+    "latex_svg_content": "2 \\times 5^3 - 100 \\div 4",
+    "choices": [
+      "200",
+      "225",
+      "250",
+      "275"
+    ],
+    "answer": "225"
+  },
+  {
+    "id": 203,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $\\frac{2(10 - 2)^2}{16} - 1$",
+    "latex_svg_content": "\\frac{2(10 - 2)^2}{16} - 1",
+    "choices": [
+      "1",
+      "7",
+      "9",
+      "0"
+    ],
+    "answer": "7"
+  },
+  {
+    "id": 204,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $20 + 5[10 - (2 \\times 3)]$",
+    "latex_svg_content": "20 + 5[10 - (2 \\times 3)]",
+    "choices": [
+      "40",
+      "50",
+      "20",
+      "34"
+    ],
+    "answer": "40"
+  },
+  {
+    "id": 205,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $1^5 + 5^1 + 5^0 + 0^5$",
+    "latex_svg_content": "1^5 + 5^1 + 5^0 + 0^5",
+    "choices": [
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "answer": "7"
+  },
+  {
+    "id": 206,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $\\sqrt{5^2 + 12^2}$",
+    "latex_svg_content": "\\sqrt{5^2 + 12^2}",
+    "choices": [
+      "17",
+      "13",
+      "15",
+      "25"
+    ],
+    "answer": "13"
+  },
+  {
+    "id": 207,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $(40 - 2^2 \\times 5) + 3^3$",
+    "latex_svg_content": "(40 - 2^2 \\times 5) + 3^3",
+    "choices": [
+      "37",
+      "40",
+      "47",
+      "57"
+    ],
+    "answer": "47"
+  },
+  {
+    "id": 208,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $100 \\div [2(5^2 - 15)]$",
+    "latex_svg_content": "100 \\div [2(5^2 - 15)]",
+    "choices": [
+      "2",
+      "5",
+      "10",
+      "20"
+    ],
+    "answer": "5"
+  },
+  {
+    "id": 209,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $5 \\times (2^4 - 6) \\div 5$",
+    "latex_svg_content": "5 \\times (2^4 - 6) \\div 5",
+    "choices": [
+      "16",
+      "10",
+      "5",
+      "1"
+    ],
+    "answer": "10"
+  },
+  {
+    "id": 210,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $30 - (2 \\times 3^2 + 5)$",
+    "latex_svg_content": "30 - (2 \\times 3^2 + 5)",
+    "choices": [
+      "10",
+      "18",
+      "7",
+      "2"
+    ],
+    "answer": "7"
+  },
+  {
+    "id": 211,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $\\frac{2^5 - 2}{5 \\times 3} + 1$",
+    "latex_svg_content": "\\frac{2^5 - 2}{5 \\times 3} + 1",
+    "choices": [
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "answer": "3"
+  },
+  {
+    "id": 212,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $10^3 \\div 100 + 10^2$",
+    "latex_svg_content": "10^3 \\div 100 + 10^2",
+    "choices": [
+      "100",
+      "110",
+      "1010",
+      "1000"
+    ],
+    "answer": "110"
+  },
+  {
+    "id": 213,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $(5^2 + 1) \\times 2 - 20$",
+    "latex_svg_content": "(5^2 + 1) \\times 2 - 20",
+    "choices": [
+      "32",
+      "52",
+      "20",
+      "50"
+    ],
+    "answer": "32"
+  },
+  {
+    "id": 214,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $4[20 - (10 - 8)^2]$",
+    "latex_svg_content": "4[20 - (10 - 8)^2]",
+    "choices": [
+      "40",
+      "80",
+      "64",
+      "72"
+    ],
+    "answer": "64"
+  },
+  {
+    "id": 215,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $100 - 5[2^3 + 2]$",
+    "latex_svg_content": "100 - 5[2^3 + 2]",
+    "choices": [
+      "50",
+      "90",
+      "40",
+      "100"
+    ],
+    "answer": "50"
+  },
+  {
+    "id": 216,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $121^{1/2} + 20 \\div 4 - 10$",
+    "latex_svg_content": "121^{1/2} + 20 \\div 4 - 10",
+    "choices": [
+      "1",
+      "6",
+      "21",
+      "7"
+    ],
+    "answer": "6"
+  },
+  {
+    "id": 217,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $\\frac{3 \\times (5 + 5)^2}{10} - 20$",
+    "latex_svg_content": "\\frac{3 \\times (5 + 5)^2}{10} - 20",
+    "choices": [
+      "10",
+      "20",
+      "15",
+      "5"
+    ],
+    "answer": "10"
+  },
+  {
+    "id": 218,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $4 \\times (\\frac{1}{2})^{-2} + 1$",
+    "latex_svg_content": "4 \\times (\\frac{1}{2})^{-2} + 1",
+    "choices": [
+      "18",
+      "17",
+      "16",
+      "9"
+    ],
+    "answer": "17"
+  },
+  {
+    "id": 219,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $50 - 2[1 + (3 \\times 4)]$",
+    "latex_svg_content": "50 - 2[1 + (3 \\times 4)]",
+    "choices": [
+      "22",
+      "24",
+      "36",
+      "40"
+    ],
+    "answer": "24"
+  },
+  {
+    "id": 220,
+    "type": "PEMDAS",
+    "difficulty": "Hard",
+    "minutes_to_solve": 3,
+    "question": "Evaluate: $3 + 3 \\times [3^3 - 3]$",
+    "latex_svg_content": "3 + 3 \\times [3^3 - 3]",
+    "choices": [
+      "75",
+      "24",
+      "81",
+      "12"
+    ],
+    "answer": "75"
+  }
+]
