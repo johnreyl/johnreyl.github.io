@@ -1,0 +1,882 @@
+{
+  "modules": [
+    {
+      "id": 101,
+      "type": "lesson",
+      "title": "1.1 The Core HTML Structure",
+      "tags": [
+        "Beginner"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">HTML (HyperText Markup Language) provides the structure for all web pages.</p>\n                        <h3 class=\"text-xl font-semibold mt-6 mb-2 text-blue-600\">Essential Elements:</h3>\n                        <ul class=\"list-disc ml-6 space-y-2\">\n                            <li><code><span class=\"c-keyword\">&lt;!DOCTYPE html&gt;</span></code>: <strong>Always first.</strong> Defines the document type and standard (HTML5).</li>\n                            <li><code><span class=\"c-tag\">&lt;html&gt;</span></code>: The root element, containing everything else.</li>\n                            <li><code><span class=\"c-tag\">&lt;head&gt;</span></code>: Contains <strong>metadata</strong> (non-visible data like the page title and links to CSS/JS).</li>\n                            <li><code><span class=\"c-tag\">&lt;body&gt;</span></code>: Contains the <strong>visible content</strong> of the page (text, images, links).</li>\n                        </ul>",
+      "sample": "<span class=\"c-keyword\">&lt;!DOCTYPE html&gt;</span>\n<span class=\"c-tag\">&lt;html</span> <span class=\"c-attr\">lang</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">en</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>\n<span class=\"c-tag\">&lt;head&gt;</span>\n    <span class=\"c-tag\">&lt;meta</span> <span class=\"c-attr\">charset</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">UTF-8</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>\n    <span class=\"c-tag\">&lt;title&gt;</span>My First Page<span class=\"c-tag\">&lt;/title&gt;</span>\n<span class=\"c-tag\">&lt;/head&gt;</span>\n<span class=\"c-tag\">&lt;body&gt;</span>\n    <span class=\"c-tag\">&lt;h1&gt;</span>Hello World<span class=\"c-tag\">&lt;/h1&gt;</span>\n<span class=\"c-tag\">&lt;/body&gt;</span>\n<span class=\"c-tag\">&lt;/html&gt;</span>"
+    },
+    {
+      "id": 102,
+      "type": "lesson",
+      "title": "1.2 Text, Headings & Attributes",
+      "tags": [
+        "Beginner"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">Headings and paragraphs give your content hierarchy.</p>\n                        <h3 class=\"text-xl font-semibold mt-6 mb-2 text-blue-600\">Formatting Tags:</h3>\n                        <ul class=\"list-disc ml-6 space-y-2\">\n                            <li><code><span class=\"c-tag\">&lt;h1&gt;</span></code> to <code><span class=\"c-tag\">&lt;h6&gt;</span></code>: Headings. Use them to structure your document's outline.</li>\n                            <li><code><span class=\"c-tag\">&lt;p&gt;</span></code>: Paragraphs.</li>\n                            <li><code><span class=\"c-tag\">&lt;strong&gt;</span></code>: Importance (usually bold).</li>\n                            <li><code><span class=\"c-tag\">&lt;em&gt;</span></code>: Emphasis (usually italic).</li>\n                        </ul>\n                        <h3 class=\"text-xl font-semibold mt-6 mb-2 text-blue-600\">Attributes:</h3>\n                        <p>Attributes provide extra information about an element, usually in the opening tag, like <code><span class=\"c-tag\">&lt;p</span> <span class=\"c-attr\">class</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">highlight</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span></code>.</p>\n                        ",
+      "sample": "<span class=\"c-tag\">&lt;h1&gt;</span>Main Title<span class=\"c-tag\">&lt;/h1&gt;</span>\n<span class=\"c-tag\">&lt;p</span> <span class=\"c-attr\">class</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">intro</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>\n    This is a <span class=\"c-tag\">&lt;strong&gt;</span>strong<span class=\"c-tag\">&lt;/strong&gt;</span> paragraph.\n<span class=\"c-tag\">&lt;h3&gt;</span>Sub-section<span class=\"c-tag\">&lt;/h3&gt;</span>\n<span class=\"c-tag\">&lt;p&gt;</span>\n    This text has <span class=\"c-tag\">&lt;em&gt;</span>emphasis<span class=\"c-tag\">&lt;/em&gt;</span>.\n<span class=\"c-tag\">&lt;/p&gt;</span>"
+    },
+    {
+      "id": 103,
+      "type": "lesson",
+      "title": "1.3 Block vs. Inline Elements (DIV & SPAN)",
+      "tags": [
+        "Beginner",
+        "Tags"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">The fundamental difference in HTML layout comes down to two display types: **Block** and **Inline**.</p>\n                        <h3 class=\"text-xl font-semibold mt-6 mb-2 text-blue-600\">Block Elements (e.g., <code><span class=\"c-tag\">&lt;div&gt;</span></code>, <code><span class=\"c-tag\">&lt;p&gt;</span></code>):</h3>\n                        <ul class=\"list-disc ml-6 space-y-2\">\n                            <li>Always start on a new line and take up the full width available.</li>\n                            <li>Used for major structural components.</li>\n                            <li>**Example:** The <code><span class=\"c-tag\">&lt;div&gt;</span></code> is the most common generic block container.</li>\n                        </ul>\n                        <h3 class=\"text-xl font-semibold mt-6 mb-2 text-blue-600\">Inline Elements (e.g., <code><span class=\"c-tag\">&lt;span&gt;</span></code>, <code><span class=\"c-tag\">&lt;a&gt;</span></code>):</h3>\n                        <ul class=\"list-disc ml-6 space-y-2\">\n                            <li>Only take up as much width as necessary.</li>\n                            <li>Do not force line breaks.</li>\n                            <li>**Example:** The <code><span class=\"c-tag\">&lt;span&gt;</span></code> is the most common generic inline container, often used to style a small piece of text within a paragraph.</li>\n                        </ul>\n                        ",
+      "sample": "<span class=\"c-tag\">&lt;div</span> <span class=\"c-attr\">id</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">container</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>\n    <span class=\"c-tag\">&lt;p&gt;</span>\n        The whole sentence is block-level, but we can highlight a\n        <span class=\"c-tag\">&lt;span</span> <span class=\"c-attr\">style</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">color: red;</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>single word<span class=\"c-tag\">&lt;/span&gt;</span>\n        as an inline element (only takes necessary width).\n    <span class=\"c-tag\">&lt;/p&gt;</span>\n<span class=\"c-tag\">&lt;/div&gt;</span>"
+    },
+    {
+      "id": 104,
+      "type": "lesson",
+      "title": "1.4 Defining Character Set (&lt;meta charset&gt;)",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;meta charset=\"UTF-8\"&gt;</code> tag, placed in the `&lt;head&gt;`, specifies the character encoding for the document, ensuring symbols and international characters are displayed correctly.</p>",
+      "sample": "<span class=\"c-tag\">&lt;meta</span> <span class=\"c-attr\">charset</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">UTF-8</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>"
+    },
+    {
+      "id": 105,
+      "type": "lesson",
+      "title": "1.5 The HTML Comment Tag",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">Comments (`&lt;!-- ... --&gt;`) are ignored by the browser and are used to leave notes for developers within the code.</p>",
+      "sample": "<span class=\"c-comment\">&lt;!-- This is a comment --&gt;</span>"
+    },
+    {
+      "id": 106,
+      "type": "lesson",
+      "title": "1.6 Empty vs. Container Elements",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">**Container** elements have both opening and closing tags and wrap content (e.g., `&lt;p&gt;`). **Empty** elements are self-closing and hold no content (e.g., `&lt;br&gt;`).</p>",
+      "sample": "Container: <span class=\"c-tag\">&lt;p&gt;</span>...<span class=\"c-tag\">&lt;/p&gt;</span><br>Empty: <span class=\"c-tag\">&lt;br&gt;</span>"
+    },
+    {
+      "id": 107,
+      "type": "lesson",
+      "title": "1.7 Correct Tag Nesting",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">Tags must be closed in the opposite order of how they were opened. For example: `&lt;b&gt;&lt;i&gt;text&lt;/i&gt;&lt;/b&gt;` is correct, but `&lt;b&gt;&lt;i&gt;text&lt;/b&gt;&lt;/i&gt;` is incorrect.</p>",
+      "sample": "<span class=\"c-tag\">&lt;b&gt;&lt;i&gt;</span>text<span class=\"c-tag\">&lt;/i&gt;&lt;/b&gt;</span>"
+    },
+    {
+      "id": 202,
+      "type": "game",
+      "title": "Game: Tag Matcher",
+      "tags": [
+        "Beginner"
+      ],
+      "xpPerMatch": 50,
+      "instructions": "Match the opening tag to its closing tag to make a valid element. Match three pairs to continue!"
+    },
+    {
+      "id": 108,
+      "type": "lesson",
+      "title": "1.8 Self-Closing Tags (&lt;br&gt;, &lt;hr&gt;)",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">Tags like `&lt;br&gt;` (line break) and `&lt;hr&gt;` (horizontal rule) do not need separate closing tags because they don't wrap content. They are sometimes written as `&lt;br/&gt;` for XML compatibility.</p>",
+      "sample": "Line 1<span class=\"c-tag\">&lt;br&gt;</span>Line 2<span class=\"c-tag\">&lt;hr&gt;</span>"
+    },
+    {
+      "id": 109,
+      "type": "lesson",
+      "title": "1.9 Whitespace and Readability",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">HTML ignores extra spaces, tabs, and line breaks in the code (whitespace). Use consistent indentation to make your code easier for humans to read.</p>",
+      "sample": "Example of proper indentation."
+    },
+    {
+      "id": 110,
+      "type": "lesson",
+      "title": "1.10 The Basic Document Template",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">Putting the essential tags together: `&lt;!DOCTYPE&gt;`, `&lt;html&gt;`, `&lt;head&gt;`, `&lt;body&gt;`.</p>",
+      "sample": "<span class=\"c-keyword\">&lt;!DOCTYPE html&gt;</span>\n<span class=\"c-tag\">&lt;html&gt;</span>\n    <span class=\"c-tag\">&lt;head&gt;</span>...<span class=\"c-tag\">&lt;/head&gt;</span>\n    <span class=\"c-tag\">&lt;body&gt;</span>...<span class=\"c-tag\">&lt;/body&gt;</span>\n<span class=\"c-tag\">&lt;/html&gt;</span>"
+    },
+    {
+      "id": 111,
+      "type": "fact",
+      "title": "Did You Know? XHTML Strictness",
+      "tags": [ "Beginner" ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">Before HTML5, there was XHTML, which required every tag to be closed and all attributes to be lowercase. HTML5 is much more forgiving!</p>"
+    },
+    {
+      "id": 112,
+      "type": "fact",
+      "title": "Did You Know? The Meaning of Metadata",
+      "tags": [ "Beginner" ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">Metadata literally means \"data about data.\" In the `&lt;head&gt;`, it's information about the HTML document itself, like its title or description.</p>"
+    },
+    {
+      "id": 113,
+      "type": "quiz",
+      "title": "Quiz: Core Structure Mastery",
+      "tags": [ "Beginner" ],
+      "xpPerQ": 10,
+      "quiz": [
+        {
+          "question": "What tag defines the visible page content?",
+          "options": [ "<head>", "<body>", "<html>", "<title>" ],
+          "answer": "<body>"
+        },
+        {
+          "question": "Where does the <title> tag belong?",
+          "options": [ "Inside <body>", "Inside <head>", "Before <!DOCTYPE>", "After <html>" ],
+          "answer": "Inside <head>"
+        },
+        {
+          "question": "Which element is a block-level container?",
+          "options": [ "<span>", "<a>", "<div>", "<strong>" ],
+          "answer": "<div>"
+        },
+        {
+          "question": "The <!DOCTYPE html> declaration should be placed...",
+          "options": [ "At the end of the <body>", "Inside the <head>", "On the very first line", "After the <html> tag" ],
+          "answer": "On the very first line"
+        },
+        {
+          "question": "Which heading is most important in hierarchy?",
+          "options": [ "<h3>", "<h1>", "<h6>", "<p>" ],
+          "answer": "<h1>"
+        },
+        {
+          "question": "Which tag is used for the strongest text importance?",
+          "options": [ "<b>", "<strong>", "<p>", "<em>" ],
+          "answer": "<strong>"
+        },
+        {
+          "question": "What is an element with only an opening tag called?",
+          "options": [ "Container", "Inline", "Empty (or self-closing)", "Block" ],
+          "answer": "Empty (or self-closing)"
+        },
+        {
+          "question": "Which tag sets the character encoding to UTF-8?",
+          "options": [ "<meta>", "<charset>", "<link>", "<encoding>" ],
+          "answer": "<meta>"
+        },
+        {
+          "question": "Which pair is correctly nested?",
+          "options": [ "<b><i>text</b></i>", "<i><b>text</b></i>", "<i><b>text</i></b>", "<b><i>text</i></b>" ],
+          "answer": "<b><i>text</i></b>"
+        },
+        {
+          "question": "HTML ignores what in the code?",
+          "options": [ "Tags", "Attributes", "Whitespace", "Content" ],
+          "answer": "Whitespace"
+        }
+      ]
+    },
+
+    {
+      "id": 201,
+      "type": "lesson",
+      "title": "2.1 Unordered Lists: &lt;ul&gt; and &lt;li&gt;",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;ul&gt;</code> element creates an unordered (bulleted) list. Each item inside must be an <code>&lt;li&gt;</code> (list item) element.</p>",
+      "sample": "<span class=\"c-tag\">&lt;ul&gt;</span>\n    <span class=\"c-tag\">&lt;li&gt;</span>Item 1<span class=\"c-tag\">&lt;/li&gt;</span>\n    <span class=\"c-tag\">&lt;li&gt;</span>Item 2<span class=\"c-tag\">&lt;/li&gt;</span>\n<span class=\"c-tag\">&lt;/ul&gt;</span>"
+    },
+    {
+      "id": 203,
+      "type": "lesson",
+      "title": "2.2 Ordered Lists: &lt;ol&gt; and &lt;li&gt;",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;ol&gt;</code> element creates an ordered (numbered or lettered) list. Like `<ul>`, it uses the <code>&lt;li&gt;</code> element for its items.</p>",
+      "sample": "<span class=\"c-tag\">&lt;ol&gt;</span>\n    <span class=\"c-tag\">&lt;li&gt;</span>First Step<span class=\"c-tag\">&lt;/li&gt;</span>\n    <span class=\"c-tag\">&lt;li&gt;</span>Second Step<span class=\"c-tag\">&lt;/li&gt;</span>\n<span class=\"c-tag\">&lt;/ol&gt;</span>"
+    },
+    {
+      "id": 204,
+      "type": "lesson",
+      "title": "2.3 Nested Lists",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">You can create sub-lists by placing a complete `<ul>` or `<ol>` inside an `<li>` element of the parent list.</p>",
+      "sample": "<span class=\"c-tag\">&lt;li&gt;</span>Parent<span class=\"c-tag\">&lt;ul&gt;&lt;li&gt;</span>Child<span class=\"c-tag\">&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;</span>"
+    },
+    {
+      "id": 205,
+      "type": "lesson",
+      "title": "2.4 The Anchor Tag: &lt;a&gt;",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;a&gt;</code> tag is the Anchor element, used to create hyperlinks to other pages or resources.</p>",
+      "sample": "<span class=\"c-tag\">&lt;a&gt;</span>Click Here<span class=\"c-tag\">&lt;/a&gt;</span>"
+    },
+    {
+      "id": 206,
+      "type": "lesson",
+      "title": "2.5 The 'href' Attribute (Destination)",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>href</code> (Hypertext Reference) attribute is mandatory for the `<a>` tag and specifies the destination URL or path.</p>",
+      "sample": "<span class=\"c-tag\">&lt;a</span> <span class=\"c-attr\">href</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">/about.html</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>About Us<span class=\"c-tag\">&lt;/a&gt;</span>"
+    },
+    {
+      "id": 207,
+      "type": "lesson",
+      "title": "2.6 Absolute vs. Relative Paths",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">**Absolute** paths use a full URL (`https://...`). **Relative** paths use a path from the current file's location (`./styles/main.css`).</p>",
+      "sample": "<span class=\"c-tag\">&lt;a</span> <span class=\"c-attr\">href</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">https://google.com</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>External Link<span class=\"c-tag\">&lt;/a&gt;</span>"
+    },
+    {
+      "id": 208,
+      "type": "lesson",
+      "title": "2.7 Linking to a New Tab (`target='_blank'`)",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">Using the <code>target=\"_blank\"</code> attribute in an `&lt;a&gt;` tag will force the linked document to open in a new browser tab or window.</p>",
+      "sample": "<span class=\"c-tag\">&lt;a</span> <span class=\"c-attr\">href</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">sample.com</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">target</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">_blank</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>link<span class=\"c-tag\">&lt;/a&gt;</span>"
+    },
+    {
+      "id": 209,
+      "type": "lesson",
+      "title": "2.8 Linking to IDs (Internal Links)",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">You can link to an element on the same page by setting the `href` attribute to `#` followed by the target element's `id` (e.g., `&lt;a href=\"#top\"&gt;`).</p>",
+      "sample": "<span class=\"c-tag\">&lt;a</span> <span class=\"c-attr\">href</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">#footer</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>Go to Footer<span class=\"c-tag\">&lt;/a&gt;</span>"
+    },
+    {
+      "id": 210,
+      "type": "lesson",
+      "title": "2.9 Linking to Email (`mailto:`)",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">Starting the `href` with <code>mailto:</code> will open the user's default email client, pre-filled with the specified address.</p>",
+      "sample": "<span class=\"c-tag\">&lt;a</span> <span class=\"c-attr\">href</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">mailto:contact@example.com</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>Email Us<span class=\"c-tag\">&lt;/a&gt;</span>"
+    },
+    {
+      "id": 211,
+      "type": "lesson",
+      "title": "2.10 Linking to Phone (`tel:`)",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">Starting the `href` with <code>tel:</code> allows mobile users to initiate a phone call directly from the link.</p>",
+      "sample": "<span class=\"c-tag\">&lt;a</span> <span class=\"c-attr\">href</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">tel:+15551234</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>Call Us<span class=\"c-tag\">&lt;/a&gt;</span>"
+    },
+    {
+      "id": 212,
+      "type": "fact",
+      "title": "Did You Know? Anchor Names",
+      "tags": [ "Beginner" ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">The `&lt;a&gt;` tag is called the Anchor element because it 'anchors' two web pages together or 'anchors' a link to a specific spot on the page (an ID).</p>"
+    },
+    {
+      "id": 213,
+      "type": "fact",
+      "title": "Did You Know? Default Link Styles",
+      "tags": [ "Beginner" ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">By default, unvisited links are blue and underlined, and visited links are purple and underlined. You can change this behavior entirely using CSS.</p>"
+    },
+    {
+      "id": 214,
+      "type": "quiz",
+      "title": "Quiz: Lists and Links",
+      "tags": [ "Beginner" ],
+      "xpPerQ": 10,
+      "quiz": [
+        {
+          "question": "Which tag creates a numbered list?",
+          "options": [ "<ul>", "<ol>", "<li>", "<dl>" ],
+          "answer": "<ol>"
+        },
+        {
+          "question": "What is the mandatory attribute for the <a> tag?",
+          "options": [ "src", "link", "url", "href" ],
+          "answer": "href"
+        },
+        {
+          "question": "A link starting with 'https://' is a(n)...",
+          "options": [ "Relative path", "Internal path", "Absolute path", "Email link" ],
+          "answer": "Absolute path"
+        },
+        {
+          "question": "What attribute opens a link in a new browser tab?",
+          "options": [ "newtab", "target=\"_new\"", "external", "target=\"_blank\"" ],
+          "answer": "target=\"_blank\""
+        },
+        {
+          "question": "What does the <li> tag stand for?",
+          "options": [ "List Link", "List Item", "Line Indicator", "List Identifier" ],
+          "answer": "List Item"
+        },
+        {
+          "question": "What prefix is used for a link that opens an email client?",
+          "options": [ "email:", "mail:", "mailto:", "to:" ],
+          "answer": "mailto:"
+        },
+        {
+          "question": "A link to another section on the *same* page uses what prefix in the href?",
+          "options": [ "#", "/", "@", "?" ],
+          "answer": "#"
+        },
+        {
+          "question": "Which list type creates a bulleted list?",
+          "options": [ "<nl>", "<ol>", "<ll>", "<ul>" ],
+          "answer": "<ul>"
+        },
+        {
+          "question": "What element must be a direct child of <ul> or <ol>?",
+          "options": [ "<p>", "<div>", "<li>", "<span>" ],
+          "answer": "<li>"
+        },
+        {
+          "question": "The content inside the <a> tag is the...",
+          "options": [ "Destination URL", "Link text", "Link attribute", "Link type" ],
+          "answer": "Link text"
+        }
+      ]
+    },
+
+    {
+      "id": 302,
+      "type": "lesson",
+      "title": "3.1 The Image Tag: &lt;img&gt;",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;img&gt;</code> element is used to embed an image into the document. It is a self-closing tag.</p>",
+      "sample": "<span class=\"c-tag\">&lt;img&gt;</span>"
+    },
+    {
+      "id": 303,
+      "type": "lesson",
+      "title": "3.2 The Image 'src' Attribute",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">TThe <code>src</code> (source) attribute is mandatory for `&lt;img&gt;` and specifies the file path (absolute or relative) to the image you want to display.</p>",
+      "sample": "<span class=\"c-tag\">&lt;img</span> <span class=\"c-attr\">src</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSr2P3WUR7icDEP3Q3oXSA2zn_emcmCtWOJdg&s</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 304,
+      "type": "lesson",
+      "title": "3.3 The Image 'alt' Attribute",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>alt</code> (alternate text) attribute is mandatory for accessibility. It provides a descriptive text if the image fails to load, or for screen readers.</p>",
+      "sample": "<span class=\"c-tag\">&lt;img</span> <span class=\"c-attr\">src</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSr2P3WUR7icDEP3Q3oXSA2zn_emcmCtWOJdg&s</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">alt</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">Sample Image</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 305,
+      "type": "lesson",
+      "title": "3.4 Setting Image Width and Height",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">You can use the <code>width</code> and <code>height</code> attributes (in pixels) directly on the `&lt;img&gt;` tag to reserve space and prevent layout shifts.</p>",
+      "sample": "<span class=\"c-tag\">&lt;img</span> <span class=\"c-attr\">src</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSr2P3WUR7icDEP3Q3oXSA2zn_emcmCtWOJdg&s</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">alt</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">A picture</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">width</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">100</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">height</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">50</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>"
+    },
+    {
+      "id": 306,
+      "type": "lesson",
+      "title": "3.5 Making an Image a Link",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">To make an image clickable, simply wrap the entire `&lt;img&gt;` tag inside an `&lt;a&gt;` tag.</p>",
+      "sample": "<span class=\"c-tag\">&lt;a</span> <span class=\"c-attr\">href</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">/home</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;&lt;img src=\"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSr2P3WUR7icDEP3Q3oXSA2zn_emcmCtWOJdg&s\" alt=\"Sample Image Link\"&gt;&lt;/a&gt;</span>"
+    },
+    {
+      "id": 307,
+      "type": "lesson",
+      "title": "3.6 Figure and Figcaption",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;figure&gt;</code> tag groups media content (like an image), and <code>&lt;figcaption&gt;</code> provides a caption or explanatory description for that media.</p>",
+      "sample": "<span class=\"c-tag\">&lt;figure&gt;&lt;img</span> <span class=\"c-attr\">src</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSr2P3WUR7icDEP3Q3oXSA2zn_emcmCtWOJdg&s</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">alt</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">A photo with caption</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;&lt;figcaption&gt;</span>A caption.<span class=\"c-tag\">&lt;/figcaption&gt;&lt;/figure&gt;</span>"
+    },
+    {
+      "id": 308,
+      "type": "lesson",
+      "title": "3.7 Introduction to Video &lt;video&gt;",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;video&gt;</code> tag is used to embed video content. The `controls` attribute displays the browser's default play/pause and volume controls.</p>",
+      "sample": "<span class=\"c-tag\">&lt;video</span> <span class=\"c-attr\">controls</span> <span class=\"c-attr\">src</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">video.mp4</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>Your browser does not support the video tag.<span class=\"c-tag\">&lt;/video&gt;</span>"
+    },
+    {
+      "id": 309,
+      "type": "lesson",
+      "title": "3.8 Introduction to Audio &lt;audio&gt;",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;audio&gt;</code> tag is used to embed audio content into the page. Like video, it often includes the `controls` attribute.</p>",
+      "sample": "<span class=\"c-tag\">&lt;audio</span> <span class=\"c-attr\">controls</span> <span class=\"c-attr\">src</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">sound.mp3</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>Your browser does not support the audio element.<span class=\"c-tag\">&lt;/audio&gt;</span>"
+    },
+    {
+      "id": 310,
+      "type": "lesson",
+      "title": "3.9 Image File Types (PNG vs. JPEG)",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">**JPEG** is best for complex photographs. **PNG** is better for images with sharp lines, text, or transparency.</p>",
+      "sample": "File types explained."
+    },
+    {
+      "id": 311,
+      "type": "lesson",
+      "title": "3.10 Vector Graphics (SVG Intro)",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">**SVG** (Scalable Vector Graphics) is an XML-based image format that scales perfectly at any size without losing quality, ideal for logos and icons.</p>",
+      "sample": "Example of an .svg file."
+    },
+    {
+      "id": 312,
+      "type": "fact",
+      "title": "Did You Know? Importance of 'alt'",
+      "tags": [ "Beginner" ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">Screen readers for visually impaired users rely entirely on the `alt` text to describe what an image is about. If it is missing, the image is invisible to them.</p>"
+    },
+    {
+      "id": 313,
+      "type": "fact",
+      "title": "Did You Know? Video Autoplay",
+      "tags": [ "Beginner" ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">Most modern browsers prevent videos with sound from autoplaying without user interaction to improve the browsing experience.</p>"
+    },
+    {
+      "id": 314,
+      "type": "quiz",
+      "title": "Quiz: Media Basics",
+      "tags": [ "Beginner" ],
+      "xpPerQ": 10,
+      "quiz": [
+        {
+          "question": "What attribute specifies the image file path?",
+          "options": [ "href", "link", "url", "src" ],
+          "answer": "src"
+        },
+        {
+          "question": "The <img> tag is...",
+          "options": [ "Block-level", "Self-closing", "Inline-level", "Required to have a closing tag" ],
+          "answer": "Self-closing"
+        },
+        {
+          "question": "Which image type is best for transparency and sharp lines?",
+          "options": [ "JPEG", "GIF", "SVG", "PNG" ],
+          "answer": "PNG"
+        },
+        {
+          "question": "What tag is used to provide a caption for an image?",
+          "options": [ "<legend>", "<caption>", "<figcaption>", "<description>" ],
+          "answer": "<figcaption>"
+        },
+        {
+          "question": "The 'alt' attribute's main purpose is for:",
+          "options": [ "Styling", "JavaScript events", "Accessibility", "Search engine ranking only" ],
+          "answer": "Accessibility"
+        },
+        {
+          "question": "How do you make an image clickable?",
+          "options": [ "Add a click attribute", "Wrap the <img> in an <a> tag", "Use the <button> tag", "Set the image type to link" ],
+          "answer": "Wrap the <img> in an <a> tag"
+        },
+        {
+          "question": "What does SVG stand for?",
+          "options": [ "Scalable Vector Graphics", "Standard Video Group", "Simple Visual Guide", "Source Vector Generator" ],
+          "answer": "Scalable Vector Graphics"
+        },
+        {
+          "question": "Which tag embeds video into an HTML document?",
+          "options": [ "<source>", "<embed>", "<media>", "<video>" ],
+          "answer": "<video>"
+        },
+        {
+          "question": "The <figure> tag is used to...",
+          "options": [ "Style text", "Group media content", "Define image size", "Create a border" ],
+          "answer": "Group media content"
+        },
+        {
+          "question": "Which attribute is used to show default player controls for <audio>?",
+          "options": [ "play", "show", "controls", "visible" ],
+          "answer": "controls"
+        }
+      ]
+    },
+
+    {
+      "id": 402,
+      "type": "lesson",
+      "title": "4.1 The Generic Block Container: &lt;div&gt;",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;div&gt;</code> (division) is the most common block-level container, used to group larger sections of code for styling (CSS) or manipulation (JavaScript).</p>",
+      "sample": "<span class=\"c-tag\">&lt;div</span> <span class=\"c-attr\">class</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">main-section</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>...<span class=\"c-tag\">&lt;/div&gt;</span>"
+    },
+    {
+      "id": 403,
+      "type": "lesson",
+      "title": "4.2 The Generic Inline Container: &lt;span&gt;",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;span&gt;</code> element is the most common inline container, used to target a small piece of text *within* a block-level element for minor styling.</p>",
+      "sample": "<span class=\"c-tag\">&lt;span</span> <span class=\"c-attr\">style</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">color: red;</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>red text<span class=\"c-tag\">&lt;/span&gt;</span>"
+    },
+    {
+      "id": 404,
+      "type": "lesson",
+      "title": "4.3 Introduction to Semantic HTML",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">Semantic HTML means using tags that clearly define their content's purpose (e.g., `&lt;nav&gt;` for navigation, not just a `&lt;div&gt;`). This helps search engines and accessibility tools.</p>",
+      "sample": "Definition of semantics."
+    },
+    {
+      "id": 405,
+      "type": "lesson",
+      "title": "4.4 The &lt;header&gt; Tag",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;header&gt;</code> tag is used for introductory content, often containing a logo, site title, and navigation links.</p>",
+      "sample": "<span class=\"c-tag\">&lt;header&gt;</span>...<span class=\"c-tag\">&lt;/header&gt;</span>"
+    },
+    {
+      "id": 406,
+      "type": "lesson",
+      "title": "4.5 The &lt;nav&gt; Tag",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;nav&gt;</code> tag is used to wrap major navigation links for a document or section.</p>",
+      "sample": "<span class=\"c-tag\">&lt;nav&gt;&lt;ul&gt;...&lt;/ul&gt;&lt;/nav&gt;</span>"
+    },
+    {
+      "id": 407,
+      "type": "lesson",
+      "title": "4.6 The &lt;main&gt; Tag",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;main&gt;</code> tag contains the dominant content of the document, excluding headers, footers, and sidebars. It should only appear once per page.</p>",
+      "sample": "<span class=\"c-tag\">&lt;main&gt;</span>...<span class=\"c-tag\">&lt;/main&gt;</span>"
+    },
+    {
+      "id": 408,
+      "type": "lesson",
+      "title": "4.7 The &lt;section&gt; Tag",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;section&gt;</code> tag groups thematic content, typically with a heading. Examples include a News section or a Contact Info section.</p>",
+      "sample": "<span class=\"c-tag\">&lt;section&gt;...&lt;/section&gt;</span>"
+    },
+    {
+      "id": 409,
+      "type": "lesson",
+      "title": "4.8 The &lt;article&gt; Tag",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;article&gt;</code> tag is used for self-contained content that could be distributed independently, like a blog post or a newspaper article.</p>",
+      "sample": "<span class=\"c-tag\">&lt;article&gt;</span>...<span class=\"c-tag\">&lt;/article&gt;</span>"
+    },
+    {
+      "id": 410,
+      "type": "lesson",
+      "title": "4.9 The &lt;aside&gt; Tag",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;aside&gt;</code> tag is used for content that is tangentially related to the main content, like sidebars, pull-quotes, or advertisements.</p>",
+      "sample": "<span class=\"c-tag\">&lt;aside&gt;</span>...<span class=\"c-tag\">&lt;/aside&gt;</span>"
+    },
+    {
+      "id": 411,
+      "type": "lesson",
+      "title": "4.10 The &lt;footer&gt; Tag",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;footer&gt;</code> tag is used for content at the bottom of a document or section, typically containing copyright information, contact info, or related links.</p>",
+      "sample": "<span class=\"c-tag\">&lt;footer&gt;</span>...<span class=\"c-tag\">&lt;/footer&gt;</span>"
+    },
+    {
+      "id": 412,
+      "type": "fact",
+      "title": "Did You Know? Div Soup",
+      "tags": [ "Beginner" ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">Before semantic HTML5, developers often built layouts using many nested `&lt;div&gt;` tags with classes (e.g., `&lt;div class=\"header\"&gt;`). This was jokingly referred to as 'div soup.'</p>"
+    },
+    {
+      "id": 413,
+      "type": "fact",
+      "title": "Did You Know? Single Main",
+      "tags": [ "Beginner" ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">Unlike other semantic tags, the `&lt;main&gt;` element must not be used more than once in a document and should not be a descendant of `&lt;article&gt;`, `&lt;aside&gt;`, `&lt;footer&gt;`, `&lt;header&gt;`, or `&lt;nav&gt;`.</p>"
+    },
+    {
+      "id": 414,
+      "type": "quiz",
+      "title": "Quiz: Layout and Semantics",
+      "tags": [ "Beginner" ],
+      "xpPerQ": 10,
+      "quiz": [
+        {
+          "question": "Which tag is used for a generic **block-level** grouping?",
+          "options": [ "<p>", "<span>", "<div>", "<nav>" ],
+          "answer": "<div>"
+        },
+        {
+          "question": "Which tag is used for a generic **inline** grouping?",
+          "options": [ "<section>", "<span>", "<div>", "<a>" ],
+          "answer": "<span>"
+        },
+        {
+          "question": "Which semantic tag should only appear once per page?",
+          "options": [ "<header>", "<section>", "<main>", "<article>" ],
+          "answer": "<main>"
+        },
+        {
+          "question": "Which tag wraps major navigation links?",
+          "options": [ "<links>", "<a>", "<nav>", "<aside>" ],
+          "answer": "<nav>"
+        },
+        {
+          "question": "The <footer> tag is typically used for:",
+          "options": [ "Main content", "Copyright information", "Header logo", "Scripts" ],
+          "answer": "Copyright information"
+        },
+        {
+          "question": "Which tag is best for a self-contained blog post?",
+          "options": [ "<section>", "<aside>", "<article>", "<div>" ],
+          "answer": "<article>"
+        },
+        {
+          "question": "Content that is tangentially related (like a sidebar) belongs in which tag?",
+          "options": [ "<section>", "<aside>", "<footer>", "<header>" ],
+          "answer": "<aside>"
+        },
+        {
+          "question": "What is the primary benefit of Semantic HTML?",
+          "options": [ "Faster loading times", "Easier styling with CSS", "Improved accessibility and SEO", "Simpler attribute syntax" ],
+          "answer": "Improved accessibility and SEO"
+        },
+        {
+          "question": "The <header> tag should typically contain:",
+          "options": [ "The page's main article", "The main navigation links", "Introductory content and branding", "The page's contact form" ],
+          "answer": "Introductory content and branding"
+        },
+        {
+          "question": "Which tag groups thematic content, often with a heading?",
+          "options": [ "<p>", "<section>", "<main>", "<div>" ],
+          "answer": "<section>"
+        }
+      ]
+    },
+
+    {
+      "id": 502,
+      "type": "lesson",
+      "title": "5.1 The 'class' Attribute (Styling Hook)",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>class</code> attribute is a reusable identifier used to group multiple elements for the purpose of applying CSS styles (e.g., all elements with `class=\"warning\"`).</p>",
+      "sample": "<span class=\"c-tag\">&lt;p</span> <span class=\"c-attr\">class</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">text-center</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>Centered Text<span class=\"c-tag\">&lt;/p&gt;</span>"
+    },
+    {
+      "id": 503,
+      "type": "lesson",
+      "title": "5.2 The 'id' Attribute (Unique Hook)",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>id</code> attribute is a unique identifier used to target a *single* element for linking (e.g., `&lt;a href=\"#id\"&gt;`) or for JavaScript manipulation.</p>",
+      "sample": "<span class=\"c-tag\">&lt;div</span> <span class=\"c-attr\">id</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">main-button</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>Clickable Area<span class=\"c-tag\">&lt;/div&gt;</span>"
+    },
+    {
+      "id": 504,
+      "type": "lesson",
+      "title": "5.3 Classes vs. IDs",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">Use **classes** when you want to style many elements the same way. Use **IDs** when you need a single, unique identifier for a specific element (e.g., a modal or a main heading).</p>",
+      "sample": "Comparison of use cases."
+    },
+    {
+      "id": 505,
+      "type": "lesson",
+      "title": "5.4 The 'style' Attribute (Inline CSS)",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>style</code> attribute allows you to apply CSS properties directly to an individual HTML element, though this is generally discouraged for large projects.</p>",
+      "sample": "<span class=\"c-tag\">&lt;p</span> <span class=\"c-attr\">style</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">color: blue;</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>Blue Text<span class=\"c-tag\">&lt;/p&gt;</span>"
+    },
+    {
+      "id": 506,
+      "type": "lesson",
+      "title": "5.5 Global Attributes (Accesskey, Hidden)",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">Global attributes are attributes that can be used on *every* HTML element. Examples include `class`, `id`, `style`, and `hidden` (which hides an element from view).</p>",
+      "sample": "<span class=\"c-tag\">&lt;p</span> <span class=\"c-attr\">hidden</span><span class=\"c-tag\">&gt;</span>Secret Text<span class=\"c-tag\">&lt;/p&gt;</span>"
+    },
+    {
+      "id": 507,
+      "type": "lesson",
+      "title": "5.6 The 'data-' Attributes",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">Custom `data-*` attributes allow you to embed custom data privately into the HTML. This data can be easily accessed and modified using JavaScript.</p>",
+      "sample": "<span class=\"c-tag\">&lt;button</span> <span class=\"c-attr\">data-user-id</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">123</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>User Info<span class=\"c-tag\">&lt;/button&gt;</span>"
+    },
+    {
+      "id": 508,
+      "type": "lesson",
+      "title": "5.7 Basic Tables: &lt;table&gt;",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;table&gt;</code> element is used to structure data into rows and columns, like a spreadsheet.</p>",
+      "sample": "<span class=\"c-tag\">&lt;table&gt;</span>...<span class=\"c-tag\">&lt;/table&gt;</span>"
+    },
+    {
+      "id": 509,
+      "type": "lesson",
+      "title": "5.8 Table Rows and Data (&lt;tr&gt;, &lt;td&gt;)",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">Table structure relies on <code>&lt;tr&gt;</code> (table row) and <code>&lt;td&gt;</code> (table data/cell). Every row must contain one or more data cells.</p>",
+      "sample": "<span class=\"c-tag\">&lt;tr&gt;&lt;td&gt;</span>Cell 1<span class=\"c-tag\">&lt;/td&gt;&lt;/tr&gt;</span>"
+    },
+    {
+      "id": 510,
+      "type": "lesson",
+      "title": "5.9 Table Headers (&lt;th&gt;)",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code>&lt;th&gt;</code> (table header) element defines a header cell in a table. By default, content is bold and centered.</p>",
+      "sample": "<span class=\"c-tag\">&lt;tr&gt;&lt;th&gt;</span>Header Name<span class=\"c-tag\">&lt;/th&gt;&lt;/tr&gt;</span>"
+    },
+    {
+      "id": 511,
+      "type": "lesson",
+      "title": "5.10 Table Structure (&lt;thead&gt;, &lt;tbody&gt;)",
+      "tags": [ "Beginner" ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">For better semantics, tables are often split into <code>&lt;thead&gt;</code> (header section) and <code>&lt;tbody&gt;</code> (body section).</p>",
+      "sample": "<span class=\"c-tag\">&lt;table&gt;&lt;thead&gt;...&lt;/thead&gt;&lt;tbody&gt;...&lt;/tbody&gt;&lt;/table&gt;</span>"
+    },
+    {
+      "id": 512,
+      "type": "fact",
+      "title": "Did You Know? The 'style' War",
+      "tags": [ "Beginner" ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">Inline `style` attributes were necessary before CSS was widely adopted. Now, they are generally only used for very specific, dynamic changes made by JavaScript.</p>"
+    },
+    {
+      "id": 513,
+      "type": "fact",
+      "title": "Did You Know? Tables for Layout",
+      "tags": [ "Beginner" ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">In the 90s and early 2000s, developers frequently used `&lt;table&gt;` tags to structure *entire page layouts*. This is now obsolete; modern layout is done using CSS (like Flexbox and Grid).</p>"
+    },
+    {
+      "id": 514,
+      "type": "quiz",
+      "title": "Quiz: Hooks and Tables",
+      "tags": [ "Beginner" ],
+      "xpPerQ": 10,
+      "quiz": [
+        {
+          "question": "Which attribute must be unique on the page?",
+          "options": [ "class", "name", "id", "style" ],
+          "answer": "id"
+        },
+        {
+          "question": "Which attribute is best for applying the same style to multiple elements?",
+          "options": [ "style", "name", "id", "class" ],
+          "answer": "class"
+        },
+        {
+          "question": "Which tag defines a single row in a table?",
+          "options": [ "<td>", "<tr>", "<th>", "<table>" ],
+          "answer": "<tr>"
+        },
+        {
+          "question": "What is the primary use of 'data-' attributes?",
+          "options": [ "Styling", "JavaScript data storage", "SEO keywords", "Accessibility" ],
+          "answer": "JavaScript data storage"
+        },
+        {
+          "question": "Which tag defines a regular data cell in a table?",
+          "options": [ "<th>", "<td>", "<tr>", "<caption>" ],
+          "answer": "<td>"
+        },
+        {
+          "question": "Which tag defines a table header cell?",
+          "options": [ "<td>", "<tr>", "<th>", "<thead>" ],
+          "answer": "<th>"
+        },
+        {
+          "question": "What element wraps the body of a table's data rows?",
+          "options": [ "<tfoot>", "<tr>", "<tbody>", "<th>" ],
+          "answer": "<tbody>"
+        },
+        {
+          "question": "Which attribute can be used on almost every HTML element?",
+          "options": [ "src", "href", "global attributes", "custom attributes" ],
+          "answer": "global attributes"
+        },
+        {
+          "question": "Applying CSS directly to an element is done with the _____ attribute.",
+          "options": [ "class", "id", "style", "css" ],
+          "answer": "style"
+        },
+        {
+          "question": "In the `data-user-id=\"5\"` attribute, 'user-id' is the:",
+          "options": [ "Attribute name", "Value", "Custom data property", "Tag name" ],
+          "answer": "Custom data property"
+        }
+      ]
+    }
+  ],
+  "moduleGroups": [
+    {
+      "id": 1,
+      "title": "Level 1: Core Document Structure (HTML, Head, Body)",
+      "tag": "Beginner",
+      "moduleIds": [ 101, 102, 103, 104, 105, 106, 107, 202, 108, 109, 110, 111, 112, 113 ]
+    },
+    {
+      "id": 2,
+      "title": "Level 2: Text Formatting and Hierarchy (Lists & Quotes)",
+      "tag": "Beginner",
+      "moduleIds": [ 201, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214 ]
+    },
+    {
+      "id": 3,
+      "title": "Level 3: Linking and Media Embeds (Images, Audio, Video)",
+      "tag": "Beginner",
+      "moduleIds": [ 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 313, 314 ]
+    },
+    {
+      "id": 4,
+      "title": "Level 4: Layout and Semantic Grouping (Div, Span, Nav, Section)",
+      "tag": "Beginner",
+      "moduleIds": [ 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414 ]
+    },
+    {
+      "id": 5,
+      "title": "Level 5: Styling Hooks and Tabular Data (Class, ID, Tables)",
+      "tag": "Beginner",
+      "moduleIds": [ 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 513, 514 ]
+    }
+  ]
+}

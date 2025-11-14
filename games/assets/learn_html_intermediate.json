@@ -1,0 +1,2205 @@
+{
+  "modules": [
+    {
+      "id": 601,
+      "type": "lesson",
+      "title": "6.1 The &lt;form&gt; Element (Action & Method)",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;form&gt;</span></code> element is the container for all form controls. The <code><span class=\"c-attr\">action</span></code> attribute defines the submission URL, and <code><span class=\"c-attr\">method</span></code> defines the HTTP verb (GET or POST).</p>",
+      "sample": "<span class=\"c-tag\">&lt;form</span> <span class=\"c-attr\">action</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">/process-data</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">method</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">POST</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>\n    ...\n<span class=\"c-tag\">&lt;/form&gt;</span>"
+    },
+    {
+      "id": 602,
+      "type": "lesson",
+      "title": "6.2 Text Input & The 'name' Attribute",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;input&gt;</span></code> element with <code><span class=\"c-attr\">type=\"text\"</span></code> is the most common input. The <code><span class=\"c-attr\">name</span></code> attribute is crucial for associating the input value with a key when data is sent.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">text</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">name</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">user_name</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 603,
+      "type": "lesson",
+      "title": "6.3 &lt;label&gt; for Accessibility (for/id)",
+      "tags": [
+        "Intermediate",
+        "Accessibility"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;label&gt;</span></code> tag is required for accessibility. Linking it to an input is done by ensuring the label's <code><span class=\"c-attr\">for</span></code> attribute matches the input's <code><span class=\"c-attr\">id</span></code>.</p>",
+      "sample": "<span class=\"c-tag\">&lt;label</span> <span class=\"c-attr\">for</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">p-id</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>Product ID:<span class=\"c-tag\">&lt;/label&gt;</span>\n<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">text</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">id</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">p-id</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 604,
+      "type": "lesson",
+      "title": "6.4 Password Input and Placeholder Hinting",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">Use <code><span class=\"c-attr\">type=\"password\"</span></code> to mask input. The <code><span class=\"c-attr\">placeholder</span></code> attribute provides a temporary hint to the user about expected input.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">password</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">placeholder</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">Min 8 chars</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 605,
+      "type": "lesson",
+      "title": "6.5 Submitting Forms with &lt;input type=\"submit\"&gt;",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;input&gt;</span></code> with <code><span class=\"c-attr\">type=\"submit\"</span></code> is the standard form submission button. The button text is defined by the <code><span class=\"c-attr\">value</span></code> attribute.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">submit</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">value</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">Save Changes</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 606,
+      "type": "lesson",
+      "title": "6.6 Submitting with &lt;button type=\"submit\"&gt;",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;button&gt;</span></code> element with <code><span class=\"c-attr\">type=\"submit\"</span></code> is preferred for richer buttons, as it can contain nested HTML like icons or styled text.</p>",
+      "sample": "<span class=\"c-tag\">&lt;button</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">submit</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>\n    <span class=\"c-tag\">&lt;span</span> <span class=\"c-attr\">class</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">icon</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>&#x2713;<span class=\"c-tag\">&lt;/span&gt;</span> Register\n<span class=\"c-tag\">&lt;/button&gt;</span>"
+    },
+    {
+      "id": 607,
+      "type": "lesson",
+      "title": "6.7 The Reset Button (type=\"reset\")",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-attr\">type=\"reset\"</span></code> button clears all form fields within the parent <code><span class=\"c-tag\">&lt;form&gt;</span></code> element, reverting them to their initial or default values.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">reset</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">value</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">Clear All</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 608,
+      "type": "lesson",
+      "title": "6.8 The 'readonly' Attribute",
+      "tags": [
+        "Intermediate",
+        "Attributes"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The boolean <code><span class=\"c-attr\">readonly</span></code> attribute makes an input field non-editable by the user, but its **value is still submitted** with the form data.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">text</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">value</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">Fixed User ID</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">readonly</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 609,
+      "type": "lesson",
+      "title": "6.9 The 'disabled' Attribute",
+      "tags": [
+        "Intermediate",
+        "Attributes"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The boolean <code><span class=\"c-attr\">disabled</span></code> attribute renders the input unusable, and its **value is NOT submitted** with the form data. It also prevents the field from receiving focus.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">text</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">disabled</span> <span class=\"c-attr\">value</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">Unavailable</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 610,
+      "type": "lesson",
+      "title": "6.10 Form Controls Outside &lt;form&gt; (form attribute)",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">A form control can exist outside its <code><span class=\"c-tag\">&lt;form&gt;</span></code> element in the HTML structure by using the control's <code><span class=\"c-attr\">form</span></code> attribute, which points to the target <code><span class=\"c-tag\">&lt;form&gt;</span></code>'s <code><span class=\"c-attr\">id</span></code>.</p>",
+      "sample": "<span class=\"c-tag\">&lt;form</span> <span class=\"c-attr\">id</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">main-form</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">&gt;</span>...\n<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">form</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">main-form</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">name</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">external_data</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 611,
+      "type": "fact",
+      "title": "Did You Know? GET vs. POST Data Exposure",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">Data submitted via the **GET** method is appended to the URL and is therefore easily visible and bookmarked. Data submitted via **POST** is hidden within the HTTP request body, making it mandatory for sensitive data like passwords.</p>"
+    },
+    {
+      "id": 612,
+      "type": "fact",
+      "title": "Did You Know? Default Submission Method",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">If the <code><span class=\"c-tag\">&lt;form&gt;</span></code> element does not specify a <code><span class=\"c-attr\">method</span></code> attribute, the default submission method used by all browsers is **GET**.</p>"
+    },
+    {
+      "id": 613,
+      "type": "quiz",
+      "title": "Quiz: Core Form Structure",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xpPerQ": 10,
+      "quiz": [
+        {
+          "question": "Which &lt;form&gt; attribute specifies the URL for data submission?",
+          "options": [
+            "method",
+            "href",
+            "action",
+            "name"
+          ],
+          "answer": "action"
+        },
+        {
+          "question": "What is required on an input for its value to be sent to the server?",
+          "options": [
+            "An 'id' attribute",
+            "A 'value' attribute",
+            "A 'name' attribute",
+            "The 'type=\"text\"' attribute"
+          ],
+          "answer": "A 'name' attribute"
+        },
+        {
+          "question": "The 'for' attribute on a &lt;label&gt; must match the input's...",
+          "options": [
+            "name",
+            "type",
+            "value",
+            "id"
+          ],
+          "answer": "id"
+        },
+        {
+          "question": "Which HTTP method is best for sensitive data like passwords?",
+          "options": [
+            "GET",
+            "POST",
+            "PUT",
+            "FETCH"
+          ],
+          "answer": "POST"
+        },
+        {
+          "question": "Which attribute prevents an input's value from being edited, but allows its data to be submitted?",
+          "options": [
+            "disabled",
+            "locked",
+            "readonly",
+            "hidden"
+          ],
+          "answer": "readonly"
+        },
+        {
+          "question": "An input with 'type=\"reset\"' does what when clicked?",
+          "options": [
+            "Submits the form",
+            "Clears the form fields",
+            "Runs a JavaScript function",
+            "Reloads the page"
+          ],
+          "answer": "Clears the form fields"
+        },
+        {
+          "question": "Which tag allows nested HTML content (like an icon) inside a submit button?",
+          "options": [
+            "&lt;input&gt;",
+            "&lt;button&gt;",
+            "&lt;submit&gt;",
+            "&lt;span&gt;"
+          ],
+          "answer": "&lt;button&gt;"
+        },
+        {
+          "question": "What is the text inside an empty input field provided by the 'placeholder' attribute called?",
+          "options": [
+            "Default value",
+            "A hint or suggestion",
+            "The required text",
+            "The input label"
+          ],
+          "answer": "A hint or suggestion"
+        },
+        {
+          "question": "Which attribute is used to associate an input that is structurally outside of a &lt;form&gt; tag?",
+          "options": [
+            "target",
+            "form",
+            "link",
+            "parent"
+          ],
+          "answer": "form"
+        },
+        {
+          "question": "What is the default 'method' if none is specified on the &lt;form&gt; tag?",
+          "options": [
+            "POST",
+            "PUT",
+            "GET",
+            "None"
+          ],
+          "answer": "GET"
+        }
+      ]
+    },
+    {
+      "id": 701,
+      "type": "lesson",
+      "title": "7.1 Semantic Input Types (email, tel, url)",
+      "tags": [
+        "Intermediate",
+        "Input Types"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">HTML5 semantic input types provide native validation and optimize the user interface, especially on mobile, by showing a specialized keyboard layout (e.g., the '@' key for email).</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">email</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>\n<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">tel</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 702,
+      "type": "lesson",
+      "title": "7.2 UI Input Types (date, time, datetime-local)",
+      "tags": [
+        "Intermediate",
+        "Input Types"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">These types leverage the native operating system's UI to provide date and time selection widgets, which improves both accessibility and user experience across devices.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">date</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>\n<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">time</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 703,
+      "type": "lesson",
+      "title": "7.3 Range and Color Pickers",
+      "tags": [
+        "Intermediate",
+        "Input Types"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-attr\">type=\"range\"</span></code> creates a slider control, useful for selecting a value within a specified min/max range. <code><span class=\"c-attr\">type=\"color\"</span></code> displays a native color selection widget.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">range</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">min</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">0</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>\n<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">color</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 704,
+      "type": "lesson",
+      "title": "7.4 Number Input (min, max, step)",
+      "tags": [
+        "Intermediate",
+        "Input Types"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-attr\">type=\"number\"</span></code> accepts only numerical input. It can be constrained using the <code><span class=\"c-attr\">min</span></code>, <code><span class=\"c-attr\">max</span></code>, and <code><span class=\"c-attr\">step</span></code> attributes.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">number</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">min</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">1</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">step</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">0.5</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 705,
+      "type": "lesson",
+      "title": "7.5 Checkboxes and Radio Button Grouping",
+      "tags": [
+        "Intermediate",
+        "Input Types"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">**Radio buttons** (<code><span class=\"c-attr\">type=\"radio\"</span></code>) are mutually exclusive and must share the same <code><span class=\"c-attr\">name</span></code>. **Checkboxes** (<code><span class=\"c-attr\">type=\"checkbox\"</span></code>) allow multiple selections.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">radio</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">name</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">choice</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span> Option 1"
+    },
+    {
+      "id": 706,
+      "type": "lesson",
+      "title": "7.6 Multi-line Textarea (&lt;textarea&gt;)",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;textarea&gt;</span></code> element is for large, multi-line text input. Unlike <code><span class=\"c-tag\">&lt;input&gt;</span></code>, it is a container, and its default content is placed between the opening and closing tags.</p>",
+      "sample": "<span class=\"c-tag\">&lt;textarea</span> <span class=\"c-attr\">name</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">comment</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">rows</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">4</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>Default text here.<span class=\"c-tag\">&lt;/textarea&gt;</span>"
+    },
+    {
+      "id": 707,
+      "type": "lesson",
+      "title": "7.7 Hidden Input (type=\"hidden\")",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">A <code><span class=\"c-attr\">type=\"hidden\"</span></code> input is not displayed to the user but is submitted with the form data. It's used for storing metadata, tracking IDs, or security tokens (like CSRF tokens).</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">hidden</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">name</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">token</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">value</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">xyz123</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 708,
+      "type": "lesson",
+      "title": "7.8 The &lt;select&gt; and &lt;option&gt; Tags",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;select&gt;</span></code> element creates a dropdown list. Each selectable item is an <code><span class=\"c-tag\">&lt;option&gt;</span></code>, and the value sent is the option's <code><span class=\"c-attr\">value</span></code> attribute.</p>",
+      "sample": "<span class=\"c-tag\">&lt;select</span> <span class=\"c-attr\">name</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">city</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>\n    <span class=\"c-tag\">&lt;option</span> <span class=\"c-attr\">value</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">lon</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>London<span class=\"c-tag\">&lt;/option&gt;</span>\n<span class=\"c-tag\">&lt;/select&gt;</span>"
+    },
+    {
+      "id": 709,
+      "type": "lesson",
+      "title": "7.9 The 'selected' Attribute in &lt;option&gt;",
+      "tags": [
+        "Intermediate",
+        "Attributes"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The boolean <code><span class=\"c-attr\">selected</span></code> attribute is applied to an <code><span class=\"c-tag\">&lt;option&gt;</span></code> tag to specify the default option that is visible when the page first loads.</p>",
+      "sample": "<span class=\"c-tag\">&lt;option</span> <span class=\"c-attr\">value</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">usd</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">selected</span><span class=\"c-tag\">&gt;</span>USD<span class=\"c-tag\">&lt;/option&gt;</span>"
+    },
+    {
+      "id": 710,
+      "type": "lesson",
+      "title": "7.10 UI Input Types (week, month)",
+      "tags": [
+        "Intermediate",
+        "Input Types"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">These specialized inputs allow for selecting an entire week or month. The submitted value is formatted as ISO 8601 (e.g., '2025-W10' for week, or '2025-03' for March).</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">week</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>\n<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">month</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 711,
+      "type": "fact",
+      "title": "Did You Know? Checkbox Submission",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">An unchecked checkbox is **not** included in the submitted form data. A checked checkbox submits its defined <code><span class=\"c-attr\">name</span></code> and <code><span class=\"c-attr\">value</span></code>, or a default value of 'on' if no <code><span class=\"c-attr\">value</span></code> is specified.</p>"
+    },
+    {
+      "id": 712,
+      "type": "fact",
+      "title": "Did You Know? Cross-Browser Date UI",
+      "tags": [
+        "Intermediate",
+        "Input Types"
+      ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">The visual appearance (UI) of date, time, and color inputs is entirely dependent on the user's operating system and browser. You cannot style these native widgets reliably with CSS.</p>"
+    },
+    {
+      "id": 713,
+      "type": "quiz",
+      "title": "Quiz: Input Types and Values",
+      "tags": [
+        "Intermediate",
+        "Input Types"
+      ],
+      "xpPerQ": 10,
+      "quiz": [
+        {
+          "question": "Which input type is specifically designed to open a calendar widget?",
+          "options": [
+            "type=\"calendar\"",
+            "type=\"datetime\"",
+            "type=\"date\"",
+            "type=\"ui-date\""
+          ],
+          "answer": "type=\"date\""
+        },
+        {
+          "question": "What HTML element is used for large, multi-line text input?",
+          "options": [
+            "&lt;input type=\"text\"&gt;",
+            "&lt;textarea&gt;",
+            "&lt;input type=\"area\"&gt;",
+            "&lt;multitext&gt;"
+          ],
+          "answer": "&lt;textarea&gt;"
+        },
+        {
+          "question": "To make radio buttons mutually exclusive, what must they share?",
+          "options": [
+            "The same 'id' attribute",
+            "The same 'value' attribute",
+            "The same 'name' attribute",
+            "The 'checked' attribute"
+          ],
+          "answer": "The same 'name' attribute"
+        },
+        {
+          "question": "Which attribute on a number input defines the minimum acceptable value?",
+          "options": [
+            "start",
+            "range",
+            "min",
+            "lowest"
+          ],
+          "answer": "min"
+        },
+        {
+          "question": "Which attribute sets the default selected item in a &lt;select&gt; list?",
+          "options": [
+            "default",
+            "checked",
+            "selected",
+            "initial"
+          ],
+          "answer": "selected"
+        },
+        {
+          "question": "What is the primary function of &lt;input type=\"hidden\"&gt;?",
+          "options": [
+            "Security by encryption",
+            "Storing user passwords securely",
+            "Submitting non-visible data",
+            "Providing a masked text field"
+          ],
+          "answer": "Submitting non-visible data"
+        },
+        {
+          "question": "If you want the user to pick a color, which input type should you use?",
+          "options": [
+            "type=\"picker\"",
+            "type=\"select\"",
+            "type=\"range\"",
+            "type=\"color\""
+          ],
+          "answer": "type=\"color\""
+        },
+        {
+          "question": "What is the format for the value submitted by &lt;input type=\"month\"&gt;?",
+          "options": [
+            "MM/YYYY",
+            "YYYY-MM",
+            "Month Name, Year",
+            "Month ID"
+          ],
+          "answer": "YYYY-MM"
+        },
+        {
+          "question": "If an &lt;input type=\"checkbox\"&gt; is unchecked, what happens to its data during submission?",
+          "options": [
+            "It submits 'false'",
+            "It submits a blank string",
+            "It submits 'off'",
+            "It is not submitted at all"
+          ],
+          "answer": "It is not submitted at all"
+        },
+        {
+          "question": "Which input type often triggers the phone keypad on mobile devices?",
+          "options": [
+            "type=\"number\"",
+            "type=\"phone\"",
+            "type=\"tel\"",
+            "type=\"mobile\""
+          ],
+          "answer": "type=\"tel\""
+        }
+      ]
+    },
+    {
+      "id": 801,
+      "type": "lesson",
+      "title": "8.1 Grouping Controls with &lt;fieldset&gt; and &lt;legend&gt;",
+      "tags": [
+        "Intermediate",
+        "Forms",
+        "Accessibility"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;fieldset&gt;</span></code> element groups related form controls. The <code><span class=\"c-tag\">&lt;legend&gt;</span></code> tag provides a caption for the group, significantly improving form organization and accessibility.</p>",
+      "sample": "<span class=\"c-tag\">&lt;fieldset&gt;</span>\n    <span class=\"c-tag\">&lt;legend&gt;</span>Shipping Address<span class=\"c-tag\">&lt;/legend&gt;</span>\n    ...\n<span class=\"c-tag\">&lt;/fieldset&gt;</span>"
+    },
+    {
+      "id": 802,
+      "type": "lesson",
+      "title": "8.2 File Uploads (type=\"file\")",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-attr\">type=\"file\"</span></code> input allows users to select files from their local device for upload. It supports the <code><span class=\"c-attr\">accept</span></code> attribute to filter file types.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">file</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">name</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">document</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 803,
+      "type": "lesson",
+      "title": "8.3 The 'enctype' Attribute for File Uploads",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">To successfully submit a file, the parent <code><span class=\"c-tag\">&lt;form&gt;</span></code> tag must set its <code><span class=\"c-attr\">enctype</span></code> attribute to <code><span class=\"c-string\">multipart/form-data</span></code>. This encoding handles large binary file data.</p>",
+      "sample": "<span class=\"c-tag\">&lt;form</span> <span class=\"c-attr\">method</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">POST</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">enctype</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">multipart/form-data</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>\n    ...\n<span class=\"c-tag\">&lt;/form&gt;</span>"
+    },
+    {
+      "id": 804,
+      "type": "lesson",
+      "title": "8.4 File 'accept' Attribute",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-attr\">accept</span></code> attribute suggests to the browser which file types should be available in the file selection dialog (e.g., <code><span class=\"c-string\">image/*</span></code>, <code><span class=\"c-string\">.pdf</span></code>, or a specific MIME type).</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">file</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">accept</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">.png, .jpg</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 805,
+      "type": "lesson",
+      "title": "8.5 Dropdown Groups (&lt;optgroup&gt;)",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;optgroup&gt;</span></code> element is used within a <code><span class=\"c-tag\">&lt;select&gt;</span></code> to visually and semantically group related options. It requires a <code><span class=\"c-attr\">label</span></code> attribute for the group title.</p>",
+      "sample": "<span class=\"c-tag\">&lt;select&gt;</span>\n    <span class=\"c-tag\">&lt;optgroup</span> <span class=\"c-attr\">label</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">Europe</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>...\n<span class=\"c-tag\">&lt;/select&gt;</span>"
+    },
+    {
+      "id": 806,
+      "type": "lesson",
+      "title": "8.6 Multiple Select Lists ('multiple' attribute)",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">Adding the boolean <code><span class=\"c-attr\">multiple</span></code> attribute to <code><span class=\"c-tag\">&lt;select&gt;</span></code> allows users to select more than one <code><span class=\"c-tag\">&lt;option&gt;</span></code>. This often changes the control's rendering from a dropdown to a scrollable list box.</p>",
+      "sample": "<span class=\"c-tag\">&lt;select</span> <span class=\"c-attr\">name</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">flavors</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">multiple</span><span class=\"c-tag\">&gt;</span>\n    ...\n<span class=\"c-tag\">&lt;/select&gt;</span>"
+    },
+    {
+      "id": 807,
+      "type": "lesson",
+      "title": "8.7 Suggestion Lists (&lt;datalist&gt;)",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 20,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;datalist&gt;</span></code> element provides a list of suggested, editable options for an <code><span class=\"c-tag\">&lt;input&gt;</span></code>. It is linked using the input's <code><span class=\"c-attr\">list</span></code> attribute matching the datalist's <code><span class=\"c-attr\">id</span></code>.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">list</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">terms</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>\n<span class=\"c-tag\">&lt;datalist</span> <span class=\"c-attr\">id</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">terms</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>..."
+    },
+    {
+      "id": 808,
+      "type": "lesson",
+      "title": "8.8 Output Tags (&lt;output&gt;)",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;output&gt;</span></code> element is used to display the result of a calculation, typically performed via client-side JavaScript, from input elements.</p>",
+      "sample": "<span class=\"c-tag\">&lt;output</span> <span class=\"c-attr\">name</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">sum_result</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>0<span class=\"c-tag\">&lt;/output&gt;</span>"
+    },
+    {
+      "id": 809,
+      "type": "lesson",
+      "title": "8.9 The 'target' Attribute in Forms",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-attr\">target</span></code> attribute on the <code><span class=\"c-tag\">&lt;form&gt;</span></code> specifies where to display the response after submission (e.g., <code><span class=\"c-string\">_blank</span></code> opens a new tab, or an iframe name).</p>",
+      "sample": "<span class=\"c-tag\">&lt;form</span> <span class=\"c-attr\">target</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">_blank</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 810,
+      "type": "lesson",
+      "title": "8.10 Disabling &lt;fieldset&gt; Groups",
+      "tags": [
+        "Intermediate",
+        "Forms",
+        "Attributes"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">Applying the <code><span class=\"c-attr\">disabled</span></code> attribute to a <code><span class=\"c-tag\">&lt;fieldset&gt;</span></code> will disable **all** form controls within that group, preventing them from being used or submitted.</p>",
+      "sample": "<span class=\"c-tag\">&lt;fieldset</span> <span class=\"c-attr\">disabled</span><span class=\"c-tag\">&gt;</span>\n    <span class=\"c-tag\">&lt;legend&gt;</span>Disabled Area<span class=\"c-tag\">&lt;/legend&gt;</span>\n    ...\n<span class=\"c-tag\">&lt;/fieldset&gt;</span>"
+    },
+    {
+      "id": 811,
+      "type": "fact",
+      "title": "Did You Know? Server Handles File Deception",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-attr\">accept</span></code> attribute is merely a hint to the browser. A malicious user can still bypass this client-side restriction. You must **always** validate the file type and content on the server side for security.</p>"
+    },
+    {
+      "id": 812,
+      "type": "fact",
+      "title": "Did You Know? Multiple Select Usability",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">When using a <code><span class=\"c-tag\">&lt;select multiple&gt;</span></code> list, users typically select multiple options by holding down the **Ctrl** (Windows) or **Command** (Mac) key while clicking.</p>"
+    },
+    {
+      "id": 813,
+      "type": "quiz",
+      "title": "Quiz: Structural Tags and Files",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xpPerQ": 10,
+      "quiz": [
+        {
+          "question": "Which &lt;form&gt; attribute is mandatory for a file upload to succeed?",
+          "options": [
+            "method=\"GET\"",
+            "enctype=\"text/plain\"",
+            "enctype=\"multipart/form-data\"",
+            "action=\"/upload\""
+          ],
+          "answer": "enctype=\"multipart/form-data\""
+        },
+        {
+          "question": "Which tag provides a caption for a &lt;fieldset&gt;?",
+          "options": [
+            "&lt;caption&gt;",
+            "&lt;figcaption&gt;",
+            "&lt;legend&gt;",
+            "&lt;title&gt;"
+          ],
+          "answer": "&lt;legend&gt;"
+        },
+        {
+          "question": "The 'accept' attribute on a file input does what?",
+          "options": [
+            "Validates the file size",
+            "Encrypts the file before upload",
+            "Suggests allowed file types to the browser",
+            "Checks for viruses"
+          ],
+          "answer": "Suggests allowed file types to the browser"
+        },
+        {
+          "question": "The &lt;datalist&gt; is linked to an &lt;input&gt; using which input attribute?",
+          "options": [
+            "datalist",
+            "source",
+            "list",
+            "id"
+          ],
+          "answer": "list"
+        },
+        {
+          "question": "Which element groups related options in a &lt;select&gt; dropdown?",
+          "options": [
+            "&lt;option-group&gt;",
+            "&lt;selectgroup&gt;",
+            "&lt;optgroup&gt;",
+            "&lt;ul&gt;"
+          ],
+          "answer": "&lt;optgroup&gt;"
+        },
+        {
+          "question": "What is the result when the 'disabled' attribute is placed on a &lt;fieldset&gt;?",
+          "options": [
+            "Only the legend is disabled",
+            "Only the first input is disabled",
+            "All controls in the fieldset are disabled",
+            "The fieldset disappears"
+          ],
+          "answer": "All controls in the fieldset are disabled"
+        },
+        {
+          "question": "The 'target=\"_blank\"' attribute on a &lt;form&gt; makes the submission response load where?",
+          "options": [
+            "The same window/tab",
+            "A new window/tab",
+            "An iframe",
+            "The browser console"
+          ],
+          "answer": "A new window/tab"
+        },
+        {
+          "question": "Which element is used to display the result of a form calculation?",
+          "options": [
+            "&lt;result&gt;",
+            "&lt;output&gt;",
+            "&lt;data&gt;",
+            "&lt;summary&gt;"
+          ],
+          "answer": "&lt;output&gt;"
+        },
+        {
+          "question": "What happens when the 'multiple' attribute is used on a &lt;select&gt; tag?",
+          "options": [
+            "The form can be submitted multiple times",
+            "Multiple values can be submitted for one name",
+            "The user can select multiple options",
+            "B and C"
+          ],
+          "answer": "B and C"
+        },
+        {
+          "question": "Which attribute must an &lt;optgroup&gt; have?",
+          "options": [
+            "name",
+            "id",
+            "label",
+            "value"
+          ],
+          "answer": "label"
+        }
+      ]
+    },
+    {
+      "id": 901,
+      "type": "lesson",
+      "title": "9.1 The 'required' Attribute",
+      "tags": [
+        "Intermediate",
+        "Validation"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">The boolean <code><span class=\"c-attr\">required</span></code> attribute forces the user to provide a value before the form can be submitted. The browser displays a native error message if the field is empty.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">text</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">name</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">username</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">required</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 902,
+      "type": "lesson",
+      "title": "9.2 Constraining Text Length (minlength, maxlength)",
+      "tags": [
+        "Intermediate",
+        "Validation"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-attr\">minlength</span></code> sets the minimum number of characters required for submission, and <code><span class=\"c-attr\">maxlength</span></code> prevents the user from typing beyond a certain character count.</p>",
+      "sample": "<span class=\"c-tag\">&lt;textarea</span> <span class=\"c-attr\">minlength</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">10</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">maxlength</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">500</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span><span class=\"c-tag\">&lt;/textarea&gt;</span>"
+    },
+    {
+      "id": 903,
+      "type": "lesson",
+      "title": "9.3 Input Matching (The 'pattern' Attribute)",
+      "tags": [
+        "Intermediate",
+        "Validation"
+      ],
+      "xp": 20,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-attr\">pattern</span></code> attribute uses a JavaScript-style **Regular Expression (Regex)** to define a format that the input value must match. The form cannot submit if the pattern is violated.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">text</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">pattern</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">[A-Za-z]{3}</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 904,
+      "type": "lesson",
+      "title": "9.4 Custom Feedback with the 'title' Attribute",
+      "tags": [
+        "Intermediate",
+        "Validation"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">When using the <code><span class=\"c-attr\">pattern</span></code> attribute, adding a descriptive <code><span class=\"c-attr\">title</span></code> attribute provides a custom tooltip or message to the user when the validation fails.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">pattern</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">[0-9]{5}</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">title</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">Zip code must be 5 digits</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 905,
+      "type": "lesson",
+      "title": "9.5 Disabling Validation ('novalidate')",
+      "tags": [
+        "Intermediate",
+        "Validation"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The boolean <code><span class=\"c-attr\">novalidate</span></code> attribute on the <code><span class=\"c-tag\">&lt;form&gt;</span></code> tag completely disables all built-in HTML5 client-side validation for that form, allowing submission regardless of field rules.</p>",
+      "sample": "<span class=\"c-tag\">&lt;form</span> <span class=\"c-attr\">novalidate</span> <span class=\"c-tag\">&gt;</span>\n    ...\n<span class=\"c-tag\">&lt;/form&gt;</span>"
+    },
+    {
+      "id": 906,
+      "type": "lesson",
+      "title": "9.6 Number Validation (min, max, step)",
+      "tags": [
+        "Intermediate",
+        "Validation"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">HTML enforces the numerical constraints set by <code><span class=\"c-attr\">min</span></code>, <code><span class=\"c-attr\">max</span></code>, and <code><span class=\"c-attr\">step</span></code>. If the number falls outside the range or doesn't match the step increment, submission is blocked.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">number</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">max</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">100</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 907,
+      "type": "lesson",
+      "title": "9.7 Email and URL Native Validation",
+      "tags": [
+        "Intermediate",
+        "Validation"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">Inputs with <code><span class=\"c-attr\">type=\"email\"</span></code> automatically check for the presence of the '@' symbol and a domain structure. <code><span class=\"c-attr\">type=\"url\"</span></code> checks for protocols like 'http://' or 'https://'.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">url</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">required</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 908,
+      "type": "lesson",
+      "title": "9.8 Validation Pseudoclasses (:valid, :invalid)",
+      "tags": [
+        "Intermediate",
+        "CSS",
+        "Validation"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">CSS provides dynamic pseudoclasses like <code><span class=\"c-css-selector\">:valid</span></code> and <code><span class=\"c-css-selector\">:invalid</span></code>. These can be used to style input fields based on their current validation status (e.g., changing the border color to green or red).</p>",
+      "sample": "<span class=\"c-css-selector\">input:invalid</span> <span class=\"c-css-bracket\">{</span> <span class=\"c-css-property\">border-color</span>: <span class=\"c-css-value\">red</span>; <span class=\"c-css-bracket\">}</span>"
+    },
+    {
+      "id": 909,
+      "type": "lesson",
+      "title": "9.9 The 'formnovalidate' Attribute",
+      "tags": [
+        "Intermediate",
+        "Validation"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The boolean <code><span class=\"c-attr\">formnovalidate</span></code> attribute is placed on a specific submit button. It overrides the form's default validation settings, allowing that specific button to submit the form even if validation fails.</p>",
+      "sample": "<span class=\"c-tag\">&lt;button</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">submit</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">formnovalidate</span><span class=\"c-tag\">&gt;</span>Save Draft<span class=\"c-tag\">&lt;/button&gt;</span>"
+    },
+    {
+      "id": 910,
+      "type": "lesson",
+      "title": "9.10 Checking Validity with JavaScript (checkValidity)",
+      "tags": [
+        "Intermediate",
+        "JavaScript",
+        "Validation"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">In JavaScript, the <code><span class=\"c-js-method\">checkValidity()</span></code> method on an input element returns a boolean indicating whether the element satisfies its HTML5 validation constraints. This is often used before processing data.</p>",
+      "sample": "<span class=\"c-js-variable\">let</span> <span class=\"c-js-variable\">valid</span> = <span class=\"c-js-variable\">document</span>.<span class=\"c-js-method\">getElementById</span>(<span class=\"c-string\">'my-input'</span>).<span class=\"c-js-method\">checkValidity</span>();"
+    },
+    {
+      "id": 911,
+      "type": "fact",
+      "title": "Did You Know? Client vs. Server Validation",
+      "tags": [
+        "Intermediate",
+        "Validation"
+      ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">HTML5 **client-side validation** is only for UX. It can be bypassed by anyone. **Server-side validation** is mandatory for all security, data integrity, and business rule checks, as it is the last line of defense.</p>"
+    },
+    {
+      "id": 912,
+      "type": "fact",
+      "title": "Did You Know? Regex Implies Anchors",
+      "tags": [
+        "Intermediate",
+        "Validation"
+      ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">In the HTML <code><span class=\"c-attr\">pattern</span></code> attribute, the Regular Expression is implicitly anchored to match the entire input string (as if surrounded by <code><span class=\"c-regex\">^</span></code> and <code><span class=\"c-regex\">$</span></code>). You do not need to add these anchor characters yourself.</p>"
+    },
+    {
+      "id": 913,
+      "type": "quiz",
+      "title": "Quiz: Validation and Constraints",
+      "tags": [
+        "Intermediate",
+        "Validation"
+      ],
+      "xpPerQ": 10,
+      "quiz": [
+        {
+          "question": "Which attribute enforces a minimum number of characters on a text input?",
+          "options": [
+            "min",
+            "min-chars",
+            "minlength",
+            "required"
+          ],
+          "answer": "minlength"
+        },
+        {
+          "question": "What attribute is used to define a Regular Expression for an input?",
+          "options": [
+            "regex",
+            "format",
+            "validate",
+            "pattern"
+          ],
+          "answer": "pattern"
+        },
+        {
+          "question": "What happens if a &lt;form&gt; has the 'novalidate' attribute?",
+          "options": [
+            "Only min/max constraints are disabled",
+            "Only JS validation is disabled",
+            "All client-side validation is disabled",
+            "Only the 'required' attribute is disabled"
+          ],
+          "answer": "All client-side validation is disabled"
+        },
+        {
+          "question": "Which CSS pseudoclass allows you to style a field when its value meets all constraints?",
+          "options": [
+            ":valid",
+            ":correct",
+            ":satisfied",
+            ":ready"
+          ],
+          "answer": ":valid"
+        },
+        {
+          "question": "The 'title' attribute primarily provides what when used with 'pattern'?",
+          "options": [
+            "A default value",
+            "An error message/hint on failure",
+            "A label for the input",
+            "A security token"
+          ],
+          "answer": "An error message/hint on failure"
+        },
+        {
+          "question": "Which method is used in JavaScript to programmatically check an input's validity?",
+          "options": [
+            "isValid()",
+            "validate()",
+            "checkConstraints()",
+            "checkValidity()"
+          ],
+          "answer": "checkValidity()"
+        },
+        {
+          "question": "The 'formnovalidate' attribute is typically placed on which element?",
+          "options": [
+            "The &lt;form&gt; tag",
+            "An &lt;input&gt; field",
+            "A submit button",
+            "A &lt;fieldset&gt;"
+          ],
+          "answer": "A submit button"
+        },
+        {
+          "question": "Why is server-side validation considered mandatory?",
+          "options": [
+            "It's faster than client-side validation",
+            "It provides better user feedback",
+            "Client-side validation can be bypassed",
+            "It is required for GET requests"
+          ],
+          "answer": "Client-side validation can be bypassed"
+        },
+        {
+          "question": "What is implicitly added to a 'pattern' attribute's Regex?",
+          "options": [
+            "A global flag",
+            "Start (^) and end ($) anchors",
+            "Case insensitivity",
+            "A step value"
+          ],
+          "answer": "Start (^) and end ($) anchors"
+        },
+        {
+          "question": "What attribute will automatically check if the input contains an '@' symbol and a domain?",
+          "options": [
+            "type=\"text\"",
+            "type=\"validate\"",
+            "type=\"email\"",
+            "type=\"url\""
+          ],
+          "answer": "type=\"email\""
+        }
+      ]
+    },
+    {
+      "id": 1001,
+      "type": "lesson",
+      "title": "10.1 The 'autofocus' Attribute",
+      "tags": [
+        "Intermediate",
+        "UX",
+        "Attributes"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The boolean <code><span class=\"c-attr\">autofocus</span></code> attribute automatically places the cursor in the specified form field when the page loads, improving user experience for primary interaction fields (e.g., a search box).</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">search</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">autofocus</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 1002,
+      "type": "lesson",
+      "title": "10.2 The 'autocomplete' Attribute (on/off)",
+      "tags": [
+        "Intermediate",
+        "UX",
+        "Attributes"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-attr\">autocomplete</span></code> attribute controls whether the browser should provide predictive text suggestions based on user history. It can be set to <code><span class=\"c-string\">on</span></code> or <code><span class=\"c-string\">off</span></code> on the <code><span class=\"c-tag\">&lt;form&gt;</span></code> or individual inputs.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">text</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">autocomplete</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">off</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 1003,
+      "type": "lesson",
+      "title": "10.3 Specific Autocomplete Values (e.g., name, email)",
+      "tags": [
+        "Intermediate",
+        "UX",
+        "Attributes"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">For improved user experience, you can provide specific `autocomplete` tokens (e.g., `current-password`, `cc-number`, `name`) to help the browser and password managers suggest the correct, previously saved information.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">text</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">autocomplete</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">email</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 1004,
+      "type": "lesson",
+      "title": "10.4 The 'multiple' Attribute for Email and File",
+      "tags": [
+        "Intermediate",
+        "Attributes"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The boolean <code><span class=\"c-attr\">multiple</span></code> attribute can be used on <code><span class=\"c-attr\">type=\"email\"</span></code> to allow a comma-separated list of emails, or on <code><span class=\"c-attr\">type=\"file\"</span></code> to allow selecting multiple files at once.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">file</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">multiple</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 1005,
+      "type": "lesson",
+      "title": "10.5 The 'inputmode' Attribute",
+      "tags": [
+        "Intermediate",
+        "UX"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-attr\">inputmode</span></code> attribute is a hint to the browser about the type of data expected, specifically to display the most appropriate virtual keyboard on mobile devices (e.g., <code><span class=\"c-string\">numeric</span></code> for a calculator pad, or <code><span class=\"c-string\">decimal</span></code>).</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">text</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">inputmode</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">numeric</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 1006,
+      "type": "lesson",
+      "title": "10.6 Controlling Tab Order ('tabindex')",
+      "tags": [
+        "Intermediate",
+        "Accessibility"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-attr\">tabindex</span></code> attribute can be used to control the sequential order in which form elements receive focus when the user presses the 'Tab' key. A value of <code><span class=\"c-string\">-1</span></code> removes an element from the tab order.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">tabindex</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">2</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>\n<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">tabindex</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">1</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 1007,
+      "type": "lesson",
+      "title": "10.7 Form Method Overrides (formmethod)",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-attr\">formmethod</span></code> attribute on a submit button overrides the HTTP method (GET/POST) specified on the parent <code><span class=\"c-tag\">&lt;form&gt;</span></code> for that specific submission.</p>",
+      "sample": "<span class=\"c-tag\">&lt;form</span> <span class=\"c-attr\">method</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">POST</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>\n    <span class=\"c-tag\">&lt;button</span> <span class=\"c-attr\">formmethod</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">GET</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>Search<span class=\"c-tag\">&lt;/button&gt;</span>\n<span class=\"c-tag\">&lt;/form&gt;</span>"
+    },
+    {
+      "id": 1008,
+      "type": "lesson",
+      "title": "10.8 Overriding Form Action (formaction)",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">Similar to <code><span class=\"c-attr\">formmethod</span></code>, the <code><span class=\"c-attr\">formaction</span></code> attribute on a submit button overrides the form's <code><span class=\"c-attr\">action</span></code> URL, allowing one form to submit data to multiple different endpoints.</p>",
+      "sample": "<span class=\"c-tag\">&lt;button</span> <span class=\"c-attr\">formaction</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">/save-draft</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>Draft<span class=\"c-tag\">&lt;/button&gt;</span>"
+    },
+    {
+      "id": 1009,
+      "type": "lesson",
+      "title": "10.9 Using Hidden Inputs for Security Tokens",
+      "tags": [
+        "Intermediate",
+        "Security"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">A common security practice is to embed a non-visible Cross-Site Request Forgery (CSRF) token inside a <code><span class=\"c-attr\">type=\"hidden\"</span></code> input to protect against unauthorized malicious form submissions.</p>",
+      "sample": "<span class=\"c-tag\">&lt;input</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">hidden</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">name</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">csrf_token</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 1010,
+      "type": "lesson",
+      "title": "10.10 The 'formtarget' Attribute",
+      "tags": [
+        "Intermediate",
+        "Forms"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-attr\">formtarget</span></code> attribute on a submit button overrides the form's <code><span class=\"c-attr\">target</span></code> attribute, allowing one button to submit the form response to a new window while another submits to the current one.</p>",
+      "sample": "<span class=\"c-tag\">&lt;button</span> <span class=\"c-attr\">formtarget</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">_blank</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>Preview in New Tab<span class=\"c-tag\">&lt;/button&gt;</span>"
+    },
+    {
+      "id": 1011,
+      "type": "fact",
+      "title": "Did You Know? Autofill Heuristics",
+      "tags": [
+        "Intermediate",
+        "UX"
+      ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">Some browsers/password managers ignore <code><span class=\"c-attr\">autocomplete=\"off\"</span></code> on password fields because users prefer having their credentials saved. To truly prevent autofill, you must use complex or dummy values for the <code><span class=\"c-attr\">name</span></code> and <code><span class=\"c-attr\">id</span></code> attributes.</p>"
+    },
+    {
+      "id": 1012,
+      "type": "fact",
+      "title": "Did You Know? Multiple Autofocus",
+      "tags": [
+        "Intermediate",
+        "UX"
+      ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">Only one form element can have the <code><span class=\"c-attr\">autofocus</span></code> attribute per page. If multiple elements have it, the browser will ignore all but the last one encountered in the document's structure.</p>"
+    },
+    {
+      "id": 1013,
+      "type": "quiz",
+      "title": "Quiz: Advanced UX and Security",
+      "tags": [
+        "Intermediate",
+        "UX"
+      ],
+      "xpPerQ": 10,
+      "quiz": [
+        {
+          "question": "Which attribute automatically sets the cursor focus when the page loads?",
+          "options": [
+            "active",
+            "focus",
+            "autofocus",
+            "tabindex"
+          ],
+          "answer": "autofocus"
+        },
+        {
+          "question": "The 'autocomplete' attribute is used to primarily aid which feature?",
+          "options": [
+            "Client-side validation",
+            "JavaScript events",
+            "Browser history and suggestions",
+            "Server-side processing"
+          ],
+          "answer": "Browser history and suggestions"
+        },
+        {
+          "question": "Which specific 'autocomplete' value is recommended for a credit card number?",
+          "options": [
+            "number",
+            "cc-number",
+            "credit-card",
+            "payment-info"
+          ],
+          "answer": "cc-number"
+        },
+        {
+          "question": "The 'multiple' attribute can be used on which of the following input types?",
+          "options": [
+            "type=\"text\"",
+            "type=\"number\"",
+            "type=\"file\"",
+            "type=\"password\""
+          ],
+          "answer": "type=\"file\""
+        },
+        {
+          "question": "Which attribute on a submit button overrides the form's submission URL?",
+          "options": [
+            "formtarget",
+            "formmethod",
+            "formaction",
+            "action"
+          ],
+          "answer": "formaction"
+        },
+        {
+          "question": "Which 'inputmode' value is best suited for an input expecting a telephone number?",
+          "options": [
+            "text",
+            "numeric",
+            "decimal",
+            "tel"
+          ],
+          "answer": "numeric"
+        },
+        {
+          "question": "What is the primary purpose of a CSRF token in a hidden input?",
+          "options": [
+            "To encrypt the data",
+            "To track the user location",
+            "To prevent cross-site request forgery attacks",
+            "To speed up form submission"
+          ],
+          "answer": "To prevent cross-site request forgery attacks"
+        },
+        {
+          "question": "A 'tabindex' value of -1 does what to an element?",
+          "options": [
+            "Makes it the first in tab order",
+            "Hides it from view",
+            "Removes it from the sequential tab order",
+            "Disables it"
+          ],
+          "answer": "Removes it from the sequential tab order"
+        },
+        {
+          "question": "Which attribute on a submit button overrides the form's target window?",
+          "options": [
+            "target",
+            "formtarget",
+            "formaction",
+            "formmethod"
+          ],
+          "answer": "formtarget"
+        },
+        {
+          "question": "Which specific autocomplete value hints to the browser that this is the user's full name?",
+          "options": [
+            "user",
+            "name",
+            "full-name",
+            "text"
+          ],
+          "answer": "name"
+        }
+      ]
+    },
+    {
+      "id": 1101,
+      "type": "lesson",
+      "title": "11.1 The &lt;details&gt; and &lt;summary&gt; Tags",
+      "tags": [
+        "Advanced",
+        "Structure"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;details&gt;</span></code> element creates a disclosure widget from which information can be retrieved. The <code><span class=\"c-tag\">&lt;summary&gt;</span></code> element provides the visible heading for the widget.</p>",
+      "sample": "<span class=\"c-tag\">&lt;details&gt;</span>\n    <span class=\"c-tag\">&lt;summary&gt;</span>Click to see FAQ<span class=\"c-tag\">&lt;/summary&gt;</span>\n    <span class=\"c-tag\">&lt;p&gt;</span>The answer is here.<span class=\"c-tag\">&lt;/p&gt;</span>\n<span class=\"c-tag\">&lt;/details&gt;</span>"
+    },
+    {
+      "id": 1102,
+      "type": "lesson",
+      "title": "11.2 The 'open' Attribute in &lt;details&gt;",
+      "tags": [
+        "Advanced",
+        "Structure"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The boolean <code><span class=\"c-attr\">open</span></code> attribute on the <code><span class=\"c-tag\">&lt;details&gt;</span></code> element determines the default state. If present, the content is visible when the page loads; otherwise, it is collapsed.</p>",
+      "sample": "<span class=\"c-tag\">&lt;details</span> <span class=\"c-attr\">open</span><span class=\"c-tag\">&gt;</span>\n    <span class=\"c-tag\">&lt;summary&gt;</span>Initial View<span class=\"c-tag\">&lt;/summary&gt;</span>\n    ...\n<span class=\"c-tag\">&lt;/details&gt;</span>"
+    },
+    {
+      "id": 1103,
+      "type": "lesson",
+      "title": "11.3 Meter and Progress Bars (&lt;meter&gt;, &lt;progress&gt;)",
+      "tags": [
+        "Advanced",
+        "UI"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;meter&gt;</span></code> element represents a scalar measurement within a known range (e.g., disk usage). The <code><span class=\"c-tag\">&lt;progress&gt;</span></code> element represents the completion status of a task.</p>",
+      "sample": "<span class=\"c-tag\">&lt;meter</span> <span class=\"c-attr\">min</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">0</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">max</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">100</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">value</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">75</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span><span class=\"c-tag\">&lt;/meter&gt;</span>\n<span class=\"c-tag\">&lt;progress</span> <span class=\"c-attr\">value</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">50</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">max</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">100</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span><span class=\"c-tag\">&lt;/progress&gt;</span>"
+    },
+    {
+      "id": 1104,
+      "type": "lesson",
+      "title": "11.4 &lt;meter&gt; Attributes (low, high, optimum)",
+      "tags": [
+        "Advanced",
+        "UI"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;meter&gt;</span></code> tag uses <code><span class=\"c-attr\">low</span></code>, <code><span class=\"c-attr\">high</span></code>, and <code><span class=\"c-attr\">optimum</span></code> to visually categorize its current value, often affecting the color of the bar (e.g., yellow for low/high, green for optimum).</p>",
+      "sample": "<span class=\"c-tag\">&lt;meter</span> <span class=\"c-attr\">value</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">90</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">high</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">80</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">optimum</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">50</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span><span class=\"c-tag\">&lt;/meter&gt;</span>"
+    },
+    {
+      "id": 1105,
+      "type": "lesson",
+      "title": "11.5 The &lt;template&gt; Tag (Client-Side Content)",
+      "tags": [
+        "Advanced",
+        "Structure"
+      ],
+      "xp": 20,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;template&gt;</span></code> element is a container for HTML content that is held client-side but is **not rendered** when the page loads. It is used as a reusable content fragment, typically manipulated and inserted into the DOM using JavaScript.</p>",
+      "sample": "<span class=\"c-tag\">&lt;template</span> <span class=\"c-attr\">id</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">user-card</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>\n    <span class=\"c-tag\">&lt;div</span> <span class=\"c-attr\">class</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">card</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>...<span class=\"c-tag\">&lt;/div&gt;</span>\n<span class=\"c-tag\">&lt;/template&gt;</span>"
+    },
+    {
+      "id": 1106,
+      "type": "lesson",
+      "title": "11.6 The &lt;slot&gt; Tag (Web Components)",
+      "tags": [
+        "Advanced",
+        "Web Components"
+      ],
+      "xp": 25,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;slot&gt;</span></code> element is a placeholder within a web component's Shadow DOM. It defines where user-provided content should be injected into the component's internal structure.</p>",
+      "sample": "<span class=\"c-tag\">&lt;custom-card&gt;</span>\n    <span class=\"c-tag\">&lt;h3</span> <span class=\"c-attr\">slot</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">header</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>Custom Title<span class=\"c-tag\">&lt;/h3&gt;</span>\n<span class=\"c-tag\">&lt;/custom-card&gt;</span>"
+    },
+    {
+      "id": 1107,
+      "type": "lesson",
+      "title": "11.7 The &lt;canvas&gt; Tag (2D/3D Graphics)",
+      "tags": [
+        "Advanced",
+        "Graphics"
+      ],
+      "xp": 20,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;canvas&gt;</span></code> element provides a drawing surface for rendering 2D shapes, complex charts, or 3D graphics (using WebGL). All drawing operations must be done via JavaScript.</p>",
+      "sample": "<span class=\"c-tag\">&lt;canvas</span> <span class=\"c-attr\">id</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">myCanvas</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">width</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">400</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">height</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">200</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>\n    Fallback text.\n<span class=\"c-tag\">&lt;/canvas&gt;</span>"
+    },
+    {
+      "id": 1108,
+      "type": "lesson",
+      "title": "11.8 The &lt;mark&gt; Tag (Highlighting)",
+      "tags": [
+        "Advanced",
+        "Text"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;mark&gt;</span></code> element is used to highlight or mark text that is of particular relevance in the context of a surrounding passage (e.g., search results).</p>",
+      "sample": "The search term <span class=\"c-tag\">&lt;mark&gt;</span>HTML<span class=\"c-tag\">&lt;/mark&gt;</span> was found on this page."
+    },
+    {
+      "id": 1109,
+      "type": "lesson",
+      "title": "11.9 The &lt;small&gt; Tag (Side Comments)",
+      "tags": [
+        "Advanced",
+        "Text"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;small&gt;</span></code> element represents side comments, fine print, copyright, or legal notices. It is purely semantic and does not imply a reduction in font size for visual style.</p>",
+      "sample": "<span class=\"c-tag\">&lt;p&gt;</span>Product details.<span class=\"c-tag\">&lt;small&gt;</span>Pricing subject to change.<span class=\"c-tag\">&lt;/small&gt;</span><span class=\"c-tag\">&lt;/p&gt;</span>"
+    },
+    {
+      "id": 1110,
+      "type": "lesson",
+      "title": "11.10 The &lt;wbr&gt; Tag (Word Break Opportunity)",
+      "tags": [
+        "Advanced",
+        "Text"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;wbr&gt;</span></code> (Word Break Opportunity) element suggests a position within text where the browser may optionally break a line if the original word is too long to prevent overflow.</p>",
+      "sample": "supercalifragilisticexpiali<span class=\"c-tag\">&lt;wbr&gt;</span>docious"
+    },
+    {
+      "id": 1111,
+      "type": "fact",
+      "title": "Did You Know? &lt;canvas&gt; Fallback",
+      "tags": [
+        "Advanced",
+        "Graphics"
+      ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">The content placed between the opening and closing <code><span class=\"c-tag\">&lt;canvas&gt;</span></code> tags is fallback content. It is displayed only if the user's browser does not support the Canvas API.</p>"
+    },
+    {
+      "id": 1112,
+      "type": "fact",
+      "title": "Did You Know? &lt;details&gt; Animation",
+      "tags": [
+        "Advanced",
+        "Structure"
+      ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">The opening and closing of the native <code><span class=\"c-tag\">&lt;details&gt;</span></code> element is usually not animated. Achieving a smooth sliding animation requires the use of JavaScript or complex CSS animation techniques.</p>"
+    },
+    {
+      "id": 1113,
+      "type": "quiz",
+      "title": "Quiz: Modern and Advanced Tags",
+      "tags": [
+        "Advanced",
+        "Structure"
+      ],
+      "xpPerQ": 10,
+      "quiz": [
+        {
+          "question": "Which tag provides the visible title for a &lt;details&gt; disclosure widget?",
+          "options": [
+            "&lt;summary&gt;",
+            "&lt;caption&gt;",
+            "&lt;legend&gt;",
+            "&lt;title&gt;"
+          ],
+          "answer": "&lt;summary&gt;"
+        },
+        {
+          "question": "Which element is used to display the completion status of a task?",
+          "options": [
+            "&lt;meter&gt;",
+            "&lt;status&gt;",
+            "&lt;gauge&gt;",
+            "&lt;progress&gt;"
+          ],
+          "answer": "&lt;progress&gt;"
+        },
+        {
+          "question": "The &lt;template&gt; content is primarily designed to be rendered using which technology?",
+          "options": [
+            "CSS",
+            "JavaScript",
+            "Server-Side PHP",
+            "Inline Styles"
+          ],
+          "answer": "JavaScript"
+        },
+        {
+          "question": "What is the primary function of the &lt;mark&gt; tag?",
+          "options": [
+            "To bold text",
+            "To highlight relevant text",
+            "To add a custom icon",
+            "To reduce font size"
+          ],
+          "answer": "To highlight relevant text"
+        },
+        {
+          "question": "What attribute determines if a &lt;details&gt; element is open by default?",
+          "options": [
+            "default",
+            "open",
+            "visible",
+            "state"
+          ],
+          "answer": "open"
+        },
+        {
+          "question": "Which tag acts as a placeholder for external content inside a web component?",
+          "options": [
+            "&lt;placeholder&gt;",
+            "&lt;template&gt;",
+            "&lt;slot&gt;",
+            "&lt;import&gt;"
+          ],
+          "answer": "&lt;slot&gt;"
+        },
+        {
+          "question": "Which tag represents a scalar measurement within a known range?",
+          "options": [
+            "&lt;progress&gt;",
+            "&lt;meter&gt;",
+            "&lt;range&gt;",
+            "&lt;scalar&gt;"
+          ],
+          "answer": "&lt;meter&gt;"
+        },
+        {
+          "question": "All drawing operations on a &lt;canvas&gt; element are performed using what?",
+          "options": [
+            "CSS 3D transforms",
+            "WebAssembly",
+            "JavaScript API",
+            "SVG"
+          ],
+          "answer": "JavaScript API"
+        },
+        {
+          "question": "The &lt;small&gt; tag is primarily used for what type of content?",
+          "options": [
+            "Headings",
+            "Copyright/fine print",
+            "Image captions",
+            "Main paragraphs"
+          ],
+          "answer": "Copyright/fine print"
+        },
+        {
+          "question": "What does the &lt;wbr&gt; tag suggest to the browser?",
+          "options": [
+            "A mandatory line break",
+            "A word break opportunity",
+            "A text wrap boundary",
+            "An element to hide"
+          ],
+          "answer": "A word break opportunity"
+        }
+      ]
+    },
+    {
+      "id": 1201,
+      "type": "lesson",
+      "title": "12.1 Custom Data Attributes (data-*)",
+      "tags": [
+        "Advanced",
+        "JavaScript"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">Custom data attributes (prefixed with <code><span class=\"c-attr\">data-</span></code>) allow you to embed custom, non-visible data into HTML elements. This data can be easily accessed and manipulated using JavaScript (via the <code><span class=\"c-js-object\">dataset</span></code> property).</p>",
+      "sample": "<span class=\"c-tag\">&lt;div</span> <span class=\"c-attr\">data-user-id</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">459</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">data-is-active</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">true</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>User Info<span class=\"c-tag\">&lt;/div&gt;</span>"
+    },
+    {
+      "id": 1202,
+      "type": "lesson",
+      "title": "12.2 Accessing Data Attributes in JavaScript",
+      "tags": [
+        "Advanced",
+        "JavaScript"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">In JavaScript, data attributes are accessed using the <code><span class=\"c-js-object\">dataset</span></code> property, which converts dash-separated names (e.g., <code><span class=\"c-attr\">data-user-id</span></code>) to camelCase properties (e.g., <code><span class=\"c-js-property\">dataset.userId</span></code>).</p>",
+      "sample": "<span class=\"c-js-variable\">let</span> <span class=\"c-js-variable\">el</span> = <span class=\"c-js-method\">getElementById</span>(<span class=\"c-string\">'id'</span>);\n<span class=\"c-js-variable\">let</span> <span class=\"c-js-variable\">id</span> = <span class=\"c-js-variable\">el</span>.<span class=\"c-js-object\">dataset</span>.<span class=\"c-js-property\">userId</span>;"
+    },
+    {
+      "id": 1203,
+      "type": "lesson",
+      "title": "12.3 Styling with Data Attributes in CSS",
+      "tags": [
+        "Advanced",
+        "CSS"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">You can use CSS attribute selectors to style elements based on the presence or value of a data attribute (e.g., <code><span class=\"c-css-selector\">[data-is-active=\"true\"]</span></code>). This is a powerful technique for styling state.</p>",
+      "sample": "<span class=\"c-css-selector\">[data-is-active=\"true\"]</span> <span class=\"c-css-bracket\">{</span> <span class=\"c-css-property\">border</span>: <span class=\"c-css-value\">2px solid green</span>; <span class=\"c-css-bracket\">}</span>"
+    },
+    {
+      "id": 1204,
+      "type": "lesson",
+      "title": "12.4 The &lt;time&gt; Tag",
+      "tags": [
+        "Advanced",
+        "Semantic"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;time&gt;</span></code> element is a semantic way to represent dates, times, or durations. The machine-readable version is provided by the <code><span class=\"c-attr\">datetime</span></code> attribute, which improves SEO and accessibility.</p>",
+      "sample": "<span class=\"c-tag\">&lt;time</span> <span class=\"c-attr\">datetime</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">2025-05-15</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>May 15th<span class=\"c-tag\">&lt;/time&gt;</span>"
+    },
+    {
+      "id": 1205,
+      "type": "lesson",
+      "title": "12.5 The &lt;figcaption&gt; Tag",
+      "tags": [
+        "Advanced",
+        "Semantic"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;figcaption&gt;</span></code> tag provides a caption or legend for the content of its parent <code><span class=\"c-tag\">&lt;figure&gt;</span></code> element, commonly used for images, diagrams, or code blocks.</p>",
+      "sample": "<span class=\"c-tag\">&lt;figure&gt;</span>\n    <span class=\"c-tag\">&lt;img</span> <span class=\"c-attr\">src</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">chart.png</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>\n    <span class=\"c-tag\">&lt;figcaption&gt;</span>Sales trends, 2024.<span class=\"c-tag\">&lt;/figcaption&gt;</span>\n<span class=\"c-tag\">&lt;/figure&gt;</span>"
+    },
+    {
+      "id": 1206,
+      "type": "lesson",
+      "title": "12.6 The &lt;abbr&gt; Tag and 'title' Attribute",
+      "tags": [
+        "Advanced",
+        "Semantic"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;abbr&gt;</span></code> element is used to mark up an abbreviation or acronym. The full expansion of the abbreviation is provided in the <code><span class=\"c-attr\">title</span></code> attribute, which appears as a tooltip on hover.</p>",
+      "sample": "<span class=\"c-tag\">&lt;abbr</span> <span class=\"c-attr\">title</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">World Wide Web</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>WWW<span class=\"c-tag\">&lt;/abbr&gt;</span>"
+    },
+    {
+      "id": 1207,
+      "type": "lesson",
+      "title": "12.7 &lt;iframe&gt; for Embedded Content",
+      "tags": [
+        "Advanced",
+        "Embedding"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;iframe&gt;</span></code> (Inline Frame) element is used to embed another HTML document (from the same or a different domain) within the current document. It's commonly used for embedding maps, videos, or third-party widgets.</p>",
+      "sample": "<span class=\"c-tag\">&lt;iframe</span> <span class=\"c-attr\">src</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">/external-page.html</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">width</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">600</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">height</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">400</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span><span class=\"c-tag\">&lt;/iframe&gt;</span>"
+    },
+    {
+      "id": 1208,
+      "type": "lesson",
+      "title": "12.8 &lt;iframe&gt; Security (sandbox attribute)",
+      "tags": [
+        "Advanced",
+        "Security"
+      ],
+      "xp": 25,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-attr\">sandbox</span></code> attribute on an <code><span class=\"c-tag\">&lt;iframe&gt;</span></code> applies severe security restrictions (like preventing script execution) to the embedded content, especially useful when embedding untrusted third-party content.</p>",
+      "sample": "<span class=\"c-tag\">&lt;iframe</span> <span class=\"c-attr\">src</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">untrusted-ad.html</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">sandbox</span><span class=\"c-tag\">&gt;</span><span class=\"c-tag\">&lt;/iframe&gt;</span>"
+    },
+    {
+      "id": 1209,
+      "type": "lesson",
+      "title": "12.9 The 'loading' Attribute for Images",
+      "tags": [
+        "Advanced",
+        "Performance"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-attr\">loading=\"lazy\"</span></code> attribute on <code><span class=\"c-tag\">&lt;img&gt;</span></code> and <code><span class=\"c-tag\">&lt;iframe&gt;</span></code> tells the browser to defer loading the resource until it is near the viewport, significantly improving initial page load performance.</p>",
+      "sample": "<span class=\"c-tag\">&lt;img</span> <span class=\"c-attr\">src</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">footer-logo.png</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">loading</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">lazy</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>"
+    },
+    {
+      "id": 1210,
+      "type": "lesson",
+      "title": "12.10 The 'translate' Attribute",
+      "tags": [
+        "Advanced",
+        "Accessibility"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-attr\">translate=\"no\"</span></code> attribute is a hint to translation systems (like Google Translate) to prevent them from altering the content, which is crucial for code snippets, brand names, or specific jargon.</p>",
+      "sample": "<span class=\"c-tag\">&lt;code</span> <span class=\"c-attr\">translate</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">no</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>data-attr-name<span class=\"c-tag\">&lt;/code&gt;</span>"
+    },
+    {
+      "id": 1211,
+      "type": "fact",
+      "title": "Did You Know? The &lt;bdi&gt; Tag",
+      "tags": [
+        "Advanced",
+        "Accessibility"
+      ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;bdi&gt;</span></code> (Bi-Directional Isolation) element is used to specify a portion of text that should be isolated from its surrounding text for the purposes of bi-directional text formatting (e.g., mixing Arabic or Hebrew with English).</p>"
+    },
+    {
+      "id": 1212,
+      "type": "fact",
+      "title": "Did You Know? Data Attribute Performance",
+      "tags": [
+        "Advanced",
+        "Performance"
+      ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">While useful, avoid storing large chunks of data (like entire JSON objects) in <code><span class=\"c-attr\">data-</span></code> attributes. This adds to the size of the DOM, increasing memory consumption and slowing down processing, especially on mobile devices.</p>"
+    },
+    {
+      "id": 1213,
+      "type": "quiz",
+      "title": "Quiz: Advanced Attributes and Embedding",
+      "tags": [
+        "Advanced",
+        "JavaScript"
+      ],
+      "xpPerQ": 10,
+      "quiz": [
+        {
+          "question": "Custom data attributes must start with which prefix?",
+          "options": [
+            "custom-",
+            "data-",
+            "js-",
+            "attr-"
+          ],
+          "answer": "data-"
+        },
+        {
+          "question": "Which attribute on an &lt;img&gt; tag defers loading until the image is near the viewport?",
+          "options": [
+            "defer",
+            "async",
+            "loading=\"lazy\"",
+            "prefetch"
+          ],
+          "answer": "loading=\"lazy\""
+        },
+        {
+          "question": "In JavaScript, how do you access the 'data-user-id' attribute?",
+          "options": [
+            "element.data.userId",
+            "element.dataset.userId",
+            "element.getAttribute('user-id')",
+            "element.dataUserId"
+          ],
+          "answer": "element.dataset.userId"
+        },
+        {
+          "question": "The 'sandbox' attribute is primarily used on an &lt;iframe&gt; for what purpose?",
+          "options": [
+            "To speed up loading",
+            "To remove scrollbars",
+            "To apply security restrictions",
+            "To enable third-party scripts"
+          ],
+          "answer": "To apply security restrictions"
+        },
+        {
+          "question": "What is the purpose of the 'datetime' attribute in a &lt;time&gt; tag?",
+          "options": [
+            "To display the time to the user",
+            "To format the time visually with CSS",
+            "To provide a machine-readable date/time",
+            "To automatically update the content"
+          ],
+          "answer": "To provide a machine-readable date/time"
+        },
+        {
+          "question": "Which tag provides a caption for content inside a &lt;figure&gt;?",
+          "options": [
+            "&lt;legend&gt;",
+            "&lt;caption&gt;",
+            "&lt;figcaption&gt;",
+            "&lt;small&gt;"
+          ],
+          "answer": "&lt;figcaption&gt;"
+        },
+        {
+          "question": "What attribute prevents content from being translated by automated systems?",
+          "options": [
+            "notranslate",
+            "lang=\"en\"",
+            "translate=\"no\"",
+            "not-machine"
+          ],
+          "answer": "translate=\"no\""
+        },
+        {
+          "question": "Which tag is used to embed another HTML document within the current one?",
+          "options": [
+            "&lt;embed&gt;",
+            "&lt;source&gt;",
+            "&lt;frame&gt;",
+            "&lt;iframe&gt;"
+          ],
+          "answer": "&lt;iframe&gt;"
+        },
+        {
+          "question": "The full expansion of an abbreviation in an &lt;abbr&gt; tag is provided in which attribute?",
+          "options": [
+            "value",
+            "name",
+            "fulltext",
+            "title"
+          ],
+          "answer": "title"
+        },
+        {
+          "question": "CSS attribute selectors can style elements based on data attributes. This is best for styling what?",
+          "options": [
+            "Form validation",
+            "Component state",
+            "Font size",
+            "Background images"
+          ],
+          "answer": "Component state"
+        }
+      ]
+    },
+    {
+      "id": 1301,
+      "type": "lesson",
+      "title": "13.1 The &lt;dialog&gt; Element (Modal Popups)",
+      "tags": [
+        "Advanced",
+        "UI"
+      ],
+      "xp": 20,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;dialog&gt;</span></code> element provides a native, semantic way to create modal dialogs or popups. It is hidden by default and is typically controlled using JavaScript methods like <code><span class=\"c-js-method\">showModal()</span></code>.</p>",
+      "sample": "<span class=\"c-tag\">&lt;dialog</span> <span class=\"c-attr\">id</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">my-dialog</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>\n    <span class=\"c-tag\">&lt;p&gt;</span>This is the modal content.<span class=\"c-tag\">&lt;/p&gt;</span>\n<span class=\"c-tag\">&lt;/dialog&gt;</span>"
+    },
+    {
+      "id": 1302,
+      "type": "lesson",
+      "title": "13.2 Controlling &lt;dialog&gt; with JavaScript",
+      "tags": [
+        "Advanced",
+        "JavaScript"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;dialog&gt;</span></code> has three key methods: <code><span class=\"c-js-method\">show()</span></code> (non-modal, does not block interaction), <code><span class=\"c-js-method\">showModal()</span></code> (modal, blocks interaction), and <code><span class=\"c-js-method\">close()</span></code>.</p>",
+      "sample": "<span class=\"c-js-variable\">document</span>.<span class=\"c-js-method\">getElementById</span>(<span class=\"c-string\">'my-dialog'</span>).<span class=\"c-js-method\">showModal</span>();"
+    },
+    {
+      "id": 1303,
+      "type": "lesson",
+      "title": "13.3 Submitting a &lt;dialog&gt; with a Form",
+      "tags": [
+        "Advanced",
+        "Forms"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">When a form within a <code><span class=\"c-tag\">&lt;dialog&gt;</span></code> uses a button with <code><span class=\"c-attr\">method=\"dialog\"</span></code>, the dialog closes upon submission without submitting the form data to the server. The button's <code><span class=\"c-attr\">value</span></code> is set as the dialog's <code><span class=\"c-js-property\">returnValue</span></code>.</p>",
+      "sample": "<span class=\"c-tag\">&lt;button</span> <span class=\"c-attr\">value</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">cancel</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">formmethod</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">dialog</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>Cancel<span class=\"c-tag\">&lt;/button&gt;</span>"
+    },
+    {
+      "id": 1304,
+      "type": "lesson",
+      "title": "13.4 The ::backdrop Pseudoelement",
+      "tags": [
+        "Advanced",
+        "CSS"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">When <code><span class=\"c-js-method\">showModal()</span></code> is used, the browser creates a semi-transparent layer over the rest of the page. This layer can be styled using the <code><span class=\"c-css-selector\">::backdrop</span></code> pseudoelement.</p>",
+      "sample": "<span class=\"c-css-selector\">dialog::backdrop</span> <span class=\"c-css-bracket\">{</span> <span class=\"c-css-property\">background-color</span>: <span class=\"c-css-value\">rgba(0, 0, 0, 0.75)</span>; <span class=\"c-css-bracket\">}</span>"
+    },
+    {
+      "id": 1305,
+      "type": "lesson",
+      "title": "13.5 Client-Side Storage: localStorage",
+      "tags": [
+        "Advanced",
+        "API"
+      ],
+      "xp": 20,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-js-object\">localStorage</span></code> API allows web applications to store up to 5MB of key/value pairs locally in the user's browser, persisting across sessions. It only stores strings.</p>",
+      "sample": "<span class=\"c-js-object\">localStorage</span>.<span class=\"c-js-method\">setItem</span>(<span class=\"c-string\">'theme'</span>, <span class=\"c-string\">'dark'</span>);\n<span class=\"c-js-variable\">let</span> <span class=\"c-js-variable\">theme</span> = <span class=\"c-js-object\">localStorage</span>.<span class=\"c-js-method\">getItem</span>(<span class=\"c-string\">'theme'</span>);"
+    },
+    {
+      "id": 1306,
+      "type": "lesson",
+      "title": "13.6 Client-Side Storage: sessionStorage",
+      "tags": [
+        "Advanced",
+        "API"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-js-object\">sessionStorage</span></code> API is similar to <code><span class=\"c-js-object\">localStorage</span></code> but only persists for the duration of the current session (i.e., until the tab or window is closed). It's ideal for temporary data like user preferences or cart contents.</p>",
+      "sample": "<span class=\"c-js-object\">sessionStorage</span>.<span class=\"c-js-method\">setItem</span>(<span class=\"c-string\">'cart-id'</span>, <span class=\"c-string\">'109'</span>);\n<span class=\"c-js-method\">sessionStorage</span>.<span class=\"c-js-method\">removeItem</span>(<span class=\"c-string\">'cart-id'</span>);"
+    },
+    {
+      "id": 1307,
+      "type": "lesson",
+      "title": "13.7 The &lt;picture&gt; Tag (Responsive Images)",
+      "tags": [
+        "Advanced",
+        "Responsive"
+      ],
+      "xp": 20,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;picture&gt;</span></code> element is used to provide multiple sources (using <code><span class=\"c-tag\">&lt;source&gt;</span></code> tags) for an image, allowing the browser to select the most appropriate one based on screen size (<code><span class=\"c-attr\">media</span></code> query) or device resolution.</p>",
+      "sample": "<span class=\"c-tag\">&lt;picture&gt;</span>\n    <span class=\"c-tag\">&lt;source</span> <span class=\"c-attr\">media</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">(min-width: 600px)</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">srcset</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">large.jpg</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>\n    <span class=\"c-tag\">&lt;img</span> <span class=\"c-attr\">src</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">small.jpg</span><span class=\"c-operator\">\"</span> <span class=\"c-tag\">/&gt;</span>\n<span class=\"c-tag\">&lt;/picture&gt;</span>"
+    },
+    {
+      "id": 1308,
+      "type": "lesson",
+      "title": "13.8 &lt;source&gt; 'type' Attribute for Formats",
+      "tags": [
+        "Advanced",
+        "Performance"
+      ],
+      "xp": 15,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;source&gt;</span></code> tag within <code><span class=\"c-tag\">&lt;picture&gt;</span></code> can use the <code><span class=\"c-attr\">type</span></code> attribute to provide different image formats (e.g., modern WebP vs. traditional JPEG), allowing the browser to use the most efficient format it supports.</p>",
+      "sample": "<span class=\"c-tag\">&lt;source</span> <span class=\"c-attr\">type</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">image/webp</span><span class=\"c-operator\">\"</span> <span class=\"c-attr\">srcset</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">img.webp</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>"
+    },
+    {
+      "id": 1309,
+      "type": "lesson",
+      "title": "13.9 The &lt;address&gt; Tag",
+      "tags": [
+        "Advanced",
+        "Semantic"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;address&gt;</span></code> element is used to provide contact information (person, company, or organization) for the nearest <code><span class=\"c-tag\">&lt;article&gt;</span></code> or the entire document <code><span class=\"c-tag\">&lt;body&gt;</span></code>.</p>",
+      "sample": "<span class=\"c-tag\">&lt;address&gt;</span>\n    Written by Jane Doe.<span class=\"c-tag\">&lt;br&gt;</span>\n    Email: <span class=\"c-tag\">&lt;a</span> <span class=\"c-attr\">href</span><span class=\"c-operator\">=\"</span><span class=\"c-string\">mailto:jdoe@example.com</span><span class=\"c-operator\">\"</span><span class=\"c-tag\">&gt;</span>jdoe@example.com<span class=\"c-tag\">&lt;/a&gt;</span>\n<span class=\"c-tag\">&lt;/address&gt;</span>"
+    },
+    {
+      "id": 1310,
+      "type": "lesson",
+      "title": "13.10 Using &lt;cite&gt; for Titles",
+      "tags": [
+        "Advanced",
+        "Semantic"
+      ],
+      "xp": 10,
+      "content": "<p class=\"mb-4\">The <code><span class=\"c-tag\">&lt;cite&gt;</span></code> element is used to refer to the title of a creative work (e.g., a book, song, film, or sculpture). By default, most browsers render this text in italics.</p>",
+      "sample": "<span class=\"c-tag\">&lt;p&gt;</span>The film <span class=\"c-tag\">&lt;cite&gt;</span>Casablanca<span class=\"c-tag\">&lt;/cite&gt;</span> is a classic.<span class=\"c-tag\">&lt;/p&gt;</span>"
+    },
+    {
+      "id": 1311,
+      "type": "fact",
+      "title": "Did You Know? &lt;dialog&gt; and the Esc Key",
+      "tags": [
+        "Advanced",
+        "UI"
+      ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">One of the key benefits of using the native <code><span class=\"c-tag\">&lt;dialog&gt;</span></code> element with <code><span class=\"c-js-method\">showModal()</span></code> is that it automatically handles closing the modal when the user presses the **Escape** key, which is a significant accessibility win.</p>"
+    },
+    {
+      "id": 1312,
+      "type": "fact",
+      "title": "Did You Know? localStorage Security",
+      "tags": [
+        "Advanced",
+        "Security"
+      ],
+      "xp": 5,
+      "content": "<p class=\"mb-4\">Because <code><span class=\"c-js-object\">localStorage</span></code> is accessible via JavaScript, it is vulnerable to **Cross-Site Scripting (XSS)** attacks. Therefore, it should **never** be used to store sensitive user data like passwords, session IDs, or security tokens.</p>"
+    },
+    {
+      "id": 1313,
+      "type": "quiz",
+      "title": "Quiz: Modals and Storage",
+      "tags": [
+        "Advanced",
+        "UI"
+      ],
+      "xpPerQ": 10,
+      "quiz": [
+        {
+          "question": "Which JavaScript method displays a &lt;dialog&gt; that blocks interaction with the rest of the page?",
+          "options": [
+            "show()",
+            "showModal()",
+            "open()",
+            "displayModal()"
+          ],
+          "answer": "showModal()"
+        },
+        {
+          "question": "Which CSS pseudoelement styles the background overlay of a modal dialog?",
+          "options": [
+            "::overlay",
+            "::modal-bg",
+            "::backdrop",
+            "::behind"
+          ],
+          "answer": "::backdrop"
+        },
+        {
+          "question": "Which storage API persists data indefinitely across browser sessions?",
+          "options": [
+            "sessionStorage",
+            "cookieStorage",
+            "localStorage",
+            "globalStorage"
+          ],
+          "answer": "localStorage"
+        },
+        {
+          "question": "Which tag allows a browser to choose the best image source based on media queries or resolution?",
+          "options": [
+            "&lt;img&gt;",
+            "&lt;figure&gt;",
+            "&lt;source&gt;",
+            "&lt;picture&gt;"
+          ],
+          "answer": "&lt;picture&gt;"
+        },
+        {
+          "question": "To close a dialog via a form button without a server submission, what attribute/value is needed?",
+          "options": [
+            "type=\"close\"",
+            "formmethod=\"dialog\"",
+            "action=\"#close\"",
+            "novalidate"
+          ],
+          "answer": "formmethod=\"dialog\""
+        },
+        {
+          "question": "Which tag should be used to provide contact information for the nearest article or document?",
+          "options": [
+            "&lt;details&gt;",
+            "&lt;p&gt;",
+            "&lt;address&gt;",
+            "&lt;cite&gt;"
+          ],
+          "answer": "&lt;address&gt;"
+        },
+        {
+          "question": "The &lt;source&gt; tag's 'type' attribute is primarily used for what purpose in responsive images?",
+          "options": [
+            "Selecting screen size",
+            "Providing a fallback image",
+            "Selecting image format (e.g., WebP)",
+            "Defining the image size"
+          ],
+          "answer": "Selecting image format (e.g., WebP)"
+        },
+        {
+          "question": "Which element is used to semantically mark the title of a book or film?",
+          "options": [
+            "&lt;i&gt;",
+            "&lt;em&gt;",
+            "&lt;cite&gt;",
+            "&lt;strong&gt;"
+          ],
+          "answer": "&lt;cite&gt;"
+        },
+        {
+          "question": "Data stored in localStorage is vulnerable to which type of attack?",
+          "options": [
+            "Phishing",
+            "SQL Injection",
+            "DDoS",
+            "Cross-Site Scripting (XSS)"
+          ],
+          "answer": "Cross-Site Scripting (XSS)"
+        },
+        {
+          "question": "How long does data stored in sessionStorage persist?",
+          "options": [
+            "Indefinitely",
+            "Until the tab/window is closed",
+            "For 24 hours",
+            "Until the server restarts"
+          ],
+          "answer": "Until the tab/window is closed"
+        }
+      ]
+    }
+  ],
+  "moduleGroups": [
+    {
+      "id": 6,
+      "title": "Level 6: Form Element and Basic Inputs",
+      "tag": "Intermediate",
+      "moduleIds": [
+        601,
+        602,
+        603,
+        604,
+        605,
+        606,
+        607,
+        608,
+        609,
+        610,
+        611,
+        612,
+        613
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Level 7: Input Types and Select Controls",
+      "tag": "Intermediate",
+      "moduleIds": [
+        701,
+        702,
+        703,
+        704,
+        705,
+        706,
+        707,
+        708,
+        709,
+        710,
+        711,
+        712,
+        713
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Level 8: Advanced Structure and File Uploads",
+      "tag": "Intermediate",
+      "moduleIds": [
+        801,
+        802,
+        803,
+        804,
+        805,
+        806,
+        807,
+        808,
+        809,
+        810,
+        811,
+        812,
+        813
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Level 9: Client-Side Validation",
+      "tag": "Intermediate",
+      "moduleIds": [
+        901,
+        902,
+        903,
+        904,
+        905,
+        906,
+        907,
+        908,
+        909,
+        910,
+        911,
+        912,
+        913
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Level 10: Advanced UX and Security Attributes",
+      "tag": "Intermediate",
+      "moduleIds": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007,
+        1008,
+        1009,
+        1010,
+        1011,
+        1012,
+        1013
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Level 11: Semantic Structure and Graphics",
+      "tag": "Advanced",
+      "moduleIds": [
+        1101,
+        1102,
+        1103,
+        1104,
+        1105,
+        1106,
+        1107,
+        1108,
+        1109,
+        1110,
+        1111,
+        1112,
+        1113
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Level 12: Data Attributes and Embedding",
+      "tag": "Advanced",
+      "moduleIds": [
+        1201,
+        1202,
+        1203,
+        1204,
+        1205,
+        1206,
+        1207,
+        1208,
+        1209,
+        1210,
+        1211,
+        1212,
+        1213
+      ]
+    },
+    {
+      "id": 13,
+      "title": "Level 13: Modals, Storage, and Responsive Images",
+      "tag": "Advanced",
+      "moduleIds": [
+        1301,
+        1302,
+        1303,
+        1304,
+        1305,
+        1306,
+        1307,
+        1308,
+        1309,
+        1310,
+        1311,
+        1312,
+        1313
+      ]
+    }
+  ]
+}
