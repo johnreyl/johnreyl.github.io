@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GogoClone - Watch Anime Online</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Custom Tailwind Configuration (Lime Green Theme) */
+        :root {
+            --accent-color: #a3e635; /* Lime-400 */
+        }
+        
+        /* Custom scrollbar to match the dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937; /* Gray-800 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-color); 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #84cc16; /* Lime-500 */
+        }
+
+        /* Specific style for active/selected nav item */
+        .nav-item.active {
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* Enforce min-height/width for video container when empty */
+        #video-player-container {
+            min-height: 400px; 
+            min-width: 100%;
+            background-color: #1f2937; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        /* Enforce min-height for the latest episodes container */
+        #latest-episodes-container {
+            min-height: 200px; 
+            display: flex;
+            align-items: center; 
+            justify-content: center; 
+        }
+        
+        /* Ensure the grid inside the container only applies when there is content */
+        #latest-episodes:not(:empty) {
+             display: grid;
+        }
+
+        /* FIX: Minimum height and aspect ratio for video images */
+        .anime-item img {
+            min-height: 150px; /* Ensures the item block has height */
+            aspect-ratio: 3 / 4; /* Standard poster aspect ratio */
+            object-fit: cover;
+        }
+        /* Style for selected archive letter */
+        .archive-letter.active {
+            background-color: var(--accent-color);
+            color: #1f2937;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200">
+
+    <header class="bg-gray-800 shadow-lg sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-3 flex flex-wrap justify-between items-center">
+            
+            <a href="#" class="text-3xl font-bold text-lime-400 mr-8" onclick="showPage('page-home'); return false;">Gogo<span class="text-white">Clone</span></a>
+            
+            <nav class="order-3 md:order-2 w-full mt-3 md:w-auto md:mt-0 flex justify-around md:justify-start md:space-x-6 text-sm font-semibold border-b border-gray-700 md:border-b-0">
+                <a href="#home" class="nav-item active px-2 py-2 hover:text-lime-400 transition" data-page="home">HOME</a>
+                <a href="#popular" class="nav-item px-2 py-2 hover:text-lime-400 transition" data-page="popular">POPULAR</a>
+                <a href="#archive" class="nav-item px-2 py-2 hover:text-lime-400 transition" data-page="archive">ARCHIVE</a>
+                <a href="#search" class="nav-item px-2 py-2 hover:text-lime-400 transition" data-page="filter">SEARCH</a>
+                <a href="#history" class="nav-item px-2 py-2 hover:text-lime-400 transition" data-page="history">HISTORY</a>
+            </nav>
+
+            <div class="order-2 md:order-3 w-full md:w-auto">
+                </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        
+        <div id="page-content">
+
+            <div id="page-home" class="page">
+                <div class="bg-gray-800 p-4 rounded-lg shadow-xl mb-8">
+                    <h2 class="text-xl font-bold border-b-2 border-lime-400 pb-2 mb-4 text-white">▶️ FEATURED VIDEO</h2>
+                    <div id="video-player-container" class="w-full aspect-video">
+                        <p class="text-gray-400">Video player placeholder. Select an episode below to load a video.</p>
+                    </div>
+                    <p id="video-title" class="mt-2 text-lg font-semibold text-white">No video loaded.</p>
+                </div>
+                
+                <div id="anime-detail-panel" class="bg-gray-800 p-4 rounded-lg shadow-xl mb-8 hidden">
+                    <h3 id="detail-title" class="text-2xl font-bold text-lime-400 mb-4">Anime Title</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="md:col-span-1">
+                            <img id="detail-image" src="https://via.placeholder.com/300x400/374151/FFFFFF?text=Anime+Cover" class="w-full rounded-lg" alt="Anime Cover">
+                            <p class="mt-2 text-sm text-gray-400" id="detail-status">Status: Ongoing</p>
+                            <div id="detail-categories" class="mt-3 flex flex-wrap gap-2">
+                                </div>
+                        </div>
+                        <div class="md:col-span-3">
+                            <h4 class="text-lg font-bold border-b border-gray-700 pb-1 mb-2 text-white">Description</h4>
+                            <p id="detail-description" class="text-sm text-gray-300 mb-4">A brief summary of the anime...</p>
+
+                            <h4 class="text-lg font-bold border-b border-gray-700 pb-1 mb-2 text-white">Episode List</h4>
+                            <div id="detail-episodes-list" class="grid grid-cols-5 sm:grid-cols-8 lg:grid-cols-10 gap-2">
+                                </div>
+                            <div id="episode-pagination" class="mt-4 flex justify-center space-x-2">
+                                </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div class="md:col-span-3">
+                        
+                        <div class="bg-gray-800 p-4 rounded-lg shadow-xl mb-8">
+                            <h2 class="text-xl font-bold border-b-2 border-lime-400 pb-2 mb-4 text-white">🏷️ ALL CATEGORIES</h2>
+                            <div id="all-categories-badges" class="flex flex-wrap gap-2">
+                                </div>
+                        </div>
+
+                        <div class="bg-gray-800 p-4 rounded-lg shadow-xl">
+                            <h2 class="text-xl font-bold border-b-2 border-lime-400 pb-2 mb-4 text-white">🔥 LATEST EPISODES</h2>
+                            <div id="latest-episodes-container" class="w-full">
+                                <div id="latest-episodes" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                                    </div>
+                                <p id="latest-empty-message" class="text-gray-400 hidden">No latest episodes found at this time.</p>
+                            </div>
+                            <div class="mt-4 flex justify-between items-center">
+                                <button id="see-more-latest" class="bg-gray-700 text-lime-400 p-2 rounded hover:bg-lime-600 hover:text-white transition" onclick="showPage('page-filter'); filterLatest()">
+                                    See More & Advanced Search
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <aside class="md:col-span-1">
+                        <div class="bg-gray-800 p-4 rounded-lg shadow-xl">
+                            <h3 class="text-lg font-bold border-b-2 border-lime-400 pb-2 mb-4 text-white">🗓️ RELEASE SCHEDULE</h3>
+                            <ul id="schedule-list" class="space-y-3 text-sm">
+                                </ul>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+
+            <div id="page-popular" class="page hidden">
+                <div class="bg-gray-800 p-4 rounded-lg shadow-xl">
+                    <h2 class="text-xl font-bold border-b-2 border-lime-400 pb-2 mb-4 text-white">⭐ POPULAR SERIES</h2>
+                    <div id="popular-series" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                        </div>
+                </div>
+            </div>
+
+            <div id="page-archive" class="page hidden">
+                <div class="bg-gray-800 p-4 rounded-lg shadow-xl">
+                    <h2 class="text-xl font-bold border-b-2 border-lime-400 pb-2 mb-4 text-white">📚 ANIME ARCHIVE (A-Z)</h2>
+                    <div id="anime-archive-links" class="space-y-3 mb-6">
+                        </div>
+                    
+                    <h3 class="text-lg font-bold border-b-2 border-gray-700 pb-2 mb-4 text-white" id="archive-title">All Anime Titles</h3>
+                    
+                    <div class="flex flex-wrap items-center gap-4 p-4 bg-gray-700 rounded-lg mb-6">
+                        <label class="text-sm font-semibold">Sort By:</label>
+                        <select id="archive-sort-by" class="p-2 rounded bg-gray-900 border border-gray-600 text-sm">
+                            <option value="title">Title</option>
+                            <option value="type">Type (SUB/DUB)</option>
+                            <option value="date">Date</option>
+                        </select>
+                        
+                        <label class="text-sm font-semibold">Order:</label>
+                        <select id="archive-sort-order" class="p-2 rounded bg-gray-900 border border-gray-600 text-sm">
+                            <option value="asc">Ascending</option>
+                            <option value="desc">Descending</option>
+                        </select>
+                        
+                        <button id="apply-archive-sort" class="bg-lime-600 text-white p-2 rounded hover:bg-lime-500 transition">Apply Sort</button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-700">
+                            <thead class="bg-gray-700">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-1/2">
+                                        Title / Episode
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-1/6">
+                                        Type
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-1/6">
+                                        Categories
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-1/6">
+                                        Date
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="anime-archive-table" class="bg-gray-800 divide-y divide-gray-700">
+                                <tr><td colspan="4" class="px-6 py-4 text-center text-gray-500" id="archive-empty-message">Select a letter to filter the anime titles.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div id="page-filter" class="page hidden">
+                <div class="bg-gray-800 p-4 rounded-lg shadow-xl mb-8">
+                    <h2 class="text-xl font-bold border-b-2 border-lime-400 pb-2 mb-4 text-white">🔍 ADVANCED SEARCH & FILTER</h2>
+                    
+                    <div class="mb-6 flex">
+                        <input id="filter-search-input" type="text" placeholder="Search by title..." class="p-3 w-full rounded-l bg-gray-700 text-gray-200 border border-gray-600 focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition text-lg">
+                        <button id="search-apply-button" class="text-white bg-lime-600 p-3 rounded-r hover:bg-lime-500 transition font-bold" onclick="applyFilter()">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </button>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-4 p-4 bg-gray-700 rounded-lg mb-6">
+                        <label class="text-sm font-semibold">Date Filter:</label>
+                        <select id="filter-day" class="p-2 rounded bg-gray-900 border border-gray-600 text-sm">
+                            <option value="">Day</option>
+                            </select>
+                        <select id="filter-month" class="p-2 rounded bg-gray-900 border border-gray-600 text-sm">
+                            <option value="">Month</option>
+                            </select>
+                        <select id="filter-year" class="p-2 rounded bg-gray-900 border border-gray-600 text-sm">
+                            <option value="">Year</option>
+                            </select>
+                        
+                        <label class="text-sm font-semibold ml-4">Category:</label>
+                        <select id="filter-category" class="p-2 rounded bg-gray-900 border border-gray-600 text-sm">
+                            <option value="">All Categories</option>
+                            </select>
+                        
+                        <button id="apply-filter" class="bg-lime-600 text-white p-2 rounded hover:bg-lime-500 transition">Apply Filters</button>
+                        <button id="reset-filter" class="bg-gray-600 text-white p-2 rounded hover:bg-gray-500 transition">Reset</button>
+                    </div>
+
+                    <h3 class="text-lg font-bold border-b-2 border-gray-700 pb-2 mb-4 text-white">SEARCH RESULTS</h3>
+                    <div id="filtered-results-list" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                        <p class="text-gray-400 col-span-5" id="filter-no-results">Enter keywords or select criteria and click Apply Filter.</p>
+                        </div>
+
+                    <div id="filter-pagination" class="mt-6 flex justify-center space-x-2">
+                        </div>
+                </div>
+            </div>
+
+            <div id="page-history" class="page hidden">
+                <div class="bg-gray-800 p-4 rounded-lg shadow-xl">
+                    <h2 class="text-xl font-bold border-b-2 border-lime-400 pb-2 mb-4 text-white">⌚ WATCHED HISTORY</h2>
+                    <ul id="watched-history-list" class="space-y-3 text-sm">
+                        <li class="text-gray-400" id="empty-history-message">Your watched history is empty.</li>
+                    </ul>
+                    <button id="clear-history" class="mt-4 bg-gray-700 text-gray-200 p-2 rounded hover:bg-lime-600 hover:text-white transition">Clear History</button>
+                </div>
+            </div>
+
+            <div id="page-search-results" class="page hidden">
+                </div>
+
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 mt-12 py-6">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-500">
+            <p>&copy; 2024 GogoClone. Mock-up by Gemini.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- CONSTANTS ---
+        const ITEMS_PER_PAGE = 20;
+        const EPISODES_PER_PAGE = 10;
+        const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const ALL_CATEGORIES = ["Action", "Adventure", "Comedy", "Drama", "Fantasy", "Sci-Fi", "Echi", "Mecha", "Romance", "Slice of Life"];
+
+        // --- JSON Data Objects (Expanded to support pagination/details) ---
+        const latestEpisodesData = [];
+        const popularSeries = [];
+        const animeArchiveLinks = [
+            { letter: "A", link: "#" }, { letter: "B", link: "#" }, { letter: "C", link: "#" }, 
+            { letter: "D", link: "#" }, { letter: "E", link: "#" }, { letter: "F", link: "#" }, 
+            { letter: "G", link: "#" }, { letter: "H", link: "#" }, { letter: "I", link: "#" }, 
+            { letter: "J", link: "#" }, { letter: "K", link: "#" }, { letter: "L", link: "#" }, 
+            { letter: "M", link: "#" }, { letter: "N", link: "#" }, { letter: "O", link: "#" }, 
+            { letter: "P", link: "#" }, { letter: "Q", link: "#" }, { letter: "R", link: "#" }, 
+            { letter: "S", link: "#" }, { letter: "T", link: "#" }, { letter: "U", link: "#" }, 
+            { letter: "V", link: "#" }, { letter: "W", link: "#" }, { letter: "X", link: "#" }, 
+            { letter: "Y", link: "#" }, { letter: "Z", link: "#" }, { letter: "0-9", link: "#" },
+        ];
+        const releaseSchedule = [
+            { day: "Monday", anime: "Bleach", link: "#" }, { day: "Tuesday", anime: "Fire Force", link: "#" },
+            { day: "Wednesday", anime: "Dr. Stone", link: "#" }, { day: "Thursday", anime: "Jujutsu Kaisen S2", link: "#" },
+            { day: "Friday", anime: "One Piece", link: "#" }, { day: "Saturday", anime: "Solo Leveling", link: "#" },
+            { day: "Sunday", anime: "Frieren", link: "#" },
+        ];
+        
+        // --- Dummy Data Generation for Latest Episodes (50 items for pagination demo) ---
+        const today = new Date();
+        for (let i = 1; i <= 50; i++) {
+            const date = new Date(today.getTime() - i * 86400000); 
+            latestEpisodesData.push({
+                id: 100 + i, 
+                title: `Anime Stream Episode ${50 - i + 1}`, 
+                episode: `Ep ${50 - i + 1}`, 
+                type: (i % 3 === 0 ? "DUB" : "SUB"), 
+                link: "#", 
+                image: `https://via.placeholder.com/300x400/84cc16/FFFFFF?text=E${50 - i + 1}`,
+                date: date,
+                categories: [
+                    ALL_CATEGORIES[i % ALL_CATEGORIES.length], 
+                    ALL_CATEGORIES[(i + 1) % ALL_CATEGORIES.length]
+                ],
+                description: i < 10 ? 
+                    "This is the detailed description for this popular anime. It involves epic battles, deep character arcs, and a surprisingly emotional story about friendship. Click episodes below to simulate watching." : 
+                    "A standard anime episode entry.",
+                totalEpisodes: i < 10 ? 80 : 1, 
+                status: i < 10 ? "Ongoing" : "Finished"
+            });
+        }
+        
+        // Add popular series data to animeData for search
+        popularSeries.push(
+            { id: 201, title: "Attack on Titan: The Final", link: "#", image: "https://via.placeholder.com/300x400/9ca3af/FFFFFF?text=AoT", page: "popular", categories: ["Action", "Drama", "Fantasy"], date: new Date(2023, 9, 15), type: "DUB", totalEpisodes: 28, status: "Finished" },
+            { id: 202, title: "Chainsaw Man", link: "#", image: "https://via.placeholder.com/300x400/6b7280/FFFFFF?text=Chainsaw+Man", page: "popular", categories: ["Action", "Fantasy", "Horror"], date: new Date(2022, 10, 11), type: "SUB", totalEpisodes: 12, status: "Finished" },
+            { id: 203, title: "Spy x Family", link: "#", image: "https://via.placeholder.com/300x400/4b5563/FFFFFF?text=Spy+x+Family", page: "popular", categories: ["Action", "Comedy", "Slice of Life"], date: new Date(2022, 3, 9), type: "SUB", totalEpisodes: 37, status: "Ongoing" },
+        );
+
+        const animeData = [...latestEpisodesData, ...popularSeries]; 
+        let currentFilteredResults = latestEpisodesData; 
+        let currentArchiveFilter = null; 
+        let currentPage = 1;
+
+        // --- Core Functions ---
+
+        function showPage(pageId) {
+            $('.page').addClass('hidden');
+            $('#' + pageId).removeClass('hidden');
+            $('#anime-detail-panel').addClass('hidden'); 
+
+            $('.nav-item').removeClass('active').css('border-bottom', 'none');
+            // Logic to handle 'filter' (now 'search') tab activation
+            const dataPage = pageId.replace('page-', '').replace('-results', '');
+            
+            // Check if the current page is the filter page (using its original data-page value)
+            if (pageId === 'page-filter') {
+                $(`.nav-item[data-page="filter"]`).addClass('active');
+            } else {
+                $(`.nav-item[data-page="${dataPage}"]`).addClass('active');
+            }
+
+
+            if (pageId === 'page-archive') {
+                $('.archive-letter').removeClass('active'); 
+                if (currentArchiveFilter) {
+                    renderArchiveList(currentArchiveFilter);
+                    $(`.archive-letter[data-letter="${currentArchiveFilter}"]`).addClass('active');
+                } else {
+                    $('#anime-archive-table').html('<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500" id="archive-empty-message">Select a letter to filter the anime titles.</td></tr>');
+                    $('#archive-title').text('All Anime Titles');
+                }
+            }
+        }
+
+        /**
+         * Renders the list of anime items in grid format (used for Home/Popular/Search).
+         */
+        function renderAnimeList(list, containerId) { 
+            const container = $(containerId);
+            container.empty(); 
+            const isEmpty = list.length === 0;
+
+            const latestContainer = $('#latest-episodes-container');
+            // Updated target message logic for the unified search page
+            const targetMessage = (containerId === '#latest-episodes') ? '#latest-empty-message' : 
+                                  (containerId === '#filtered-results-list') ? '#filter-no-results' : null;
+
+            if (isEmpty) {
+                if (targetMessage) $(targetMessage).removeClass('hidden');
+                if (containerId === '#latest-episodes') {
+                    latestContainer.css({'display': 'flex', 'align-items': 'center', 'justify-content': 'center'});
+                }
+            } else {
+                if (targetMessage) $(targetMessage).addClass('hidden');
+                if (containerId === '#latest-episodes') {
+                    latestContainer.css({'display': 'block', 'align-items': 'initial', 'justify-content': 'initial'});
+                }
+            }
+            
+            if (isEmpty) return; 
+
+            list.forEach(anime => {
+                const episodeTag = anime.episode ? `<p class="text-xs text-lime-400">${anime.episode}</p>` : '';
+                const typeTag = anime.type ? `<span class="absolute top-2 right-2 bg-lime-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">${anime.type}</span>` : '';
+                
+                const categoryBadges = anime.categories ? anime.categories.map(cat => 
+                    `<span class="text-xs text-gray-300 px-1 bg-black/50 rounded-sm">${cat}</span>`
+                ).join('') : '';
+
+                const itemHtml = `
+                    <a href="#" data-anime-id="${anime.id}" class="anime-item group block relative overflow-hidden rounded-lg hover:shadow-lime-400/50 hover:shadow-2xl transition duration-300" onclick="loadVideoPlayer(${anime.id}, '${anime.title} ${anime.episode || ''}'); markWatched(${anime.id}, '${anime.title}', '${anime.episode || ''}'); loadAnimeDetails(${anime.id}); return false;">
+                        <img src="${anime.image}" alt="${anime.title}" class="w-full h-auto object-cover transform group-hover:scale-105 transition duration-300">
+                        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                            <p class="text-sm font-semibold truncate text-white">${anime.title}</p>
+                            ${episodeTag}
+                        </div>
+                        ${typeTag}
+                        <div class="absolute top-2 left-2 flex flex-wrap gap-1">
+                            ${categoryBadges}
+                        </div>
+                    </a>
+                `;
+                container.append(itemHtml);
+            });
+        }
+        
+        // --- Archive Functions (Unchanged) ---
+
+        function renderArchiveLinks() {
+            const container = $('#anime-archive-links').empty();
+            const archiveGrid = $('<div class="grid grid-cols-7 sm:grid-cols-9 lg:grid-cols-13 gap-1"></div>');
+
+            animeArchiveLinks.forEach(item => { 
+                const link = $(`<a href="#" data-letter="${item.letter}" class="archive-letter text-center font-bold text-xs bg-gray-700 p-1 rounded hover:bg-lime-400 hover:text-gray-900 transition duration-200">${item.letter}</a>`);
+                link.on('click', function(e) {
+                    e.preventDefault();
+                    $('.archive-letter').removeClass('active');
+                    $(this).addClass('active');
+                    renderArchiveList(item.letter);
+                });
+                archiveGrid.append(link);
+            });
+            container.append(archiveGrid);
+        }
+
+        function renderArchiveList(filterLetter = currentArchiveFilter) {
+            currentArchiveFilter = filterLetter;
+            if (!filterLetter) return;
+
+            $('#archive-title').text(`Archive Titles: ${filterLetter}`);
+            
+            let filteredList = animeData.filter(anime => {
+                const firstChar = anime.title.charAt(0).toUpperCase();
+                if (filterLetter === '0-9') {
+                    return !isNaN(parseInt(firstChar));
+                } else {
+                    return firstChar === filterLetter;
+                }
+            });
+
+            const sortBy = $('#archive-sort-by').val();
+            const sortOrder = $('#archive-sort-order').val();
+
+            filteredList.sort((a, b) => {
+                let valA, valB;
+
+                if (sortBy === 'title') {
+                    valA = a.title.toLowerCase();
+                    valB = b.title.toLowerCase();
+                } else if (sortBy === 'type') {
+                    valA = a.type || '';
+                    valB = b.type || '';
+                } else if (sortBy === 'date') {
+                    valA = a.date ? a.date.getTime() : 0;
+                    valB = b.date ? b.date.getTime() : 0;
+                }
+
+                if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+                if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+                return 0;
+            });
+            
+            const container = $('#anime-archive-table').empty();
+
+            if (filteredList.length === 0) {
+                container.html(`<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No anime titles found starting with '${filterLetter}'.</td></tr>`);
+                return;
+            }
+
+            filteredList.forEach(anime => {
+                const dateString = anime.date ? anime.date.toLocaleDateString() : 'N/A';
+                const categoriesString = anime.categories ? anime.categories.slice(0, 2).join(', ') + (anime.categories.length > 2 ? '...' : '') : 'N/A';
+                
+                const rowHtml = `
+                    <tr class="hover:bg-gray-700 transition duration-150 cursor-pointer" onclick="loadVideoPlayer(${anime.id}, '${anime.title} ${anime.episode || ''}'); markWatched(${anime.id}, '${anime.title}', '${anime.episode || ''}'); loadAnimeDetails(${anime.id}); showPage('page-home');">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-white">${anime.title}</div>
+                            <div class="text-xs text-lime-400">${anime.episode || 'Full Series'}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${anime.type === 'DUB' ? 'bg-indigo-700 text-white' : 'bg-lime-600 text-white'}">
+                                ${anime.type || 'N/A'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-400 max-w-xs truncate">${categoriesString}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${dateString}</td>
+                    </tr>
+                `;
+                container.append(rowHtml);
+            });
+        }
+
+        // --- Advanced Filter/Search Functions (Updated) ---
+        
+        function renderFilterPage(page) { 
+            currentPage = page;
+            const totalItems = currentFilteredResults.length;
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+            const start = (currentPage - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const paginatedList = currentFilteredResults.slice(start, end);
+            
+            renderAnimeList(paginatedList, '#filtered-results-list');
+            renderPaginationControls(totalPages, currentPage, '#filter-pagination', renderFilterPage);
+        }
+
+        function setupFilterDropdowns() { /* ... function content unchanged ... */
+            const $filterDay = $('#filter-day'); for (let i = 1; i <= 31; i++) { $filterDay.append(`<option value="${i}">${i}</option>`); }
+            const $filterMonth = $('#filter-month'); MONTHS.forEach((month, index) => { $filterMonth.append(`<option value="${index + 1}">${month}</option>`); });
+            const $filterYear = $('#filter-year'); const currentYear = new Date().getFullYear(); for (let i = 0; i < 5; i++) { $filterYear.append(`<option value="${currentYear - i}">${currentYear - i}</option>`); }
+            const $filterCategory = $('#filter-category');
+            ALL_CATEGORIES.forEach(cat => { $filterCategory.append(`<option value="${cat}">${cat}</option>`); });
+        }
+        
+        /**
+         * Applies the combined search and filter criteria.
+         * Now handles the main search input field as well.
+         */
+        function applyFilter() {
+            const day = $('#filter-day').val();
+            const month = $('#filter-month').val();
+            const year = $('#filter-year').val();
+            const category = $('#filter-category').val();
+            const searchTerm = $('#filter-search-input').val().toLowerCase().trim();
+            
+            // Start with all anime data
+            let results = animeData; 
+
+            // 1. Apply Search Term Filter
+            if (searchTerm) {
+                results = results.filter(anime => anime.title.toLowerCase().includes(searchTerm));
+            }
+            
+            // 2. Apply Date and Category Filters
+            if (day || month || year || category) {
+                results = results.filter(anime => {
+                    const d = anime.date; // Use the Date object
+                    const matchesDay = !day || (d && d.getDate() == parseInt(day));
+                    const matchesMonth = !month || (d && (d.getMonth() + 1) == parseInt(month));
+                    const matchesYear = !year || (d && d.getFullYear() == parseInt(year));
+                    const matchesCategory = !category || (anime.categories && anime.categories.includes(category));
+                    
+                    return matchesDay && matchesMonth && matchesYear && matchesCategory;
+                });
+            }
+
+            currentFilteredResults = results;
+            renderFilterPage(1); 
+        }
+
+        function filterLatest() { /* ... function content unchanged, but calls applyFilter ... */
+            // Reset filter controls visually AND clear search box
+            $('#filter-day').val('');
+            $('#filter-month').val('');
+            $('#filter-year').val('');
+            $('#filter-category').val('');
+            $('#filter-search-input').val('');
+            
+            // Instead of just loading latest episodes, we apply the empty filter to show all.
+            // Note: If you want *only* latest episodes here, you would set currentFilteredResults = latestEpisodesData; 
+            // For now, let's keep it to apply an empty filter on all data.
+            applyFilter(); 
+        }
+
+        // --- Other Utility Functions (Unchanged) ---
+        
+        function loadVideoPlayer(id, title) { 
+            const playerContainer = $('#video-player-container');
+            const videoTitle = $('#video-title');
+            playerContainer.html(`<div class="w-full h-full bg-black flex items-center justify-center"><p class="text-lime-400 text-xl font-bold">Video Player Loading: ${title}</p></div>`);
+            videoTitle.text(`Currently Watching: ${title}`);
+        }
+
+        function loadAnimeDetails(id) { 
+            const anime = animeData.find(a => a.id === id);
+            if (!anime) return;
+            
+            $('#detail-title').text(anime.title);
+            $('#detail-image').attr('src', anime.image).attr('alt', anime.title);
+            $('#detail-status').text(`Status: ${anime.status}`);
+            $('#detail-description').text(anime.description);
+            
+            const catContainer = $('#detail-categories').empty();
+            if (anime.categories) {
+                anime.categories.forEach(cat => {
+                    const badge = `<span class="bg-lime-600 text-white text-xs font-semibold px-2 py-1 rounded-full">${cat}</span>`;
+                    catContainer.append(badge);
+                });
+            }
+            
+            const allEpisodes = [];
+            for (let i = 1; i <= (anime.totalEpisodes || 1); i++) {
+                allEpisodes.push({
+                    id: anime.id + '_' + i,
+                    animeId: anime.id,
+                    title: anime.title,
+                    episode: `Ep ${i}`,
+                    link: "#"
+                });
+            }
+            
+            renderEpisodePagination(allEpisodes, 1);
+            $('#anime-detail-panel').removeClass('hidden');
+        }
+
+        function renderEpisodePagination(allEpisodes, page) { /* ... function content unchanged ... */
+            const totalItems = allEpisodes.length;
+            const totalPages = Math.ceil(totalItems / EPISODES_PER_PAGE);
+            const start = (page - 1) * EPISODES_PER_PAGE;
+            const end = start + EPISODES_PER_PAGE;
+            const currentEpisodes = allEpisodes.slice(start, end);
+            
+            const listContainer = $('#detail-episodes-list').empty();
+            const paginationContainer = $('#episode-pagination').empty();
+
+            currentEpisodes.forEach(ep => {
+                const epHtml = `
+                    <a href="#" class="text-center bg-gray-700 text-sm p-1 rounded hover:bg-lime-600 transition" 
+                       onclick="loadVideoPlayer(${ep.animeId}, '${ep.title} - ${ep.episode}'); markWatched(${ep.animeId}, '${ep.title}', '${ep.episode}'); return false;">
+                        ${ep.episode.replace('Ep ', '')}
+                    </a>
+                `;
+                listContainer.append(epHtml);
+            });
+
+            if (totalPages > 1) {
+                for (let i = 1; i <= totalPages; i++) {
+                    const buttonClass = i === page ? 'bg-lime-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600';
+                    const button = $(`<button class="w-8 h-8 rounded ${buttonClass} text-sm font-bold">${i}</button>`);
+                    button.on('click', function() {
+                        renderEpisodePagination(allEpisodes, i);
+                    });
+                    paginationContainer.append(button);
+                }
+            }
+        }
+        
+        function renderPaginationControls(totalPages, activePage, containerId, callback) { /* ... function content unchanged ... */
+            const container = $(containerId).empty();
+            if (totalPages <= 1) return;
+
+            const prevButton = $(`<button class="bg-gray-700 text-white p-2 rounded hover:bg-lime-600 transition" ${activePage === 1 ? 'disabled' : ''}>Previous</button>`);
+            prevButton.on('click', () => callback(activePage - 1));
+            if (activePage === 1) prevButton.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+            container.append(prevButton);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const buttonClass = i === activePage ? 'bg-lime-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600';
+                const button = $(`<button class="w-8 h-8 rounded ${buttonClass} text-sm font-bold">${i}</button>`);
+                button.on('click', () => callback(i));
+                container.append(button);
+            }
+
+            const nextButton = $(`<button class="bg-gray-700 text-white p-2 rounded hover:bg-lime-600 transition" ${activePage === totalPages ? 'disabled' : ''}>Next</button>`);
+            nextButton.on('click', () => callback(activePage + 1));
+            if (activePage === totalPages) nextButton.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+            container.append(nextButton);
+        }
+
+        function markWatched(id, title, episode) { /* ... function content unchanged ... */
+            const history = getWatchedHistory();
+            const now = new Date().toLocaleString();
+            const newItem = { id, title, episode, watchedAt: now };
+            const newHistory = history.filter(item => item.id !== id);
+            newHistory.unshift(newItem); 
+            const finalHistory = newHistory.slice(0, 30);
+            try { localStorage.setItem('watchedHistory', JSON.stringify(finalHistory)); } catch (e) { console.error("Could not save history to localStorage:", e); }
+            if (!$('#page-history').hasClass('hidden')) { renderWatchedHistory(finalHistory); }
+        }
+
+        function getWatchedHistory() { /* ... function content unchanged ... */
+            try { return localStorage.getItem('watchedHistory') ? JSON.parse(localStorage.getItem('watchedHistory')) : []; } catch (e) { return []; }
+        }
+
+        function renderWatchedHistory(historyList) { /* ... function content unchanged ... */
+            const history = historyList || getWatchedHistory();
+            const container = $('#watched-history-list').empty();
+            if (history.length === 0) { container.append('<li class="text-gray-400" id="empty-history-message">Your watched history is empty.</li>'); $('#clear-history').addClass('hidden'); return; }
+            $('#clear-history').removeClass('hidden');
+            history.forEach(item => {
+                const itemHtml = `
+                    <li class="border-b border-gray-700 pb-2 flex justify-between items-center">
+                        <div><p class="font-bold text-white hover:text-lime-400 transition">${item.title} - <span class="text-lime-400">${item.episode}</span></p>
+                        <span class="text-xs text-gray-500">Last watched: ${item.watchedAt}</span></div>
+                        <a href="#" class="text-xs text-lime-400 hover:underline" onclick="loadVideoPlayer(${item.id}, '${item.title} ${item.episode}'); markWatched(${item.id}, '${item.title}', '${item.episode}'); showPage('page-home'); loadAnimeDetails(${item.id}); return false;">Watch Again</a>
+                    </li>`;
+                container.append(itemHtml);
+            });
+        }
+
+        function clearHistory() { /* ... function content unchanged ... */
+            if (confirm("Are you sure you want to clear your entire watch history?")) {
+                localStorage.removeItem('watchedHistory');
+                renderWatchedHistory([]);
+            }
+        }
+        
+        function renderAllCategoryBadges() { /* ... function content unchanged ... */
+            const container = $('#all-categories-badges').empty();
+            ALL_CATEGORIES.forEach(cat => {
+                const badge = $(`<button class="bg-gray-700 text-lime-400 text-sm font-semibold px-3 py-1 rounded-full hover:bg-lime-600 hover:text-white transition">${cat}</button>`);
+                badge.on('click', function() {
+                    // Set category filter and trigger search page
+                    $('#filter-category').val(cat);
+                    applyFilter();
+                    showPage('page-filter');
+                });
+                container.append(badge);
+            });
+        }
+        
+        // --- Initialization ---
+
+        $(document).ready(function() {
+            // Initial Content Rendering
+            renderAnimeList(latestEpisodesData.slice(0, ITEMS_PER_PAGE), '#latest-episodes');
+            renderAnimeList(popularSeries, '#popular-series');
+            renderWatchedHistory(); 
+            renderAllCategoryBadges();
+            
+            // Render Archive Links (A-Z)
+            renderArchiveLinks();
+            
+            // Render Release Schedule (same as before)
+            releaseSchedule.forEach(item => {
+                $('#schedule-list').append(`
+                    <li class="border-b border-gray-700 pb-1">
+                        <span class="font-bold text-lime-400">${item.day}:</span> 
+                        <a href="${item.link}" class="hover:text-lime-400 transition">${item.anime}</a>
+                    </li>
+                `);
+            });
+
+            // Setup Filter/Search Page
+            setupFilterDropdowns();
+            // Bind the applyFilter function to both the main search button and the detailed filter button
+            $('#apply-filter').on('click', applyFilter);
+            $('#search-apply-button').on('click', applyFilter);
+            $('#filter-search-input').on('keypress', function(e) { if (e.which === 13) { applyFilter(); } });
+
+            $('#reset-filter').on('click', function() {
+                $('#filter-day').val('');
+                $('#filter-month').val('');
+                $('#filter-year').val('');
+                $('#filter-category').val('');
+                $('#filter-search-input').val('');
+                applyFilter(); // Apply empty filter
+            });
+
+            // Setup Archive Sorting Handler
+            $('#apply-archive-sort').on('click', function() {
+                renderArchiveList(); // Re-render with new sort criteria
+            });
+
+
+            // --- Event Handlers ---
+            $('.nav-item').on('click', function(e) { 
+                e.preventDefault(); 
+                const page = $(this).data('page'); 
+                if (page === 'history') { renderWatchedHistory(); } 
+                showPage('page-' + page); 
+            });
+            // REMOVED: $('#search-button') and $('#search-input') handlers for top nav search.
+            $('#clear-history').on('click', clearHistory);
+
+            // Set initial page view
+            showPage('page-home');
+        });
+    </script>
+</body>
+</html>
