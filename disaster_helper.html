@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disaster Helper - Survival & First Aid Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Custom Tailwind Configuration (Safety Orange Theme) */
+        :root {
+            --accent-color: #f97316; /* Orange-500 for safety */
+        }
+        
+        /* Custom scrollbar to match the dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937; /* Gray-800 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-color); 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ea580c; /* Orange-600 */
+        }
+
+        /* Specific style for active/selected nav item */
+        .nav-item.active {
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* FIX: Minimum height and aspect ratio for topic images */
+        .topic-item img {
+            min-height: 150px; /* Ensures the item block has height */
+            aspect-ratio: 4 / 3; /* Wider aspect ratio for cover images */
+            object-fit: cover;
+        }
+        /* Style for selected archive letter */
+        .archive-letter.active {
+            background-color: var(--accent-color);
+            color: #1f2937;
+        }
+
+        /* Custom list style for step-by-step instructions */
+        .instruction-step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            background-color: #374151; /* Gray-700 */
+        }
+
+        .instruction-step-number {
+            flex-shrink: 0;
+            width: 2rem;
+            height: 2rem;
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 0.75rem;
+        }
+
+        /* Utility for limiting lines of text */
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        /* Custom style for Dos/Don'ts list */
+        .dos-list {
+            list-style-type: '✅ ';
+            margin-left: 1.5rem;
+        }
+        .donts-list {
+            list-style-type: '❌ ';
+            margin-left: 1.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200">
+
+    <header class="bg-gray-800 shadow-lg sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-3 flex flex-wrap justify-between items-center">
+            
+            <a href="#" class="text-3xl font-bold text-orange-500 mr-8" onclick="showPage('page-home'); return false;">Disaster<span class="text-white">Helper</span></a>
+            
+            <nav class="order-3 md:order-2 w-full mt-3 md:w-auto md:mt-0 flex justify-around md:justify-start md:space-x-6 text-sm font-semibold border-b border-gray-700 md:border-b-0">
+                <a href="#home" class="nav-item active px-2 py-2 hover:text-orange-500 transition" data-page="home">HOME</a>
+                <a href="#popular" class="nav-item px-2 py-2 hover:text-orange-500 transition" data-page="popular">POPULAR GUIDES</a>
+                <a href="#archive" class="nav-item px-2 py-2 hover:text-orange-500 transition" data-page="archive">A-Z INDEX</a>
+                <a href="#search" class="nav-item px-2 py-2 hover:text-orange-500 transition" data-page="filter">SEARCH / FILTER</a>
+                <a href="#history" class="nav-item px-2 py-2 hover:text-orange-500 transition" data-page="history">RECENTLY VIEWED</a>
+            </nav>
+
+            <div class="order-2 md:order-3 w-full md:w-auto">
+                </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        
+        <div id="page-content">
+
+            <div id="page-home" class="page">
+                
+                <div class="bg-gray-800 p-4 rounded-lg shadow-xl mb-8">
+                    <h2 class="text-xl font-bold border-b-2 border-orange-500 pb-2 mb-4 text-white">🔥 FEATURED TOPIC</h2>
+                    
+                    <div id="featured-tutorial-container" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        
+                        <div class="lg:col-span-2 order-2 lg:order-1">
+                            <h3 id="featured-title" class="text-2xl font-bold text-orange-500 mb-2">Topic Title</h3>
+                            <div id="featured-categories" class="flex flex-wrap gap-2 mb-3"></div>
+
+                            <h4 class="text-lg font-bold border-b border-gray-700 pb-1 mb-2 text-white">Key Explanation</h4>
+                            <p id="featured-explanation" class="text-sm text-gray-300 mb-4 line-clamp-3">A brief overview of the disaster topic and its importance...</p>
+
+                            <h4 class="text-lg font-bold border-b border-gray-700 pb-1 mb-2 text-white">Quick Steps (How-To Snippet)</h4>
+                            <div id="featured-steps-snippet" class="space-y-2 text-sm text-gray-300 mb-4">
+                                </div>
+                            
+                            <button id="show-details-modal" class="bg-orange-600 text-white p-3 rounded-lg font-bold hover:bg-orange-500 transition">
+                                View Full Guide, Details & Examples
+                            </button>
+                        </div>
+                        
+                        <div class="lg:col-span-1 order-1 lg:order-2">
+                            <img id="featured-image" src="https://via.placeholder.com/400x300/f97316/FFFFFF?text=Featured+Guide" class="w-full rounded-lg object-cover max-h-72" alt="Featured Topic Image">
+                            <div class="flex justify-between mt-4">
+                                <button id="prev-featured" class="bg-gray-700 text-white p-2 rounded hover:bg-orange-600 transition disabled:opacity-50" disabled>◀️ Previous</button>
+                                <button id="next-featured" class="bg-gray-700 text-white p-2 rounded hover:bg-orange-600 transition disabled:opacity-50">Next ▶️</button>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+                <div id="anime-detail-panel" class="bg-gray-800 p-4 rounded-lg shadow-xl mb-8 hidden">
+                    </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div class="md:col-span-3">
+                        
+                        <div class="bg-gray-800 p-4 rounded-lg shadow-xl mb-8">
+                            <h2 class="text-xl font-bold border-b-2 border-orange-500 pb-2 mb-4 text-white">🏷️ TOPIC CATEGORIES</h2>
+                            <div id="all-categories-badges" class="flex flex-wrap gap-2">
+                                </div>
+                        </div>
+
+                        <div class="bg-gray-800 p-4 rounded-lg shadow-xl">
+                            <h2 class="text-xl font-bold border-b-2 border-orange-500 pb-2 mb-4 text-white">🚨 LATEST GUIDES & ALERTS</h2>
+                            <div id="latest-episodes-container" class="w-full">
+                                <div id="latest-episodes" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                                    </div>
+                                <p id="latest-empty-message" class="text-gray-400 hidden">No new guides or alerts found at this time.</p>
+                            </div>
+                            <div class="mt-4 flex justify-between items-center">
+                                <button id="see-more-latest" class="bg-gray-700 text-orange-500 p-2 rounded hover:bg-orange-600 hover:text-white transition" onclick="showPage('page-filter'); filterLatest()">
+                                    See More & Advanced Search
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <aside class="md:col-span-1">
+                        <div class="bg-gray-800 p-4 rounded-lg shadow-xl">
+                            <h3 class="text-lg font-bold border-b-2 border-orange-500 pb-2 mb-4 text-white">🗺️ EMERGENCY HOTLINES</h3>
+                            
+                            <div class="mb-3">
+                                <label for="country-select" class="text-sm font-semibold text-gray-300 block mb-1">Select Country:</label>
+                                <select id="country-select" class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-sm" onchange="renderHotlines($('#country-select').val())">
+                                    </select>
+                            </div>
+                            
+                            <ul id="hotlines-list" class="space-y-3 text-sm">
+                                </ul>
+
+                            <button id="show-survival-rules" class="mt-4 w-full bg-orange-600 text-white p-3 rounded-lg font-bold hover:bg-orange-500 transition" onclick="renderSurvivalRules(); showPage('page-search-results'); return false;">
+                                📜 General Survival Rules
+                            </button>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+
+            <div id="page-popular" class="page hidden">
+                <div class="bg-gray-800 p-4 rounded-lg shadow-xl">
+                    <h2 class="text-xl font-bold border-b-2 border-orange-500 pb-2 mb-4 text-white">⭐ HIGH-PRIORITY TOPICS</h2>
+                    <div id="popular-series" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                        </div>
+                </div>
+            </div>
+
+            <div id="page-archive" class="page hidden">
+                <div class="bg-gray-800 p-4 rounded-lg shadow-xl">
+                    <h2 class="text-xl font-bold border-b-2 border-orange-500 pb-2 mb-4 text-white">📚 GUIDE INDEX (A-Z)</h2>
+                    <div id="anime-archive-links" class="space-y-3 mb-6">
+                        </div>
+                    
+                    <h3 class="text-lg font-bold border-b-2 border-gray-700 pb-2 mb-4 text-white" id="archive-title">All Topics</h3>
+                    
+                    <div class="flex flex-wrap items-center gap-4 p-4 bg-gray-700 rounded-lg mb-6">
+                        <label class="text-sm font-semibold">Sort By:</label>
+                        <select id="archive-sort-by" class="p-2 rounded bg-gray-900 border border-gray-600 text-sm">
+                            <option value="title">Title</option>
+                            <option value="type">Topic Type</option>
+                            <option value="date">Date Added</option>
+                        </select>
+                        
+                        <label class="text-sm font-semibold">Order:</label>
+                        <select id="archive-sort-order" class="p-2 rounded bg-gray-900 border border-gray-600 text-sm">
+                            <option value="asc">Ascending</option>
+                            <option value="desc">Descending</option>
+                        </select>
+                        
+                        <button id="apply-archive-sort" class="bg-orange-600 text-white p-2 rounded hover:bg-orange-500 transition">Apply Sort</button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-700">
+                            <thead class="bg-gray-700">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-1/2">
+                                        Topic / Type
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-1/6">
+                                        Priority
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-1/6">
+                                        Category
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-1/6">
+                                        Last Updated
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="anime-archive-table" class="bg-gray-800 divide-y divide-gray-700">
+                                <tr><td colspan="4" class="px-6 py-4 text-center text-gray-500" id="archive-empty-message">Select a letter to filter the guides.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div id="page-filter" class="page hidden">
+                <div class="bg-gray-800 p-4 rounded-lg shadow-xl mb-8">
+                    <h2 class="text-xl font-bold border-b-2 border-orange-500 pb-2 mb-4 text-white">🔍 ADVANCED SEARCH & FILTER</h2>
+                    
+                    <div class="mb-6 flex">
+                        <input id="filter-search-input" type="text" placeholder="Search by topic title..." class="p-3 w-full rounded-l bg-gray-700 text-gray-200 border border-gray-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition text-lg">
+                        <button id="search-apply-button" class="text-white bg-orange-600 p-3 rounded-r hover:bg-orange-500 transition font-bold" onclick="applyFilter()">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </button>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-4 p-4 bg-gray-700 rounded-lg mb-6">
+                        <label class="text-sm font-semibold">Date Filter:</label>
+                        <select id="filter-day" class="p-2 rounded bg-gray-900 border border-gray-600 text-sm">
+                            <option value="">Day</option>
+                            </select>
+                        <select id="filter-month" class="p-2 rounded bg-gray-900 border border-gray-600 text-sm">
+                            <option value="">Month</option>
+                            </select>
+                        <select id="filter-year" class="p-2 rounded bg-gray-900 border border-gray-600 text-sm">
+                            <option value="">Year</option>
+                            </select>
+                        
+                        <label class="text-sm font-semibold ml-4">Category:</label>
+                        <select id="filter-category" class="p-2 rounded bg-gray-900 border border-gray-600 text-sm">
+                            <option value="">All Categories</option>
+                            </select>
+                        
+                        <button id="apply-filter" class="bg-orange-600 text-white p-2 rounded hover:bg-orange-500 transition">Apply Filters</button>
+                        <button id="reset-filter" class="bg-gray-600 text-white p-2 rounded hover:bg-gray-500 transition">Reset</button>
+                    </div>
+
+                    <h3 class="text-lg font-bold border-b-2 border-gray-700 pb-2 mb-4 text-white">SEARCH RESULTS</h3>
+                    <div id="filtered-results-list" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                        <p class="text-gray-400 col-span-5" id="filter-no-results">Enter keywords or select criteria and click Apply Filter.</p>
+                        </div>
+
+                    <div id="filter-pagination" class="mt-6 flex justify-center space-x-2">
+                        </div>
+                </div>
+            </div>
+
+            <div id="page-history" class="page hidden">
+                <div class="bg-gray-800 p-4 rounded-lg shadow-xl">
+                    <h2 class="text-xl font-bold border-b-2 border-orange-500 pb-2 mb-4 text-white">⌚ RECENTLY VIEWED TOPICS</h2>
+                    <ul id="watched-history-list" class="space-y-3 text-sm">
+                        <li class="text-gray-400" id="empty-history-message">Your history is empty.</li>
+                    </ul>
+                    <button id="clear-history" class="mt-4 bg-gray-700 text-gray-200 p-2 rounded hover:bg-orange-600 hover:text-white transition">Clear History</button>
+                </div>
+            </div>
+
+            <div id="page-search-results" class="page hidden">
+                <div class="bg-gray-800 p-4 rounded-lg shadow-xl mb-8">
+                    <h2 id="rules-title" class="text-xl font-bold border-b-2 border-orange-500 pb-2 mb-4 text-white"></h2>
+                    <div id="rules-content" class="text-gray-300"></div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    
+    <div id="detail-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-80">
+        <div class="min-h-screen flex items-center justify-center p-4">
+            <div class="bg-gray-800 rounded-lg shadow-2xl w-full max-w-4xl p-6 relative">
+                
+                <button id="close-modal" class="absolute top-4 right-4 text-gray-400 hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+
+                <h2 id="modal-title" class="text-3xl font-bold text-orange-500 mb-4 border-b pb-2">Full Guide Title</h2>
+                
+                <div class="max-h-[80vh] overflow-y-auto pr-4"> 
+                    <p id="modal-explanation" class="text-lg text-gray-300 mb-6"></p>
+
+                    <h3 class="text-xl font-bold border-b-2 border-orange-500 pb-1 mb-3 text-white">Step-by-Step Instructions</h3>
+                    <div id="modal-steps-container" class="mb-6 space-y-3">
+                        </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <h3 class="text-xl font-bold border-b-2 border-green-500 pb-1 mb-3 text-white">✅ Key DOs</h3>
+                            <ul id="modal-dos-container" class="dos-list text-sm text-gray-300 space-y-1 pl-4"></ul>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold border-b-2 border-red-500 pb-1 mb-3 text-white">❌ Key DON'Ts</h3>
+                            <ul id="modal-donts-container" class="donts-list text-sm text-gray-300 space-y-1 pl-4"></ul>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-bold border-b-2 border-orange-500 pb-1 mb-3 text-white">Examples & Scenarios</h3>
+                    <div id="modal-examples" class="text-sm text-gray-300 space-y-3">
+                        </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+
+    <footer class="bg-gray-800 mt-12 py-6">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-500">
+            <p>&copy; 2024 DisasterHelper. Survival knowledge is critical. Mock-up by Gemini.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- CONSTANTS ---
+        const ITEMS_PER_PAGE = 20;
+        const STEPS_PER_PAGE = 10;
+        const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        // Updated Categories
+        const ALL_CATEGORIES = ["First Aid", "Severe Weather", "Shelter", "Water/Food", "Navigation", "Fire Safety", "Gear Checklist", "Preparedness"];
+        // Fallback Image URL
+        const FALLBACK_IMAGE_URL = 'https://static.vecteezy.com/system/resources/previews/010/933/871/non_2x/illustration-a-view-of-a-mountain-on-a-snowy-background-twilight-orange-sky-winter-forest-trees-and-mountains-design-for-website-poster-banner-free-vector.jpg';
+
+        // NEW: General Survival Rules Content
+        const SURVIVAL_RULES = {
+            title: "📜 General Survival Rules: The Rule of Threes",
+            content: [
+                { type: "p", text: "Survival situations are stressful. Use the Rule of Threes to prioritize your immediate needs, especially when lost or injured." },
+                { type: "h3", text: "Prioritization Guide" },
+                { type: "ul", items: [
+                    "You can survive **3 minutes** without air (oxygen). *Priority: Rescue Breathing, Clearing Airway.*",
+                    "You can survive **3 hours** without shelter in extreme temperatures (heat or cold). *Priority: Building a Quick Shelter.*",
+                    "You can survive **3 days** without water (hydration). *Priority: Finding and purifying a water source.*",
+                    "You can survive **3 weeks** without food (sustenance). *Priority: Foraging, Hunting, or Fishing.*"
+                ]},
+                { type: "h3", text: "Key Survival DOs" },
+                { type: "ul", listClass: "dos-list", items: [
+                    "Always tell someone your route and expected return time (Trip Plan).",
+                    "Stay put if you become lost; a moving target is harder to find.",
+                    "Signal for help using three blasts of a whistle, three signal fires, or three flashes of a mirror.",
+                    "Boil or chemically treat all water before drinking."
+                ]}
+                ,
+                { type: "h3", text: "Key Survival DON'Ts" },
+                { type: "ul", listClass: "donts-list", items: [
+                    "Do not eat wild berries or plants unless you are 100% sure they are safe.",
+                    "Do not panic. Panic leads to poor decisions and wasted energy.",
+                    "Do not drink urine, blood, or seawater for hydration.",
+                    "Do not overuse fire/fuel when signal rescuers are not actively searching."
+                ]}
+            ]
+        };
+
+
+        // --- JSON Data Objects (Updated for Disaster Topics) ---
+        const latestEpisodesData = []; // Renamed conceptually to 'latest guides'
+        const popularSeries = []; // Renamed conceptually to 'high-priority topics'
+        const animeArchiveLinks = [
+            { letter: "A", link: "#" }, { letter: "B", link: "#" }, { letter: "C", link: "#" }, 
+            { letter: "D", link: "#" }, { letter: "E", link: "#" }, { letter: "F", link: "#" }, 
+            { letter: "G", link: "#" }, { letter: "H", link: "#" }, { letter: "I", link: "#" }, 
+            { letter: "J", link: "#" }, { letter: "K", link: "#" }, { letter: "L", link: "#" }, 
+            { letter: "M", link: "#" }, { letter: "N", link: "#" }, { letter: "O", link: "#" }, 
+            { letter: "P", link: "#" }, { letter: "Q", link: "#" }, { letter: "R", link: "#" }, 
+            { letter: "S", link: "#" }, { letter: "T", link: "#" }, { letter: "U", link: "#" }, 
+            { letter: "V", link: "#" }, { letter: "W", link: "#" }, { letter: "X", link: "#" }, 
+            { letter: "Y", link: "#" }, { letter: "Z", link: "#" }, { letter: "0-9", link: "#" },
+        ];
+        
+        // Updated Hotline Data Structure
+        const EMERGENCY_HOTLINES = {
+            philippines: {
+                name: "Philippines",
+                lines: [
+                    { service: "National Emergency (PNP/Fire/Ambulance)", number: "911", link: "tel:911" },
+                    { service: "National Disaster Risk Reduction", number: "1-337-1337", link: "tel:13371337" },
+                    { service: "Red Cross Emergency Hotline", number: "143", link: "tel:143" },
+                    { service: "Philippine Coast Guard", number: "0998-598-6320", link: "tel:09985986320" }
+                ]
+            },
+            us: {
+                name: "United States",
+                lines: [
+                    { service: "Emergency Services (Police/Fire/Ambulance)", number: "911", link: "tel:911" },
+                    { service: "National Poison Control", number: "1-800-222-1222", link: "tel:18002221222" },
+                    { service: "FEMA Disaster Hotline", number: "1-800-621-FEMA", link: "tel:1800621FEMA" },
+                    { service: "American Red Cross", number: "1-800-RED-CROSS", link: "tel:1800REDCROSS" }
+                ]
+            },
+            china: {
+                name: "China",
+                lines: [
+                    { service: "Police/Public Security", number: "110", link: "tel:110" },
+                    { service: "Fire Department", number: "119", link: "tel:119" },
+                    { service: "Ambulance/Medical", number: "120", link: "tel:120" },
+                    { service: "Traffic Accidents", number: "122", link: "tel:122" }
+                ]
+            },
+            london: {
+                name: "London (UK)",
+                lines: [
+                    { service: "Emergency Services (Police/Fire/Ambulance)", number: "999 or 112", link: "tel:999" },
+                    { service: "Non-Emergency Medical Advice", number: "111", link: "tel:111" },
+                    { service: "Police Non-Emergency", number: "101", link: "tel:101" }
+                ]
+            }
+        };
+
+        
+        // --- Dummy Data Generation for Latest Guides (50 items for pagination demo) ---
+        const today = new Date();
+        const TOPIC_TYPES = ["First Aid", "Survival", "Preparedness", "Gear"];
+        for (let i = 1; i <= 50; i++) {
+            const date = new Date(today.getTime() - i * 86400000 * (i % 5)); 
+            const typeIndex = i % TOPIC_TYPES.length;
+            const categoryIndex = i % ALL_CATEGORIES.length;
+            const isPriority = i < 10;
+            const title = `Guide: ${isPriority ? 'High Priority ' : 'General '}${50 - i + 1} - ${ALL_CATEGORIES[categoryIndex]}`;
+            
+            // Set image to null for one item to test the fallback
+            const image = (i === 4) ? '' : `https://via.placeholder.com/300x225/${isPriority ? 'ef4444' : 'f97316'}/FFFFFF?text=G${50 - i + 1}`;
+
+            latestEpisodesData.push({
+                id: 100 + i, 
+                title: title, 
+                step: `${TOPIC_TYPES[typeIndex]} Basics`, 
+                type: TOPIC_TYPES[typeIndex], 
+                link: "#", 
+                image: image, // Use the generated image or empty string
+                date: date,
+                categories: [
+                    ALL_CATEGORIES[categoryIndex], 
+                    ALL_CATEGORIES[(categoryIndex + 2) % ALL_CATEGORIES.length]
+                ],
+                description: isPriority ? 
+                    "This is the detailed, life-saving guide covering the most critical steps in an immediate emergency situation. Read carefully and remember the key procedures. Focus on the C-A-B mnemonic: Compressions, Airway, Breathing." : 
+                    "A standard guide entry covering general preparedness and less immediate dangers, focusing on long-term survival strategies.",
+                status: isPriority ? "Critical" : "Standard",
+                quickSteps: isPriority ? 
+                    ["1. Assess immediate danger (Stop, Look, Listen).", "2. Ensure victim is responsive (Tap and Shout).", "3. Call emergency services immediately (911/112).", "4. Provide first aid or rescue based on the situation."] : 
+                    ["1. Check your Bug-Out Bag (BOB).", "2. Monitor local weather/alert systems.", "3. Secure your home or shelter.", "4. Conserve water and power."],
+                fullSteps: [
+                    { step: "Step 1: Check for Hazards", detail: "Ensure the scene is safe for you before approaching the victim. Do not become a victim yourself. Look for electricity, fire, or gas leaks." },
+                    { step: "Step 2: Check for Response & Call", detail: "Tap and shout at the victim. If no response, assume unconsciousness. Shout for help and call emergency services (911/112) immediately." },
+                    { step: "Step 3: Open Airway", detail: "Use the head-tilt, chin-lift maneuver to gently open the victim's airway. Look, Listen, and Feel for breathing for no more than 10 seconds." },
+                    { step: "Step 4: Provide Breathing/Compressions", detail: isPriority ? "Start CPR if qualified, beginning with compressions. If untrained, follow dispatcher instructions." : "If breathing, place in the recovery position. If not, start rescue breaths/CPR." },
+                    { step: "Step 5: Control Bleeding", detail: "Apply direct pressure to any severe external bleeding using a clean cloth or bandage." },
+                    { step: "Step 6: Treat for Shock", detail: "Keep the victim warm, raise their feet slightly (if no spine injury), and reassure them until professional help arrives." }
+                ].slice(0, isPriority ? 6 : 4), // Varying step counts
+                examples: isPriority ? [
+                    "Example: Typhoon/Flood - The primary danger is drowning or falling debris. Secure location first, then focus on high ground.",
+                    "Example: Severe Bleeding - Do not remove the object causing the injury; apply pressure around it."
+                ] : [
+                    "Example: Lost in the Woods - S.T.O.P. (Stop, Think, Observe, Plan) is the best initial strategy.",
+                    "Example: Power Outage - Use flashlights, not candles, to avoid fire hazards."
+                ],
+                // NEW: Dos and Don'ts Data
+                dos: isPriority ? ["Stay calm and prioritize the scene's safety.", "Call emergency services immediately.", "Apply firm, direct pressure to severe bleeding."] : ["Keep your emergency kit current.", "Check weather reports frequently.", "Have a family communication plan."],
+                donts: isPriority ? ["Don't move the victim unless absolutely necessary.", "Don't give the victim anything to eat or drink.", "Don't try to be a hero; ensure your own safety first."] : ["Don't rely solely on one method of communication.", "Don't wait until the last minute to evacuate.", "Don't use fire unless controlled and necessary."]
+            });
+        }
+        
+        // Add popular series data (High-Priority Topics)
+        popularSeries.push(
+            { 
+                id: 201, 
+                title: "How to Perform CPR", 
+                link: "#", 
+                image: "https://via.placeholder.com/300x225/ef4444/FFFFFF?text=CPR+FA", 
+                page: "popular", 
+                categories: ["First Aid", "Critical"], 
+                date: new Date(2024, 8, 15), 
+                type: "First Aid", 
+                status: "High Priority",
+                description: "Cardiac Pulmonary Resuscitation (CPR) is a life-saving technique useful in many emergencies. This guide details the steps for adult CPR, focusing on the 30 compressions to 2 breaths ratio.",
+                quickSteps: ["1. Verify safety and unresponsiveness.", "2. Call 911/get AED.", "3. Start 30 chest compressions.", "4. Give 2 rescue breaths."],
+                fullSteps: [
+                    { step: "Step 1: Verify Scene Safety", detail: "Ensure the environment is safe before starting CPR. If a victim is underwater or in traffic, move them if possible and safe." },
+                    { step: "Step 2: Check Pulse and Breathing", detail: "Look, Listen, and Feel for breathing. If no breathing or only gasping, check for a pulse for no more than 10 seconds. If no pulse, start CPR." },
+                    { step: "Step 3: Start Compressions", detail: "Place the heel of one hand in the center of the chest, place the heel of the other hand on top. Push hard, push fast (100-120 per minute), and let the chest recoil fully." },
+                    { step: "Step 4: Give Breaths", detail: "After 30 compressions, open the airway using the head-tilt chin-lift maneuver and give 2 rescue breaths (each lasting 1 second). Continue the 30:2 cycle." }
+                ],
+                examples: ["Example: Infant CPR - Use two fingers for compressions, not the heel of the hand.", "Example: Hands-Only CPR - If unwilling or unable to give breaths, focus solely on continuous, hard, and fast chest compressions."],
+                dos: ["Push hard and fast (100-120/min).", "Allow the chest to recoil fully.", "Minimize interruptions in compressions."],
+                donts: ["Don't stop compressions unnecessarily.", "Don't attempt rescue breaths if you cannot open the airway.", "Don't forget to call for help first."]
+            },
+            { 
+                id: 202, 
+                title: "Drowning Rescue & First Aid", 
+                link: "#", 
+                image: "https://via.placeholder.com/300x225/3b82f6/FFFFFF?text=Water+Rescue", 
+                page: "popular", 
+                categories: ["First Aid", "Severe Weather"], 
+                date: new Date(2024, 7, 11), 
+                type: "First Aid", 
+                status: "High Priority",
+                description: "Immediate action for a drowning victim, focusing on rescue safety and post-rescue first aid steps. Remember: Reach, Throw, Row, Go (Last Resort).",
+                quickSteps: ["1. Do not enter water (if untrained).", "2. Extend an item or throw a flotation device.", "3. Pull victim to safety.", "4. Check breathing; start CPR if necessary."],
+                fullSteps: [
+                    { step: "Step 1: CALL for Help", detail: "Immediately call 911/112 and alert lifeguards or those nearby that someone is drowning." },
+                    { step: "Step 2: Reach or Throw", detail: "Extend an object (pole, branch) or throw a buoyant object (life preserver, cooler) to the victim. Do not swim out unless trained and equipped." },
+                    { step: "Step 3: Pull to Safety", detail: "Once contact is made, pull the victim to the shore or boat. Be gentle, as spine injury is possible." },
+                    { step: "Step 4: Check Breathing/Pulse", detail: "Once safe on land, check for a pulse and breathing. Open the airway with the head-tilt, chin-lift." },
+                    { step: "Step 5: Provide Care", detail: "If not breathing, start CPR. If conscious, cover them with blankets to prevent hypothermia and wait for medical personnel." }
+                ],
+                examples: ["Example: Ice Water Rescue - Use a ladder or long board to distribute your weight when near the edge of the ice.", "Example: Swiftwater Rescue - Never stand in the water downstream of a victim; use a rope from the bank."],
+                dos: ["Reach or throw, don't go (unless trained).", "Begin rescue breathing as soon as the victim is out of the water.", "Treat for hypothermia immediately."],
+                donts: ["Don't dive in unless absolutely necessary and trained.", "Don't try to empty water from the victim's lungs.", "Don't assume the victim is safe just because they are conscious."]
+            },
+        );
+
+        const animeData = [...latestEpisodesData, ...popularSeries]; // Global topic data
+        let currentFilteredResults = latestEpisodesData; 
+        let currentArchiveFilter = null; 
+        let currentPage = 1;
+        let currentFeaturedTopicId = animeData.length > 0 ? animeData[0].id : null; // Track the featured topic
+
+        // --- Core Functions ---
+
+        function showPage(pageId) {
+            $('.page').addClass('hidden');
+            $('#' + pageId).removeClass('hidden');
+            $('#anime-detail-panel').addClass('hidden'); 
+
+            $('.nav-item').removeClass('active').css('border-bottom', 'none');
+            const dataPage = pageId.replace('page-', '').replace('-results', '');
+            
+            if (pageId === 'page-filter') {
+                $(`.nav-item[data-page="filter"]`).addClass('active');
+            } else {
+                $(`.nav-item[data-page="${dataPage}"]`).addClass('active');
+            }
+
+            if (pageId === 'page-archive') {
+                $('.archive-letter').removeClass('active'); 
+                if (currentArchiveFilter) {
+                    renderArchiveList(currentArchiveFilter);
+                    $(`.archive-letter[data-letter="${currentArchiveFilter}"]`).addClass('active');
+                } else {
+                    $('#anime-archive-table').html('<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500" id="archive-empty-message">Select a letter to filter the guides.</td></tr>');
+                    $('#archive-title').text('All Topics');
+                }
+            }
+        }
+
+        /**
+         * Renders the list of topic items in grid format (used for Home/Popular/Search).
+         */
+        function renderAnimeList(list, containerId) { 
+            const container = $(containerId);
+            container.empty(); 
+            const isEmpty = list.length === 0;
+
+            const latestContainer = $('#latest-episodes-container');
+            const targetMessage = (containerId === '#latest-episodes') ? '#latest-empty-message' : 
+                                  (containerId === '#filtered-results-list') ? '#filter-no-results' : null;
+
+            if (isEmpty) {
+                if (targetMessage) $(targetMessage).removeClass('hidden');
+                if (containerId === '#latest-episodes') {
+                    latestContainer.css({'display': 'flex', 'align-items': 'center', 'justify-content': 'center'});
+                }
+            } else {
+                if (targetMessage) $(targetMessage).addClass('hidden');
+                if (containerId === '#latest-episodes') {
+                    latestContainer.css({'display': 'block', 'align-items': 'initial', 'justify-content': 'initial'});
+                }
+            }
+            
+            if (isEmpty) return; 
+
+            // Inline onerror attribute to load fallback if image fails
+            const onErrorAttr = `onerror="this.onerror=null; this.src='${FALLBACK_IMAGE_URL}'"`;
+
+            list.forEach(topic => {
+                const stepTag = topic.step ? `<p class="text-xs text-orange-400">${topic.step}</p>` : '';
+                const typeTag = topic.type ? `<span class="absolute top-2 right-2 bg-orange-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">${topic.type}</span>` : '';
+                
+                const categoryBadges = topic.categories ? topic.categories.map(cat => 
+                    `<span class="text-xs text-gray-300 px-1 bg-black/50 rounded-sm">${cat}</span>`
+                ).join('') : '';
+                
+                // Use fallback if topic.image is explicitly empty or null
+                const imageUrl = topic.image || FALLBACK_IMAGE_URL;
+
+                const itemHtml = `
+                    <a href="#" data-anime-id="${topic.id}" class="topic-item group block relative overflow-hidden rounded-lg hover:shadow-orange-500/50 hover:shadow-2xl transition duration-300" 
+                        onclick="renderFeaturedTopic(${topic.id}); showPage('page-home'); smoothScrollToTop(); return false;">
+                        <img src="${imageUrl}" alt="${topic.title}" ${onErrorAttr} class="w-full h-auto object-cover transform group-hover:scale-105 transition duration-300">
+                        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                            <p class="text-sm font-semibold truncate text-white">${topic.title}</p>
+                            ${stepTag}
+                        </div>
+                        ${typeTag}
+                        <div class="absolute top-2 left-2 flex flex-wrap gap-1">
+                            ${categoryBadges}
+                        </div>
+                    </a>
+                `;
+                container.append(itemHtml);
+            });
+        }
+        
+        /**
+         * Renders the full topic details in the Featured Tutorial section on the Home page.
+         * This function handles navigation logic and sets up the modal button.
+         */
+        function renderFeaturedTopic(id) {
+            const topic = animeData.find(a => a.id === id);
+            if (!topic) return;
+
+            // 1. Update Home Page Featured Section
+            $('#featured-title').text(topic.title);
+            
+            const $featuredImage = $('#featured-image');
+            // Use fallback if image is explicitly empty or null
+            const imageUrl = topic.image || FALLBACK_IMAGE_URL;
+            $featuredImage.attr('src', imageUrl).attr('alt', topic.title);
+            
+            // Add error handler specifically for the featured image
+            $featuredImage.off('error').on('error', function() {
+                // Prevent infinite loop if fallback image also fails
+                if ($(this).attr('src') !== FALLBACK_IMAGE_URL) {
+                    $(this).attr('src', FALLBACK_IMAGE_URL);
+                }
+            });
+
+            // This uses the topic's description (Key Explanation)
+            $('#featured-explanation').text(topic.description);
+            
+            // Quick Steps Snippet (How-To Snippet)
+            const stepsContainer = $('#featured-steps-snippet').empty();
+            // This uses the topic's quickSteps (unique guide data)
+            (topic.quickSteps || []).slice(0, 4).forEach((step, index) => {
+                stepsContainer.append(`<p class="flex items-start"><span class="text-orange-400 mr-2 font-bold">${index + 1}.</span> ${step}</p>`);
+            });
+            if ((topic.fullSteps || []).length > 4) {
+                stepsContainer.append(`<p class="text-sm text-gray-400 mt-2">... view full guide for all ${topic.fullSteps.length} steps.</p>`);
+            } else if ((topic.fullSteps || []).length === 0) {
+                 stepsContainer.append(`<p class="text-sm text-gray-400">No quick steps available. View full guide for details.</p>`);
+            }
+
+            // Categories
+            const catContainer = $('#featured-categories').empty();
+            if (topic.categories) {
+                topic.categories.forEach(cat => {
+                    const badge = `<span class="bg-orange-600 text-white text-xs font-semibold px-2 py-1 rounded-full">${cat}</span>`;
+                    catContainer.append(badge);
+                });
+            }
+
+            // 2. Set Current State & Update Navigation
+            currentFeaturedTopicId = id;
+            const allIds = animeData.map(t => t.id);
+            const currentIndex = allIds.indexOf(id);
+
+            const prevButton = $('#prev-featured');
+            const nextButton = $('#next-featured');
+
+            prevButton.prop('disabled', currentIndex <= 0);
+            nextButton.prop('disabled', currentIndex >= allIds.length - 1);
+
+            // 3. Mark as viewed
+            markWatched(topic.id, topic.title, topic.type);
+        }
+
+        // NEW: Smooth Scroll Function
+        function smoothScrollToTop() {
+            $('html, body').animate({
+                scrollTop: 0
+            }, 500); // 500ms duration for a smooth scroll
+        }
+
+        // --- Hotline Functions ---
+        
+        function setupHotlineDropdown() {
+            const countrySelect = $('#country-select');
+            countrySelect.empty();
+            
+            // Add options based on the EMERGENCY_HOTLINES keys
+            Object.keys(EMERGENCY_HOTLINES).forEach(key => {
+                const country = EMERGENCY_HOTLINES[key];
+                const option = $(`<option value="${key}">${country.name}</option>`);
+                countrySelect.append(option);
+            });
+            
+            // Set the default selection (Philippines)
+            countrySelect.val('philippines');
+        }
+
+        function renderHotlines(countryKey) {
+            const listContainer = $('#hotlines-list').empty();
+            const countryData = EMERGENCY_HOTLINES[countryKey];
+
+            if (!countryData) {
+                listContainer.html('<li class="text-gray-400">Hotline data not found for this country.</li>');
+                return;
+            }
+
+            countryData.lines.forEach(line => {
+                const lineHtml = `
+                    <li class="border-b border-gray-700 pb-1 flex justify-between">
+                        <span class="font-bold text-gray-300">${line.service}:</span> 
+                        <a href="${line.link}" class="text-orange-400 hover:text-orange-500 transition font-mono">${line.number}</a>
+                    </li>
+                `;
+                listContainer.append(lineHtml);
+            });
+        }
+        
+        // NEW: Render Survival Rules page
+        function renderSurvivalRules() {
+            const container = $('#page-search-results');
+            const contentContainer = $('#rules-content').empty();
+            
+            $('#rules-title').text(SURVIVAL_RULES.title);
+            
+            // Construct the content dynamically
+            SURVIVAL_RULES.content.forEach(item => {
+                if (item.type === 'p') {
+                    contentContainer.append(`<p class="mb-4">${item.text}</p>`);
+                } else if (item.type === 'h3') {
+                    contentContainer.append(`<h3 class="text-xl font-bold border-b border-gray-700 pb-1 mb-3 mt-4 text-white">${item.text}</h3>`);
+                } else if (item.type === 'ul') {
+                    const list = $(`<ul class="list-disc ${item.listClass || ''} space-y-1 mb-4"></ul>`);
+                    item.items.forEach(listItem => {
+                        list.append(`<li>${listItem}</li>`);
+                    });
+                    contentContainer.append(list);
+                }
+            });
+        }
+
+
+        // --- Other Functions (Modal, Archive, Filter, History - Unchanged Logic) ---
+
+        function showTopicModal(id) {
+            const topic = animeData.find(a => a.id === id);
+            if (!topic) return;
+
+            $('#modal-title').text(topic.title);
+            $('#modal-explanation').text(topic.description);
+
+            // Render Full Steps
+            const stepsContainer = $('#modal-steps-container').empty();
+            (topic.fullSteps || []).forEach((stepObj, index) => {
+                const stepHtml = `
+                    <div class="instruction-step">
+                        <span class="instruction-step-number">${index + 1}</span>
+                        <div>
+                            <p class="text-sm font-semibold text-white">${stepObj.step}</p>
+                            <p class="text-xs text-gray-400 mt-0.5">${stepObj.detail}</p>
+                        </div>
+                    </div>
+                `;
+                stepsContainer.append(stepHtml);
+            });
+            if ((topic.fullSteps || []).length === 0) {
+                stepsContainer.html('<p class="text-gray-400">No detailed steps provided for this guide.</p>');
+            }
+            
+            // NEW: Render Dos
+            const dosContainer = $('#modal-dos-container').empty();
+            (topic.dos || []).forEach(item => {
+                dosContainer.append(`<li>${item}</li>`);
+            });
+            if ((topic.dos || []).length === 0) {
+                dosContainer.html('<li class="text-gray-500 list-none">No specific DOs listed.</li>');
+            }
+
+            // NEW: Render Don'ts
+            const dontsContainer = $('#modal-donts-container').empty();
+            (topic.donts || []).forEach(item => {
+                dontsContainer.append(`<li>${item}</li>`);
+            });
+            if ((topic.donts || []).length === 0) {
+                dontsContainer.html('<li class="text-gray-500 list-none">No specific DON\'Ts listed.</li>');
+            }
+
+            // Render Examples
+            const examplesContainer = $('#modal-examples').empty();
+            (topic.examples || []).forEach((example, index) => {
+                examplesContainer.append(`<p class="bg-gray-700 p-3 rounded"><span class="font-bold text-orange-400">Scenario/Example ${index + 1}:</span> ${example}</p>`);
+            });
+            if ((topic.examples || []).length === 0) {
+                examplesContainer.html('<p class="text-gray-400">No practical examples provided for this guide.</p>');
+            }
+
+
+            $('#detail-modal').removeClass('hidden').addClass('flex');
+        }
+
+
+        function renderArchiveLinks() {
+            const container = $('#anime-archive-links').empty();
+            const archiveGrid = $('<div class="grid grid-cols-7 sm:grid-cols-9 lg:grid-cols-13 gap-1"></div>');
+
+            animeArchiveLinks.forEach(item => { 
+                const link = $(`<a href="#" data-letter="${item.letter}" class="archive-letter text-center font-bold text-xs bg-gray-700 p-1 rounded hover:bg-orange-500 hover:text-gray-900 transition duration-200">${item.letter}</a>`);
+                link.on('click', function(e) {
+                    e.preventDefault();
+                    $('.archive-letter').removeClass('active');
+                    $(this).addClass('active');
+                    renderArchiveList(item.letter);
+                });
+                archiveGrid.append(link);
+            });
+            container.append(archiveGrid);
+        }
+
+        function renderArchiveList(filterLetter = currentArchiveFilter) {
+            currentArchiveFilter = filterLetter;
+            if (!filterLetter) return;
+
+            $('#archive-title').text(`Topics Starting With: ${filterLetter}`);
+            
+            let filteredList = animeData.filter(topic => {
+                const firstChar = topic.title.charAt(0).toUpperCase();
+                if (filterLetter === '0-9') {
+                    return !isNaN(parseInt(firstChar));
+                } else {
+                    return firstChar === filterLetter;
+                }
+            });
+
+            const sortBy = $('#archive-sort-by').val();
+            const sortOrder = $('#archive-sort-order').val();
+
+            filteredList.sort((a, b) => {
+                let valA, valB;
+
+                if (sortBy === 'title') {
+                    valA = a.title.toLowerCase();
+                    valB = b.title.toLowerCase();
+                } else if (sortBy === 'type') {
+                    valA = a.type || '';
+                    valB = b.type || '';
+                } else if (sortBy === 'date') {
+                    valA = a.date ? a.date.getTime() : 0;
+                    valB = b.date ? b.date.getTime() : 0;
+                }
+
+                if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+                if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+                return 0;
+            });
+            
+            const container = $('#anime-archive-table').empty();
+
+            if (filteredList.length === 0) {
+                container.html(`<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No guides found starting with '${filterLetter}'.</td></tr>`);
+                return;
+            }
+
+            filteredList.forEach(topic => {
+                const dateString = topic.date ? topic.date.toLocaleDateString() : 'N/A';
+                const categoriesString = topic.categories ? topic.categories.slice(0, 2).join(', ') + (topic.categories.length > 2 ? '...' : '') : 'N/A';
+                
+                const typeBadgeClass = topic.type === 'First Aid' ? 'bg-red-700 text-white' : topic.type === 'Preparedness' ? 'bg-green-700 text-white' : 'bg-orange-600 text-white';
+                
+                const rowHtml = `
+                    <tr class="hover:bg-gray-700 transition duration-150 cursor-pointer" onclick="renderFeaturedTopic(${topic.id}); showPage('page-home'); smoothScrollToTop();">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-white">${topic.title}</div>
+                            <div class="text-xs text-orange-400">${topic.type}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${typeBadgeClass}">
+                                ${topic.status || 'N/A'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-400 max-w-xs truncate">${categoriesString}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${dateString}</td>
+                    </tr>
+                `;
+                container.append(rowHtml);
+            });
+        }
+        
+        function renderFilterPage(page) { 
+            currentPage = page;
+            const totalItems = currentFilteredResults.length;
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+            const start = (currentPage - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const paginatedList = currentFilteredResults.slice(start, end);
+            
+            renderAnimeList(paginatedList, '#filtered-results-list');
+            renderPaginationControls(totalPages, currentPage, '#filter-pagination', renderFilterPage);
+        }
+
+        function setupFilterDropdowns() { 
+            const $filterDay = $('#filter-day'); for (let i = 1; i <= 31; i++) { $filterDay.append(`<option value="${i}">${i}</option>`); }
+            const $filterMonth = $('#filter-month'); MONTHS.forEach((month, index) => { $filterMonth.append(`<option value="${index + 1}">${month}</option>`); });
+            const $filterYear = $('#filter-year'); const currentYear = new Date().getFullYear(); for (let i = 0; i < 5; i++) { $filterYear.append(`<option value="${currentYear - i}">${currentYear - i}</option>`); }
+            const $filterCategory = $('#filter-category');
+            ALL_CATEGORIES.forEach(cat => { $filterCategory.append(`<option value="${cat}">${cat}</option>`); });
+        }
+        
+        function applyFilter() {
+            const day = $('#filter-day').val();
+            const month = $('#filter-month').val();
+            const year = $('#filter-year').val();
+            const category = $('#filter-category').val();
+            const searchTerm = $('#filter-search-input').val().toLowerCase().trim();
+            
+            // Start with all topic data
+            let results = animeData; 
+
+            // 1. Apply Search Term Filter
+            if (searchTerm) {
+                results = results.filter(topic => topic.title.toLowerCase().includes(searchTerm) || (topic.description && topic.description.toLowerCase().includes(searchTerm)));
+            }
+            
+            // 2. Apply Date and Category Filters
+            if (day || month || year || category) {
+                results = results.filter(topic => {
+                    const d = topic.date; // Use the Date object
+                    const matchesDay = !day || (d && d.getDate() == parseInt(day));
+                    const matchesMonth = !month || (d && (d.getMonth() + 1) == parseInt(month));
+                    const matchesYear = !year || (d && d.getFullYear() == parseInt(year));
+                    const matchesCategory = !category || (topic.categories && topic.categories.includes(category));
+                    
+                    return matchesDay && matchesMonth && matchesYear && matchesCategory;
+                });
+            }
+
+            currentFilteredResults = results;
+            renderFilterPage(1); 
+        }
+
+        function filterLatest() { 
+            // Reset filter controls visually AND clear search box
+            $('#filter-day').val('');
+            $('#filter-month').val('');
+            $('#filter-year').val('');
+            $('#filter-category').val('');
+            $('#filter-search-input').val('');
+            
+            applyFilter(); // Apply empty filter on all data to show everything
+        }
+
+        function renderPaginationControls(totalPages, activePage, containerId, callback) { 
+            const container = $(containerId).empty();
+            if (totalPages <= 1) return;
+
+            const prevButton = $(`<button class="bg-gray-700 text-white p-2 rounded hover:bg-orange-600 transition" ${activePage === 1 ? 'disabled' : ''}>Previous</button>`);
+            prevButton.on('click', () => callback(activePage - 1));
+            if (activePage === 1) prevButton.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+            container.append(prevButton);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const buttonClass = i === activePage ? 'bg-orange-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600';
+                const button = $(`<button class="w-8 h-8 rounded ${buttonClass} text-sm font-bold">${i}</button>`);
+                button.on('click', () => callback(i));
+                container.append(button);
+            }
+
+            const nextButton = $(`<button class="bg-gray-700 text-white p-2 rounded hover:bg-orange-600 transition" ${activePage === totalPages ? 'disabled' : ''}>Next</button>`);
+            nextButton.on('click', () => callback(activePage + 1));
+            if (activePage === totalPages) nextButton.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+            container.append(nextButton);
+        }
+
+        function markWatched(id, title, detail) { 
+            const history = getWatchedHistory();
+            const now = new Date().toLocaleString();
+            const newItem = { id, title, detail, watchedAt: now };
+            const newHistory = history.filter(item => item.id !== id);
+            newHistory.unshift(newItem); 
+            const finalHistory = newHistory.slice(0, 30);
+            try { localStorage.setItem('watchedHistory', JSON.stringify(finalHistory)); } catch (e) { console.error("Could not save history to localStorage:", e); }
+            if (!$('#page-history').hasClass('hidden')) { renderWatchedHistory(finalHistory); }
+        }
+
+        function getWatchedHistory() { 
+            try { return localStorage.getItem('watchedHistory') ? JSON.parse(localStorage.getItem('watchedHistory')) : []; } catch (e) { return []; }
+        }
+
+        function renderWatchedHistory(historyList) { 
+            const history = historyList || getWatchedHistory();
+            const container = $('#watched-history-list').empty();
+            if (history.length === 0) { container.append('<li class="text-gray-400" id="empty-history-message">Your history is empty.</li>'); $('#clear-history').addClass('hidden'); return; }
+            $('#clear-history').removeClass('hidden');
+            history.forEach(item => {
+                const itemHtml = `
+                    <li class="border-b border-gray-700 pb-2 flex justify-between items-center">
+                        <div><p class="font-bold text-white hover:text-orange-400 transition">${item.title} - <span class="text-orange-400">${item.detail}</span></p>
+                        <span class="text-xs text-gray-500">Last viewed: ${item.watchedAt}</span></div>
+                        <a href="#" class="text-xs text-orange-400 hover:underline" onclick="renderFeaturedTopic(${item.id}); showPage('page-home'); smoothScrollToTop(); return false;">View Again</a>
+                    </li>`;
+                container.append(itemHtml);
+            });
+        }
+
+        function clearHistory() { 
+            if (confirm("Are you sure you want to clear your entire view history?")) {
+                localStorage.removeItem('watchedHistory');
+                renderWatchedHistory([]);
+            }
+        }
+        
+        function renderAllCategoryBadges() { 
+            const container = $('#all-categories-badges').empty();
+            ALL_CATEGORIES.forEach(cat => {
+                const badge = $(`<button class="bg-gray-700 text-orange-500 text-sm font-semibold px-3 py-1 rounded-full hover:bg-orange-600 hover:text-white transition">${cat}</button>`);
+                badge.on('click', function() {
+                    // Set category filter and trigger search page
+                    $('#filter-category').val(cat);
+                    applyFilter();
+                    showPage('page-filter');
+                });
+                container.append(badge);
+            });
+        }
+        
+        // --- Initialization ---
+
+        $(document).ready(function() {
+            // Initial Content Rendering
+            renderAnimeList(latestEpisodesData.slice(0, ITEMS_PER_PAGE), '#latest-episodes');
+            renderAnimeList(popularSeries, '#popular-series');
+            renderWatchedHistory(); 
+            renderAllCategoryBadges();
+            
+            // Render Archive Links (A-Z)
+            renderArchiveLinks();
+            
+            // Setup and Render Emergency Hotline List
+            setupHotlineDropdown();
+            renderHotlines('philippines'); // Default to Philippines
+
+            // Setup Filter/Search Page
+            setupFilterDropdowns();
+            // Bind the applyFilter function to both the main search button and the detailed filter button
+            $('#apply-filter').on('click', applyFilter);
+            $('#search-apply-button').on('click', applyFilter);
+            $('#filter-search-input').on('keypress', function(e) { if (e.which === 13) { applyFilter(); } });
+
+            $('#reset-filter').on('click', function() {
+                $('#filter-day').val('');
+                $('#filter-month').val('');
+                $('#filter-year').val('');
+                $('#filter-category').val('');
+                $('#filter-search-input').val('');
+                applyFilter(); // Apply empty filter
+            });
+
+            // Setup Archive Sorting Handler
+            $('#apply-archive-sort').on('click', function() {
+                renderArchiveList(); // Re-render with new sort criteria
+            });
+
+            // --- Featured Topic Navigation Handlers ---
+            $('#prev-featured').on('click', () => {
+                const allIds = animeData.map(t => t.id);
+                const currentIndex = allIds.indexOf(currentFeaturedTopicId);
+                if (currentIndex > 0) {
+                    renderFeaturedTopic(allIds[currentIndex - 1]);
+                }
+            });
+
+            $('#next-featured').on('click', () => {
+                const allIds = animeData.map(t => t.id);
+                const currentIndex = allIds.indexOf(currentFeaturedTopicId);
+                if (currentIndex < allIds.length - 1) {
+                    renderFeaturedTopic(allIds[currentIndex + 1]);
+                }
+            });
+
+            // --- Modal Handlers ---
+            $('#close-modal').on('click', () => {
+                $('#detail-modal').addClass('hidden').removeClass('flex');
+            });
+            $('#detail-modal').on('click', function(e) {
+                // Close modal if user clicks on the backdrop
+                if ($(e.target).is(this)) {
+                    $('#detail-modal').addClass('hidden').removeClass('flex');
+                }
+            });
+            $('#show-details-modal').on('click', () => {
+                showTopicModal(currentFeaturedTopicId);
+            });
+
+            // --- Event Handlers ---
+            $('.nav-item').on('click', function(e) { 
+                e.preventDefault(); 
+                const page = $(this).data('page'); 
+                if (page === 'history') { renderWatchedHistory(); } 
+                showPage('page-' + page); 
+                smoothScrollToTop(); // Added smooth scroll on navigation
+            });
+            $('#clear-history').on('click', clearHistory);
+            
+            // Set initial featured topic and page view
+            if (currentFeaturedTopicId) {
+                renderFeaturedTopic(currentFeaturedTopicId);
+            }
+            showPage('page-home');
+        });
+    </script>
+</body>
+</html>
