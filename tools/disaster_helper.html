@@ -1080,50 +1080,77 @@
         // --- Initialization ---
 
         $(document).ready(function () {
-
+            let retryCount = 0;
+            const MAX_RETRIES = 15;
+            const RETRY_DELAY_MS = 1000;
+            
             async function initializeApp() {
-                // Load Data
-                const jsonData = await loadJsonData('assets/disaster_helper.json');
-
-                EMERGENCY_HOTLINES = jsonData.emergencyHotlines;
-                ALL_CATEGORIES = jsonData.categories;
-                TOPIC_TYPES = jsonData.types;
-                SURVIVAL_RULES = jsonData.survivalRules;
-                popularGuides = jsonData.popularSurvivalGuides;
-                guidesData = jsonData.survivalGuides;
-                DATA = [...guidesData, ...popularGuides];
-
-                const randomIndex = Math.floor(Math.random() * popularGuides.length);
-                const randomGuide = popularGuides[randomIndex];
-                currentFeaturedTopicId = randomGuide.id;
-
-                //currentFeaturedTopicId = DATA.length > 0 ? popularGuides[0].id : null;
-
-                if (currentFeaturedTopicId) {
-                    renderFeaturedTopic(currentFeaturedTopicId);
-                }
-
-                renderHotlines('philippines'); // Default to Philippines
-
-                // Initial Content Rendering
-                renderSurvivalTopicList(guidesData.slice(0, ITEMS_PER_PAGE), '#latest-episodes');
-                renderSurvivalTopicList(popularGuides, '#popular-series');
-                renderWatchedHistory();
-                renderAllCategoryBadges();
-
-                // Render Archive Links (A-Z)
-                renderArchiveLinks();
-
-                // Setup and Render Emergency Hotline List
-                setupHotlineDropdown();
-
-                // Setup Filter/Search Page
-                setupFilterDropdowns();
-
-                const year = new Date().getFullYear();
-                const yearElement = document.getElementById('currentYear');
-                if (yearElement) {
-                    yearElement.textContent = year;
+                console.log(`Attempting to load JSON data (Attempt ${retryCount + 1})...`);
+                
+                try {
+                    // Load Data - Assuming loadJsonData returns null/undefined or throws on failure
+                    const jsonData = await loadJsonData('assets/disaster_helper.json');
+            
+                    if (!jsonData) {
+                        // Handle cases where loadJsonData returns a falsy value but doesn't throw
+                        throw new Error("JSON data loading failed: returned falsy value.");
+                    }
+            
+                    // --- Data Processing (Your original code) ---
+                    EMERGENCY_HOTLINES = jsonData.emergencyHotlines;
+                    ALL_CATEGORIES = jsonData.categories;
+                    TOPIC_TYPES = jsonData.types;
+                    SURVIVAL_RULES = jsonData.survivalRules;
+                    popularGuides = jsonData.popularSurvivalGuides;
+                    guidesData = jsonData.survivalGuides;
+                    DATA = [...guidesData, ...popularGuides];
+            
+                    const randomIndex = Math.floor(Math.random() * popularGuides.length);
+                    const randomGuide = popularGuides[randomIndex];
+                    currentFeaturedTopicId = randomGuide.id;
+            
+                    if (currentFeaturedTopicId) {
+                        renderFeaturedTopic(currentFeaturedTopicId);
+                    }
+            
+                    renderHotlines('philippines'); // Default to Philippines
+            
+                    // Initial Content Rendering
+                    renderSurvivalTopicList(guidesData.slice(0, ITEMS_PER_PAGE), '#latest-episodes');
+                    renderSurvivalTopicList(popularGuides, '#popular-series');
+                    renderWatchedHistory();
+                    renderAllCategoryBadges();
+            
+                    // Render Archive Links (A-Z)
+                    renderArchiveLinks();
+            
+                    // Setup and Render Emergency Hotline List
+                    setupHotlineDropdown();
+            
+                    // Setup Filter/Search Page
+                    setupFilterDropdowns();
+            
+                    const year = new Date().getFullYear();
+                    const yearElement = document.getElementById('currentYear');
+                    if (yearElement) {
+                        yearElement.textContent = year;
+                    }
+                    // --- End of Data Processing ---
+            
+                    console.log("JSON data loaded and app initialized successfully.");
+                    retryCount = 0; // Reset retry count on success
+            
+                } catch (error) {
+                    console.error("Error loading JSON data:", error);
+                    
+                    if (retryCount < MAX_RETRIES) {
+                        retryCount++;
+                        console.log(`Retrying in ${RETRY_DELAY_MS / 1000} seconds... (Retry ${retryCount}/${MAX_RETRIES})`);
+                        
+                        setTimeout(initializeApp, RETRY_DELAY_MS);
+                    } else {
+                        console.error("Maximum retries reached. App initialization failed.");
+                    }
                 }
             }
 
@@ -1193,4 +1220,5 @@
         });
     </script>
 </body>
+
 </html>
