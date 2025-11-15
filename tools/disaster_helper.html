@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Disaster Helper - Survival & First Aid Guide</title>
-    <!--<script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>-->
-    <link href="src\disaster_helper.tailwind.css" rel="stylesheet"> <!-- to work offline -->
-    <script src="src\jquery-3.6.0.min.js"></script> <!-- to work offline -->
+    <link href="src\disaster_helper.tailwind.css" rel="stylesheet">
+    <script src="src\jquery-3.6.0.min.js"></script>
     <style>
         /* Custom Tailwind Configuration (Safety Orange Theme) */
         :root {
@@ -93,39 +91,76 @@
             list-style-type: '❌ ';
             margin-left: 1.5rem;
         }
+
+        .nav-item.active {
+            color: var(--accent-color); /* Makes the icon orange */
+            /* This border will still work for desktop/text links */
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* NEW: Add specific mobile styling for active link on smaller screens */
+        @media (max-width: 767px) { /* Tailwinds 'md' breakpoint is 768px */
+            .nav-item.active {
+                background-color: #374151; /* Gray-700 background for selected icon */
+                border-radius: 0.5rem; /* Soft round corners */
+                border-bottom: none; /* Remove border-bottom on mobile */
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200">
 
     <header class="bg-gray-800 shadow-lg sticky top-0 z-10">
-        <div class="container mx-auto px-4 py-3 flex flex-wrap justify-between items-center">
-            
-            <a href="#" class="text-3xl font-bold text-orange-500 mr-8" onclick="showPage('page-home'); return false;">Disaster<span class="text-white">Helper</span></a>
-            
-            <nav class="order-3 md:order-2 w-full mt-3 md:w-auto md:mt-0 flex justify-around md:justify-start md:space-x-6 text-sm font-semibold border-b border-gray-700 md:border-b-0">
-                <a href="#home" class="nav-item active px-2 py-2 hover:text-orange-500 transition" data-page="home">HOME</a>
-                <a href="#popular" class="nav-item px-2 py-2 hover:text-orange-500 transition" data-page="popular">POPULAR GUIDES</a>
-                <a href="#archive" class="nav-item px-2 py-2 hover:text-orange-500 transition" data-page="archive">A-Z INDEX</a>
-                <a href="#search" class="nav-item px-2 py-2 hover:text-orange-500 transition" data-page="filter">SEARCH / FILTER</a>
-                <a href="#history" class="nav-item px-2 py-2 hover:text-orange-500 transition" data-page="history">RECENTLY VIEWED</a>
-            </nav>
+        <div class="container mx-auto px-4 py-3 flex flex-wrap md:flex-nowrap justify-between items-center">
 
-            <div class="order-2 md:order-3 w-full md:w-auto">
-                </div>
+            <a href="#" class="text-3xl font-bold text-orange-500 mr-8 flex-shrink-0" onclick="showPage('page-home'); return false;">Disaster<span class="text-white">Helper</span></a>
+
+            <div class="order-2 md:order-3 flex-shrink-0">
+                <button id="fullscreen-toggle" class="p-2 rounded-full bg-gray-700 text-orange-500 hover:bg-orange-600 hover:text-white transition" onclick="toggleFullScreen()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4M4 20l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                </button>
+            </div>
+
+            <nav class="order-3 md:order-2 w-full mt-3 md:w-auto md:flex-grow md:mt-0 flex justify-between text-sm font-semibold md:border-t-0 md:border-b-0">
+                <a href="#home" class="nav-item active flex-1 flex flex-col items-center px-2 py-2 hover:text-orange-500 transition md:w-1/5" data-page="home" title="Home">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11v10a1 1 0 001 1h3m-7 0h-2"></path></svg>
+                    <span class="hidden md:inline-block text-xs mt-1">HOME</span>
+                </a>
+
+                <a href="#popular" class="nav-item flex-1 flex flex-col items-center px-2 py-2 hover:text-orange-500 transition md:w-1/5" data-page="popular" title="Popular Guides">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.152A1.665 1.665 0 0113 2.152L15.349 7.02l5.064.736a1.665 1.665 0 01.924 2.842l-3.666 3.578 0.865 5.048a1.665 1.665 0 01-2.417 1.75l-4.526-2.388-4.526 2.388a1.665 1.665 0 01-2.417-1.75l.865-5.048-3.666-3.578a1.665 1.665 0 01.924-2.842l5.064-.736L11.049 2.152z"></path></svg>
+                    <span class="hidden md:inline-block text-xs mt-1">POPULAR</span>
+                </a>
+
+                <a href="#archive" class="nav-item flex-1 flex flex-col items-center px-2 py-2 hover:text-orange-500 transition md:w-1/5" data-page="archive" title="A-Z Index">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13h7.42M12 6.253H4.58M4.58 6.253l4.58 13M19.42 6.253l-4.58 13"></path></svg>
+                    <span class="hidden md:inline-block text-xs mt-1">A-Z</span>
+                </a>
+
+                <a href="#search" class="nav-item flex-1 flex flex-col items-center px-2 py-2 hover:text-orange-500 transition md:w-1/5" data-page="filter" title="Search / Filter">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <span class="hidden md:inline-block text-xs mt-1">SEARCH</span>
+                </a>
+
+                <a href="#history" class="nav-item flex-1 flex flex-col items-center px-2 py-2 hover:text-orange-500 transition md:w-1/5" data-page="history" title="Recently Viewed">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span class="hidden md:inline-block text-xs mt-1">HISTORY</span>
+                </a>
+            </nav>
         </div>
     </header>
 
     <main class="container mx-auto px-4 py-8">
-        
+
         <div id="page-content">
 
             <div id="page-home" class="page">
-                
+
                 <div class="bg-gray-800 p-4 rounded-lg shadow-xl mb-8">
                     <h2 class="text-xl font-bold border-b-2 border-orange-500 pb-2 mb-4 text-white">🔥 FEATURED TOPIC</h2>
-                    
+
                     <div id="featured-tutorial-container" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        
+
                         <div class="lg:col-span-2 order-2 lg:order-1">
                             <h3 id="featured-title" class="text-2xl font-bold text-orange-500 mb-2">Topic Title</h3>
                             <div id="featured-categories" class="flex flex-wrap gap-2 mb-3"></div>
@@ -135,13 +170,13 @@
 
                             <h4 class="text-lg font-bold border-b border-gray-700 pb-1 mb-2 text-white">Quick Steps (How-To Snippet)</h4>
                             <div id="featured-steps-snippet" class="space-y-2 text-sm text-gray-300 mb-4">
-                                </div>
-                            
+                            </div>
+
                             <button id="show-details-modal" class="bg-orange-600 text-white p-3 rounded-lg font-bold hover:bg-orange-500 transition">
                                 View Full Guide, Details & Examples
                             </button>
                         </div>
-                        
+
                         <div class="lg:col-span-1 order-1 lg:order-2">
                             <img id="featured-image" src="#" class="w-full rounded-lg object-cover max-h-72" alt="Featured Topic Image">
                             <div class="flex justify-between items-center mt-4">
@@ -153,19 +188,19 @@
                                 <button id="next-featured" class="bg-gray-700 text-white p-2 rounded hover:bg-orange-600 transition disabled:opacity-50">Next →</button>
                             </div>
                         </div>
-                        
+
                     </div>
                 </div>
                 <div id="anime-detail-panel" class="bg-gray-800 p-4 rounded-lg shadow-xl mb-8 hidden">
-                    </div>
+                </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <div class="md:col-span-3">
-                        
+
                         <div class="bg-gray-800 p-4 rounded-lg shadow-xl mb-8">
                             <h2 class="text-xl font-bold border-b-2 border-orange-500 pb-2 mb-4 text-white">🏷️ TOPIC CATEGORIES</h2>
                             <div id="all-categories-badges" class="flex flex-wrap gap-2">
-                                </div>
+                            </div>
                         </div>
 
                         <div class="bg-gray-800 p-4 rounded-lg shadow-xl">
@@ -191,13 +226,13 @@
                     <aside class="md:col-span-1">
                         <div class="bg-gray-800 p-4 rounded-lg shadow-xl">
                             <h3 class="text-lg font-bold border-b-2 border-orange-500 pb-2 mb-4 text-white">🗺️ EMERGENCY HOTLINES</h3>
-                            
+
                             <div class="mb-3">
                                 <label for="country-select" class="text-sm font-semibold text-gray-300 block mb-1">Select Country:</label>
                                 <select id="country-select" class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-sm" onchange="renderHotlines($('#country-select').val())">
                                 </select>
                             </div>
-                            
+
                             <ul id="hotlines-list" class="space-y-3 text-sm">
                             </ul>
 
@@ -227,8 +262,8 @@
                 <div class="bg-gray-800 p-4 rounded-lg shadow-xl">
                     <h2 class="text-xl font-bold border-b-2 border-orange-500 pb-2 mb-4 text-white">📚 GUIDE INDEX (A-Z)</h2>
                     <div id="anime-archive-links" class="space-y-3 mb-6">
-                        </div>
-                    
+                    </div>
+
                     <h3 class="text-lg font-bold border-b-2 border-gray-700 pb-2 mb-4 text-white flex justify-between items-center">
                         <span id="archive-title">All Topics</span>
                         <span id="archive-result-count" class="text-sm bg-gray-700 text-orange-500 px-2 py-1 rounded">
@@ -243,13 +278,13 @@
                             <option value="type">Topic Type</option>
                             <option value="date">Date Added</option>
                         </select>
-                        
+
                         <label class="text-sm font-semibold">Order:</label>
                         <select id="archive-sort-order" class="p-2 rounded bg-gray-900 border border-gray-600 text-sm">
                             <option value="asc">Ascending</option>
                             <option value="desc">Descending</option>
                         </select>
-                        
+
                         <button id="apply-archive-sort" class="bg-orange-600 text-white p-2 rounded hover:bg-orange-500 transition">Apply Sort</button>
                     </div>
 
@@ -276,7 +311,7 @@
                             </tbody>
                         </table>
                     </div>
-                    
+
                 </div>
             </div>
 
@@ -320,12 +355,12 @@
                     </h3>
                     <div id="filtered-results-list" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                         <p class="text-gray-400 col-span-5" id="filter-no-results">Enter keywords or select criteria and click Apply Filter.</p>
-                        </div>
+                    </div>
 
                     <div id="filter-pagination" class="mt-6 flex justify-center space-x-2">
-                        </div>
+                    </div>
                 </div>
-                </div>
+            </div>
 
             <div id="page-history" class="page hidden">
                 <div class="bg-gray-800 p-4 rounded-lg shadow-xl">
@@ -346,23 +381,23 @@
 
         </div>
     </main>
-    
+
     <div id="detail-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-80">
         <div class="min-h-screen flex items-center justify-center p-4">
             <div class="bg-gray-800 rounded-lg shadow-2xl w-full max-w-4xl p-6 relative">
-                
+
                 <button id="close-modal" class="absolute top-4 right-4 text-gray-400 hover:text-white transition">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
 
                 <h2 id="modal-title" class="text-3xl font-bold text-orange-500 mb-4 border-b pb-2">Full Guide Title</h2>
-                
-                <div class="max-h-[80vh] overflow-y-auto pr-4"> 
+
+                <div class="max-h-[80vh] overflow-y-auto pr-4">
                     <p id="modal-explanation" class="text-lg text-gray-300 mb-6"></p>
 
                     <h3 class="text-xl font-bold border-b-2 border-orange-500 pb-1 mb-3 text-white">Step-by-Step Instructions</h3>
                     <div id="modal-steps-container" class="mb-6 space-y-3">
-                        </div>
+                    </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div>
@@ -376,9 +411,9 @@
                     </div>
                     <h3 class="text-xl font-bold border-b-2 border-orange-500 pb-1 mb-3 text-white">Examples & Scenarios</h3>
                     <div id="modal-examples" class="text-sm text-gray-300 space-y-3">
-                        </div>
+                    </div>
                 </div>
-                
+
             </div>
         </div>
     </div>
@@ -402,38 +437,71 @@
 
         let TOPIC_TYPES = [];
         let ALL_CATEGORIES = [];
-        let guidesData = []; 
+        let guidesData = [];
         let popularGuides = [];
         let activePage = 'home';
 
         const animeArchiveLinks = [
-            { letter: "A", link: "#" }, { letter: "B", link: "#" }, { letter: "C", link: "#" }, 
-            { letter: "D", link: "#" }, { letter: "E", link: "#" }, { letter: "F", link: "#" }, 
-            { letter: "G", link: "#" }, { letter: "H", link: "#" }, { letter: "I", link: "#" }, 
-            { letter: "J", link: "#" }, { letter: "K", link: "#" }, { letter: "L", link: "#" }, 
-            { letter: "M", link: "#" }, { letter: "N", link: "#" }, { letter: "O", link: "#" }, 
-            { letter: "P", link: "#" }, { letter: "Q", link: "#" }, { letter: "R", link: "#" }, 
-            { letter: "S", link: "#" }, { letter: "T", link: "#" }, { letter: "U", link: "#" }, 
-            { letter: "V", link: "#" }, { letter: "W", link: "#" }, { letter: "X", link: "#" }, 
+            { letter: "A", link: "#" }, { letter: "B", link: "#" }, { letter: "C", link: "#" },
+            { letter: "D", link: "#" }, { letter: "E", link: "#" }, { letter: "F", link: "#" },
+            { letter: "G", link: "#" }, { letter: "H", link: "#" }, { letter: "I", link: "#" },
+            { letter: "J", link: "#" }, { letter: "K", link: "#" }, { letter: "L", link: "#" },
+            { letter: "M", link: "#" }, { letter: "N", link: "#" }, { letter: "O", link: "#" },
+            { letter: "P", link: "#" }, { letter: "Q", link: "#" }, { letter: "R", link: "#" },
+            { letter: "S", link: "#" }, { letter: "T", link: "#" }, { letter: "U", link: "#" },
+            { letter: "V", link: "#" }, { letter: "W", link: "#" }, { letter: "X", link: "#" },
             { letter: "Y", link: "#" }, { letter: "Z", link: "#" }, { letter: "0-9", link: "#" },
         ];
-        
+
         // Updated Hotline Data Structure
-        
+
         // --- Dummy Data Generation for Latest Guides (50 items for pagination demo) ---
         const today = new Date();
 
         //guidesData.type = TOPIC_TYPES[0];
         //categories = ALL_CATEGORIES
 
-        
+
         let DATA = [];
-        let currentFilteredResults = guidesData; 
-        let currentArchiveFilter = null; 
+        let currentFilteredResults = guidesData;
+        let currentArchiveFilter = null;
         let currentPage = 1;
         let currentFeaturedTopicId = 0;// DATA.length > 0 ? DATA[0].id : null; // Track the featured topic
 
         // --- Core Functions ---
+
+        /**
+         * Toggles the document or body element into or out of full-screen mode.
+         * Handles vendor prefixes for cross-browser compatibility.
+         */
+        function toggleFullScreen() {
+            const doc = window.document;
+            const docEl = doc.documentElement;
+
+            // Get vendor-prefixed request/exit fullscreen methods
+            const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+            const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+            // Check which element is currently in full-screen mode (includes vendor prefixes)
+            const isFullScreen = doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement;
+
+            if (!isFullScreen) {
+                // Enter full screen
+                if (requestFullScreen) {
+                    // Call requestFullScreen on the document's root element (documentElement)
+                    requestFullScreen.call(docEl);
+                } else {
+                    console.warn("Fullscreen mode not natively supported by this browser or security restrictions prevent it.");
+                }
+            } else {
+                // Exit full screen
+                if (cancelFullScreen) {
+                    // Call exitFullscreen on the document
+                    cancelFullScreen.call(doc);
+                }
+            }
+        }
+
 
         async function loadJsonData(url) {
             try {
@@ -462,11 +530,11 @@
         function showPage(pageId) {
             $('.page').addClass('hidden');
             $('#' + pageId).removeClass('hidden');
-            $('#anime-detail-panel').addClass('hidden'); 
+            $('#anime-detail-panel').addClass('hidden');
 
             $('.nav-item').removeClass('active').css('border-bottom', 'none');
             const dataPage = pageId.replace('page-', '').replace('-results', '');
-            activePage = dataPage; 
+            activePage = dataPage;
 
             if (pageId === 'page-filter') {
                 $(`.nav-item[data-page="filter"]`).addClass('active');
@@ -475,7 +543,7 @@
             }
 
             if (pageId === 'page-archive') {
-                $('.archive-letter').removeClass('active'); 
+                $('.archive-letter').removeClass('active');
                 if (currentArchiveFilter) {
                     renderArchiveList(currentArchiveFilter);
                     $(`.archive-letter[data-letter="${currentArchiveFilter}"]`).addClass('active');
@@ -517,12 +585,12 @@
                     });
 
                     const $latestCount = $('#latest-count');
-                    $latestCount.text(topicCount); 
+                    $latestCount.text(topicCount);
                 }
 
                 if (currentContainerId === '#popular-series') {
                     const $popularCount = $('#popular-count');
-                    $popularCount.text(topicCount); 
+                    $popularCount.text(topicCount);
                 }
             }
 
@@ -546,28 +614,28 @@
                 ).join(' ') : '';
 
                 const itemEvent = activePage === 'home' && containerId !== '#popular-series' ? `renderFeaturedTopic(${guideTopic.id}); showPage('page-home'); smoothScrollToTop(); return false;` : `showTopicModal(${guideTopic.id}); smoothScrollToTop(); return false;`;
-                
+
                 const itemHtml = `
-                            <a href="#" data-topic-id="${guideTopic.id}" class="topic-item block relative p-4 border border-gray-600 bg-gray-900/50 rounded-lg hover:bg-gray-800 transition duration-300 shadow-md mb-3"
-                                onclick="${itemEvent}">
+                                <a href="#" data-topic-id="${guideTopic.id}" class="topic-item block relative p-4 border border-gray-600 bg-gray-900/50 rounded-lg hover:bg-gray-800 transition duration-300 shadow-md mb-3"
+                                    onclick="${itemEvent}">
 
-                                ${typeTag}
+                                    ${typeTag}
 
-                                <div class="mb-1">
-                                    <p class="text-sm font-semibold text-white">${guideTopic.title}</p>
-                                    ${stepTag}
-                                </div>
-        
-                                <div class="flex flex-wrap gap-1 mt-2 pt-2 border-t border-gray-700/50">
-                                    ${categoryBadges}
-                                </div>
-        
-                            </a>
-                        `;
+                                    <div class="mb-1">
+                                        <p class="text-sm font-semibold text-white">${guideTopic.title}</p>
+                                        ${stepTag}
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-1 mt-2 pt-2 border-t border-gray-700/50">
+                                        ${categoryBadges}
+                                    </div>
+
+                                </a>
+                            `;
                 container.append(itemHtml);
             });
         }
-        
+
         /**
          * Renders the full topic details in the Featured Tutorial section on the Home page.
          * This function handles navigation logic and sets up the modal button.
@@ -649,18 +717,18 @@
         }
 
         // --- Hotline Functions ---
-        
+
         function setupHotlineDropdown() {
             const countrySelect = $('#country-select');
             countrySelect.empty();
-            
+
             // Add options based on the EMERGENCY_HOTLINES keys
             Object.keys(EMERGENCY_HOTLINES).forEach(key => {
                 const country = EMERGENCY_HOTLINES[key];
                 const option = $(`<option value="${key}">${country.name}</option>`);
                 countrySelect.append(option);
             });
-            
+
             // Set the default selection (Philippines)
             countrySelect.val('philippines');
         }
@@ -676,21 +744,21 @@
 
             countryData.lines.forEach(line => {
                 const lineHtml = `
-            <li class="border-b border-gray-700 pb-1 flex flex-col sm:flex-row justify-between items-start sm:items-baseline">
-                <span class="font-bold text-gray-300 w-full sm:w-7/12 flex-shrink-0 mb-1 sm:mb-0">${line.service}:</span> 
-                
-                <a href="${line.link}" class="text-orange-400 hover:text-orange-500 transition font-mono text-right w-full sm:w-auto">${line.number}</a>
-            </li>
-        `;
+                <li class="border-b border-gray-700 pb-1 flex flex-col sm:flex-row justify-between items-start sm:items-baseline">
+                    <span class="font-bold text-gray-300 w-full sm:w-7/12 flex-shrink-0 mb-1 sm:mb-0">${line.service}:</span>
+
+                    <a href="${line.link}" class="text-orange-400 hover:text-orange-500 transition font-mono text-right w-full sm:w-auto">${line.number}</a>
+                </li>
+            `;
                 listContainer.append(lineHtml);
             });
         }
-        
+
         // NEW: Render Survival Rules page
         function renderSurvivalRules() {
             const container = $('#page-search-results');
             const contentContainer = $('#rules-content').empty();
-            
+
             $('#rules-title').text(SURVIVAL_RULES.title);
             // Construct the content dynamically
             SURVIVAL_RULES.content.forEach(item => {
@@ -722,14 +790,14 @@
             const stepsContainer = $('#modal-steps-container').empty();
             (topic.fullSteps || []).forEach((stepObj, index) => {
                 const stepHtml = `
-            <div class="instruction-step">
-                <span class="instruction-step-number">${index + 1}</span>
-                <div>
-                    <p class="text-sm font-semibold text-white">${stepObj.step}</p>
-                    <p class="text-xs text-gray-400 mt-0.5">${stepObj.detail}</p>
+                <div class="instruction-step">
+                    <span class="instruction-step-number">${index + 1}</span>
+                    <div>
+                        <p class="text-sm font-semibold text-white">${stepObj.step}</p>
+                        <p class="text-xs text-gray-400 mt-0.5">${stepObj.detail}</p>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
                 stepsContainer.append(stepHtml);
             });
             if ((topic.fullSteps || []).length === 0) {
@@ -775,9 +843,9 @@
             const container = $('#anime-archive-links').empty();
             const archiveGrid = $('<div class="grid grid-cols-7 sm:grid-cols-9 lg:grid-cols-13 gap-1"></div>');
 
-            animeArchiveLinks.forEach(item => { 
+            animeArchiveLinks.forEach(item => {
                 const link = $(`<a href="#" data-letter="${item.letter}" class="archive-letter text-center font-bold text-xs bg-gray-700 p-1 rounded hover:bg-orange-500 hover:text-gray-900 transition duration-200">${item.letter}</a>`);
-                link.on('click', function(e) {
+                link.on('click', function (e) {
                     e.preventDefault();
                     $('.archive-letter').removeClass('active');
                     $(this).addClass('active');
@@ -794,7 +862,7 @@
             if (!filterLetter) return;
 
             $('#archive-title').text(`Topics Starting With: ${filterLetter}`);
-            
+
             let filteredList = DATA.filter(topic => {
                 const firstChar = topic.title.charAt(0).toUpperCase();
                 if (filterLetter === '0-9') {
@@ -825,7 +893,7 @@
                 if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
                 return 0;
             });
-            
+
             const container = $('#anime-archive-table').empty();
 
             const $resultCount = $('#archive-result-count');
@@ -839,64 +907,64 @@
             filteredList.forEach(topic => {
                 const dateString = 'n/a';// topic.date ? topic.date.toLocaleDateString() : 'N/A';
                 const categoriesString = topic.categories ? topic.categories.slice(0, 2).join(', ') + (topic.categories.length > 2 ? '...' : '') : 'N/A';
-                
+
                 const typeBadgeClass = topic.type === 'First Aid' ? 'bg-red-700 text-white' : topic.type === 'Preparedness' ? 'bg-green-700 text-white' : 'bg-orange-600 text-white';
                 const event = `showTopicModal(${topic.id});`; // `renderFeaturedTopic(${topic.id}); showPage('page-home'); smoothScrollToTop();`;
 
                 const rowHtml = `
-                    <tr class="hover:bg-gray-700 transition duration-150 cursor-pointer" onclick="${event}">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-white">${topic.title}</div>
-                            <div class="text-xs text-orange-400">${topic.type}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${typeBadgeClass}">
-                                ${topic.status || 'N/A'}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-400 max-w-xs truncate">${categoriesString}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${dateString}</td>
-                    </tr>
-                `;
+                        <tr class="hover:bg-gray-700 transition duration-150 cursor-pointer" onclick="${event}">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-white">${topic.title}</div>
+                                <div class="text-xs text-orange-400">${topic.type}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${typeBadgeClass}">
+                                    ${topic.status || 'N/A'}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-400 max-w-xs truncate">${categoriesString}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${dateString}</td>
+                        </tr>
+                    `;
                 container.append(rowHtml);
             });
         }
-        
-        function renderFilterPage(page) { 
+
+        function renderFilterPage(page) {
             currentPage = page;
             const totalItems = currentFilteredResults.length;
             const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
             const start = (currentPage - 1) * ITEMS_PER_PAGE;
             const end = start + ITEMS_PER_PAGE;
             const paginatedList = currentFilteredResults.slice(start, end);
-            
+
             renderSurvivalTopicList(paginatedList, '#filtered-results-list');
             renderPaginationControls(totalPages, currentPage, '#filter-pagination', renderFilterPage);
         }
 
-        function setupFilterDropdowns() { 
+        function setupFilterDropdowns() {
             const $filterDay = $('#filter-day'); for (let i = 1; i <= 31; i++) { $filterDay.append(`<option value="${i}">${i}</option>`); }
             const $filterMonth = $('#filter-month'); MONTHS.forEach((month, index) => { $filterMonth.append(`<option value="${index + 1}">${month}</option>`); });
             const $filterYear = $('#filter-year'); const currentYear = new Date().getFullYear(); for (let i = 0; i < 5; i++) { $filterYear.append(`<option value="${currentYear - i}">${currentYear - i}</option>`); }
             const $filterCategory = $('#filter-category');
             ALL_CATEGORIES.forEach(cat => { $filterCategory.append(`<option value="${cat}">${cat}</option>`); });
         }
-        
+
         function applyFilter() {
             const day = $('#filter-day').val();
             const month = $('#filter-month').val();
             const year = $('#filter-year').val();
             const category = $('#filter-category').val();
             const searchTerm = $('#filter-search-input').val().toLowerCase().trim();
-            
+
             // Start with all topic data
-            let results = DATA; 
+            let results = DATA;
 
             // 1. Apply Search Term Filter
             if (searchTerm) {
                 results = results.filter(topic => topic.title.toLowerCase().includes(searchTerm) || (topic.description && topic.description.toLowerCase().includes(searchTerm)));
             }
-            
+
             // 2. Apply Date and Category Filters
             if (day || month || year || category) {
                 results = results.filter(topic => {
@@ -905,7 +973,7 @@
                     const matchesMonth = !month || (d && (d.getMonth() + 1) == parseInt(month));
                     const matchesYear = !year || (d && d.getFullYear() == parseInt(year));
                     const matchesCategory = !category || (topic.categories && topic.categories.includes(category));
-                    
+
                     return matchesDay && matchesMonth && matchesYear && matchesCategory;
                 });
             }
@@ -914,21 +982,21 @@
 
             const $resultCount = $('#search-result-count');
             $resultCount.text(results.length);
-            renderFilterPage(1); 
+            renderFilterPage(1);
         }
 
-        function filterLatest() { 
+        function filterLatest() {
             // Reset filter controls visually AND clear search box
             $('#filter-day').val('');
             $('#filter-month').val('');
             $('#filter-year').val('');
             $('#filter-category').val('');
             $('#filter-search-input').val('');
-            
+
             applyFilter(); // Apply empty filter on all data to show everything
         }
 
-        function renderPaginationControls(totalPages, activePage, containerId, callback) { 
+        function renderPaginationControls(totalPages, activePage, containerId, callback) {
             const container = $(containerId).empty();
             if (totalPages <= 1) return;
 
@@ -950,22 +1018,22 @@
             container.append(nextButton);
         }
 
-        function markWatched(id, title, detail) { 
+        function markWatched(id, title, detail) {
             const history = getWatchedHistory();
             const now = new Date().toLocaleString();
             const newItem = { id, title, detail, watchedAt: now };
             const newHistory = history.filter(item => item.id !== id);
-            newHistory.unshift(newItem); 
+            newHistory.unshift(newItem);
             const finalHistory = newHistory.slice(0, 30);
             try { localStorage.setItem('watchedHistory', JSON.stringify(finalHistory)); } catch (e) { console.error("Could not save history to localStorage:", e); }
             if (!$('#page-history').hasClass('hidden')) { renderWatchedHistory(finalHistory); }
         }
 
-        function getWatchedHistory() { 
+        function getWatchedHistory() {
             try { return localStorage.getItem('watchedHistory') ? JSON.parse(localStorage.getItem('watchedHistory')) : []; } catch (e) { return []; }
         }
 
-        function renderWatchedHistory(historyList) { 
+        function renderWatchedHistory(historyList) {
             const history = historyList || getWatchedHistory();
             const container = $('#watched-history-list').empty();
             if (history.length === 0) { container.append('<li class="text-gray-400" id="empty-history-message">Your history is empty.</li>'); $('#clear-history').addClass('hidden'); return; }
@@ -973,27 +1041,27 @@
             history.forEach(item => {
                 const event = `showTopicModal(${item.id}); return false;`; //`renderFeaturedTopic(${item.id}); showPage('page-home'); smoothScrollToTop(); return false;`;
                 const itemHtml = `
-                    <li class="border-b border-gray-700 pb-2 flex justify-between items-center">
-                        <div><p class="font-bold text-white hover:text-orange-400 transition">${item.title} - <span class="text-orange-400">${item.detail}</span></p>
-                        <span class="text-xs text-gray-500">Last viewed: ${item.watchedAt}</span></div>
-                        <a href="#" class="text-xs text-orange-400 hover:underline" onclick="${event}">View Again</a>
-                    </li>`;
+                        <li class="border-b border-gray-700 pb-2 flex justify-between items-center">
+                            <div><p class="font-bold text-white hover:text-orange-400 transition">${item.title} - <span class="text-orange-400">${item.detail}</span></p>
+                            <span class="text-xs text-gray-500">Last viewed: ${item.watchedAt}</span></div>
+                            <a href="#" class="text-xs text-orange-400 hover:underline" onclick="${event}">View Again</a>
+                        </li>`;
                 container.append(itemHtml);
             });
         }
 
-        function clearHistory() { 
+        function clearHistory() {
             if (confirm("Are you sure you want to clear your entire view history?")) {
                 localStorage.removeItem('watchedHistory');
                 renderWatchedHistory([]);
             }
         }
-        
-        function renderAllCategoryBadges() { 
+
+        function renderAllCategoryBadges() {
             const container = $('#all-categories-badges').empty();
             ALL_CATEGORIES.forEach(cat => {
                 const badge = $(`<button class="bg-gray-700 text-orange-500 text-sm font-semibold px-3 py-1 rounded-full hover:bg-orange-600 hover:text-white transition">${cat}</button>`);
-                badge.on('click', function() {
+                badge.on('click', function () {
                     // Set category filter and trigger search page
                     $('#filter-category').val(cat);
                     applyFilter();
@@ -1002,10 +1070,10 @@
                 container.append(badge);
             });
         }
-        
+
         // --- Initialization ---
 
-        $(document).ready(function() {
+        $(document).ready(function () {
 
             async function initializeApp() {
                 // Load Data
