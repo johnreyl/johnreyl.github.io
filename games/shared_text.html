@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clone Wars</title>
+    <!-- Tailwind CSS CDN for styling the UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Apply Inter font and clean default styling */
+        @import url('https://fonts.com/css2?family=Inter:wght@400;700&display=swap');
+        body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
+        #renderCanvas {
+            width: 100%;
+            height: 100vh;
+            display: block;
+            touch-action: none; 
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        /* UI Overlay styles */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none; 
+        }
+
+        /* Control specific styles */
+        .game-btn {
+            @apply p-4 rounded-full shadow-lg transition-all duration-150 transform hover:scale-105 active:scale-95 text-white font-bold cursor-pointer;
+            pointer-events: auto;
+        }
+
+        /* Nipple.js container styling */
+        #joystickZone {
+            width: 120px;
+            height: 120px;
+            position: relative;
+            pointer-events: auto; 
+        }
+
+        /* Babylon.js loading spinner override */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+        }
+    </style>
+    <!-- Babylon.js, Cannon.js, Nipple.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/cannon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://unpkg.com/nipplejs@0.8.0/dist/nipplejs.js"></script>
+    <!-- Firebase includes (Mandatory for app template) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, setDoc, doc, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables for Firebase (will be assigned below)
+        window.firebaseApp = null;
+        window.db = null;
+        window.auth = null;
+        window.userId = null;
+        window.isAuthReady = false;
+
+        setLogLevel('error'); // Set error logging for firebase
+
+        // Mandatory Global Variables from Canvas Environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        if (firebaseConfig) {
+            window.firebaseApp = initializeApp(firebaseConfig);
+            window.db = getFirestore(window.firebaseApp);
+            window.auth = getAuth(window.firebaseApp);
+
+            // Auth State Change Listener
+            onAuthStateChanged(window.auth, (user) => {
+                if (user) {
+                    window.userId = user.uid;
+                } else {
+                    window.userId = crypto.randomUUID(); // Fallback to anonymous ID
+                }
+                window.isAuthReady = true;
+
+                // Start the game initialization once auth is ready
+                if (window.initGame) {
+                    window.initGame();
+                }
+            });
+
+            // Sign-in logic
+            (async () => {
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(window.auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(window.auth);
+                    }
+                } catch (error) {
+                    console.error("Firebase Auth Error:", error);
+                }
+            })();
+        } else {
+            console.warn("Firebase config not available. Running game without persistence.");
+            window.isAuthReady = true;
+            window.userId = 'local-user-' + crypto.randomUUID();
+            window.initGame();
+        }
+    </script>
+</head>
+<body class="bg-gray-900">
+
+    <!-- Loading Screen (Will be removed by JS once the scene is ready) -->
+    <div id="loadingOverlay" class="transition-opacity">
+        <h1 class="text-3xl mb-4 text-yellow-400">Loading Clone Wars...</h1>
+        <p class="text-sm text-gray-400">Initializing 3D engine and physics.</p>
+    </div>
+
+    <!-- Main Menu Overlay -->
+    <div id="mainMenu" class="overlay bg-gray-900 bg-opacity-95 transition-opacity duration-500 flex-col" style="pointer-events: auto;">
+        <div class="p-8 bg-gray-800 rounded-xl shadow-2xl text-center border-b-4 border-yellow-500">
+            <h1 class="text-5xl font-extrabold text-white mb-4">CLONE WARS</h1>
+            <p class="text-yellow-400 mb-6">A Babylon.js/Cannon.js Open World</p>
+            <button id="startGameBtn" class="bg-yellow-600 hover:bg-yellow-500 text-gray-900 text-xl py-3 px-8 rounded-lg font-bold transition-transform transform hover:scale-105 active:scale-95 shadow-xl">
+                Start Game
+            </button>
+        </div>
+    </div>
+
+    <!-- Canvas for Babylon.js -->
+    <canvas id="renderCanvas"></canvas>
+
+    <!-- Game UI Overlay (Controls and Drawer) -->
+    <div id="gameUI" class="overlay hidden">
+        <!-- Bottom-Left: Joystick -->
+        <div class="absolute bottom-4 left-4 flex flex-col items-center">
+            <div id="joystickZone" class="bg-gray-700 bg-opacity-70 rounded-full border-2 border-yellow-500"></div>
+        </div>
+
+        <!-- Bottom-Right: Action Buttons -->
+        <div class="absolute bottom-4 right-4 flex flex-col space-y-4">
+            <!-- Jump Button -->
+            <button id="jumpBtn" class="game-btn bg-blue-600 hover:bg-blue-500 w-16 h-16 flex items-center justify-center text-3xl">
+                &#916; 
+            </button>
+            <!-- Fire Button -->
+            <button id="fireBtn" class="game-btn bg-red-600 hover:bg-red-500 w-16 h-16 flex items-center justify-center text-3xl">
+                &#10022; 
+            </button>
+        </div>
+        
+        <!-- NPC Interaction Button (Appears only when close to General) -->
+        <div class="absolute bottom-28 left-1/2 transform -translate-x-1/2" style="pointer-events: auto;">
+            <button id="npcInteractBtn" class="py-3 px-6 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold shadow-xl transition-all duration-300 hidden">
+                <span id="npcInteractText">Engage General 💬</span>
+            </button>
+        </div>
+
+
+        <!-- Top-Right: Menu Drawer Toggle -->
+        <button id="drawerToggle" class="absolute top-4 right-4 bg-gray-700 bg-opacity-80 p-3 rounded-xl text-yellow-400 hover:bg-gray-600 shadow-xl" style="pointer-events: auto;">
+            <!-- Hamburger Icon -->
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+
+        <!-- Menu Drawer Panel (Fixed to the right) -->
+        <div id="menuDrawer" class="fixed top-0 right-0 w-64 h-full bg-gray-800 bg-opacity-95 shadow-2xl p-6 transform translate-x-full transition-transform duration-300" style="pointer-events: auto;">
+            <h2 class="text-2xl font-bold text-yellow-400 mb-6 border-b border-gray-700 pb-2">Game Controls</h2>
+
+            <div class="space-y-4">
+                <!-- Summon Clone Button -->
+                <button id="cloneBtn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold transition-colors shadow-md">
+                    Summon Hostile Clone
+                </button>
+
+                <!-- Respawn Button -->
+                <button id="respawnBtn" class="w-full py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-semibold transition-colors shadow-md">
+                    Respawn Player
+                </button>
+                
+                <!-- Toggle Wireframe -->
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" id="wireframeToggle" class="form-checkbox text-yellow-500 h-5 w-5 rounded">
+                    <span class="text-white">Toggle Wireframe Mode</span>
+                </label>
+
+            </div>
+
+            <div class="space-y-3 pt-6 mt-6 border-t border-gray-700">
+                <h3 class="text-xl font-bold text-yellow-500">Gemini Tactical Suite</h3>
+                
+                <!-- Mission Generator (Gemini Feature 1: Text + TTS) -->
+                <button id="missionBtn" class="w-full py-3 bg-red-700 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors shadow-md flex items-center justify-center">
+                    Generate Mission ✨
+                </button>
+                <div id="missionOutput" class="p-3 bg-gray-700 rounded text-sm text-gray-200 min-h-[50px]">
+                    No active mission. Click 'Generate Mission' to receive orders.
+                </div>
+                
+                <!-- Strategy Briefing (Gemini Feature 3: Combat Advice) -->
+                <button id="strategyBtn" class="w-full py-3 bg-fuchsia-700 hover:bg-fuchsia-600 text-white rounded-lg font-semibold transition-colors shadow-md mt-2" onclick="generateStrategyBriefing()">
+                    Tactical Strategy Briefing ✨
+                </button>
+
+                <!-- Manifest Generator (Gemini Feature 4: Structured Output) -->
+                <button id="manifestToggle" class="w-full py-3 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg font-semibold transition-colors shadow-md mt-2" onclick="openManifestModal()">
+                    Block Structure Manifest ✨
+                </button>
+            </div>
+
+            <!-- User ID Display -->
+            <div class="text-xs text-gray-400 pt-4 border-t border-gray-700 mt-6 break-words">
+                <p class="font-bold">UserID:</p>
+                <span id="displayUserId">Loading...</span>
+            </div>
+
+            <!-- Close Drawer Button -->
+            <button id="closeDrawerBtn" class="absolute top-4 left-4 text-white hover:text-yellow-400">
+                 <!-- Close Icon -->
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <!-- In-game message box (no alert()) -->
+        <div id="messageBox" class="absolute top-4 left-1/2 transform -translate-x-1/2 p-3 bg-red-700 text-white rounded-lg shadow-xl opacity-0 transition-opacity duration-500 pointer-events-none">
+            Message
+        </div>
+    </div>
+    
+    <!-- Chat Modal for General NPC (Gemini Feature 2: Conversational) -->
+    <div id="chatModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 z-50 hidden flex items-center justify-center p-4" style="pointer-events: auto;">
+        <div class="bg-gray-800 rounded-xl shadow-2xl w-full max-w-xl flex flex-col h-3/4">
+            <!-- Header -->
+            <div class="p-4 border-b border-gray-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-yellow-400">General Command Chat</h3>
+                <button id="closeChatBtn" class="text-white hover:text-red-500 transition" onclick="closeChat()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Chat History -->
+            <div id="chatHistory" class="flex-grow p-4 overflow-y-auto space-y-4 bg-gray-700/50">
+                <div class="flex justify-start">
+                    <div class="bg-blue-900 text-white p-3 rounded-lg max-w-xs shadow-md">
+                        <span class="font-bold text-blue-300">General:</span> Trooper, report in. I'm ready for your questions.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Input -->
+            <div class="p-4 border-t border-gray-700 flex space-x-2">
+                <input type="text" id="chatInput" placeholder="Ask the General a question..." class="flex-grow p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:ring-yellow-500 focus:border-yellow-500" disabled>
+                <button id="sendChatBtn" class="bg-yellow-600 text-gray-900 py-3 px-4 rounded-lg font-bold hover:bg-yellow-500 transition disabled:opacity-50">
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Manifest Modal (Gemini Feature 4: Structured Output) -->
+    <div id="manifestModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 z-50 hidden flex items-center justify-center p-4" style="pointer-events: auto;">
+        <div class="bg-gray-800 rounded-xl shadow-2xl w-full max-w-xl flex flex-col max-h-[80vh]">
+            <!-- Header -->
+            <div class="p-4 border-b border-gray-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-cyan-400">Block Structure Manifest</h3>
+                <button onclick="closeManifestModal()" class="text-white hover:text-red-500 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Input -->
+            <div class="p-4 border-b border-gray-700 space-y-3">
+                <input type="text" id="manifestInput" placeholder="e.g. Fortified Bunker or Watchtower" class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:ring-cyan-500 focus:border-cyan-500">
+                <button id="generateManifestBtn" class="w-full bg-cyan-600 text-white py-2 rounded-lg font-bold hover:bg-cyan-500 transition disabled:opacity-50">
+                    Generate Manifest
+                </button>
+            </div>
+            
+            <!-- Output -->
+            <div class="flex-grow p-4 overflow-y-auto bg-gray-700/50">
+                <h4 class="text-lg font-semibold text-cyan-300 mb-2">Required Materials:</h4>
+                <div id="manifestOutput" class="text-sm text-gray-200 space-y-2">
+                    Enter the name of a block structure above (e.g., 'Guard Post') and press 'Generate Manifest'.
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Gemini API Configuration ---
+        const LLM_MODEL = "gemini-2.5-flash-preview-09-2025";
+        const TTS_MODEL = "gemini-2.5-flash-preview-tts";
+        const baseApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/`;
+        const apiKey = ""; // Leave empty for runtime injection
+
+        // === Core Babylon/Cannon Setup ===
+        const canvas = document.getElementById("renderCanvas");
+        const engine = new BABYLON.Engine(canvas, true);
+        let scene;
+        let player;
+        let camera; 
+        let clone = null;
+        let generalNPC = null;
+        
+        let joystickManager = null; 
+        
+        // --- Manual Look Control State (Only for FollowCamera) ---
+        let isLooking = false;
+        let lastPointerX = 0;
+        const rotationSensitivity = 0.003; 
+
+        // Game state variables
+        let isMoving = false;
+        let moveVector = new BABYLON.Vector3(0, 0, 0); 
+        const playerSpeed = 6; 
+        const NPC_INTERACT_DISTANCE = 10;
+        
+        const bullets = [];
+        const bulletSpeed = 50; 
+        
+        let isJumping = false;
+
+        // Chat History for General
+        let chatHistory = [{
+            role: "model",
+            parts: [{ text: "Trooper, report in. I'm ready for your questions." }]
+        }];
+
+
+        // --- UTILITY FUNCTIONS FOR TTS ---
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcmData, sampleRate) {
+            const numChannels = 1;
+            const bytesPerSample = 2; // 16-bit PCM
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = pcmData.byteLength;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            let offset = 0;
+
+            function writeString(s) {
+                for (let i = 0; i < s.length; i++) {
+                    view.setUint8(offset + i, s.charCodeAt(i));
+                }
+            }
+
+            // RIFF chunk
+            writeString('RIFF'); offset += 4;
+            view.setUint32(offset, 36 + dataSize, true); offset += 4; 
+            writeString('WAVE'); offset += 4;
+
+            // fmt chunk
+            writeString('fmt '); offset += 4;
+            view.setUint32(offset, 16, true); offset += 4; 
+            view.setUint16(offset, 1, true); offset += 2; 
+            view.setUint16(offset, numChannels, true); offset += 2; 
+            view.setUint32(offset, sampleRate, true); offset += 4; 
+            view.setUint32(offset, byteRate, true); offset += 4; 
+            view.setUint16(offset, blockAlign, true); offset += 2; 
+            view.setUint16(offset, bytesPerSample * 8, true); offset += 2; 
+
+            // data chunk
+            writeString('data'); offset += 4;
+            view.setUint32(offset, dataSize, true); offset += 4; 
+
+            // PCM data
+            const pcmView = new Int16Array(pcmData);
+            for (let i = 0; i < pcmView.length; i++) {
+                view.setInt16(offset, pcmView[i], true);
+                offset += 2;
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+        
+        // --- Custom Message Box ---
+        const showMessage = (text, duration = 3000, isError = true) => {
+            const box = document.getElementById('messageBox');
+            box.textContent = text;
+            box.className = `absolute top-4 left-1/2 transform -translate-x-1/2 p-3 text-white rounded-lg shadow-xl opacity-100 transition-opacity duration-500 pointer-events-none ${isError ? 'bg-red-700' : 'bg-green-600'}`;
+
+            setTimeout(() => {
+                box.classList.remove('opacity-100');
+                box.classList.add('opacity-0');
+            }, duration);
+        };
+
+        // Custom texture/material for blocky look
+        const createBlockMaterial = (scene, color) => {
+            const mat = new BABYLON.StandardMaterial("blockMat", scene);
+            mat.diffuseColor = color;
+            mat.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+            mat.freeze();
+            return mat;
+        };
+        
+        // --- Gemini API Fetch with Backoff ---
+        async function fetchGemini(model, payload, maxRetries = 5, delay = 1000) {
+            const apiUrl = `${baseApiUrl}${model}:generateContent?key=${apiKey}`;
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (response.status === 429 && i < maxRetries - 1) {
+                        await new Promise(resolve => setTimeout(resolve, delay * (2 ** i)));
+                        continue;
+                    }
+                    if (!response.ok) {
+                         throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                } catch (error) {
+                    console.error(`Attempt ${i + 1} failed:`, error);
+                    if (i === maxRetries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, delay * (2 ** i)));
+                }
+            }
+        }
+
+
+        // --- Game Entity Creation ---
+
+        const createPlayer = (initialPosition, isClone = false) => {
+            const size = 1.0;
+            const height = 1.8;
+            const mesh = BABYLON.MeshBuilder.CreateBox(isClone ? "clone" : "player", { width: size, height: height, depth: size }, scene);
+            mesh.position.copyFrom(initialPosition);
+            mesh.isClone = isClone;
+            mesh.isPlayerAlive = true;
+            mesh.ellipsoid = new BABYLON.Vector3(size / 2, height / 2, size / 2); // Collision bounds
+            mesh.checkCollisions = true; 
+
+            const color = isClone ? new BABYLON.Color3(0.8, 0.2, 0.2) : new BABYLON.Color3(0.2, 0.8, 0.2);
+            mesh.material = createBlockMaterial(scene, color);
+
+            // Set up physics impostor
+            mesh.physicsImpostor = new BABYLON.PhysicsImpostor(
+                mesh,
+                BABYLON.PhysicsImpostor.BoxImpostor,
+                { mass: isClone ? 100 : 80, friction: 0.5, restitution: 0.1 },
+                scene
+            );
+            
+            // Fix: Lock rotation on X and Z axis to prevent tipping over using the underlying Cannon body API.
+            if (mesh.physicsImpostor.physicsBody && typeof CANNON !== 'undefined') {
+                mesh.physicsImpostor.physicsBody.angularFactor = new CANNON.Vec3(0, 1, 0);
+            }
+
+            const gun = BABYLON.MeshBuilder.CreateBox("gun", { width: 0.2, height: 0.1, depth: 0.5 }, scene);
+            // Position gun slightly forward and right relative to the body
+            gun.position = new BABYLON.Vector3(0.3, 0.3, size / 2 + 0.2); 
+            gun.parent = mesh;
+
+            mesh.health = 100;
+            mesh.fireCooldown = 0;
+            mesh.forward = new BABYLON.Vector3(0, 0, 1); 
+
+            return mesh;
+        };
+        
+        const createGeneral = (initialPosition) => {
+            const size = 1.2;
+            const height = 2.0;
+            const mesh = BABYLON.MeshBuilder.CreateBox("general", { width: size, height: height, depth: size }, scene);
+            mesh.position.copyFrom(initialPosition);
+            mesh.isGeneral = true;
+
+            // Distinguished look: Blue for General
+            const color = new BABYLON.Color3(0.3, 0.3, 0.9);
+            mesh.material = createBlockMaterial(scene, color);
+            
+            // Give it a permanent base to stand on (mass: 0)
+            mesh.physicsImpostor = new BABYLON.PhysicsImpostor(
+                mesh,
+                BABYLON.PhysicsImpostor.BoxImpostor,
+                { mass: 0, friction: 0.5, restitution: 0.1 },
+                scene
+            );
+            
+            return mesh;
+        };
+
+        const createBullet = (originMesh) => {
+            const bullet = BABYLON.MeshBuilder.CreateSphere("bullet", { diameter: 0.2 }, scene);
+            bullet.material = createBlockMaterial(scene, originMesh.isClone ? BABYLON.Color3.Red() : BABYLON.Color3.Yellow());
+            bullet.isCloneBullet = originMesh.isClone;
+            
+            // Get current forward direction from the mesh's world matrix
+            const forwardMatrix = originMesh.getWorldMatrix().clone();
+            const forwardVector = BABYLON.Vector3.TransformNormal(new BABYLON.Vector3(0, 0, 1), forwardMatrix);
+            forwardVector.normalize();
+            
+            // Position the bullet at the gun tip
+            const gunTipOffset = new BABYLON.Vector3(0.3, 0.3, 0.7); 
+            const gunTipPosition = BABYLON.Vector3.TransformCoordinates(gunTipOffset, forwardMatrix);
+
+            bullet.position.copyFrom(gunTipPosition);
+            bullet.velocity = forwardVector.scale(bulletSpeed);
+            bullet.life = 3; 
+            
+            bullets.push(bullet);
+        };
+
+        const checkBulletHit = (bullet, target, deltaTime) => {
+            if (!target || target.health <= 0 || !target.isPlayerAlive || target.isDisposed()) return false;
+
+            // Simple distance check before raycast
+            const distanceToCheck = BABYLON.Vector3.Distance(target.position, bullet.position);
+            
+            if (distanceToCheck > bulletSpeed * deltaTime * 3) return false;
+
+            const ray = new BABYLON.Ray(bullet.position, bullet.velocity.normalize(), distanceToCheck + 1);
+            const hit = scene.pickWithRay(ray, (mesh) => mesh === target);
+
+            if (hit.hit && hit.pickedMesh === target) {
+                return true;
+            }
+
+            return false;
+        };
+
+        const takeDamage = (mesh, amount) => {
+            if (mesh.health <= 0) return;
+            mesh.health -= amount;
+            // Simple flash effect
+            mesh.material.emissiveColor = new BABYLON.Color3(1, 0, 0);
+            setTimeout(() => {
+                mesh.material.emissiveColor = new BABYLON.Color3(0, 0, 0);
+            }, 100);
+
+            if (mesh.health <= 0) {
+                if (mesh.isClone) {
+                    handleCloneDefeated(); 
+                } else {
+                    handlePlayerDeath();
+                }
+            }
+        };
+        
+        // --- Tactical Report ---
+        const handleCloneDefeated = () => {
+            if (clone && !clone.isDisposed()) {
+                showMessage("Hostile Clone Eliminated! Awaiting Tactical Report...", 5000, false);
+                generateTacticalReport(clone.health);
+                disposeClone();
+            }
+        };
+
+        const generateTacticalReport = async (finalHealth) => {
+            const timeElapsed = Math.floor(scene.getEngine().getElapsedTime() / 1000); 
+            const playerHP = player.health;
+            
+            const systemPrompt = "You are a military post-action intelligence officer. Based on the brief context, generate a single, encouraging, and blocky-world appropriate tactical victory report.";
+            const userQuery = `The rogue clone unit was defeated. Player health remaining: ${playerHP}/100. Time elapsed since start: ${timeElapsed} seconds. The clone was a low-poly threat. Generate a 2-3 sentence tactical summary and commendation.`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                const result = await fetchGemini(LLM_MODEL, payload);
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "Tactical Report unavailable.";
+                showMessage(`REPORT: ${text}`, 8000, false);
+            } catch (error) {
+                console.error("Tactical Report Generation failed:", error);
+                showMessage("Error generating Tactical Report.", 3000, true);
+            }
+        };
+
+        const handlePlayerDeath = () => {
+            if (!player.isPlayerAlive) return;
+            player.isPlayerAlive = false;
+            showMessage("TROOPER ELIMINATED! Press 'Respawn'.", 50000, true);
+            player.rotation.x = Math.PI / 2; // Lay flat
+            engine.stopRenderLoop();
+            document.getElementById('respawnBtn').classList.add('animate-pulse');
+        };
+
+        // --- Game Logic ---
+
+        const createWorld = () => {
+            // 1. Ground
+            const groundMat = createBlockMaterial(scene, new BABYLON.Color3(0.3, 0.6, 0.3));
+            const ground = BABYLON.MeshBuilder.CreateBox("ground", { width: 100, depth: 100, height: 0.5 }, scene);
+            ground.position.y = -0.25;
+            ground.material = groundMat;
+            ground.physicsImpostor = new BABYLON.PhysicsImpostor(
+                ground,
+                BABYLON.PhysicsImpostor.BoxImpostor,
+                { mass: 0, friction: 0.5, restitution: 0.1 },
+                scene
+            );
+
+            // 2. Blocky Terrain
+            const numBlocks = 50;
+            const blockMat = createBlockMaterial(scene, new BABYLON.Color3(0.5, 0.4, 0.2));
+            for (let i = 0; i < numBlocks; i++) {
+                const height = Math.random() * 5 + 1;
+                const size = Math.random() * 2 + 1;
+                const block = BABYLON.MeshBuilder.CreateBox("block", { width: size, height: height, depth: size }, scene);
+                block.material = blockMat;
+                block.position.x = Math.random() * 80 - 40;
+                block.position.z = Math.random() * 80 - 40;
+                block.position.y = height / 2 - 0.25;
+
+                block.physicsImpostor = new BABYLON.PhysicsImpostor(
+                    block,
+                    BABYLON.PhysicsImpostor.BoxImpostor,
+                    { mass: 0, friction: 0.7, restitution: 0.01 },
+                    scene
+                );
+            }
+            
+            // 3. General NPC
+            generalNPC = createGeneral(new BABYLON.Vector3(15, 0.75, 0)); 
+            generalNPC.lookAt(new BABYLON.Vector3(0, 0.75, 0)); 
+        };
+
+        const summonClone = () => {
+            if (clone && !clone.isDisposed()) {
+                showMessage("Clone already active!", 1500, false);
+                return;
+            }
+            const spawnPos = player.position.clone().add(new BABYLON.Vector3(5, 0, 5));
+            spawnPos.y = 5; 
+            clone = createPlayer(spawnPos, true);
+            showMessage("Hostile Clone Summoned!", 2000, false);
+        };
+
+        const disposeClone = () => {
+            if (clone && !clone.isDisposed()) {
+                clone.dispose();
+                clone = null;
+            }
+        };
+
+        const respawnPlayer = () => {
+            if (player.isPlayerAlive) {
+                showMessage("You are already alive!", 1500, false);
+                return;
+            }
+
+            // Recreate player mesh/physics
+            player.dispose(); 
+            player = createPlayer(new BABYLON.Vector3(0, 5, 0), false);
+            camera.lockedTarget = player; // Relock the camera target
+
+            player.isPlayerAlive = true;
+            engine.runRenderLoop(() => scene.render());
+            document.getElementById('respawnBtn').classList.remove('animate-pulse');
+            showMessage("Player Respawned!", 2000, false);
+            disposeClone(); 
+        };
+
+        // --- AI Logic (Clone) ---
+        const updateCloneAI = () => {
+            if (!clone || clone.isDisposed() || !player || !player.isPlayerAlive) return;
+
+            const targetPos = player.position.clone();
+            targetPos.y = clone.position.y; 
+            clone.lookAt(targetPos);
+            
+            // Get forward vector for firing
+            const forwardMatrix = clone.getWorldMatrix().clone();
+            clone.forward = BABYLON.Vector3.TransformNormal(new BABYLON.Vector3(0, 0, 1), forwardMatrix).normalize();
+
+            const distance = BABYLON.Vector3.Distance(clone.position, player.position);
+            const moveDirection = player.position.subtract(clone.position).normalize();
+
+            if (distance > 10) {
+                // Move towards player
+                clone.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(
+                    moveDirection.x * playerSpeed * 0.7, 
+                    clone.physicsImpostor.getLinearVelocity().y, 
+                    moveDirection.z * playerSpeed * 0.7
+                ));
+            } else if (distance < 5) {
+                // Back away
+                clone.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(
+                    moveDirection.x * -playerSpeed * 0.5, 
+                    clone.physicsImpostor.getLinearVelocity().y, 
+                    moveDirection.z * -playerSpeed * 0.5
+                ));
+            } else {
+                // Stop horizontal movement
+                const currentV = clone.physicsImpostor.getLinearVelocity();
+                clone.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(
+                    currentV.x * 0.5, // Decelerate X
+                    currentV.y, 
+                    currentV.z * 0.5  // Decelerate Z
+                ));
+            }
+
+            clone.fireCooldown -= scene.getEngine().getDeltaTime() / 1000;
+            if (distance < 20 && distance > 3 && clone.fireCooldown <= 0) {
+                createBullet(clone);
+                clone.fireCooldown = 1.0 + Math.random(); 
+            }
+        };
+        
+        // --- NPC Proximity Check ---
+        const checkNPCProximity = () => {
+            if (!generalNPC || !player) return;
+            const distance = BABYLON.Vector3.Distance(player.position, generalNPC.position);
+            const interactBtn = document.getElementById('npcInteractBtn');
+
+            if (distance < NPC_INTERACT_DISTANCE && player.isPlayerAlive) {
+                interactBtn.classList.remove('hidden');
+            } else {
+                interactBtn.classList.add('hidden');
+            }
+        };
+
+
+        // --- Gemini Feature 1: Mission Briefing (Text + TTS) ---
+        const generateMission = async () => {
+            const outputDiv = document.getElementById('missionOutput');
+            const missionBtn = document.getElementById('missionBtn');
+            const generalVoice = "Kore"; 
+
+            outputDiv.innerHTML = '<div class="text-center text-yellow-400">Receiving orders from Command...</div>';
+            missionBtn.disabled = true;
+            missionBtn.classList.add('opacity-50');
+
+            const systemPrompt = "You are a military mission briefing generator for a blocky, low-poly 3D war game. Generate a concise, single paragraph mission objective. The mission should involve fighting a rogue 'clone' unit in an open world environment.";
+            const userQuery = `Generate a new mission objective focusing on eliminating a threat or securing an area. Current location is the Blocky Terrain.`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+            
+            try {
+                const result = await fetchGemini(LLM_MODEL, payload);
+                const missionText = result.candidates?.[0]?.content?.parts?.[0]?.text || "Failed to generate mission text. Proceed with caution.";
+                outputDiv.textContent = missionText;
+
+                const ttsPayload = {
+                    contents: [{
+                        parts: [{ text: `Commander's Briefing: ${missionText}` }]
+                    }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: { voiceName: generalVoice }
+                            }
+                        }
+                    },
+                    model: TTS_MODEL
+                };
+
+                const ttsResult = await fetchGemini(TTS_MODEL, ttsPayload);
+                const part = ttsResult?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000;
+
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+
+                    const audio = new Audio(audioUrl);
+                    audio.play();
+
+                    audio.onended = () => URL.revokeObjectURL(audioUrl);
+                } else {
+                    showMessage("TTS failed for briefing.", 3000, true);
+                }
+
+            } catch (error) {
+                console.error("Gemini Mission Generation/TTS failed:", error);
+                outputDiv.textContent = "Error receiving mission. Check console for details.";
+                showMessage("Mission Generator failed.", 4000, true);
+            } finally {
+                missionBtn.disabled = false;
+                missionBtn.classList.remove('opacity-50');
+            }
+        };
+        
+        // --- Gemini Feature 3: Tactical Strategy Briefing (Combat Advice) ---
+        const generateStrategyBriefing = async () => {
+            if (!player.isPlayerAlive) {
+                 showMessage("Cannot brief a fallen trooper.", 2000, true);
+                 return;
+            }
+            if (!clone || clone.isDisposed()) {
+                showMessage("No hostile targets detected for analysis.", 2000, true);
+                return;
+            }
+
+            const strategyBtn = document.getElementById('strategyBtn');
+            strategyBtn.disabled = true;
+            strategyBtn.classList.add('opacity-50');
+
+            const systemPrompt = "You are a tactical A.I. providing quick, concise, 2-sentence strategies for block-based infantry combat against a single rogue clone unit. Use simple terms like 'block cover', 'vertical advantage', and 'flank'.";
+            const userQuery = `The player is fighting a single clone enemy on a terrain made of simple blocks. The clone is a mid-range threat. Provide a specific, actionable strategy.`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                const result = await fetchGemini(LLM_MODEL, payload);
+                const strategyText = result.candidates?.[0]?.content?.parts?.[0]?.text || "Strategy link broken. Improvise!";
+                showMessage(`TACTICAL BRIEF: ${strategyText}`, 7000, false);
+            } catch (error) {
+                console.error("Strategy Briefing failed:", error);
+                showMessage("Error accessing Tactical AI.", 3000, true);
+            } finally {
+                strategyBtn.disabled = false;
+                strategyBtn.classList.remove('opacity-50');
+            }
+        };
+
+
+        // --- Gemini Feature 4: Block Structure Manifest (Structured Output) ---
+        const manifestModal = document.getElementById('manifestModal');
+        const manifestInput = document.getElementById('manifestInput');
+        const manifestOutput = document.getElementById('manifestOutput');
+        const generateManifestBtn = document.getElementById('generateManifestBtn');
+
+        const openManifestModal = () => {
+            manifestModal.classList.remove('hidden');
+            manifestInput.focus();
+            document.getElementById('menuDrawer').classList.add('translate-x-full'); // Close drawer when modal opens
+        };
+
+        const closeManifestModal = () => {
+            manifestModal.classList.add('hidden');
+        };
+
+        const generateBlockManifest = async () => {
+            const structureName = manifestInput.value.trim();
+            if (!structureName) {
+                showMessage("Please enter a structure name.", 2000, true);
+                return;
+            }
+
+            manifestOutput.innerHTML = '<p class="text-cyan-400 animate-pulse">Analyzing build specifications...</p>';
+            generateManifestBtn.disabled = true;
+            generateManifestBtn.classList.add('opacity-50');
+
+            const systemPrompt = "You are a low-poly world architect. Based on the user's structure request, generate a material manifest in JSON format listing the required block type and approximate quantity for a medium-sized structure. Only use materials suitable for a simple block world (e.g., 'Stone Block', 'Wood Plank', 'Iron Plate', 'Glass Pane').";
+            const userQuery = `I want to build a ${structureName}. What materials do I need?`;
+            
+            const schema = {
+                type: "ARRAY",
+                items: {
+                    type: "OBJECT",
+                    properties: {
+                        "materialName": { "type": "STRING", description: "The type of block or material." },
+                        "quantity": { "type": "INTEGER", description: "The estimated number of blocks needed (between 50 and 500)." }
+                    },
+                    required: ["materialName", "quantity"]
+                }
+            };
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: schema
+                }
+            };
+
+            try {
+                const result = await fetchGemini(LLM_MODEL, payload);
+                const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                const manifest = JSON.parse(jsonText);
+                
+                let htmlContent = `<p class="text-cyan-200">Manifest for: <span class="font-bold">${structureName}</span></p><ul class="list-disc list-inside mt-2">`;
+                
+                manifest.forEach(item => {
+                    htmlContent += `<li><span class="font-bold text-cyan-300">${item.materialName}</span>: ${item.quantity} units</li>`;
+                });
+
+                htmlContent += '</ul><p class="mt-4 text-xs text-gray-400">Resource approximation successful.</p>';
+                manifestOutput.innerHTML = htmlContent;
+
+            } catch (error) {
+                console.error("Manifest Generation failed:", error);
+                manifestOutput.innerHTML = '<p class="text-red-400">Error generating manifest. Check console.</p>';
+            } finally {
+                generateManifestBtn.disabled = false;
+                generateManifestBtn.classList.remove('opacity-50');
+            }
+        };
+
+
+        // --- Gemini Feature 2: NPC Dialogue System (Chat) ---
+        const chatModal = document.getElementById('chatModal');
+        const chatHistoryDiv = document.getElementById('chatHistory');
+        const chatInput = document.getElementById('chatInput');
+        const sendChatBtn = document.getElementById('sendChatBtn');
+
+        const openChat = () => {
+            chatModal.classList.remove('hidden');
+            chatInput.focus();
+        };
+
+        const closeChat = () => {
+            chatModal.classList.add('hidden');
+        };
+
+        const renderChatMessage = (message, role) => {
+            const isUser = role === 'user';
+            const messageElement = document.createElement('div');
+            messageElement.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+            messageElement.innerHTML = `
+                <div class="p-3 rounded-lg max-w-xs shadow-md ${isUser ? 'bg-yellow-700 text-white' : 'bg-blue-900 text-white'}">
+                    <span class="font-bold ${isUser ? 'text-yellow-300' : 'text-blue-300'}">${isUser ? 'You:' : 'General:'}</span> ${message}
+                </div>
+            `;
+            chatHistoryDiv.appendChild(messageElement);
+            chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight; // Scroll to bottom
+        };
+
+        const sendChatMessage = async () => {
+            const userMessage = chatInput.value.trim();
+            if (!userMessage) return;
+
+            chatInput.value = '';
+            chatInput.disabled = true;
+            sendChatBtn.disabled = true;
+
+            renderChatMessage(userMessage, 'user');
+            
+            chatHistory.push({ role: "user", parts: [{ text: userMessage }] });
+
+            const loadingMessage = 'Awaiting General\'s response...';
+            renderChatMessage(loadingMessage, 'model');
+            const loadingElement = chatHistoryDiv.lastElementChild.querySelector('div');
+            loadingElement.innerHTML = `<span class="font-bold text-blue-300">General:</span> <span class="animate-pulse">${loadingMessage}</span>`;
+
+
+            const systemPrompt = "You are a serious, blocky military General on a war-torn planet. You must keep responses short, professional, and tactical. Refer to the player as 'Trooper.' Use blocky, military jargon appropriate for a 3D low-poly game world.";
+
+            const payload = {
+                contents: chatHistory,
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                const result = await fetchGemini(LLM_MODEL, payload);
+                const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text || "General is offline. Try again.";
+
+                // Update the loading message with the actual response
+                loadingElement.innerHTML = `<span class="font-bold text-blue-300">General:</span> ${responseText}`;
+                
+                // Add to history
+                chatHistory.push({ role: "model", parts: [{ text: responseText }] });
+                
+            } catch (error) {
+                console.error("Gemini Chat failed:", error);
+                loadingElement.innerHTML = `<span class="font-bold text-red-500">General:</span> ERROR - Comms link severed. Try again.`;
+                chatHistory.pop(); // Remove the model's loading entry
+            } finally {
+                chatInput.disabled = false;
+                sendChatBtn.disabled = false;
+                chatInput.focus();
+            }
+        };
+
+
+        // --- Babylon Scene Initialization ---
+
+        const createScene = () => {
+            scene = new BABYLON.Scene(engine);
+            scene.gravity = new BABYLON.Vector3(0, -9.81, 0); 
+            scene.enablePhysics(scene.gravity, new BABYLON.CannonJSPlugin());
+
+            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+            light.intensity = 0.7;
+
+            // 1. Create Player
+            player = createPlayer(new BABYLON.Vector3(0, 5, 0), false);
+
+            // 2. Camera Setup (Third-Person FollowCamera)
+            camera = new BABYLON.FollowCamera("FollowCamera", new BABYLON.Vector3(0, 5, -10), scene, player);
+            camera.radius = 8;        
+            camera.heightOffset = 4;  
+            camera.rotationOffset = 180; 
+            camera.cameraAcceleration = 0.05;
+            camera.maxCameraSpeed = 20;
+
+            createWorld();
+
+            // --- Manual Camera Look Control Setup ---
+            const uiElements = [
+                document.getElementById('joystickZone'),
+                document.getElementById('jumpBtn'),
+                document.getElementById('fireBtn'),
+                document.getElementById('drawerToggle'),
+                document.getElementById('menuDrawer'),
+                document.getElementById('npcInteractBtn'), 
+                document.getElementById('chatModal'),
+                document.getElementById('manifestModal') 
+            ];
+            
+            // Pointer Down (Start Look)
+            canvas.addEventListener('pointerdown', (e) => {
+                let isOverUI = false;
+                for (const element of uiElements) {
+                    // Check if element is visible and contains the click point
+                    if (!element.classList.contains('hidden')) {
+                        const rect = element.getBoundingClientRect();
+                        if (e.clientX >= rect.left && e.clientX <= rect.right &&
+                            e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                            isOverUI = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!isOverUI && player.isPlayerAlive) {
+                    isLooking = true;
+                    lastPointerX = e.clientX;
+                    e.preventDefault(); 
+                    e.stopPropagation();
+                }
+            }, false);
+
+            // Pointer Move (Apply Rotation)
+            canvas.addEventListener('pointermove', (e) => {
+                if (isLooking && player.isPlayerAlive) {
+                    const dx = e.clientX - lastPointerX;
+
+                    // Rotate the FollowCamera's horizontal angle (alpha)
+                    camera.alpha -= dx * rotationSensitivity * 5; 
+                    
+                    lastPointerX = e.clientX;
+                    e.preventDefault();
+                }
+            }, false);
+
+            // Pointer Up (Stop Look)
+            canvas.addEventListener('pointerup', (e) => {
+                isLooking = false;
+            }, false);
+
+
+            // --- Animation Loop / Physics Update ---
+            scene.onBeforeRenderObservable.add(() => {
+                if (!player.isPlayerAlive || !player.physicsImpostor) return;
+
+                const deltaTime = scene.getEngine().getDeltaTime() / 1000;
+                let playerVelocity = player.physicsImpostor.getLinearVelocity();
+                
+                // 1. Apply joystick movement 
+                const isUIOpen = !chatModal.classList.contains('hidden') || !manifestModal.classList.contains('hidden');
+
+                if (isMoving && !isUIOpen) {
+                    
+                    const camAngle = camera.alpha; 
+                    
+                    const worldAngle = camAngle + moveVector.y - Math.PI / 2;
+
+                    player.rotation.y = worldAngle + Math.PI; 
+                    
+                    const moveX = Math.sin(worldAngle) * moveVector.x * playerSpeed;
+                    const moveZ = Math.cos(worldAngle) * moveVector.x * playerSpeed;
+                    
+                    player.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(
+                        moveX,
+                        playerVelocity.y, 
+                        moveZ
+                    ));
+
+                } else {
+                    // Decelerate horizontal movement when joystick is released
+                    player.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(
+                        playerVelocity.x * 0.8, 
+                        playerVelocity.y, 
+                        playerVelocity.z * 0.8 
+                    ));
+                }
+                
+                const forwardMatrix = player.getWorldMatrix().clone();
+                player.forward = BABYLON.Vector3.TransformNormal(new BABYLON.Vector3(0, 0, 1), forwardMatrix).normalize();
+
+                // 2. NPC Proximity Check
+                checkNPCProximity();
+
+                // 3. AI Update
+                updateCloneAI();
+
+                // 4. Bullet Update
+                const bulletsToRemove = [];
+                bullets.forEach(bullet => {
+                    bullet.life -= deltaTime;
+
+                    if (bullet.life <= 0) {
+                        bulletsToRemove.push(bullet);
+                        return;
+                    }
+
+                    const target = bullet.isCloneBullet ? player : clone;
+                    const damageAmount = bullet.isCloneBullet ? 10 : 25;
+
+                    if (target && checkBulletHit(bullet, target, deltaTime)) {
+                        takeDamage(target, damageAmount);
+                        bulletsToRemove.push(bullet);
+                        return;
+                    }
+                    
+                    bullet.position.addInPlace(bullet.velocity.scale(deltaTime));
+                });
+
+                // Dispose removed bullets
+                bulletsToRemove.forEach(bullet => {
+                    const index = bullets.indexOf(bullet);
+                    if (index > -1) bullets.splice(index, 1);
+                    if (bullet && !bullet.isDisposed()) bullet.dispose();
+                });
+                
+                // 5. Jump state update (simple check for ground contact)
+                isJumping = Math.abs(playerVelocity.y) > 0.1;
+            });
+
+            // Hide loading screen
+            document.getElementById('loadingOverlay').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }, 500);
+
+            return scene;
+        };
+
+        // --- UI/Control Handlers (Nipple.js, Buttons, Drawer) ---
+
+        const setupControls = () => {
+            if (joystickManager) return; 
+
+            // Nipple.js Joystick Setup
+            joystickManager = nipplejs.create({
+                zone: document.getElementById('joystickZone'),
+                mode: 'static',
+                position: { left: '50%', top: '50%' },
+                color: 'yellow',
+                restOpacity: 0.8,
+                lockX: false,
+                lockY: false
+            });
+
+            joystickManager.on('move', function (evt, data) {
+                const isUIOpen = !chatModal.classList.contains('hidden') || !manifestModal.classList.contains('hidden');
+                if (!isUIOpen) { 
+                    isMoving = true;
+                    moveVector.x = data.distance / 50; 
+                    moveVector.y = data.angle.radian; 
+                }
+            }).on('end', function () {
+                isMoving = false;
+                moveVector.x = 0;
+                moveVector.y = 0;
+            });
+
+            // Action Buttons
+            document.getElementById('jumpBtn').onclick = () => {
+                if (!player.isPlayerAlive || !player.physicsImpostor) return;
+                
+                if (!isJumping) {
+                    const velocity = player.physicsImpostor.getLinearVelocity();
+                    player.physicsImpostor.setLinearVelocity(new BABYLON.Vector3(velocity.x, 7, velocity.z)); 
+                    isJumping = true;
+                } else {
+                    showMessage("Cannot jump mid-air.", 1000, false);
+                }
+            };
+
+            document.getElementById('fireBtn').onclick = () => {
+                if (!player.isPlayerAlive) return;
+                createBullet(player);
+            };
+
+            document.getElementById('cloneBtn').onclick = () => {
+                summonClone();
+            };
+
+            document.getElementById('respawnBtn').onclick = () => {
+                respawnPlayer();
+            };
+
+            // Gemini Mission Button
+            document.getElementById('missionBtn').onclick = generateMission;
+            
+            // NPC Chat Button
+            document.getElementById('npcInteractBtn').onclick = openChat;
+            
+            // Chat Input Logic
+            sendChatBtn.onclick = sendChatMessage;
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !sendChatBtn.disabled) {
+                    sendChatMessage();
+                }
+            });
+
+            // Manifest Generator Logic
+            generateManifestBtn.onclick = generateBlockManifest;
+            manifestInput.addEventListener('keypress', (e) => {
+                 if (e.key === 'Enter' && !generateManifestBtn.disabled) {
+                    generateBlockManifest();
+                }
+            });
+            
+            // Enable chat input when modal opens
+            chatModal.addEventListener('transitionend', () => {
+                if (!chatModal.classList.contains('hidden')) {
+                    chatInput.disabled = false;
+                }
+            });
+
+            // Menu Drawer Handlers
+            const drawer = document.getElementById('menuDrawer');
+            document.getElementById('drawerToggle').onclick = () => {
+                drawer.classList.remove('translate-x-full');
+            };
+            document.getElementById('closeDrawerBtn').onclick = () => {
+                drawer.classList.add('translate-x-full');
+            };
+
+            // Wireframe Toggle Handler
+            document.getElementById('wireframeToggle').onchange = (e) => {
+                scene.forceWireframe = e.target.checked;
+            };
+        };
+
+        const startGame = () => {
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('gameUI').classList.remove('hidden');
+            
+            engine.runRenderLoop(() => scene.render());
+        };
+
+
+        // --- Main App Initialization ---
+        window.initGame = () => {
+            const currentScene = createScene();
+            setupControls();
+
+            document.getElementById('startGameBtn').onclick = startGame;
+
+            document.getElementById('displayUserId').textContent = window.userId || 'Not connected';
+
+            window.addEventListener("resize", function () {
+                engine.resize();
+            });
+        };
+
+    </script>
+
+</body>
+</html>

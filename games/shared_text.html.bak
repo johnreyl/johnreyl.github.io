@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Third-Person Shooter</title>
+    <!-- Load Tailwind CSS for UI styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Load jQuery (Used for reliable touch event handling) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> 
+    
+    <!-- Load Three.js for 3D rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Load Cannon.js for 3D physics -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+    <!-- Load Nipple.js for Virtual Joystick -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.8.0/nipplejs.min.js"></script>
+    
+    <!-- Load Firebase (Required boilerplate) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables must be defined here for the HTML script block to use
+        window.initializeApp = initializeApp;
+        window.getAuth = getAuth;
+        window.signInAnonymously = signInAnonymously;
+        window.signInWithCustomToken = signInWithCustomToken;
+        window.getFirestore = getFirestore;
+        window.setLogLevel = setLogLevel;
+        
+        // --- Firebase Initialization ---
+        // These global variables are provided by the canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        if (firebaseConfig) {
+            window.app = initializeApp(firebaseConfig);
+            window.db = getFirestore(window.app);
+            window.auth = getAuth(window.app);
+            setLogLevel('Debug'); // Enable debug logging for Firestore
+
+            async function authenticate() {
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(window.auth, initialAuthToken);
+                        console.log("Firebase signed in with custom token.");
+                    } else {
+                        await signInAnonymously(window.auth);
+                        console.log("Firebase signed in anonymously.");
+                    }
+                } catch (error) {
+                    console.error("Firebase authentication failed:", error);
+                }
+            }
+            authenticate();
+        } else {
+            console.warn("Firebase configuration not found. Firestore features will be unavailable.");
+        }
+    </script>
+    <style>
+        body {
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117; 
+        }
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #0d1117;
+        }
+        canvas {
+            display: block;
+            touch-action: none; 
+        }
+        .ui-panel {
+            position: absolute;
+            z-index: 10;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            max-width: 90vw;
+        }
+        .mobile-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            top: 0;
+            z-index: 20;
+            display: none; 
+            pointer-events: none; 
+        }
+        
+        /* Joystick CONTAINER (Nipple.js target) */
+        #joystick-container {
+            pointer-events: all; /* Important: allows nipple.js to capture touch events */
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 150px; 
+            height: 150px; 
+            z-index: 30; 
+        }
+
+        /* Action Button Styles (FIRE and JUMP) */
+        .action-button {
+            position: absolute;
+            z-index: 30;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            transition: background-color 0.1s, transform 0.1s ease-in-out; 
+            border: 3px solid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            pointer-events: auto;
+            font-size: 0.8rem;
+        }
+
+        /* Show mobile controls on small screens (e.g., mobile devices) */
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <!-- Canvas will be injected here -->
+        
+        <!-- Full-screen invisible overlay for touch input on mobile -->
+        <div id="touch-input-overlay" class="absolute inset-0 z-15 pointer-events-auto"></div>
+
+        <!-- Main Menu UI -->
+        <div id="main-menu" class="ui-panel bg-gray-800 text-white w-96 text-center">
+            <h1 class="text-4xl font-bold mb-6 text-indigo-400">3D Shooter Demo</h1>
+            <p class="mb-2 text-green-400 font-bold">Controls: Standard WASD / Joystick.</p>
+            <p class="mb-8 text-gray-300">
+                <span class="md:hidden">Use the **Joystick** for movement, **FIRE** and **JUMP** on the right. **Right Side Drag** for look.</span>
+                <span class="hidden md:inline">Use **WASD** to Move, **Mouse Drag** to Look, **LMB** to Fire, and **SPACE** to Jump.</span>
+            </p>
+
+            <!-- AI Mission Panel -->
+            <div id="mission-generator-panel" class="mb-6">
+                <button id="generate-mission-btn" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-bold py-3 px-4 rounded-lg transition duration-150 mb-3 disabled:bg-pink-800">
+                    New Mission Briefing ✨
+                </button>
+                <div id="mission-output" class="p-4 bg-gray-700 rounded-lg text-left hidden">
+                    <h3 id="mission-title" class="text-xl font-bold text-yellow-400 mb-2"></h3>
+                    <p id="mission-description" class="text-sm mb-2"></p>
+                    <p id="mission-difficulty" class="text-sm font-mono text-gray-300"></p>
+                </div>
+                <p id="mission-loading" class="text-yellow-400 hidden mt-2">AI Commander: Generating mission...</p>
+            </div>
+
+            <button id="start-game-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-lg transition duration-150">
+                START MISSION
+            </button>
+        </div>
+
+        <!-- In-Game HUD UI -->
+        <div id="in-game-hud" class="hidden absolute top-0 left-0 w-full p-4 flex justify-between items-start text-white pointer-events-none">
+            <div class="bg-gray-800/70 p-3 rounded-lg shadow-xl pointer-events-auto">
+                <p id="score-display" class="text-2xl font-mono text-green-400">Score: 0</p>
+            </div>
+            <button id="back-to-menu-btn" class="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-lg shadow-xl transition duration-150 pointer-events-auto">
+                Back to Menu
+            </button>
+        </div>
+        
+        <!-- Mobile Controls (only visible on small screens) -->
+        <div id="mobile-controls" class="mobile-controls">
+            
+            <!-- Movement Joystick (Bottom Left) - Nipple.js target -->
+            <div id="joystick-container"></div>
+            
+            <!-- FIRE BUTTON (Bottom Right) -->
+            <button id="fire-button" class="action-button bg-red-600 border-red-800 hover:bg-red-500 active:scale-95" style="right: 38px; bottom: 130px;">
+                FIRE
+            </button>
+
+            <!-- JUMP BUTTON (Bottom Right, above fire) -->
+            <button id="jump-button" class="action-button bg-green-600 border-green-800 hover:bg-green-500 active:scale-95" style="right: 38px; bottom: 205px;">
+                JUMP
+            </button>
+        </div>
+
+        <!-- Game Message Box (for alerts) -->
+        <div id="game-message" class="hidden ui-panel bg-indigo-900/90 text-white w-80 text-center border-4 border-indigo-400">
+            <h2 id="message-title" class="text-3xl font-bold mb-4"></h2>
+            <p id="message-text" class="mb-6"></p>
+            <button id="message-ok-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg transition duration-150 w-full">OK</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- LLM API Configuration ---
+        const API_KEY = ""; 
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
+        let currentMission = {
+            title: "Standard Training Simulation",
+            description: "Destroy 5 basic targets in the practice area.",
+            difficulty: 5
+        };
+
+        // --- Global Game State ---
+        let gameState = 'menu';
+        let score = 0;
+        const gameContainer = document.getElementById('game-container');
+        let canvas = document.createElement('canvas');
+        gameContainer.appendChild(canvas);
+
+        // --- Three.js Variables ---
+        let scene, camera, renderer;
+        let playerMesh, playerBody;
+        let bullets = [];
+        let targets = [];
+        let mouseLookEnabled = false;
+        let isMobile = false; 
+        let isGrounded = false; 
+        let clock = new THREE.Clock(); // Use Three.js Clock for reliable time management
+
+        // Humanoid Components for Animation
+        let headMesh, torsoMesh, leftLegMesh, rightLegMesh;
+        let animationTime = 0;
+        const walkSpeed = 10; 
+        const maxLegAngle = 0.5; 
+
+        // --- Cannon.js Variables ---
+        let world;
+        // Fixed time step for physics update (60 updates per second)
+        const FIXED_TIME_STEP = 1.0 / 60.0; 
+
+        // FIX FOR CANNON.JS ERROR: Lists for deferred cleanup
+        let bodiesToRemove = []; // Stores bullet bodies
+        let targetsToRemove = []; // Stores target objects {mesh, body}
+        
+        // --- Player Configuration ---
+        const playerRadius = 0.5;
+        const playerHeight = 1.8; 
+        const playerSpeed = 10; 
+        const jumpVelocity = 15;
+        const cameraOffset = new THREE.Vector3(0, 3, -8); 
+        const bulletSpeed = 50;
+
+        // --- Input State ---
+        const moveState = {
+            forward: false,
+            backward: false,
+            left: false,
+            right: false,
+            shoot: false,
+            jump: false 
+        };
+        // Used for analog movement on mobile (Nipple.js)
+        let joystickVector = { x: 0, y: 0 }; 
+        
+        let lastTouchX = 0; // For mobile look
+        
+        // --- Mobile Touch IDs for Dual Control ---
+        let lookTouchId = null;
+
+        // --- UI Elements ---
+        const mainMenu = document.getElementById('main-menu');
+        const hud = document.getElementById('in-game-hud');
+        const scoreDisplay = document.getElementById('score-display');
+        const backToMenuBtn = document.getElementById('back-to-menu-btn');
+        const startGameBtn = document.getElementById('start-game-btn');
+        const mobileControls = document.getElementById('mobile-controls');
+        const touchInputOverlay = document.getElementById('touch-input-overlay');
+        const joystickContainer = document.getElementById('joystick-container');
+        const fireButton = document.getElementById('fire-button');
+        const jumpButton = document.getElementById('jump-button'); 
+        
+        // --- AI Mission Generator UI Elements ---
+        const generateMissionBtn = document.getElementById('generate-mission-btn');
+        const missionOutputPanel = document.getElementById('mission-output');
+        const missionTitleEl = document.getElementById('mission-title');
+        const missionDescriptionEl = document.getElementById('mission-description');
+        const missionDifficultyEl = document.getElementById('mission-difficulty');
+        const missionLoadingEl = document.getElementById('mission-loading');
+
+
+        // --- Utility Functions ---
+
+        /**
+         * Converts Cannon.js vector to Three.js vector.
+         */
+        function cannonToThree(vec) {
+            return new THREE.Vector3(vec.x, vec.y, vec.z);
+        }
+
+        /**
+         * Shows a custom message box instead of window.alert
+         */
+        function showMessageBox(title, text, onOkCallback) {
+            // Using jQuery to manipulate the message box 
+            const $msgBox = $('#game-message');
+            $('#message-title').text(title);
+            $('#message-text').text(text);
+            $msgBox.removeClass('hidden');
+
+            const $okBtn = $('#message-ok-btn');
+            // Use off/on to prevent multiple bindings
+            $okBtn.off('click').on('click', () => { 
+                $msgBox.addClass('hidden');
+                if (onOkCallback) onOkCallback();
+            });
+        }
+        
+        /**
+         * Updates the mission display in the main menu based on the current mission state.
+         */
+        function updateMissionDisplay(mission) {
+            missionTitleEl.textContent = mission.title;
+            missionDescriptionEl.textContent = mission.description;
+            const targetsToSpawn = Math.ceil(mission.difficulty * 0.7) + 3; 
+            missionDifficultyEl.textContent = `Difficulty Rating: ${mission.difficulty}/10 (Spawning ${targetsToSpawn} Targets)`;
+            missionOutputPanel.classList.remove('hidden');
+            startGameBtn.textContent = `START MISSION: ${mission.title}`;
+        }
+
+        /**
+         * Generates a new mission using the Gemini LLM API with structured output.
+         */
+        async function generateMission() {
+            missionLoadingEl.classList.remove('hidden');
+            generateMissionBtn.disabled = true;
+            startGameBtn.disabled = true;
+            generateMissionBtn.textContent = "Processing...";
+
+            const userQuery = "Generate a challenging mission scenario for a 3D third-person shooter game. The scenario should involve destroying targets. Provide a mission name, a brief description, and a difficulty rating from 1 (easy) to 10 (hard).";
+            
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: {
+                    parts: [{ text: "You are an AI Commander generating structured game missions for a user. Always output a JSON object matching the provided schema." }]
+                },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "title": { "type": "STRING", "description": "A creative, short mission title." },
+                            "description": { "type": "STRING", "description": "A brief description of the mission objectives." },
+                            "difficulty": { "type": "INTEGER", "description": "A numerical difficulty rating from 1 to 10." }
+                        },
+                        "propertyOrdering": ["title", "description", "difficulty"]
+                    }
+                }
+            };
+
+            let result = null;
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const apiResult = await response.json();
+                const jsonText = apiResult.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (jsonText) {
+                    result = JSON.parse(jsonText);
+                }
+            } catch (error) {
+                console.error("Mission generation failed:", error);
+                // Fallback to default mission on failure
+                result = { title: "Default Training", description: "Standard simulation activated due to communications failure. Targets: 5.", difficulty: 5 };
+            }
+            
+            if (result) {
+                result.difficulty = Math.max(1, Math.min(10, result.difficulty || 5)); 
+                currentMission = result;
+                updateMissionDisplay(currentMission);
+            }
+
+            missionLoadingEl.classList.add('hidden');
+            generateMissionBtn.disabled = false;
+            startGameBtn.disabled = false;
+            generateMissionBtn.textContent = "New Mission Briefing ✨";
+        }
+
+
+        // --- Game Flow Functions ---
+
+        function showMenu() {
+            gameState = 'menu';
+            mainMenu.classList.remove('hidden');
+            hud.classList.add('hidden');
+            // Ensure mobile controls are hidden when in menu
+            mobileControls.style.display = 'none'; 
+            touchInputOverlay.style.display = 'none';
+
+            if (renderer && renderer.domElement) {
+                renderer.domElement.style.display = 'none';
+            }
+
+            if (document.pointerLockElement === canvas) {
+                document.exitPointerLock();
+            }
+            
+            // Reset input state
+            moveState.forward = moveState.backward = moveState.left = moveState.right = false;
+            joystickVector = { x: 0, y: 0 }; // Reset analog joystick vector
+            lookTouchId = null;
+            
+            // Destroy joystick instance when returning to menu
+            if (manager) {
+                manager.destroy();
+                manager = null;
+            }
+
+            // Remove mobile button bindings to prevent unintended firing
+            $('#fire-button').off('touchstart');
+            $('#jump-button').off('touchstart');
+        }
+
+        function startGame() {
+            score = 0;
+            scoreDisplay.textContent = `Score: ${score}`;
+            
+            const targetsToSpawn = Math.ceil(currentMission.difficulty * 0.7) + 3; 
+            
+            cleanupGame();
+            setupScene(targetsToSpawn);
+
+            gameState = 'playing';
+            mainMenu.classList.add('hidden');
+            hud.classList.remove('hidden');
+            renderer.domElement.style.display = 'block';
+
+            if (isMobile) {
+                mobileControls.style.display = 'block';
+                // Only use the overlay for look detection
+                touchInputOverlay.style.display = 'block'; 
+                setupNippleJoystick(); // Initialize the joystick and mobile buttons
+            } else {
+                // Request pointer lock for desktop
+                canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozPointerLock;
+                canvas.requestPointerLock();
+            }
+            
+            // Reset clock on game start
+            clock.start();
+            animate();
+        }
+
+        function cleanupGame() {
+            targets.forEach(({ mesh, body }) => {
+                scene.remove(mesh);
+                world.removeBody(body);
+            });
+            targets = [];
+
+            bullets.forEach(({ mesh, body }) => {
+                scene.remove(mesh);
+                world.removeBody(body);
+            });
+            bullets = [];
+            
+            // Clear deferred cleanup lists
+            bodiesToRemove = [];
+            targetsToRemove = [];
+
+            if (playerMesh) scene.remove(playerMesh);
+            if (playerBody) world.removeBody(playerBody);
+            playerMesh = null;
+            playerBody = null;
+            
+            headMesh = torsoMesh = leftLegMesh = rightLegMesh = null;
+        }
+
+        /**
+         * FIX: Handles the deferred removal of bodies after the physics step is complete.
+         */
+        function cleanupBodies() {
+            // Remove bullets
+            bodiesToRemove.forEach(body => {
+                const bulletIndex = bullets.findIndex(b => b.body === body);
+                if (bulletIndex !== -1) {
+                    scene.remove(bullets[bulletIndex].mesh);
+                    world.removeBody(body);
+                    bullets.splice(bulletIndex, 1);
+                }
+            });
+            bodiesToRemove = [];
+
+            // Remove targets and update score
+            targetsToRemove.forEach(target => {
+                const targetIndex = targets.findIndex(t => t.body === target.body);
+                if (targetIndex !== -1) {
+                    scene.remove(targets[targetIndex].mesh);
+                    world.removeBody(targets[targetIndex].body);
+                    targets.splice(targetIndex, 1);
+                    score += 10;
+                }
+            });
+            targetsToRemove = [];
+            scoreDisplay.textContent = `Score: ${score}`;
+        }
+
+
+        // --- Three.js & Cannon.js Setup ---
+
+        function createHumanoidModel() {
+            const bodyColor = 0x00bfff;
+            const legColor = 0x00aaff;
+            const headColor = 0xffe0bd;
+
+            // 1. Torso
+            const torsoGeometry = new THREE.BoxGeometry(0.8, 1.0, 0.4);
+            const torsoMaterial = new THREE.MeshPhongMaterial({ color: bodyColor });
+            torsoMesh = new THREE.Mesh(torsoGeometry, torsoMaterial);
+            torsoMesh.position.y = 0.0; 
+
+            // 2. Head
+            const headGeometry = new THREE.BoxGeometry(0.4, 0.4, 0.4);
+            const headMaterial = new THREE.MeshPhongMaterial({ color: headColor });
+            headMesh = new THREE.Mesh(headGeometry, headMaterial);
+            headMesh.position.y = 0.7; 
+
+            // 3. Legs
+            const legGeometry = new THREE.BoxGeometry(0.3, 0.8, 0.3);
+            const legMaterial = new THREE.MeshPhongMaterial({ color: legColor });
+            
+            // Left Leg (pivot point at top)
+            leftLegMesh = new THREE.Mesh(legGeometry, legMaterial);
+            leftLegMesh.position.set(-0.25, -0.9, 0);
+            leftLegMesh.geometry.translate(0, 0.4, 0); 
+
+            // Right Leg (pivot point at top)
+            rightLegMesh = new THREE.Mesh(legGeometry, legMaterial);
+            rightLegMesh.position.set(0.25, -0.9, 0);
+            rightLegMesh.geometry.translate(0, 0.4, 0); 
+
+            // 4. Main Group (Player Mesh)
+            const humanoidGroup = new THREE.Group();
+            humanoidGroup.add(torsoMesh, headMesh, leftLegMesh, rightLegMesh);
+            humanoidGroup.position.y = playerHeight / 2 - 0.4; 
+            
+            return humanoidGroup;
+        }
+
+        function setupRenderer() {
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x333333);
+            canvas.replaceWith(renderer.domElement);
+            canvas = renderer.domElement;
+        }
+
+        function setupScene(count) {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87ceeb); 
+
+            // 1. Camera Setup
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            
+            // 2. Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(50, 100, 50);
+            scene.add(directionalLight);
+
+            // 3. Physics World
+            world = new CANNON.World();
+            world.gravity.set(0, -9.82, 0);
+            world.broadphase = new CANNON.NaiveBroadphase();
+            world.solver.iterations = 10; 
+            
+            const defaultMaterial = new CANNON.Material("default");
+            const playerMaterial = new CANNON.Material("playerMaterial");
+            const contactMaterial = new CANNON.ContactMaterial(
+                playerMaterial,
+                defaultMaterial,
+                { friction: 0.1, restitution: 0.0 }
+            );
+            world.addContactMaterial(contactMaterial);
+
+
+            // 4. Ground Plane
+            const groundBody = new CANNON.Body({
+                mass: 0, 
+                shape: new CANNON.Plane(),
+                material: defaultMaterial
+            });
+            groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2); 
+            world.addBody(groundBody);
+
+            const groundMesh = new THREE.Mesh(
+                new THREE.PlaneGeometry(100, 100),
+                new THREE.MeshLambertMaterial({ color: 0x228B22, side: THREE.DoubleSide })
+            );
+            groundMesh.rotation.x = -Math.PI / 2;
+            scene.add(groundMesh);
+
+            // 5. Player Character (Cylinder Physics/Mesh)
+            const playerShape = new CANNON.Cylinder(playerRadius, playerRadius, playerHeight, 16);
+            playerBody = new CANNON.Body({
+                mass: 5,
+                shape: playerShape,
+                fixedRotation: true,
+                position: new CANNON.Vec3(0, playerHeight / 2 + 1, 0),
+                material: playerMaterial 
+            });
+            
+            // Ground check logic using collision events (essential for jumping)
+            playerBody.addEventListener('collide', (event) => {
+                const normal = event.contact.ni; 
+                let dot = normal.dot(new CANNON.Vec3(0, 1, 0)); 
+                
+                // If the normal vector points mostly upwards, we are touching a solid surface below
+                if (dot > 0.5) { 
+                    isGrounded = true;
+                }
+            });
+
+            world.addBody(playerBody);
+
+            playerMesh = createHumanoidModel();
+            scene.add(playerMesh);
+
+            // 6. Spawn Targets
+            spawnTargets(count);
+        }
+        
+        function spawnTargets(count) {
+            const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+            const boxMaterial = new THREE.MeshPhongMaterial({ color: 0xff4500 });
+            const boxShape = new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5));
+
+            for (let i = 0; i < count; i++) {
+                const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
+                const boxBody = new CANNON.Body({
+                    mass: 5,
+                    shape: boxShape,
+                    position: new CANNON.Vec3(Math.random() * 20 - 10, 5, Math.random() * 20 - 10),
+                });
+
+                world.addBody(boxBody);
+                scene.add(boxMesh);
+                targets.push({ mesh: boxMesh, body: boxBody });
+            }
+        }
+
+        // --- Core Game Loop ---
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (gameState === 'playing') {
+                const dt = clock.getDelta(); // Get Delta Time using Three.js Clock
+                
+                // Clamp dt to prevent physics instability
+                const clampedDeltaTime = Math.min(dt, 0.1);
+                
+                // 1. Reset ground state (will be set true by collision event later in world.step)
+                isGrounded = false;
+                
+                // 2. Update Physics
+                // Use the fixed time step and clamped delta time
+                world.step(FIXED_TIME_STEP, clampedDeltaTime, 3);
+                
+                // 3. Deferred cleanup after physics step (FIX: Prevents the crash)
+                cleanupBodies(); 
+                
+                // 4. Update Player Logic, Animation, and Camera
+                updatePlayer(dt);
+                updateCamera();
+                
+                // 5. Update Meshes based on Physics
+                updateMeshes();
+                
+                // 6. Check for game win/loss
+                if (targets.length === 0) {
+                    endGame("Victory!", `MISSION COMPLETE! You destroyed all targets and scored ${score} points!`);
+                }
+
+                renderer.render(scene, camera);
+            }
+        }
+
+        /**
+         * Player movement uses joystick/WASD input and applies rotation correctly 
+         * to the horizontal velocity vector, while preserving vertical velocity.
+         */
+        function updatePlayer(deltaTime) {
+            if (!playerBody) return;
+
+            let localVelocityX = 0;
+            let localVelocityZ = 0;
+            
+            // --- MOVEMENT LOGIC ---
+            if (isMobile) {
+                // Mobile: Use analog joystick input (joystickVector)
+                const x = joystickVector.x;
+                const y = joystickVector.y; 
+                
+                // Nipple's Y is up/down on the screen. We map -Y to Z- (forward)
+                localVelocityX = x * playerSpeed;
+                localVelocityZ = -y * playerSpeed;
+
+            } else {
+                // Desktop: Use digital WASD input (moveState flags)
+                
+                // Forward/W: Z- negative is forward
+                if (moveState.forward) localVelocityZ -= playerSpeed; 
+                // Backward/S: Z- positive is backward
+                if (moveState.backward) localVelocityZ += playerSpeed; 
+                
+                if (moveState.left) localVelocityX -= playerSpeed;
+                if (moveState.right) localVelocityX += playerSpeed;
+                
+                // Normalize velocity for diagonal movement on desktop
+                if (localVelocityX !== 0 || localVelocityZ !== 0) {
+                    const magnitude = Math.sqrt(localVelocityX * localVelocityX + localVelocityZ * localVelocityZ);
+                    if (magnitude > playerSpeed) {
+                        const factor = playerSpeed / magnitude;
+                        localVelocityX *= factor;
+                        localVelocityZ *= factor;
+                    }
+                }
+            }
+            
+            // Check if any movement is happening (digital or analog)
+            const isMoving = (Math.abs(localVelocityX) + Math.abs(localVelocityZ)) > 0.1;
+
+            let finalVelocityX = 0;
+            let finalVelocityZ = 0;
+            
+            if (isMoving) {
+                // Get the player's current Y rotation (which is set by mouse/touch look)
+                const rotation = playerMesh.rotation.y; 
+                
+                // Apply rotation to local movement vectors (localVelocityX/Z) to get world coordinates
+                // This converts movement relative to the character into movement in the world.
+                finalVelocityX = localVelocityX * Math.cos(rotation) - localVelocityZ * Math.sin(rotation);
+                finalVelocityZ = localVelocityX * Math.sin(rotation) + localVelocityZ * Math.cos(rotation);
+            }
+
+            // CRITICAL: Apply horizontal velocity, preserving vertical (Y) velocity
+            const currentYVelocity = playerBody.velocity.y;
+            playerBody.velocity.set(finalVelocityX, currentYVelocity, finalVelocityZ);
+
+
+            // Handle Jump logic
+            if (moveState.jump && isGrounded) {
+                playerBody.velocity.y = jumpVelocity;
+                isGrounded = false; 
+            }
+            // Consume jump input after checking/performing
+            moveState.jump = false; 
+
+
+            // Walk Animation Logic
+            if (isMoving) {
+                animationTime += deltaTime * walkSpeed;
+                leftLegMesh.rotation.x = Math.sin(animationTime) * maxLegAngle;
+                rightLegMesh.rotation.x = Math.cos(animationTime) * maxLegAngle; 
+            } else {
+                const resetAngle = (angle) => angle * 0.9;
+                leftLegMesh.rotation.x = resetAngle(leftLegMesh.rotation.x);
+                rightLegMesh.rotation.x = resetAngle(rightLegMesh.rotation.x);
+            }
+
+            if (moveState.shoot) {
+                createBullet();
+                moveState.shoot = false; 
+            }
+        }
+        
+        function updateCamera() {
+            if (!playerMesh) return;
+            
+            const relativeOffset = cameraOffset.clone();
+            
+            relativeOffset.applyAxisAngle(new THREE.Vector3(0, 1, 0), playerMesh.rotation.y);
+
+            const desiredPosition = new THREE.Vector3().addVectors(playerMesh.position, relativeOffset);
+            camera.position.lerp(desiredPosition, 0.1);
+
+            const playerTarget = new THREE.Vector3(playerMesh.position.x, playerMesh.position.y + 0.5, playerMesh.position.z);
+            camera.lookAt(playerTarget);
+        }
+
+        function updateMeshes() {
+            if (!playerBody) return;
+
+            playerMesh.position.copy(cannonToThree(playerBody.position));
+
+            for (let i = targets.length - 1; i >= 0; i--) {
+                const { mesh, body } = targets[i];
+                // Check for environment fall-through
+                if (body.position.y < -10) { 
+                    scene.remove(mesh);
+                    world.removeBody(body);
+                    targets.splice(i, 1);
+                    showMessageBox("Target Lost", "A target was lost! Be quicker next time.", null);
+                } else {
+                    mesh.position.copy(cannonToThree(body.position));
+                    mesh.quaternion.copy(body.quaternion);
+                }
+            }
+
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const { mesh, body, startTime } = bullets[i];
+                // Check for bullet time out
+                if (performance.now() - startTime > 3000) { 
+                    scene.remove(mesh);
+                    world.removeBody(body);
+                    bullets.splice(i, 1);
+                    continue;
+                }
+                mesh.position.copy(cannonToThree(body.position));
+                mesh.quaternion.copy(body.quaternion);
+            }
+        }
+
+        function createBullet() {
+            if (gameState !== 'playing' || !playerMesh) return;
+
+            const bulletRadius = 0.1;
+            const bulletMesh = new THREE.Mesh(
+                new THREE.SphereGeometry(bulletRadius, 8, 8),
+                new THREE.MeshLambertMaterial({ color: 0xffff00 })
+            );
+
+            const bulletShape = new CANNON.Sphere(bulletRadius);
+            const bulletBody = new CANNON.Body({
+                mass: 0.1,
+                shape: bulletShape,
+                material: new CANNON.Material({ friction: 0.1, restitution: 0.8 })
+            });
+            
+            // Get the forward vector of the Player Mesh (where the player is facing)
+            const forwardVector = new THREE.Vector3();
+            playerMesh.getWorldDirection(forwardVector); 
+            
+            const startPosition = new CANNON.Vec3(
+                playerBody.position.x + forwardVector.x * (playerRadius + bulletRadius),
+                playerBody.position.y + 0.5, 
+                playerBody.position.z + forwardVector.z * (playerRadius + bulletRadius)
+            );
+
+            bulletBody.position.copy(startPosition);
+            bulletBody.velocity.set(
+                forwardVector.x * bulletSpeed,
+                forwardVector.y * bulletSpeed,
+                forwardVector.z * bulletSpeed
+            );
+
+            bulletBody.addEventListener('collide', (event) => {
+                const otherBody = event.body;
+                const target = targets.find(t => t.body === otherBody);
+                
+                if (target) {
+                    // FIX: Mark bullet and target for deferred removal after physics step
+                    if (!bodiesToRemove.includes(bulletBody)) {
+                        bodiesToRemove.push(bulletBody);
+                    }
+                    if (!targetsToRemove.includes(target)) {
+                        targetsToRemove.push(target);
+                    }
+                }
+            });
+
+            world.addBody(bulletBody);
+            scene.add(bulletMesh);
+            
+            bullets.push({ 
+                mesh: bulletMesh, 
+                body: bulletBody, 
+                startTime: performance.now()
+            });
+        }
+        
+        function endGame(title, text) {
+            gameState = 'menu'; 
+            showMessageBox(title, text, showMenu);
+        }
+
+        // --- Shared Action Handlers ---
+
+        function onShootAction(event) {
+            if (gameState !== 'playing') return;
+            // Use passive:false and preventDefault on touch handlers
+            if (event.cancelable) event.preventDefault(); 
+            moveState.shoot = true;
+        }
+
+        function onJumpAction(event) {
+            if (gameState !== 'playing') return;
+            // Use passive:false and preventDefault on touch handlers
+            if (event.cancelable) event.preventDefault(); 
+            moveState.jump = true;
+        }
+
+
+        // --- Event Listeners: DESKTOP (Keyboard/Mouse Pointer Lock) ---
+
+        function onKeyDown(event) {
+            // Only handle WASD if not mobile
+            if (gameState !== 'playing' || isMobile) return;
+            
+            if (event.code === 'Space') {
+                moveState.jump = true; // Desktop Jump (Spacebar)
+            } else {
+                updateMovementState(event.code, true);
+            }
+        }
+
+        function onKeyUp(event) {
+            if (gameState !== 'playing' || isMobile) return;
+            
+            if (event.code !== 'Space') {
+                updateMovementState(event.code, false);
+            }
+        }
+
+        function updateMovementState(code, isPressed) {
+            switch (code) {
+                // W/Up maps to moveState.forward
+                case 'ArrowUp':
+                case 'KeyW':
+                    moveState.forward = isPressed; 
+                    break;
+                // S/Down maps to moveState.backward
+                case 'ArrowDown':
+                case 'KeyS':
+                    moveState.backward = isPressed; 
+                    break;
+                case 'ArrowLeft':
+                case 'KeyA':
+                    moveState.left = isPressed;
+                    break;
+                case 'ArrowRight':
+                case 'KeyD':
+                    moveState.right = isPressed;
+                    break;
+            }
+        }
+        
+        function onPointerlockChange() {
+            if (document.pointerLockElement === canvas) {
+                mouseLookEnabled = true;
+            } else {
+                mouseLookEnabled = false;
+                if (gameState === 'playing' && !isMobile) {
+                    // Only end the game if pointer lock is lost on desktop
+                    endGame("Pointer Lock Lost", "Click OK to return to the menu.", showMenu);
+                }
+            }
+        }
+
+        function onMouseMove(event) {
+            if (gameState !== 'playing' || !mouseLookEnabled || isMobile) return;
+
+            const movementX = event.movementX || event.mozMovementX || 0;
+            const rotationSpeed = 0.002;
+            
+            // Look: Positive mouse movement (right) causes negative rotation (left turn)
+            playerMesh.rotation.y -= movementX * rotationSpeed;
+            playerBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), playerMesh.rotation.y);
+        }
+        
+
+        // --- Event Listeners: MOBILE (Nipple.js & Look Touch) ---
+
+        let manager;
+        function setupNippleJoystick() {
+            // Destroy previous instance if it exists
+            if (manager) {
+                manager.destroy();
+                manager = null;
+            }
+
+            // FIX: Use 'static' mode for better stability in a fixed zone
+            manager = nipplejs.create({
+                zone: joystickContainer, // The DOM element to attach the joystick
+                mode: 'static',         
+                baseColor: 'rgba(20, 20, 20, 0.4)', 
+                color: 'rgba(50, 50, 50, 0.8)', 
+                size: 150,
+                position: { left: '50%', top: '50%' }, 
+                lockX: false,
+                lockY: false,
+                fadeTime: 100
+            });
+
+            // Joystick movement listener: Update analog vector
+            manager.on('move', (evt, data) => {
+                if (gameState !== 'playing') return;
+                
+                const vector = data?.vector;
+                
+                // Store the X and Y components directly. 
+                joystickVector.x = vector?.x || 0;
+                joystickVector.y = vector?.y || 0;
+            });
+
+            // Joystick release listener: Reset analog vector
+            manager.on('end', () => {
+                joystickVector.x = 0;
+                joystickVector.y = 0;
+            });
+
+            // 1. Dedicated Action Button Handlers
+            $('#fire-button').off('touchstart').on('touchstart', { passive: false }, onShootAction);
+            $('#jump-button').off('touchstart').on('touchstart', { passive: false }, onJumpAction);
+
+            // Prevent scrolling/selection on touchend for all buttons
+            $('#fire-button, #jump-button').off('touchend').on('touchend', (e) => e.preventDefault());
+
+
+            // 2. Look Touch Handling on the rest of the screen (touchInputOverlay)
+            const lookArea = touchInputOverlay;
+            
+            lookArea.addEventListener('touchstart', (e) => {
+                if (gameState !== 'playing') return;
+
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const touch = e.changedTouches[i];
+                    const touchX = touch.clientX;
+                    const touchY = touch.clientY;
+                    
+                    // Define Joystick exclusion zone (e.g., 200px wide from left, 200px from bottom)
+                    const JOYSTICK_EXCLUSION_WIDTH = 200;
+                    const JOYSTICK_EXCLUSION_HEIGHT = 200;
+                    
+                    const isOverJoystickArea = touchX < JOYSTICK_EXCLUSION_WIDTH && 
+                                               touchY > (window.innerHeight - JOYSTICK_EXCLUSION_HEIGHT);
+
+                    // FIX: Only start look if not over the joystick area AND touch is on the right side
+                    if (lookTouchId === null && !isOverJoystickArea) { 
+                        if (touchX > (window.innerWidth / 2)) { 
+                            lookTouchId = touch.identifier; 
+                            lastTouchX = touchX;
+                            e.preventDefault();
+                            return;
+                        }
+                    }
+                }
+            }, { passive: false });
+
+            lookArea.addEventListener('touchmove', (e) => {
+                if (gameState !== 'playing') return;
+                
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const touch = e.changedTouches[i];
+                    const touchX = touch.clientX;
+                    const id = touch.identifier;
+                    
+                    // Handle Look Movement (Camera Stick) 
+                    if (id === lookTouchId) {
+                        e.preventDefault(); 
+                        const movementX = touchX - lastTouchX;
+                        lastTouchX = touchX;
+                        const rotationSpeed = 0.005;
+
+                        // Look: Positive touch movement (right) causes negative rotation (left turn)
+                        playerMesh.rotation.y -= movementX * rotationSpeed; 
+                        playerBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), playerMesh.rotation.y);
+                        return; 
+                    }
+                }
+            }, { passive: false });
+
+            lookArea.addEventListener('touchend', (e) => {
+                if (gameState !== 'playing') return;
+                
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const id = e.changedTouches[i].identifier;
+
+                    if (id === lookTouchId) {
+                        lookTouchId = null;
+                        return;
+                    }
+                }
+            });
+        }
+
+        // --- Initialization ---
+
+        window.onload = function() {
+            // isMobile check determines if mobile controls are shown.
+            isMobile = window.innerWidth <= 768; 
+            
+            setupRenderer();
+            
+            if (!isMobile) {
+                // Desktop: LMB for Fire
+                canvas.addEventListener('click', onShootAction);
+            }
+
+            showMenu();
+            updateMissionDisplay(currentMission);
+
+            // Attach core event listeners
+            window.addEventListener('resize', onWindowResize);
+            document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('pointerlockchange', onPointerlockChange);
+            document.addEventListener('mspointerlockchange', onPointerlockChange);
+            document.addEventListener('mozpointerlockchange', onPointerlockChange);
+            
+            // Start/Menu Button Handlers
+            startGameBtn.addEventListener('click', startGame);
+            generateMissionBtn.addEventListener('click', generateMission);
+
+            backToMenuBtn.addEventListener('click', () => {
+                if (targets.length > 0 && gameState === 'playing') {
+                    showMessageBox(
+                        "Exit Mission?", 
+                        "Are you sure you want to quit the current mission and lose your progress?", 
+                        showMenu
+                    );
+                } else {
+                    showMenu();
+                }
+            });
+        };
+
+        function onWindowResize() {
+            // Check if Three.js components are initialized before accessing them (FIX for TypeError)
+            if (!camera || !renderer) return;
+
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            
+            const wasMobile = isMobile;
+            isMobile = window.innerWidth <= 768;
+            
+            if (gameState === 'playing') {
+                mobileControls.style.display = isMobile ? 'block' : 'none';
+                touchInputOverlay.style.display = isMobile ? 'block' : 'none';
+                
+                // If the device orientation/size just crossed the mobile threshold
+                if (wasMobile !== isMobile) {
+                    if (isMobile) {
+                        setupNippleJoystick(); 
+                    } else {
+                        if (manager) manager.destroy();
+                        manager = null;
+                        // Clean up mobile button bindings when switching to desktop
+                        $('#fire-button').off('touchstart');
+                        $('#jump-button').off('touchstart');
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

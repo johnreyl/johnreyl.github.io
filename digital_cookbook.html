@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Digital Cookbook - Recipes & Guides</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+    <style>
+        /* Custom Tailwind Configuration (Chef's Emerald Green Theme) */
+        :root {
+            --accent-color: #10b981; /* Emerald-500 */
+        }
+
+        /* Custom scrollbar to match the light theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #e5e7eb; /* Gray-200 */
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 4px;
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #059669; /* Emerald-600 */
+            }
+
+        /* Specific style for active/selected nav item */
+        .nav-item.active {
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* FIX: Minimum height and aspect ratio for topic images */
+        .topic-item img {
+            min-height: 150px; /* Ensures the item block has height */
+            aspect-ratio: 4 / 3; /* Wider aspect ratio for cover images */
+            object-fit: cover;
+        }
+        /* Style for selected archive letter */
+        .archive-letter.active {
+            background-color: var(--accent-color);
+            color: #ffffff; /* White text on active green background */
+        }
+
+        /* Custom list style for step-by-step instructions */
+        .instruction-step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            background-color: #e5e7eb; /* Gray-200 */
+        }
+
+        .instruction-step-number {
+            flex-shrink: 0;
+            width: 2rem;
+            height: 2rem;
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 0.75rem;
+        }
+
+        /* Utility for limiting lines of text */
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Custom list style for Dos/Don'ts list */
+        .dos-list {
+            list-style-type: '🧑‍🍳 ';
+            margin-left: 1.5rem;
+        }
+
+        .donts-list {
+            list-style-type: '🚫 ';
+            margin-left: 1.5rem;
+        }
+
+        .nav-item.active {
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* NEW: Add specific mobile styling for active link on smaller screens */
+        @media (max-width: 767px) { /* Tailwinds 'md' breakpoint is 768px */
+            .nav-item.active {
+                background-color: #d1d5db; /* Gray-300 background for selected icon */
+                border-radius: 0.5rem; /* Soft round corners */
+                border-bottom: none; /* Remove border-bottom on mobile */
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <header class="bg-white shadow-lg sticky top-0 z-10 border-b border-gray-200">
+        <div class="container mx-auto px-4 py-3 flex flex-wrap md:flex-nowrap justify-between items-center">
+
+            <a href="#" class="text-3xl font-bold text-emerald-600 mr-8 flex-shrink-0" onclick="showPage('page-home'); return false;">Digital<span class="text-gray-800">Cookbook</span></a>
+
+            <div class="order-2 md:order-3 flex-shrink-0">
+                <button id="fullscreen-toggle" class="p-2 rounded-full bg-gray-200 text-emerald-600 hover:bg-emerald-600 hover:text-white transition" onclick="toggleFullScreen()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4M4 20l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                </button>
+            </div>
+
+            <nav class="order-3 md:order-2 w-full mt-3 md:w-auto md:flex-grow md:mt-0 flex justify-between text-sm font-semibold md:border-t-0 md:border-b-0">
+                <a href="#home" class="nav-item active flex-1 flex flex-col items-center px-2 py-2 hover:text-emerald-600 transition md:w-1/5" data-page="home" title="Home">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11v10a1 1 0 001 1h3m-7 0h-2"></path></svg>
+                    <span class="hidden md:inline-block text-xs mt-1">HOME</span>
+                </a>
+
+                <a href="#popular" class="nav-item flex-1 flex flex-col items-center px-2 py-2 hover:text-emerald-600 transition md:w-1/5" data-page="popular" title="Popular Recipes">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.152A1.665 1.665 0 0113 2.152L15.349 7.02l5.064.736a1.665 1.665 0 01.924 2.842l-3.666 3.578 0.865 5.048a1.665 1.665 0 01-2.417 1.75l-4.526-2.388-4.526 2.388a1.665 1.665 0 01-2.417-1.75l.865-5.048-3.666-3.578a1.665 1.665 0 01.924-2.842l5.064-.736L11.049 2.152z"></path></svg>
+                    <span class="hidden md:inline-block text-xs mt-1">POPULAR</span>
+                </a>
+
+                <a href="#archive" class="nav-item flex-1 flex flex-col items-center px-2 py-2 hover:text-emerald-600 transition md:w-1/5" data-page="archive" title="Recipe Index">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13h7.42M12 6.253H4.58M4.58 6.253l4.58 13M19.42 6.253l-4.58 13"></path></svg>
+                    <span class="hidden md:inline-block text-xs mt-1">A-Z</span>
+                </a>
+
+                <a href="#search" class="nav-item flex-1 flex flex-col items-center px-2 py-2 hover:text-emerald-600 transition md:w-1/5" data-page="filter" title="Search / Filter">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <span class="hidden md:inline-block text-xs mt-1">SEARCH</span>
+                </a>
+
+                <a href="#history" class="nav-item flex-1 flex flex-col items-center px-2 py-2 hover:text-emerald-600 transition md:w-1/5" data-page="history" title="Recently Cooked/Viewed">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span class="hidden md:inline-block text-xs mt-1">HISTORY</span>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+
+        <div id="page-content">
+
+            <div id="page-home" class="page">
+
+                <div class="bg-white p-4 rounded-lg shadow-xl mb-8">
+                    <h2 class="text-xl font-bold border-b-2 border-emerald-600 pb-2 mb-4 text-gray-800">🍽️ RECIPE OF THE DAY</h2>
+
+                    <div id="featured-tutorial-container" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                        <div class="lg:col-span-2 order-2 lg:order-1">
+                            <h3 id="featured-title" class="text-2xl font-bold text-emerald-600 mb-2">Recipe Title</h3>
+                            <div id="featured-categories" class="flex flex-wrap gap-2 mb-3"></div>
+
+                            <h4 class="text-lg font-bold border-b border-gray-300 pb-1 mb-2 text-gray-800">Key Summary</h4>
+                            <p id="featured-explanation" class="text-sm text-gray-600 mb-4 line-clamp-3">A brief overview of the recipe, its origin, and serving suggestions...</p>
+
+                            <h4 class="text-lg font-bold border-b border-gray-300 pb-1 mb-2 text-gray-800">Quick Steps (Cooking Snippet)</h4>
+                            <div id="featured-steps-snippet" class="space-y-2 text-sm text-gray-600 mb-4">
+                            </div>
+
+                            <button id="show-details-modal" class="bg-emerald-600 text-white p-3 rounded-lg font-bold hover:bg-emerald-500 transition">
+                                View Full Recipe, Ingredients & Tips
+                            </button>
+                        </div>
+
+                        <div class="lg:col-span-1 order-1 lg:order-2">
+                            <img id="featured-image" src="#" class="w-full rounded-lg object-cover max-h-72 border border-gray-200" alt="Featured Recipe Image">
+                            <div class="flex justify-between items-center mt-4">
+                                <button id="prev-featured" class="bg-gray-200 text-gray-800 p-2 rounded hover:bg-emerald-600 hover:text-white transition disabled:opacity-50" disabled>← Previous</button>
+
+                                <div id="featured-page-details" class="text-sm text-gray-500 font-medium">
+                                    Page Details
+                                </div>
+                                <button id="next-featured" class="bg-gray-200 text-gray-800 p-2 rounded hover:bg-emerald-600 hover:text-white transition disabled:opacity-50">Next →</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div id="anime-detail-panel" class="bg-white p-4 rounded-lg shadow-xl mb-8 hidden">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div class="md:col-span-3">
+
+                        <div class="bg-white p-4 rounded-lg shadow-xl mb-8">
+                            <h2 class="text-xl font-bold border-b-2 border-emerald-600 pb-2 mb-4 text-gray-800">🏷️ RECIPE CATEGORIES</h2>
+                            <div id="all-categories-badges" class="flex flex-wrap gap-2">
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-lg shadow-xl">
+                            <h2 class="text-xl font-bold border-b-2 border-emerald-600 pb-2 mb-4 text-gray-800 flex justify-between items-center">
+                                <span>🆕 LATEST ADDITIONS</span>
+                                <span id="latest-count" class="text-sm bg-emerald-600 text-white px-2 py-1 rounded-full">
+                                    0
+                                </span>
+                            </h2>
+                            <div id="latest-episodes-container" class="w-full">
+                                <div id="latest-episodes" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                                </div>
+                                <p id="latest-empty-message" class="text-gray-500 hidden">No new recipes found at this time.</p>
+                            </div>
+                            <div class="mt-4 flex justify-between items-center">
+                                <button id="see-more-latest" class="bg-gray-200 text-emerald-600 p-2 rounded hover:bg-emerald-600 hover:text-white transition" onclick="showPage('page-filter'); filterLatest()">
+                                    See More...
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <aside class="md:col-span-1">
+                        <div class="bg-white p-4 rounded-lg shadow-xl">
+                            <h3 class="text-lg font-bold border-b-2 border-emerald-600 pb-2 mb-4 text-gray-800">☎️ EMERGENCY DIET HELP</h3>
+
+                            <div class="mb-3">
+                                <label for="country-select" class="text-sm font-semibold text-gray-700 block mb-1">Select Region:</label>
+                                <select id="country-select" class="w-full p-2 rounded bg-gray-200 border border-gray-300 text-sm text-gray-800" onchange="renderHotlines($('#country-select').val())">
+                                </select>
+                            </div>
+
+                            <ul id="hotlines-list" class="space-y-3 text-sm">
+                            </ul>
+
+                            <button id="show-survival-rules" class="mt-4 w-full bg-emerald-600 text-white p-3 rounded-lg font-bold hover:bg-emerald-500 transition" onclick="renderSurvivalRules(); showPage('page-search-results'); return false;">
+                                📜 Chef's Golden Rules
+                            </button>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+
+            <div id="page-popular" class="page hidden">
+                <div class="bg-white p-4 rounded-lg shadow-xl">
+
+                    <h2 class="text-xl font-bold border-b-2 border-emerald-600 pb-2 mb-4 text-gray-800 flex justify-between items-center">
+                        <span>⭐ HIGH-RATED RECIPES</span>
+                        <span id="popular-count" class="text-sm bg-emerald-600 text-white px-2 py-1 rounded-full">
+                            0
+                        </span>
+                    </h2>
+                    <div id="popular-series" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-archive" class="page hidden">
+                <div class="bg-white p-4 rounded-lg shadow-xl">
+                    <h2 class="text-xl font-bold border-b-2 border-emerald-600 pb-2 mb-4 text-gray-800">📚 RECIPE INDEX (A-Z)</h2>
+                    <div id="anime-archive-links" class="space-y-3 mb-6">
+                    </div>
+
+                    <h3 class="text-lg font-bold border-b-2 border-gray-300 pb-2 mb-4 text-gray-800 flex justify-between items-center">
+                        <span id="archive-title">All Recipes</span>
+                        <span id="archive-result-count" class="text-sm bg-gray-300 text-emerald-600 px-2 py-1 rounded">
+                            0 results
+                        </span>
+                    </h3>
+
+                    <div class="flex flex-wrap items-center gap-4 p-4 bg-gray-200 rounded-lg mb-6">
+                        <label class="text-sm font-semibold">Sort By:</label>
+                        <select id="archive-sort-by" class="p-2 rounded bg-white border border-gray-300 text-sm text-gray-800">
+                            <option value="title">Recipe Name</option>
+                            <option value="type">Cuisine Type</option>
+                            <option value="date">Date Added</option>
+                        </select>
+
+                        <label class="text-sm font-semibold">Order:</label>
+                        <select id="archive-sort-order" class="p-2 rounded bg-white border border-gray-300 text-sm text-gray-800">
+                            <option value="asc">Ascending</option>
+                            <option value="desc">Descending</option>
+                        </select>
+
+                        <button id="apply-archive-sort" class="bg-emerald-600 text-white p-2 rounded hover:bg-emerald-500 transition">Apply Sort</button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-300">
+                            <thead class="bg-gray-200">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-1/2">
+                                        Recipe / Cuisine
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-1/6">
+                                        Difficulty
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-1/6">
+                                        Category
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-1/6">
+                                        Last Updated
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="anime-archive-table" class="bg-white divide-y divide-gray-200">
+                                <tr><td colspan="4" class="px-6 py-4 text-center text-gray-500" id="archive-empty-message">Select a letter to filter the recipes.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="page-filter" class="page hidden">
+                <div class="bg-white p-4 rounded-lg shadow-xl mb-8">
+                    <h2 class="text-xl font-bold border-b-2 border-emerald-600 pb-2 mb-4 text-gray-800">🔍 ADVANCED SEARCH & FILTER</h2>
+
+                    <div class="mb-6 flex">
+                        <input id="filter-search-input" type="text" placeholder="Search by recipe title or ingredient..." class="p-3 w-full rounded-l bg-white text-gray-800 border border-gray-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition text-lg">
+                        <button id="search-apply-button" class="text-white bg-emerald-600 p-3 rounded-r hover:bg-emerald-500 transition font-bold" onclick="applyFilter()">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </button>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-4 p-4 bg-gray-200 rounded-lg mb-6">
+                        <label class="text-sm font-semibold">Date Filter:</label>
+                        <select id="filter-day" class="p-2 rounded bg-white border border-gray-300 text-sm text-gray-800">
+                            <option value="">Day</option>
+                        </select>
+                        <select id="filter-month" class="p-2 rounded bg-white border border-gray-300 text-sm text-gray-800">
+                            <option value="">Month</option>
+                        </select>
+                        <select id="filter-year" class="p-2 rounded bg-white border border-gray-300 text-sm text-gray-800">
+                            <option value="">Year</option>
+                        </select>
+
+                        <label class="text-sm font-semibold ml-4">Category:</label>
+                        <select id="filter-category" class="p-2 rounded bg-white border border-gray-300 text-sm text-gray-800">
+                            <option value="">All Categories</option>
+                        </select>
+
+                        <button id="apply-filter" class="bg-emerald-600 text-white p-2 rounded hover:bg-emerald-500 transition">Apply Filters</button>
+                        <button id="reset-filter" class="bg-gray-400 text-white p-2 rounded hover:bg-gray-500 transition">Reset</button>
+                    </div>
+
+                    <h3 class="text-lg font-bold border-b-2 border-gray-300 pb-2 mb-4 text-gray-800 flex justify-between items-center">
+                        <span>SEARCH RESULTS</span>
+                        <span id="search-result-count" class="text-sm bg-gray-300 text-emerald-600 px-2 py-1 rounded">
+                            0 results
+                        </span>
+                    </h3>
+                    <div id="filtered-results-list" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                        <p class="text-gray-500 col-span-5" id="filter-no-results">Enter keywords or select criteria and click Apply Filter.</p>
+                    </div>
+
+                    <div id="filter-pagination" class="mt-6 flex justify-center space-x-2">
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-history" class="page hidden">
+                <div class="bg-white p-4 rounded-lg shadow-xl">
+                    <h2 class="text-xl font-bold border-b-2 border-emerald-600 pb-2 mb-4 text-gray-800">⌚ RECENTLY VIEWED/COOKED</h2>
+                    <ul id="watched-history-list" class="space-y-3 text-sm">
+                        <li class="text-gray-500" id="empty-history-message">Your history is empty.</li>
+                    </ul>
+                    <button id="clear-history" class="mt-4 bg-gray-300 text-gray-700 p-2 rounded hover:bg-emerald-600 hover:text-white transition">Clear History</button>
+                </div>
+            </div>
+
+            <div id="page-search-results" class="page hidden">
+                <div class="bg-white p-4 rounded-lg shadow-xl mb-8">
+                    <h2 id="rules-title" class="text-xl font-bold border-b-2 border-emerald-600 pb-2 mb-4 text-gray-800"></h2>
+                    <div id="rules-content" class="text-gray-700"></div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="detail-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-80">
+        <div class="min-h-screen flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg shadow-2xl w-full max-w-4xl p-6 relative">
+
+                <button id="close-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-900 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+
+                <h2 id="modal-title" class="text-3xl font-bold text-emerald-600 mb-4 border-b pb-2">Full Recipe Title</h2>
+
+                <div class="max-h-[80vh] overflow-y-auto pr-4">
+                    <p id="modal-explanation" class="text-lg text-gray-700 mb-6"></p>
+
+                    <h3 class="text-xl font-bold border-b-2 border-emerald-600 pb-1 mb-3 text-gray-800">Ingredients List</h3>
+                    <div id="modal-ingredients-container" class="mb-6 space-y-3">
+                        </div>
+
+                    <h3 class="text-xl font-bold border-b-2 border-emerald-600 pb-1 mb-3 text-gray-800">Step-by-Step Cooking Instructions</h3>
+                    <div id="modal-steps-container" class="mb-6 space-y-3">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <h3 class="text-xl font-bold border-b-2 border-green-500 pb-1 mb-3 text-gray-800">🧑‍🍳 Key TIPS & DOs</h3>
+                            <ul id="modal-dos-container" class="dos-list text-sm text-gray-700 space-y-1 pl-4"></ul>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold border-b-2 border-emerald-600 pb-1 mb-3 text-gray-800">🚫 Key DON'Ts (Common Mistakes)</h3>
+                            <ul id="modal-donts-container" class="donts-list text-sm text-gray-700 space-y-1 pl-4"></ul>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-bold border-b-2 border-emerald-600 pb-1 mb-3 text-gray-800">Serving & Pairing Suggestions</h3>
+                    <div id="modal-examples" class="text-sm text-gray-700 space-y-3">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <footer class="bg-white border-t border-gray-200 mt-12 py-6">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-500">
+            <p>&copy; <span id="currentYear">2024</span> DigitalCookbook. Master the kitchen.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- CONSTANTS ---
+        const ITEMS_PER_PAGE = 20;
+        const STEPS_PER_PAGE = 10;
+        const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const FALLBACK_IMAGE_URL = 'img/fallbackrecipe.jpg'; // New fallback image
+
+        // Renamed Global Data Structures
+        let CHEF_RULES = {}; // Renamed SURVIVAL_RULES
+        let DIET_HOTLINES = {}; // Renamed EMERGENCY_HOTLINES
+
+        let CUISINE_TYPES = []; // Renamed TOPIC_TYPES
+        let ALL_CATEGORIES = [];
+        let recipesData = []; // Renamed guidesData
+        let popularRecipes = []; // Renamed popularGuides
+        let activePage = 'home';
+
+        // Archive links remain the same
+        const animeArchiveLinks = [
+            { letter: "A", link: "#" }, { letter: "B", letter: "B", link: "#" }, { letter: "C", link: "#" },
+            { letter: "D", link: "#" }, { letter: "E", link: "#" }, { letter: "F", link: "#" },
+            { letter: "G", link: "#" }, { letter: "H", link: "#" }, { letter: "I", link: "#" },
+            { letter: "J", link: "#" }, { letter: "K", link: "#" }, { letter: "L", link: "#" },
+            { letter: "M", link: "#" }, { letter: "N", link: "#" }, { letter: "O", link: "#" },
+            { letter: "P", link: "#" }, { letter: "Q", link: "#" }, { letter: "R", link: "#" },
+            { letter: "S", link: "#" }, { letter: "T", link: "#" }, { letter: "U", link: "#" },
+            { letter: "V", link: "#" }, { letter: "W", link: "#" }, { letter: "X", link: "#" },
+            { letter: "Y", link: "#" }, { letter: "Z", link: "#" }, { letter: "0-9", link: "#" },
+        ];
+
+        let DATA = []; // Combined recipe data
+        let currentFilteredResults = recipesData;
+        let currentArchiveFilter = null;
+        let currentPage = 1;
+        let currentFeaturedRecipeId = 0;
+
+        // --- Core Functions (Renamed) ---
+        // toggleFullScreen remains the same
+
+        // loadJsonData remains the same (just points to a new file)
+        function loadJsonData(url) {
+            return new Promise((resolve, reject) => {
+                $.getJSON(url)
+                    .done(function (jsonData) {
+                        resolve(jsonData);
+                    })
+                    .fail(function (jqXHR, textStatus, errorThrown) {
+                        let errorMessage = `Failed to load JSON data from ${url}.`;
+                        if (textStatus === "parsererror") { errorMessage += " JSON parsing failed."; }
+                        else if (errorThrown) { errorMessage += ` HTTP error: ${errorThrown}`; }
+                        else { errorMessage += ` Status: ${jqXHR.status}`; }
+                        console.error(errorMessage, jqXHR);
+                        reject(new Error(errorMessage));
+                    });
+            });
+        }
+
+        // showPage remains the same
+
+        function renderRecipeList(recipes, containerId) { // Renamed from renderSurvivalTopicList
+            const container = $(containerId);
+            const recipeCount = recipes.length;
+            container.empty();
+            const isEmpty = recipes.length === 0;
+
+            function handleEmptyState(isEmpty, currentContainerId) {
+                let targetMessageId = null;
+                if (currentContainerId === '#latest-episodes') {
+                    targetMessageId = '#latest-empty-message';
+                } else if (currentContainerId === '#filtered-results-list') {
+                    targetMessageId = '#filter-no-results';
+                }
+
+                const latestContainer = $('#latest-episodes-container');
+
+                if (targetMessageId) {
+                    $(targetMessageId).toggleClass('hidden', !isEmpty);
+                }
+
+                if (currentContainerId === '#latest-episodes') {
+                    latestContainer.css({
+                        'display': isEmpty ? 'flex' : 'block',
+                        'align-items': isEmpty ? 'center' : 'initial',
+                        'justify-content': isEmpty ? 'center' : 'initial'
+                    });
+
+                    const $latestCount = $('#latest-count');
+                    $latestCount.text(recipeCount);
+                }
+
+                if (currentContainerId === '#popular-series') {
+                    const $popularCount = $('#popular-count');
+                    $popularCount.text(recipeCount);
+                }
+            }
+
+            handleEmptyState(isEmpty, containerId);
+
+            if (isEmpty) return;
+
+            recipes.forEach(recipe => {
+                // Renamed from stepTag
+                const servingTag = recipe.servings ? `<p class="text-xs text-emerald-600/80 mb-1">Serves: ${recipe.servings}</p>` : '';
+
+                // Renamed from typeTag
+                const typeTag = recipe.type ? `<div class="mb-1 flex-shrink-0"><span class="bg-emerald-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">${recipe.type}</span></div>` : '';
+
+                const categoryBadges = recipe.categories ? recipe.categories.map(cat =>
+                    `<span class="text-xs text-gray-500 px-1 border border-gray-400 rounded-sm">${cat}</span>`
+                ).join(' ') : '';
+
+                // Renamed function call
+                const itemEvent = activePage === 'home' && containerId !== '#popular-series' ? `renderFeaturedRecipe(${recipe.id}); showPage('page-home'); smoothScrollToTop(); return false;` : `showRecipeModal(${recipe.id}); smoothScrollToTop(); return false;`;
+
+                const itemHtml = `
+                                <a href="#" data-topic-id="${recipe.id}" class="topic-item block relative p-4 border border-gray-300 bg-white/70 rounded-lg hover:bg-gray-200 transition duration-300 shadow-md mb-3"
+                                    onclick="${itemEvent}">
+
+                                    ${typeTag}
+
+                                    <div class="mb-1">
+                                        <p class="text-sm font-semibold text-gray-800">${recipe.title}</p>
+                                        ${servingTag}
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-1 mt-2 pt-2 border-t border-gray-300/50">
+                                        ${categoryBadges}
+                                    </div>
+
+                                </a>
+                            `;
+                container.append(itemHtml);
+            });
+        }
+
+        /**
+         * Renders the full recipe details in the Featured Tutorial section on the Home page.
+         */
+        function renderFeaturedRecipe(id) { // Renamed from renderFeaturedTopic
+            const recipe = DATA.find(a => a.id === id);
+            if (!recipe) return;
+
+            $('#featured-title').text(recipe.title);
+
+            const $featuredImage = $('#featured-image');
+            const $featuredPageDetails = $('#featured-page-details');
+
+            const imageUrl = recipe.image || FALLBACK_IMAGE_URL;
+            $featuredImage.attr('src', imageUrl).attr('alt', recipe.title);
+
+            $featuredImage.off('error').on('error', function () {
+                if ($(this).attr('src') !== FALLBACK_IMAGE_URL) {
+                    $(this).attr('src', FALLBACK_IMAGE_URL);
+                }
+            });
+
+            // This uses the recipe's description (Key Summary)
+            $('#featured-explanation').text(recipe.description);
+
+            // Quick Steps Snippet (Cooking Snippet)
+            const stepsContainer = $('#featured-steps-snippet').empty();
+            // Using the recipe's quickSteps (quick instruction steps)
+            (recipe.quickSteps || []).slice(0, 4).forEach((step, index) => {
+                stepsContainer.append(`<p class="flex items-start"><span class="text-emerald-600 mr-2 font-bold">${index + 1}.</span> ${step}</p>`);
+            });
+            if ((recipe.fullSteps || []).length > 4) {
+                stepsContainer.append(`<p class="text-sm text-gray-500 mt-2">... view full recipe for all ${recipe.fullSteps.length} steps.</p>`);
+            } else if ((recipe.fullSteps || []).length === 0) {
+                stepsContainer.append(`<p class="text-sm text-gray-500">No quick steps available. View full recipe for details.</p>`);
+            }
+
+            // Categories
+            const catContainer = $('#featured-categories').empty();
+            if (recipe.categories) {
+                recipe.categories.forEach(cat => {
+                    const badge = `<span class="bg-emerald-600 text-white text-xs font-semibold px-2 py-1 rounded-full">${cat}</span>`;
+                    catContainer.append(badge);
+                });
+            }
+
+            // 2. Set Current State & Update Navigation
+            currentFeaturedRecipeId = id;
+            const allIds = DATA.map(t => t.id);
+            const currentIndex = allIds.indexOf(id);
+            const totalTopics = allIds.length;
+
+            const prevButton = $('#prev-featured');
+            const nextButton = $('#next-featured');
+
+            prevButton.prop('disabled', currentIndex <= 0);
+            nextButton.prop('disabled', currentIndex >= totalTopics - 1);
+
+            if ($featuredPageDetails.length) {
+                $featuredPageDetails.text(`${currentIndex + 1} of ${totalTopics}`);
+            }
+
+            // 3. Mark as viewed
+            markWatched(recipe.id, recipe.title, recipe.type);
+        }
+
+        // smoothScrollToTop remains the same
+
+        // --- Hotline/Diet Functions ---
+
+        function setupHotlineDropdown() {
+            const countrySelect = $('#country-select');
+            countrySelect.empty();
+
+            // Add options based on the DIET_HOTLINES keys
+            Object.keys(DIET_HOTLINES).forEach(key => {
+                const country = DIET_HOTLINES[key];
+                const option = $(`<option value="${key}">${country.name}</option>`);
+                countrySelect.append(option);
+            });
+
+            countrySelect.val('america'); // Default to a diet region
+        }
+
+        function renderHotlines(countryKey) {
+            const listContainer = $('#hotlines-list').empty();
+            const countryData = DIET_HOTLINES[countryKey];
+
+            if (!countryData) {
+                listContainer.html('<li class="text-gray-500">Diet hotline data not found for this region.</li>');
+                return;
+            }
+
+            countryData.lines.forEach(line => {
+                const lineHtml = `
+                <li class="border-b border-gray-300 pb-1 flex flex-col sm:flex-row justify-between items-start sm:items-baseline">
+                    <span class="font-bold text-gray-700 w-full sm:w-7/12 flex-shrink-0 mb-1 sm:mb-0">${line.service}:</span>
+
+                    <a href="${line.link}" class="text-emerald-600 hover:text-emerald-700 transition font-mono text-right w-full sm:w-auto">${line.number}</a>
+                </li>
+            `;
+                listContainer.append(lineHtml);
+            });
+        }
+
+        // NEW: Render Survival Rules page
+        function renderSurvivalRules() { // Renamed from renderSurvivalRules
+            const container = $('#page-search-results');
+            const contentContainer = $('#rules-content').empty();
+
+            $('#rules-title').text(CHEF_RULES.title); // Renamed variable
+            // Construct the content dynamically
+            CHEF_RULES.content.forEach(item => {
+                if (item.type === 'p') {
+                    contentContainer.append(`<p class="mb-4">${item.text}</p>`);
+                } else if (item.type === 'h3') {
+                    contentContainer.append(`<h3 class="text-xl font-bold border-b border-gray-300 pb-1 mb-3 mt-4 text-gray-800">${item.text}</h3>`);
+                } else if (item.type === 'ul') {
+                    const list = $(`<ul class="list-disc ${item.listClass || ''} space-y-1 mb-4"></ul>`);
+                    item.items.forEach(listItem => {
+                        list.append(`<li>${listItem}</li>`);
+                    });
+                    contentContainer.append(list);
+                }
+            });
+        }
+
+
+        // --- Other Functions (Modal, Archive, Filter, History - Converted Logic) ---
+
+        function showRecipeModal(id) { // Renamed from showTopicModal
+            const recipe = DATA.find(a => a.id === id);
+            if (!recipe) return;
+
+            $('#modal-title').text(recipe.title);
+            $('#modal-explanation').text(recipe.description);
+
+            // Render Ingredients List (Mapped from quickSteps/fullSteps for demonstration)
+            const ingredientsContainer = $('#modal-ingredients-container').empty();
+            (recipe.ingredients || []).forEach((item, index) => {
+                ingredientsContainer.append(`<p class="text-sm font-semibold text-gray-800 border-b border-gray-300 pb-1">${item}</p>`);
+            });
+             if ((recipe.ingredients || []).length === 0) {
+                ingredientsContainer.html('<p class="text-gray-500">No ingredients listed for this recipe.</p>');
+            }
+
+            // Render Full Steps (Cooking Instructions)
+            const stepsContainer = $('#modal-steps-container').empty();
+            (recipe.fullSteps || []).forEach((stepObj, index) => {
+                const stepHtml = `
+                <div class="instruction-step">
+                    <span class="instruction-step-number">${index + 1}</span>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-800">${stepObj.step}</p>
+                        <p class="text-xs text-gray-600 mt-0.5">${stepObj.detail}</p>
+                    </div>
+                </div>
+            `;
+                stepsContainer.append(stepHtml);
+            });
+            if ((recipe.fullSteps || []).length === 0) {
+                stepsContainer.html('<p class="text-gray-500">No detailed cooking steps provided for this recipe.</p>');
+            }
+
+            // Render Tips (DOs)
+            const dosContainer = $('#modal-dos-container').empty();
+            (recipe.dos || []).forEach(item => {
+                dosContainer.append(`<li>${item}</li>`);
+            });
+            if ((recipe.dos || []).length === 0) {
+                dosContainer.html('<li class="text-gray-500 list-none">No specific TIPS listed.</li>');
+            }
+
+            // Render Common Mistakes (DON'Ts)
+            const dontsContainer = $('#modal-donts-container').empty();
+            (recipe.donts || []).forEach(item => {
+                dontsContainer.append(`<li>${item}</li>`);
+            });
+            if ((recipe.donts || []).length === 0) {
+                dontsContainer.html('<li class="text-gray-500 list-none">No specific mistakes/DON\'Ts listed.</li>');
+            }
+
+            // Render Examples (Serving/Pairing Suggestions)
+            const examplesContainer = $('#modal-examples').empty();
+            (recipe.examples || []).forEach((example, index) => {
+                examplesContainer.append(`<p class="bg-gray-200 p-3 rounded"><span class="font-bold text-emerald-600">Suggestion ${index + 1}:</span> ${example}</p>`);
+            });
+            if ((recipe.examples || []).length === 0) {
+                examplesContainer.html('<p class="text-gray-500">No serving or pairing suggestions provided for this recipe.</p>');
+            }
+
+            $('#detail-modal').removeClass('hidden').addClass('flex justify-center items-center');
+        }
+
+        // renderArchiveLinks remains the same
+
+        function renderArchiveList(filterLetter = currentArchiveFilter) {
+            currentArchiveFilter = filterLetter;
+            if (!filterLetter) return;
+
+            $('#archive-title').text(`Recipes Starting With: ${filterLetter}`);
+
+            let filteredList = DATA.filter(recipe => {
+                const firstChar = recipe.title.charAt(0).toUpperCase();
+                if (filterLetter === '0-9') {
+                    return !isNaN(parseInt(firstChar));
+                } else {
+                    return firstChar === filterLetter;
+                }
+            });
+
+            const sortBy = $('#archive-sort-by').val();
+            const sortOrder = $('#archive-sort-order').val();
+
+            filteredList.sort((a, b) => {
+                let valA, valB;
+
+                if (sortBy === 'title') {
+                    valA = a.title.toLowerCase();
+                    valB = b.title.toLowerCase();
+                } else if (sortBy === 'type') {
+                    valA = a.type || '';
+                    valB = b.type || '';
+                } else if (sortBy === 'date') {
+                    valA = a.date ? a.date.getTime() : 0;
+                    valB = b.date ? b.date.getTime() : 0;
+                }
+
+                if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+                if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            const container = $('#anime-archive-table').empty();
+
+            const $resultCount = $('#archive-result-count');
+            $resultCount.text(filteredList.length);
+
+            if (filteredList.length === 0) {
+                container.html(`<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No recipes found starting with '${filterLetter}'.</td></tr>`);
+                return;
+            }
+
+            filteredList.forEach(recipe => {
+                const dateString = 'n/a';
+                const categoriesString = recipe.categories ? recipe.categories.slice(0, 2).join(', ') + (recipe.categories.length > 2 ? '...' : '') : 'N/A';
+
+                // Adjusted badge classes for cooking difficulty/type
+                const typeBadgeClass = recipe.type === 'Dessert' ? 'bg-pink-600 text-white' : recipe.type === 'Main Course' ? 'bg-emerald-600 text-white' : 'bg-lime-600 text-white';
+                const event = `showRecipeModal(${recipe.id});`;
+
+                const rowHtml = `
+                        <tr class="hover:bg-gray-200 transition duration-150 cursor-pointer" onclick="${event}">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-800">${recipe.title}</div>
+                                <div class="text-xs text-emerald-600">${recipe.type}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${typeBadgeClass}">
+                                    ${recipe.status || 'Easy'} </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">${categoriesString}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${dateString}</td>
+                        </tr>
+                    `;
+                container.append(rowHtml);
+            });
+        }
+
+        function renderFilterPage(page) {
+            currentPage = page;
+            const totalItems = currentFilteredResults.length;
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+            const start = (currentPage - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const paginatedList = currentFilteredResults.slice(start, end);
+
+            renderRecipeList(paginatedList, '#filtered-results-list'); // Renamed function call
+            renderPaginationControls(totalPages, currentPage, '#filter-pagination', renderFilterPage);
+        }
+
+        function setupFilterDropdowns() {
+            const $filterDay = $('#filter-day'); for (let i = 1; i <= 31; i++) { $filterDay.append(`<option value="${i}">${i}</option>`); }
+            const $filterMonth = $('#filter-month'); MONTHS.forEach((month, index) => { $filterMonth.append(`<option value="${index + 1}">${month}</option>`); });
+            const $filterYear = $('#filter-year'); const currentYear = new Date().getFullYear(); for (let i = 0; i < 5; i++) { $filterYear.append(`<option value="${currentYear - i}">${currentYear - i}</option>`); }
+            const $filterCategory = $('#filter-category');
+            ALL_CATEGORIES.forEach(cat => { $filterCategory.append(`<option value="${cat}">${cat}</option>`); });
+        }
+
+        function applyFilter() {
+            const day = $('#filter-day').val();
+            const month = $('#filter-month').val();
+            const year = $('#filter-year').val();
+            const category = $('#filter-category').val();
+            const searchTerm = $('#filter-search-input').val().toLowerCase().trim();
+
+            let results = DATA;
+
+            // 1. Apply Search Term Filter
+            if (searchTerm) {
+                results = results.filter(recipe => recipe.title.toLowerCase().includes(searchTerm) || (recipe.description && recipe.description.toLowerCase().includes(searchTerm)));
+            }
+
+            // 2. Apply Date and Category Filters
+            if (day || month || year || category) {
+                results = results.filter(recipe => {
+                    const d = recipe.date;
+                    const matchesDay = !day || (d && d.getDate() == parseInt(day));
+                    const matchesMonth = !month || (d && (d.getMonth() + 1) == parseInt(month));
+                    const matchesYear = !year || (d && d.getFullYear() == parseInt(year));
+                    const matchesCategory = !category || (recipe.categories && recipe.categories.includes(category));
+
+                    return matchesDay && matchesMonth && matchesYear && matchesCategory;
+                });
+            }
+
+            currentFilteredResults = results;
+
+            const $resultCount = $('#search-result-count');
+            $resultCount.text(results.length);
+            renderFilterPage(1);
+        }
+
+        function filterLatest() {
+            $('#filter-day').val('');
+            $('#filter-month').val('');
+            $('#filter-year').val('');
+            $('#filter-category').val('');
+            $('#filter-search-input').val('');
+            applyFilter();
+        }
+
+        // renderPaginationControls remains the same
+        // markWatched, getWatchedHistory, renderWatchedHistory, clearHistory remains the same
+
+        function renderAllCategoryBadges() {
+            const container = $('#all-categories-badges').empty();
+            ALL_CATEGORIES.forEach(cat => {
+                const badge = $(`<button class="bg-gray-200 text-emerald-600 text-sm font-semibold px-3 py-1 rounded-full hover:bg-emerald-600 hover:text-white transition">${cat}</button>`);
+                badge.on('click', function () {
+                    $('#filter-category').val(cat);
+                    applyFilter();
+                    showPage('page-filter');
+                });
+                container.append(badge);
+            });
+        }
+
+        // --- Initialization ---
+
+        $(document).ready(function () {
+            let retryCount = 0;
+            const MAX_RETRIES = 15;
+            const RETRY_DELAY_MS = 1000;
+
+            async function initializeApp() {
+                console.log(`Attempting to load JSON data (Attempt ${retryCount + 1})...`);
+
+                try {
+                    // Assuming a new JSON file: assets/cookbook_data.json
+                    const jsonData = await loadJsonData('assets/cookbook_data.json');
+
+                    if (!jsonData) {
+                        throw new Error("JSON data loading failed: returned falsy value.");
+                    }
+
+                    // --- Data Processing (Renamed Variables) ---
+                    DIET_HOTLINES = jsonData.dietHotlines; // New structure/name
+                    ALL_CATEGORIES = jsonData.categories;
+                    CUISINE_TYPES = jsonData.types; // New structure/name
+                    CHEF_RULES = jsonData.chefRules; // New structure/name
+                    popularRecipes = jsonData.popularRecipes; // New structure/name
+                    recipesData = jsonData.recipes; // New structure/name
+                    DATA = [...recipesData, ...popularRecipes];
+
+                    const randomIndex = Math.floor(Math.random() * popularRecipes.length);
+                    const randomGuide = popularRecipes[randomIndex];
+                    currentFeaturedRecipeId = randomGuide.id;
+
+                    if (currentFeaturedRecipeId) {
+                        renderFeaturedRecipe(currentFeaturedRecipeId);
+                    }
+
+                    renderHotlines('america'); // Default to a diet region
+
+                    // Initial Content Rendering (Renamed function call)
+                    renderRecipeList(recipesData.slice(0, ITEMS_PER_PAGE), '#latest-episodes');
+                    renderRecipeList(popularRecipes, '#popular-series');
+                    renderWatchedHistory();
+                    renderAllCategoryBadges();
+
+                    renderArchiveLinks();
+
+                    setupHotlineDropdown();
+
+                    setupFilterDropdowns();
+
+                    const year = new Date().getFullYear();
+                    const yearElement = document.getElementById('currentYear');
+                    if (yearElement) {
+                        yearElement.textContent = year;
+                    }
+                    // --- End of Data Processing ---
+
+                    console.log("JSON data loaded and app initialized successfully.");
+                    retryCount = 0;
+
+                } catch (error) {
+                    console.error("Error loading JSON data:", error);
+
+                    if (retryCount < MAX_RETRIES) {
+                        retryCount++;
+                        console.log(`Retrying in ${RETRY_DELAY_MS / 1000} seconds... (Retry ${retryCount}/${MAX_RETRIES})`);
+
+                        setTimeout(initializeApp, RETRY_DELAY_MS);
+                    } else {
+                        console.error("Maximum retries reached. App initialization failed.");
+                    }
+                }
+            }
+
+            initializeApp();
+
+            // All event handlers remain the same, targeting the renamed variables and functions
+            $('#apply-filter').on('click', applyFilter);
+            $('#search-apply-button').on('click', applyFilter);
+            $('#filter-search-input').on('keypress', function (e) { if (e.which === 13) { applyFilter(); } });
+
+            $('#reset-filter').on('click', function () {
+                $('#filter-day').val('');
+                $('#filter-month').val('');
+                $('#filter-year').val('');
+                $('#filter-category').val('');
+                $('#filter-search-input').val('');
+                applyFilter();
+            });
+
+            $('#apply-archive-sort').on('click', function () {
+                renderArchiveList();
+            });
+
+            $('#prev-featured').on('click', () => {
+                const allIds = DATA.map(t => t.id);
+                const currentIndex = allIds.indexOf(currentFeaturedRecipeId);
+                if (currentIndex > 0) {
+                    renderFeaturedRecipe(allIds[currentIndex - 1]);
+                }
+            });
+
+            $('#next-featured').on('click', () => {
+                const allIds = DATA.map(t => t.id);
+                const currentIndex = allIds.indexOf(currentFeaturedRecipeId);
+                if (currentIndex < allIds.length - 1) {
+                    renderFeaturedRecipe(allIds[currentIndex + 1]);
+                }
+            });
+
+            $('#close-modal').on('click', () => {
+                $('#detail-modal').addClass('hidden').removeClass('flex');
+            });
+            $('#detail-modal').on('click', function (e) {
+                if ($(e.target).is(this)) {
+                    $('#detail-modal').addClass('hidden').removeClass('flex');
+                }
+            });
+            $('#show-details-modal').on('click', () => {
+                showRecipeModal(currentFeaturedRecipeId);
+            });
+
+            $('.nav-item').on('click', function (e) {
+                e.preventDefault();
+                const page = $(this).data('page');
+                if (page === 'history') { renderWatchedHistory(); }
+                showPage('page-' + page);
+                smoothScrollToTop();
+            });
+            $('#clear-history').on('click', clearHistory);
+
+            showPage('page-home');
+        });
+    </script>
+</body>
+
+</html>
