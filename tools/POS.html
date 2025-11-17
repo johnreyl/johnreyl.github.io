@@ -866,6 +866,7 @@
                 inventoryScannerRunning = false;
                 $('#inventory-scan-modal').removeClass('active').addClass('hidden').css('display', 'none');
                 showMessage('Inventory scan stopped.', 'info');
+                QuaggaRef = null;
             }
         }
 
