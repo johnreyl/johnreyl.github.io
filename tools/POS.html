@@ -869,8 +869,9 @@
             }
         }
 
-        function handleInventoryScanResult(barcode) {
-            stopInventoryScanner(); // Stop scanning after successful detection
+        function handleInventoryScanResult(result) {
+            const barcode = result.codeResult.code;
+            stopInventoryScanner(); 
 
             if (!barcode) {
                 showMessage('Barcode scan failed. Please try again.', 'error');
@@ -927,14 +928,6 @@
                 $('#inventory-scanner-status').text('Scanning for barcode...');
                 $('#inventory-scan-modal').removeClass('hidden').addClass('active').css('display', 'flex');
             });
-
-            // Barcode detection event listener
-            /*QuaggaRef.onDetected(function (result) {
-                if (inventoryScannerRunning) {
-                    const barcode = result.codeResult.code;
-                    handleInventoryScanResult(barcode);
-                }
-            });*/
 
             QuaggaRef.onDetected(handleInventoryScanResult);
         }
