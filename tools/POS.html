@@ -1400,7 +1400,7 @@
 
         // --- Inventory Modal Logic ---
 
-        function showInventoryModal(id = null) {
+        function showInventoryModal(id = null, barcode = null) {
             const modal = $('#inventory-modal');
             const form = $('#inventory-item-form');
             form[0].reset(); // Clear form
@@ -1422,6 +1422,7 @@
             } else {
                 $('#inventory-modal-title').text('Add New Inventory Item');
                 $('#inventory-item-id').val('');
+                $('#item-barcode').val(barcode);
                 $('#save-item-button').text('Save Inventory Item');
             }
 
