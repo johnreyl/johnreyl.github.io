@@ -3,1258 +3,654 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS System - Inventory & Sales Management</title>
+    <title>Smart Inventory System (Catalog-Backed)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        /* Custom Tailwind Configuration (White & Blue Theme) */
-        :root {
-            --accent-color: #2563eb; /* Blue-600 for primary color */
-            --accent-light: #3b82f6; /* Blue-500 for hover */
-            --background-dark: #f3f4f6; /* Gray-100 for sections */
-            --text-dark: #1f2937; /* Gray-800 for main text */
-        }
+        /* Define the primary theme color (Deep Blue, inspired by Gogoanime) */
+        .theme-blue-500 { --tw-bg-opacity: 1; background-color: rgb(29 78 216 / var(--tw-bg-opacity)); }
+        .theme-blue-600 { --tw-bg-opacity: 1; background-color: rgb(37 99 235 / var(--tw-bg-opacity)); }
+        .theme-blue-700 { --tw-bg-opacity: 1; background-color: rgb(30 64 175 / var(--tw-bg-opacity)); }
+        .theme-text-blue-600 { color: rgb(37 99 235); }
+        /* Focus styles for inputs */
+        .theme-focus-blue-500:focus { border-color: rgb(37 99 235); ring-color: rgb(37 99 235); }
 
-        /* Custom scrollbar to match the new light theme */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1; /* Light gray track */
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--accent-color);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent-light);
-        }
-
-        /* Specific style for active/selected nav item */
-        .nav-item.active {
-            color: var(--accent-color);
-            border-bottom: 2px solid var(--accent-color);
-        }
-
-        /* FIX: Minimum height and aspect ratio for product images */
-        .topic-item img {
-            min-height: 150px;
-            aspect-ratio: 4 / 3;
-            object-fit: cover;
-        }
-        /* Style for selected archive letter */
-        .archive-letter.active {
-            background-color: var(--accent-color);
-            color: white; /* Text is white on blue background */
-        }
-
-        /* Custom list style for POS transaction steps */
-        .instruction-step {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 1rem;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            background-color: #e5e7eb; /* Gray-200 for steps */
-            color: var(--text-dark);
-        }
-
-        .instruction-step-number {
-            flex-shrink: 0;
-            width: 2rem;
-            height: 2rem;
-            background-color: var(--accent-color);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            margin-right: 0.75rem;
-        }
-
-        /* Utility for limiting lines of text */
-        .line-clamp-3 {
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
+        /* Custom CSS for the camera feed and responsiveness */
+        #scanner-container {
+            position: relative;
+            width: 100%;
+            height: 300px; 
             overflow: hidden;
+            background: #1f2937; /* Dark background */
+            border-radius: 0.5rem;
         }
 
-        /* Custom style for Inventory Stock/Sales Performance list */
-        .dos-list {
-            list-style-type: '📈 ';
-            margin-left: 1.5rem;
+        #scanner-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
-        .donts-list {
-            list-style-type: '📉 ';
-            margin-left: 1.5rem;
+        /* The canvas used by Quagga2 for drawing detection lines */
+        #scanner-container canvas.drawingBuffer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
         }
 
-        .nav-item.active {
-            color: var(--accent-color);
-            border-bottom: 2px solid var(--accent-color);
+        /* Modal Overlays Styling (Combined Delete and Unknown Item Modal) */
+        .modal-overlay {
+            background-color: rgba(17, 24, 39, 0.9); /* Darker overlay */
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none;
         }
 
-        /* NEW: Add specific mobile styling for active link on smaller screens */
-        @media (max-width: 767px) {
-            .nav-item.active {
-                background-color: #e5e7eb; /* Gray-200 background for selected icon */
-                border-radius: 0.5rem;
-                border-bottom: none;
-            }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-dialog {
+            transform: scale(0.95);
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .modal-overlay.active .modal-dialog {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        body {
+            background-color: #f3f4f6; /* Light gray background */
         }
     </style>
 </head>
-<body class="bg-white text-gray-800">
+<body class="min-h-screen p-4 sm:p-8">
 
-    <header class="bg-gray-100 shadow-md sticky top-0 z-10">
-        <div class="container mx-auto px-4 py-3 flex flex-wrap md:flex-nowrap justify-between items-center">
-
-            <a href="#" class="text-3xl font-bold text-blue-600 mr-8 flex-shrink-0" onclick="showPage('page-home'); return false;">POS<span class="text-gray-800">System</span></a>
-
-            <div class="order-2 md:order-3 flex-shrink-0">
-                <button id="fullscreen-toggle" class="p-2 rounded-full bg-gray-200 text-blue-600 hover:bg-blue-600 hover:text-white transition" onclick="toggleFullScreen()">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4M4 20l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
-                </button>
-            </div>
-
-            <nav class="order-3 md:order-2 w-full mt-3 md:w-auto md:flex-grow md:mt-0 flex justify-between text-sm font-semibold md:border-t-0 md:border-b-0">
-                
-                <a href="#dashboard" class="nav-item active flex-1 flex flex-col items-center px-2 py-2 hover:text-blue-600 transition" data-page="home" title="Dashboard">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m13-2h-3.84L15 22h-6l-2.16-5H5a2 2 0 01-2-2V8a2 2 0 012-2h14a2 2 0 012 2v7z"></path></svg>
-                    <span class="hidden md:inline-block text-xs mt-1">DASHBOARD</span>
-                </a>
-
-                <a href="#bestsellers" class="nav-item flex-1 flex flex-col items-center px-2 py-2 hover:text-blue-600 transition" data-page="popular" title="Best Sellers">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.152A1.665 1.665 0 0113 2.152L15.349 7.02l5.064.736a1.665 1.665 0 01.924 2.842l-3.666 3.578 0.865 5.048a1.665 1.665 0 01-2.417 1.75l-4.526-2.388-4.526 2.388a1.665 1.665 0 01-2.417-1.75l.865-5.048-3.666-3.578a1.665 1.665 0 01.924-2.842l5.064-.736L11.049 2.152z"></path></svg>
-                    <span class="hidden md:inline-block text-xs mt-1">BEST SELLERS</span>
-                </a>
-
-                <a href="#inventory" class="nav-item flex-1 flex flex-col items-center px-2 py-2 hover:text-blue-600 transition" data-page="archive" title="Inventory Index">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10m0-10l8-4m-8 4l-8-4"></path></svg>
-                    <span class="hidden md:inline-block text-xs mt-1">INVENTORY</span>
-                </a>
-
-                <a href="#products" class="nav-item flex-1 flex flex-col items-center px-2 py-2 hover:text-blue-600 transition" data-page="filter" title="Product Search">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <span class="hidden md:inline-block text-xs mt-1">SEARCH</span>
-                </a>
-
-                <a href="#sell" class="nav-item flex-1 flex flex-col items-center px-2 py-2 hover:text-blue-600 transition" data-page="sell" title="POS Terminal">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v1a3 3 0 01-3 3h-2a3 3 0 01-3-3v-1m3-4h.01M17 10h.01M12 10h.01M17 14h.01M12 14h.01M15 19H8.5a1.5 1.5 0 01-1.5-1.5v-10A1.5 1.5 0 018.5 6h7A1.5 1.5 0 0117 7.5v10A1.5 1.5 0 0115.5 19H15z"></path></svg>
-                    <span class="hidden md:inline-block text-xs mt-1">POS SELL</span>
-                </a>
-
-                <a href="#transactions" class="nav-item flex-1 flex flex-col items-center px-2 py-2 hover:text-blue-600 transition" data-page="history" title="Recent Transactions">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zM9 13h6"></path></svg>
-                    <span class="hidden md:inline-block text-xs mt-1">TXNS</span>
-                </a>
-            </nav>
-        </div>
-    </header>
-
-    <main class="container mx-auto px-4 py-8">
-
-        <div id="page-content">
-
-            <div id="page-home" class="page">
-                <div class="bg-white p-4 rounded-lg shadow-xl mb-8 border border-gray-200">
-                    <h2 class="text-xl font-bold border-b-2 border-blue-600 pb-2 mb-4 text-gray-800">📊 DASHBOARD: TODAY'S SALES</h2>
-
-                    <div id="featured-tutorial-container" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                        <div class="lg:col-span-2 order-2 lg:order-1">
-                            <h3 id="featured-title" class="text-2xl font-bold text-blue-600 mb-2">Featured Product / KPI</h3>
-                            <div id="featured-categories" class="flex flex-wrap gap-2 mb-3"></div>
-
-                            <h4 class="text-lg font-bold border-b border-gray-300 pb-1 mb-2 text-gray-800">Description / Rationale</h4>
-                            <p id="featured-explanation" class="text-sm text-gray-600 mb-4 line-clamp-3">A brief overview of the sales metric and its importance...</p>
-
-                            <h4 class="text-lg font-bold border-b border-gray-300 pb-1 mb-2 text-gray-800">Quick Actions (POS Snippet)</h4>
-                            <div id="featured-steps-snippet" class="space-y-2 text-sm text-gray-600 mb-4">
-                            </div>
-
-                            <button id="show-details-modal" class="bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-500 transition">
-                                View Full Sales Report & Details
-                            </button>
-                        </div>
-
-                        <div class="lg:col-span-1 order-1 lg:order-2">
-                            <img id="featured-image" src="#" class="w-full rounded-lg object-cover max-h-72 border border-gray-300" alt="Featured Product Image">
-                            <div class="flex justify-between items-center mt-4">
-                                <button id="prev-featured" class="bg-gray-200 text-gray-800 p-2 rounded hover:bg-blue-600 hover:text-white transition disabled:opacity-50" disabled>← Previous</button>
-
-                                <div id="featured-page-details" class="text-sm text-gray-500 font-medium">
-                                    Metric Details
-                                </div>
-                                <button id="next-featured" class="bg-gray-200 text-gray-800 p-2 rounded hover:bg-blue-600 hover:text-white transition disabled:opacity-50">Next →</button>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-                <div id="anime-detail-panel" class="bg-white p-4 rounded-lg shadow-xl mb-8 hidden border border-gray-200">
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    <div class="md:col-span-3">
-
-                        <div class="bg-white p-4 rounded-lg shadow-xl mb-8 border border-gray-200">
-                            <h2 class="text-xl font-bold border-b-2 border-blue-600 pb-2 mb-4 text-gray-800">🏷️ PRODUCT CATEGORIES</h2>
-                            <div id="all-categories-badges" class="flex flex-wrap gap-2">
-                            </div>
-                        </div>
-
-                        <div class="bg-white p-4 rounded-lg shadow-xl border border-gray-200">
-                            <h2 class="text-xl font-bold border-b-2 border-blue-600 pb-2 mb-4 text-gray-800 flex justify-between items-center">
-                                <span>📦 LOW STOCK ALERTS</span>
-                                <span id="latest-count" class="text-sm bg-blue-600 text-white px-2 py-1 rounded-full">
-                                    0
-                                </span>
-                            </h2>
-                            <div id="latest-episodes-container" class="w-full">
-                                <div id="latest-episodes" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                                </div>
-                                <p id="latest-empty-message" class="text-gray-500 hidden">No low stock alerts found at this time.</p>
-                            </div>
-                            <div class="mt-4 flex justify-between items-center">
-                                <button id="see-more-latest" class="bg-gray-200 text-blue-600 p-2 rounded hover:bg-blue-600 hover:text-white transition" onclick="showPage('page-filter'); filterLatest()">
-                                    View All Products...
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <aside class="md:col-span-1">
-                        <div class="bg-white p-4 rounded-lg shadow-xl border border-gray-200">
-                            <h3 class="text-lg font-bold border-b-2 border-blue-600 pb-2 mb-4 text-gray-800">📈 SALES ANALYTICS</h3>
-
-                            <div class="mb-3">
-                                <label for="country-select" class="text-sm font-semibold text-gray-600 block mb-1">Select Store/Region:</label>
-                                <select id="country-select" class="w-full p-2 rounded bg-gray-100 border border-gray-300 text-sm" onchange="renderHotlines($('#country-select').val())">
-                                </select>
-                            </div>
-
-                            <ul id="hotlines-list" class="space-y-3 text-sm">
-                            </ul>
-
-                            <button id="show-survival-rules" class="mt-4 w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-500 transition" onclick="renderSurvivalRules(); showPage('page-search-results'); return false;">
-                                📜 View Inventory Metrics
-                            </button>
-                        </div>
-                    </aside>
-                </div>
-            </div>
-
-            <div id="page-popular" class="page hidden">
-                <div class="bg-white p-4 rounded-lg shadow-xl border border-gray-200">
-
-                    <h2 class="text-xl font-bold border-b-2 border-blue-600 pb-2 mb-4 text-gray-800 flex justify-between items-center">
-                        <span>⭐ TOP PERFORMING PRODUCTS (BEST SELLERS)</span>
-                        <span id="popular-count" class="text-sm bg-blue-600 text-white px-2 py-1 rounded-full">
-                            0
-                        </span>
-                    </h2>
-                    <div id="popular-series" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                    </div>
-                </div>
-            </div>
-
-            <div id="page-archive" class="page hidden">
-                
-                <div id="add-inventory-panel" class="bg-gray-100 p-4 rounded-lg shadow-inner mb-6 border border-gray-300">
-                    <h2 class="text-xl font-bold border-b-2 border-blue-600 pb-2 mb-4 text-gray-800">➕ ADD NEW INVENTORY ITEM</h2>
-                    <form id="new-inventory-form" onsubmit="event.preventDefault(); addNewInventoryItem();">
-                        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-                            <div class="col-span-2 md:col-span-2">
-                                <label for="new-item-name" class="block text-sm font-medium text-gray-700">Product Name</label>
-                                <input type="text" id="new-item-name" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label for="new-item-sku" class="block text-sm font-medium text-gray-700">SKU/ID</label>
-                                <input type="text" id="new-item-sku" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label for="new-item-category" class="block text-sm font-medium text-gray-700">Category</label>
-                                <select id="new-item-category" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                                    </select>
-                            </div>
-                            <div>
-                                <label for="new-item-stock" class="block text-sm font-medium text-gray-700">Stock Level</label>
-                                <input type="number" id="new-item-stock" required min="0" value="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label for="new-item-price" class="block text-sm font-medium text-gray-700">Price ($)</label>
-                                <input type="number" id="new-item-price" required step="0.01" min="0.01" value="1.00" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            
-                            <div class="col-span-2 md:col-span-4 flex justify-end">
-                                <button type="submit" class="bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition w-full md:w-auto">
-                                    <svg class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                    Add Product to Inventory
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="bg-white p-4 rounded-lg shadow-xl border border-gray-200">
-                    <h2 class="text-xl font-bold border-b-2 border-blue-600 pb-2 mb-4 text-gray-800">📦 INVENTORY INDEX (A-Z)</h2>
-                    
-                    <div id="anime-archive-links" class="flex flex-wrap gap-2 mb-6">
-                    </div>
-
-                    <h3 class="text-lg font-bold border-b-2 border-gray-300 pb-2 mb-4 text-gray-800 flex justify-between items-center">
-                        <span id="archive-title">All Products</span>
-                        <span id="archive-result-count" class="text-sm bg-gray-200 text-blue-600 px-2 py-1 rounded">
-                            0 results
-                        </span>
-                    </h3>
-
-                    <div class="flex flex-wrap items-center gap-4 p-4 bg-gray-100 rounded-lg mb-6">
-                        <label class="text-sm font-semibold">Sort By:</label>
-                        <select id="archive-sort-by" class="p-2 rounded bg-white border border-gray-300 text-sm">
-                            <option value="title">Product Name</option>
-                            <option value="type">Category</option>
-                            <option value="date">Date Added</option>
-                        </select>
-
-                        <label class="text-sm font-semibold">Order:</label>
-                        <select id="archive-sort-order" class="p-2 rounded bg-white border border-gray-300 text-sm">
-                            <option value="asc">Ascending</option>
-                            <option value="desc">Descending</option>
-                        </select>
-
-                        <button id="apply-archive-sort" class="bg-blue-600 text-white p-2 rounded hover:bg-blue-500 transition">Apply Sort</button>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-300">
-                            <thead class="bg-gray-100">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-1/2">
-                                        Product / SKU
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-1/6">
-                                        Stock Level
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-1/6">
-                                        Category
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider w-1/6">
-                                        Last Sale
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="anime-archive-table" class="bg-white divide-y divide-gray-200">
-                                <tr><td colspan="4" class="px-6 py-4 text-center text-gray-500" id="archive-empty-message">Select a letter to filter the products.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                </div>
-            </div>
-
-            <div id="page-filter" class="page hidden">
-                <div class="bg-white p-4 rounded-lg shadow-xl mb-8 border border-gray-200">
-                    <h2 class="text-xl font-bold border-b-2 border-blue-600 pb-2 mb-4 text-gray-800">🔍 ADVANCED PRODUCT SEARCH & FILTER</h2>
-
-                    <div class="mb-6 flex">
-                        <input id="filter-search-input" type="text" placeholder="Search by product name or SKU..." class="p-3 w-full rounded-l bg-gray-100 text-gray-800 border border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition text-lg">
-                        <button id="search-apply-button" class="text-white bg-blue-600 p-3 rounded-r hover:bg-blue-500 transition font-bold" onclick="applyFilter()">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        </button>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-4 p-4 bg-gray-100 rounded-lg mb-6">
-                        <label class="text-sm font-semibold">Sale Date Filter:</label>
-                        <select id="filter-day" class="p-2 rounded bg-white border border-gray-300 text-sm">
-                            <option value="">Day</option>
-                        </select>
-                        <select id="filter-month" class="p-2 rounded bg-white border border-gray-300 text-sm">
-                            <option value="">Month</option>
-                        </select>
-                        <select id="filter-year" class="p-2 rounded bg-white border border-gray-300 text-sm">
-                            <option value="">Year</option>
-                        </select>
-
-                        <label class="text-sm font-semibold ml-4">Category:</label>
-                        <select id="filter-category" class="p-2 rounded bg-white border border-gray-300 text-sm">
-                            <option value="">All Categories</option>
-                        </select>
-
-                        <button id="apply-filter" class="bg-blue-600 text-white p-2 rounded hover:bg-blue-500 transition">Apply Filters</button>
-                        <button id="reset-filter" class="bg-gray-400 text-white p-2 rounded hover:bg-gray-500 transition">Reset</button>
-                    </div>
-
-                    <h3 class="text-lg font-bold border-b-2 border-gray-300 pb-2 mb-4 text-gray-800 flex justify-between items-center">
-                        <span>PRODUCT SEARCH RESULTS</span>
-                        <span id="search-result-count" class="text-sm bg-gray-200 text-blue-600 px-2 py-1 rounded">
-                            0 results
-                        </span>
-                    </h3>
-                    <div id="filtered-results-list" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                        <p class="text-gray-500 col-span-5" id="filter-no-results">Enter keywords or select criteria and click Apply Filter.</p>
-                    </div>
-
-                    <div id="filter-pagination" class="mt-6 flex justify-center space-x-2">
-                    </div>
-                </div>
-            </div>
-            
-            <div id="page-sell" class="page hidden">
-                <div class="bg-white p-6 rounded-lg shadow-xl border border-gray-200">
-                    <h2 class="text-2xl font-bold border-b-2 border-blue-600 pb-2 mb-6 text-gray-800">🛒 POINT OF SALE TERMINAL</h2>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                        <div class="lg:col-span-2 space-y-4">
-                            <div class="flex space-x-2">
-                                <input type="text" id="pos-scan-input" placeholder="Scan/Enter Product SKU or Name..." class="p-3 flex-grow rounded bg-gray-100 text-gray-800 border border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition text-lg" onkeypress="if(event.key === 'Enter') addItemToCart(this.value)">
-                                <button onclick="addItemToCart($('#pos-scan-input').val());" class="bg-blue-600 text-white p-3 rounded hover:bg-blue-500 transition font-bold">Add Item</button>
-                            </div>
-
-                            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <h3 class="text-xl font-semibold mb-3 border-b pb-2">Transaction Cart</h3>
-                                
-                                <div class="max-h-96 overflow-y-auto">
-                                    <table class="min-w-full divide-y divide-gray-200">
-                                        <thead class="bg-gray-100">
-                                            <tr>
-                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase">Item</th>
-                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-600 uppercase w-20">Qty</th>
-                                                <th class="px-3 py-2 text-right text-xs font-medium text-gray-600 uppercase w-20">Price</th>
-                                                <th class="px-3 py-2 text-right text-xs font-medium text-gray-600 uppercase w-24">Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="pos-cart-body" class="bg-white divide-y divide-gray-100">
-                                            <tr><td colspan="4" class="py-4 text-center text-gray-500">Cart is empty.</td></tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <button onclick="clearCart();" class="w-full bg-gray-400 text-white p-3 rounded-lg font-bold hover:bg-gray-500 transition">Clear Cart</button>
-                        </div>
-
-                        <div class="lg:col-span-1 bg-gray-100 p-4 rounded-lg shadow-inner border border-gray-300">
-                            <h3 class="text-xl font-bold mb-4 text-blue-600">Payment Summary</h3>
-
-                            <div class="space-y-2 mb-6 text-lg">
-                                <div class="flex justify-between font-medium">
-                                    <span>Subtotal:</span>
-                                    <span id="pos-subtotal">$0.00</span>
-                                </div>
-                                <div class="flex justify-between border-b pb-2">
-                                    <span>Tax (8%):</span>
-                                    <span id="pos-tax">$0.00</span>
-                                </div>
-                                <div class="flex justify-between font-extrabold text-2xl text-gray-800 pt-2">
-                                    <span>GRAND TOTAL:</span>
-                                    <span id="pos-total">$0.00</span>
-                                </div>
-                            </div>
-
-                            <div class="space-y-3">
-                                <select id="pos-payment-method" class="w-full p-3 rounded bg-white border border-gray-300 text-base font-semibold">
-                                    <option value="cash">Cash</option>
-                                    <option value="card">Credit Card</option>
-                                    <option value="mobile">Mobile Pay</option>
-                                </select>
-
-                                <input type="number" id="pos-cash-tendered" placeholder="Cash Tendered Amount" class="w-full p-3 rounded bg-white text-gray-800 border border-gray-300 focus:border-blue-600 transition text-base">
-
-                                <button onclick="processTransaction();" class="w-full bg-green-600 text-white p-4 rounded-lg font-bold text-xl hover:bg-green-500 transition">
-                                    PROCESS SALE
-                                </button>
-                                
-                                <div class="flex justify-between font-bold text-xl text-green-700 p-2 bg-green-100 rounded">
-                                    <span>Change Due:</span>
-                                    <span id="pos-change-due">$0.00</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="page-history" class="page hidden">
-                <div class="bg-white p-4 rounded-lg shadow-xl border border-gray-200">
-                    <h2 class="text-xl font-bold border-b-2 border-blue-600 pb-2 mb-4 text-gray-800">⌚ RECENT TRANSACTIONS</h2>
-                    <ul id="watched-history-list" class="space-y-3 text-sm">
-                        <li class="text-gray-500" id="empty-history-message">No transactions recorded recently.</li>
-                    </ul>
-                    <button id="clear-history" class="mt-4 bg-gray-200 text-gray-800 p-2 rounded hover:bg-blue-600 hover:text-white transition">Clear Transaction History</button>
-                </div>
-            </div>
-
-            <div id="page-search-results" class="page hidden">
-                <div class="bg-white p-4 rounded-lg shadow-xl mb-8 border border-gray-200">
-                    <h2 id="rules-title" class="text-xl font-bold border-b-2 border-blue-600 pb-2 mb-4 text-gray-800"></h2>
-                    <div id="rules-content" class="text-gray-600"></div>
-                </div>
-            </div>
-
-        </div>
-    </main>
-
-    <div id="detail-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50">
-        <div class="min-h-screen flex items-center justify-center p-4">
-            <div class="bg-white rounded-lg shadow-2xl w-full max-w-4xl p-6 relative text-gray-800">
-
-                <button id="close-modal" class="absolute top-4 right-4 text-gray-500 hover:text-blue-600 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-
-                <h2 id="modal-title" class="text-3xl font-bold text-blue-600 mb-4 border-b pb-2">Product/Report Details</h2>
-
-                <div class="max-h-[80vh] overflow-y-auto pr-4">
-                    <p id="modal-explanation" class="text-lg text-gray-600 mb-6"></p>
-
-                    <h3 class="text-xl font-bold border-b-2 border-blue-600 pb-1 mb-3 text-gray-800">Inventory & Pricing</h3>
-                    <div id="modal-steps-container" class="mb-6 space-y-3">
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <div>
-                            <h3 class="text-xl font-bold border-b-2 border-green-600 pb-1 mb-3 text-gray-800">📈 Stock & Performance</h3>
-                            <ul id="modal-dos-container" class="dos-list text-sm text-gray-600 space-y-1 pl-4"></ul>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold border-b-2 border-red-600 pb-1 mb-3 text-gray-800">📉 Alerts & Issues</h3>
-                            <ul id="modal-donts-container" class="donts-list text-sm text-gray-600 space-y-1 pl-4"></ul>
-                        </div>
-                    </div>
-                    <h3 class="text-xl font-bold border-b-2 border-blue-600 pb-1 mb-3 text-gray-800">Sales History & Trends</h3>
-                    <div id="modal-examples" class="text-sm text-gray-600 space-y-3">
-                    </div>
-                </div>
-
+    <div id="confirm-modal" class="modal-overlay fixed inset-0 hidden items-center justify-center z-50" aria-modal="true" role="dialog">
+        <div class="modal-dialog bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full">
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">Confirm Action</h3>
+            <p id="confirm-message" class="text-sm text-gray-600 mb-6">Are you sure you want to proceed?</p>
+            <div class="flex justify-end space-x-3">
+                <button id="confirm-cancel" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition duration-150">Cancel</button>
+                <button id="confirm-ok" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-150">Confirm</button>
             </div>
         </div>
     </div>
 
+    <div id="unknown-item-modal" class="modal-overlay fixed inset-0 hidden items-center justify-center z-50" aria-modal="true" role="dialog">
+        <div class="modal-dialog bg-white p-6 rounded-xl shadow-2xl max-w-lg w-full">
+            <h3 class="text-xl font-bold theme-text-blue-600 mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                New Item Detected!
+            </h3>
+            <p class="text-sm text-gray-700 mb-4">Barcode <strong id="modal-barcode-display" class="font-mono text-gray-900"></strong> is not in inventory or catalog. Please enter essential details.</p>
 
-    <footer class="bg-gray-100 mt-12 py-6">
-        <div class="container mx-auto px-4 text-center text-sm text-gray-500">
-            <p>&copy; <span id="currentYear">2024</span> POS System. Manage your business efficiently.</p>
+            <form id="unknown-item-form" class="space-y-4">
+                <input type="hidden" id="modal-barcode-input" name="barcode">
+                <div>
+                    <label for="modal-name" class="block text-sm font-medium text-gray-700">Product Name</label>
+                    <input type="text" id="modal-name" name="name" required
+                           class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition duration-150 ease-in-out"
+                           placeholder="Enter product name">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="modal-quantity" class="block text-sm font-medium text-gray-700">Initial Quantity</label>
+                        <input type="number" id="modal-quantity" name="quantity" required min="1"
+                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition duration-150 ease-in-out"
+                               value="1">
+                    </div>
+                    <div>
+                        <label for="modal-price" class="block text-sm font-medium text-gray-700">Unit Price ($)</label>
+                        <input type="number" id="modal-price" name="price" required step="0.01" min="0"
+                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition duration-150 ease-in-out"
+                               placeholder="0.00">
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" id="modal-cancel-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition duration-150">Cancel</button>
+                    <button type="submit" id="modal-save-btn"
+                            class="px-4 py-2 rounded-lg shadow-md text-sm font-medium text-white theme-blue-600 hover:theme-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                        Save and Add Stock
+                    </button>
+                </div>
+            </form>
         </div>
-    </footer>
+    </div>
+
+
+    <div id="message-box" class="fixed top-5 right-5 p-4 rounded-lg shadow-xl text-white opacity-0 transition-opacity duration-300 pointer-events-none" role="alert">
+        <span id="message-text"></span>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">Smart Inventory Tracker</h1>
+            <p class="text-lg text-gray-500 mt-2">Scan, Track, and Manage your stock effortlessly (Catalog-Backed).</p>
+        </header>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+            <div class="bg-white p-6 rounded-xl shadow-lg h-fit">
+                <h2 class="text-2xl font-semibold theme-text-blue-600 mb-6 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2m4-4l-4 4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Stock Movement (Add/Edit)
+                </h2>
+                <form id="item-form" class="space-y-4">
+                    <div>
+                        <label for="barcode" class="block text-sm font-medium text-gray-700">Barcode / SKU (Scanned)</label>
+                        <input type="text" id="barcode" name="barcode" required
+                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 bg-gray-100 transition duration-150 ease-in-out"
+                               placeholder="Scan or enter barcode" readonly>
+                    </div>
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700">Product Name</label>
+                        <input type="text" id="name" name="name" required
+                               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition duration-150 ease-in-out"
+                               placeholder="Auto-filled/Manually entered">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="quantity" class="block text-sm font-medium text-gray-700">Quantity to Add</label>
+                            <input type="number" id="quantity" name="quantity" required min="1"
+                                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition duration-150 ease-in-out"
+                                   value="1">
+                        </div>
+                        <div>
+                            <label for="price" class="block text-sm font-medium text-gray-700">Unit Price ($)</label>
+                            <input type="number" id="price" name="price" required step="0.01" min="0"
+                                   class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition duration-150 ease-in-out"
+                                   placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <button type="submit" id="save-item-btn"
+                            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white theme-blue-600 hover:theme-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out disabled:theme-blue-500/50">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2m4-4l-4 4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Add Stock to Inventory
+                    </button>
+                </form>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-semibold theme-text-blue-600 mb-6 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10m0 0h16m0 0v-6m0 6l-5-5m5 5l-5 5m0-5h-6m6 0v-4m-4 4h-2m2 0v-2m0 2h-2"></path></svg>
+                    Barcode Scanner
+                </h2>
+
+                <div id="scanner-container">
+                    <div id="interactive" class="viewport"></div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mt-4">
+                    <button id="start-scanner-btn"
+                            class="flex-1 py-3 px-4 rounded-lg shadow-md text-sm font-medium text-white theme-blue-600 hover:theme-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                        Start Camera Scan
+                    </button>
+                    <button id="stop-scanner-btn" disabled
+                            class="flex-1 py-3 px-4 rounded-lg shadow-md text-sm font-medium text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out disabled:bg-red-300">
+                        Stop Scanner
+                    </button>
+                </div>
+                <p id="scanner-status" class="mt-4 text-center text-sm text-gray-600">Scanner Ready. Click 'Start Camera Scan' to begin.</p>
+            </div>
+        </div>
+        <div class="mt-12 bg-white p-6 rounded-xl shadow-lg">
+            <h2 class="text-2xl font-semibold theme-text-blue-600 mb-6 flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                Current Inventory
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Barcode/SKU</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-list" class="bg-white divide-y divide-gray-200">
+                        <tr><td colspan="5" class="text-center py-4 text-gray-500">Inventory loading or empty...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
 
     <script>
-        // --- CONSTANTS ---
-        const ITEMS_PER_PAGE = 20;
-        const STEPS_PER_PAGE = 10;
-        const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        // Placeholder image for products
-        const FALLBACK_IMAGE_URL = 'img/pos_product_placeholder.jpg';
-        const TAX_RATE = 0.08; // 8% sales tax
 
-        // --- POS System Global State ---
-        let posCart = []; 
+        let pendingDeleteId = null; 
+        let currentInventory = []; 
+        const LOCAL_STORAGE_KEY = 'smartInventoryData';
+        let scannerRunning = false; 
 
-        let SURVIVAL_RULES = {}; 
-        let EMERGENCY_HOTLINES = {}; 
-
-        let TOPIC_TYPES = []; 
-        let ALL_CATEGORIES = [];
-        let guidesData = []; 
-        let popularGuides = []; 
-        let DATA = [];
-        let currentFeaturedTopicId = null;
-        let activePage = 'home';
-        let currentPage = 1;
-
-        // --- Helper Functions ---
-
-        function smoothScrollToTop() {
-            $('html, body').animate({
-                scrollTop: 0
-            }, 500);
-        }
-
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-                });
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
+        // --- PRODUCT CATALOG DEFINITION ---
+        // Contains product metadata (name, description, image, base price).
+        const productCatalog = [
+            {
+                barcode: '9300605002593', 
+                name: 'Crunchy Cereal Box',
+                description: 'A large box of crunchy, honey-glazed oat cereal, perfect for breakfast.',
+                image: 'https://images.unsplash.com/photo-1543825824-c1044455855f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNTkyOXwwfDF8c2VhcmNofDEzfHxoc3xlbnwwfHx8fDE2NzA4NDc3MTc&ixlib=rb-4.0.3&q=80&w=400',
+                price: 4.50 
+            },
+            {
+                barcode: '123456789012', 
+                name: 'Ergonomic Wireless Mouse',
+                description: '2.4GHz wireless mouse with adjustable DPI, designed for all-day comfort.',
+                image: 'https://images.unsplash.com/photo-1546252912-886915152064?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNTkyOXwwfDF8c2VhcmNofDR8fGNvbXB1dGVyJTIwbW91c2V8ZW58MHx8fHwxNjcwODQ4MjIy&ixlib=rb-4.0.3&q=80&w=400',
+                price: 29.99
+            },
+            {
+                barcode: '987654321098', 
+                name: 'Mechanical Keyboard (Black)',
+                description: 'Full-size keyboard with tactile brown switches and RGB backlight.',
+                image: 'https://images.unsplash.com/photo-1587840176317-a068097b3708?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNTkyOXwwfDF8c2VhcmNofDIyfHxrZXlib2FyZHxlbnwwfHx8fDE2NzA4NDgyMjI&ixlib=rb-4.0.3&q=80&w=400',
+                price: 59.95
             }
-        }
-
-        function showPage(pageId) {
-            $('.page').addClass('hidden');
-            $('#' + pageId).removeClass('hidden');
-            activePage = pageId.replace('page-', '');
-
-            // Update navigation active state
-            $('.nav-item').removeClass('active');
-            $(`.nav-item[data-page="${activePage}"]`).addClass('active');
-
-            if (pageId === 'page-archive') {
-                renderArchiveList();
-            }
-            if (pageId === 'page-sell') {
-                renderCart(); // Re-render cart when POS terminal is opened
-            }
-        }
+        ];
+        // ----------------------------
         
-        // Placeholder for loadJsonData (mocking successful data load)
-        function loadJsonData(url) {
-             return new Promise((resolve) => {
-                // Mock POS data structure
-                const jsonData = {
-                    emergencyHotlines: {
-                        'head_store': { name: 'Headquarters Store', lines: [{service: 'GM Contact', link: '#', number: '555-0101'}, {service: 'Tech Support', link: '#', number: '555-0102'}] },
-                        'regional': { name: 'Regional Warehouse', lines: [{service: 'Manager Line', link: '#', number: '555-0201'}, {service: 'Shipping Dept', link: '#', number: '555-0202'}] }
-                    },
-                    categories: ['Electronics', 'Apparel', 'Food', 'Services', 'Tools'],
-                    types: ['SKU', 'Service', 'Batch'],
-                    survivalRules: {
-                        title: 'Key Inventory Management Metrics',
-                        content: [
-                            { type: 'h3', text: 'Stock Levels' },
-                            { type: 'p', text: 'Maintain optimal stock-to-sales ratios to prevent shortages or overstocking.' },
-                            { type: 'ul', listClass: 'dos-list', items: ['Track safety stock levels', 'Set reorder points for all popular items'] }
-                        ]
-                    },
-                    popularSurvivalGuides: [
-                        { id: 101, title: 'Top-Selling Laptop', description: 'Highest grossing electronics item this month.', type: 'Electronics', categories: ['Laptop', 'Premium'], quickSteps: ['Check current price', 'Process a new sale', 'Adjust stock count'], fullSteps: [
-                            { type: 'step', text: 'Current Retail Price: $1299.99' },
-                            { type: 'step', text: 'Warehouse Stock: 45 units' },
-                            { type: 'step', text: 'Showroom Stock: 3 units' }
-                        ], dos: ['Focus on accessory bundles for this item.', 'Promote extended warranty.'], donts: ['Do not offer unauthorized discounts.', 'Avoid slow shipping options.'] },
-                        { id: 102, title: 'Fast-Moving T-Shirt', description: 'Highest volume Apparel item sold this week.', type: 'Apparel', categories: ['T-Shirt', 'Discount'], quickSteps: ['Scan barcode', 'Apply coupon', 'Complete transaction'], fullSteps: [
-                            { type: 'step', text: 'Current Retail Price: $19.99' },
-                            { type: 'step', text: 'Warehouse Stock: 500 units' },
-                            { type: 'step', text: 'Showroom Stock: 100 units' }
-                        ], dos: ['Reorder bulk stock immediately.', 'Display near checkout.'], donts: ['Do not place on clearance yet.', 'Do not mix with seasonal stock.'] }
-                    ],
-                    survivalGuides: [
-                        { id: 201, title: 'Low Stock: Mouse Pad', description: 'Only 5 units remaining. Reorder immediately.', type: 'Electronics', categories: ['Accessory'], quickSteps: ['Check Reorder Form', 'Contact Supplier'], fullSteps: [
-                            { type: 'step', text: 'Current Retail Price: $9.99' },
-                            { type: 'step', text: 'Warehouse Stock: 5 units' },
-                            { type: 'step', text: 'Showroom Stock: 0 units' }
-                        ], dos: ['Pull from back stock if available.', 'Verify transfer order status.'], donts: ['Sell below cost.'], date: '10/25/2024' },
-                        { id: 202, title: 'New Product: Water Bottle', description: 'Just added to the inventory system today.', type: 'Apparel', categories: ['Drinkware'], quickSteps: ['Set shelf price', 'Create product label'], fullSteps: [
-                            { type: 'step', text: 'Current Retail Price: $24.99' },
-                            { type: 'step', text: 'Warehouse Stock: 200 units' },
-                            { type: 'step', text: 'Showroom Stock: 50 units' }
-                        ], dos: ['Run opening week promotion.', 'Train staff on features.'], donts: ['Misplace product literature.'], date: '11/15/2024' }
-                    ]
-                };
-                resolve(jsonData); 
-            });
-        }
+        // --- Utility Functions ---
+        const showMessage = (text, type = 'success') => {
+            const $msgBox = $('#message-box');
+            let colorClass = 'bg-green-500'; 
+            if (type === 'error') colorClass = 'bg-red-500';
+            if (type === 'warning') colorClass = 'bg-yellow-500';
+            if (type === 'info') colorClass = 'theme-blue-600'; 
 
-        // --- Content Rendering Functions (Unchanged or minor fixes) ---
-        
-        function renderSurvivalTopicList(data, containerId) {
-            const container = $(containerId);
-            container.empty();
-            if (data.length === 0) {
-                $('#latest-empty-message').removeClass('hidden');
-                $('#latest-count').text('0');
-                return;
-            }
-            $('#latest-empty-message').addClass('hidden');
-            if (containerId === '#latest-episodes') {
-                $('#latest-count').text(data.length);
-            }
-            if (containerId === '#popular-series') {
-                $('#popular-count').text(data.length);
-            }
+            $msgBox.removeClass('bg-red-500 bg-yellow-500 bg-green-500 theme-blue-600').addClass(colorClass);
+            $('#message-text').text(text);
+            $msgBox.removeClass('opacity-0 pointer-events-none').addClass('opacity-100');
+
+            setTimeout(() => {
+                $msgBox.removeClass('opacity-100').addClass('opacity-0 pointer-events-none');
+            }, 3000);
+        };
 
 
-            data.forEach(item => {
-                const badgeHtml = item.categories.map(cat => `<span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">${cat}</span>`).join('');
-                
-                const html = `
-                    <div class="topic-item bg-gray-50 p-3 rounded-lg shadow-md hover:shadow-lg transition cursor-pointer border border-gray-200" onclick="showTopicModal(${item.id})">
-                        <img src="${FALLBACK_IMAGE_URL}" alt="${item.title}" class="w-full rounded mb-2 border border-gray-300">
-                        <h4 class="text-sm font-bold text-gray-800 line-clamp-2 mb-1">${item.title}</h4>
-                        <p class="text-xs text-gray-500 line-clamp-3 mb-2">${item.description}</p>
-                        <div class="flex flex-wrap gap-1">${badgeHtml}</div>
-                    </div>
-                `;
-                container.append(html);
-            });
-        }
-        
-        function renderFeaturedTopic(id) {
-            const topic = DATA.find(t => t.id === id);
-            if (!topic) return;
+        // --- Local Storage Management ---
 
-            currentFeaturedTopicId = id;
-            
-            $('#featured-title').text(topic.title);
-            $('#featured-explanation').text(topic.description);
-            $('#featured-image').attr('src', FALLBACK_IMAGE_URL);
-            
-            const categoryBadges = topic.categories.map(cat => `<span class="bg-blue-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">${cat}</span>`).join('');
-            $('#featured-categories').html(categoryBadges);
-
-            const stepsHtml = topic.quickSteps.map((step, index) => 
-                `<div class="instruction-step">
-                    <div class="instruction-step-number">${index + 1}</div>
-                    <p class="text-sm">${step}</p>
-                </div>`
-            ).join('');
-            $('#featured-steps-snippet').html(stepsHtml);
-
-            const allIds = DATA.map(t => t.id);
-            const currentIndex = allIds.indexOf(id);
-            $('#prev-featured').prop('disabled', currentIndex <= 0);
-            $('#next-featured').prop('disabled', currentIndex >= allIds.length - 1);
-            $('#featured-page-details').text(`KPI ${currentIndex + 1} of ${allIds.length}`);
-        }
-        
-        function setupHotlineDropdown() {
-            const select = $('#country-select');
-            select.empty();
-            Object.keys(EMERGENCY_HOTLINES).forEach(key => {
-                const store = EMERGENCY_HOTLINES[key];
-                select.append(`<option value="${key}">${store.name}</option>`);
-            });
-        }
-
-        function renderHotlines(storeKey) {
-            const list = $('#hotlines-list');
-            list.empty();
-            const store = EMERGENCY_HOTLINES[storeKey];
-            if (!store || !store.lines.length) {
-                list.append('<li class="text-gray-500">No data found for this store.</li>');
-                return;
-            }
-
-            store.lines.forEach(line => {
-                const html = `
-                    <li class="flex justify-between items-center p-2 bg-gray-100 rounded">
-                        <span class="font-semibold text-gray-800">${line.service}:</span>
-                        <a href="${line.link}" class="text-blue-600 hover:text-blue-500 font-medium">${line.number}</a>
-                    </li>
-                `;
-                list.append(html);
-            });
-        }
-
-        function renderAllCategoryBadges() {
-            const container = $('#all-categories-badges');
-            container.empty();
-            ALL_CATEGORIES.forEach(category => {
-                const html = `<span class="bg-gray-200 text-gray-700 text-sm font-medium px-3 py-1 rounded-full cursor-pointer hover:bg-blue-100 hover:text-blue-700 transition" onclick="showPage('page-filter'); $('#filter-category').val('${category}'); applyFilter();">${category}</span>`;
-                container.append(html);
-            });
-        }
-        
-        // NEW FUNCTION: Populates the category dropdown in the Add New Inventory panel
-        function populateNewItemCategoryDropdown() {
-            const select = $('#new-item-category');
-            select.empty();
-            ALL_CATEGORIES.forEach(category => {
-                select.append(`<option value="${category}">${category}</option>`);
-            });
-            if (ALL_CATEGORIES.length > 0) {
-                select.val(ALL_CATEGORIES[0]);
-            }
-        }
-
-        function renderSurvivalRules() {
-            const rules = SURVIVAL_RULES;
-            if (!rules) return;
-
-            $('#rules-title').text(rules.title);
-            const contentContainer = $('#rules-content');
-            contentContainer.empty();
-
-            rules.content.forEach(block => {
-                if (block.type === 'h3') {
-                    contentContainer.append(`<h3 class="text-xl font-bold mt-4 mb-2 text-blue-600">${block.text}</h3>`);
-                } else if (block.type === 'p') {
-                    contentContainer.append(`<p class="mb-3">${block.text}</p>`);
-                } else if (block.type === 'ul') {
-                    const ul = $(`<ul class="list-disc space-y-1 ml-6 ${block.listClass}"></ul>`);
-                    block.items.forEach(item => {
-                        ul.append(`<li>${item}</li>`);
-                    });
-                    contentContainer.append(ul);
-                }
-            });
-        }
-        
-        function showTopicModal(id) {
-            const topic = DATA.find(t => t.id === id);
-            if (!topic) return;
-
-            $('#modal-title').text(topic.title);
-            $('#modal-explanation').text(topic.description);
-
-            // Steps (Inventory & Pricing)
-            const stepsContainer = $('#modal-steps-container');
-            stepsContainer.empty();
-            topic.fullSteps.forEach((step, index) => {
-                stepsContainer.append(`
-                    <div class="instruction-step">
-                        <div class="instruction-step-number">${index + 1}</div>
-                        <p class="text-base">${step.text}</p>
-                    </div>
-                `);
-            });
-
-            // DOS (Stock & Performance)
-            const dosContainer = $('#modal-dos-container');
-            dosContainer.empty();
-            (topic.dos || []).forEach(item => {
-                dosContainer.append(`<li>${item}</li>`);
-            });
-
-            // DON'TS (Alerts & Issues)
-            const dontsContainer = $('#modal-donts-container');
-            dontsContainer.empty();
-            (topic.donts || []).forEach(item => {
-                dontsContainer.append(`<li>${item}</li>`);
-            });
-            
-            // Examples/History (Placeholder)
-            const examplesContainer = $('#modal-examples');
-            examplesContainer.empty().html('<p>Transaction History: Sold 15 units in the last 7 days. Average margin: 25%.</p>'); // Placeholder content
-
-            $('#detail-modal').removeClass('hidden').addClass('flex');
-        }
-        
-        // NEW FUNCTION: Placeholder for adding a new item
-        function addNewInventoryItem() {
-            const name = $('#new-item-name').val();
-            const sku = $('#new-item-sku').val();
-            const stock = $('#new-item-stock').val();
-            const category = $('#new-item-category').val();
-            const price = $('#new-item-price').val();
-            
-            // Placeholder logic for adding item
-            alert(`Successfully added new item:\nName: ${name}\nSKU: ${sku}\nStock: ${stock}\nCategory: ${category}\nPrice: $${price}\n\n(This is a simulated action. In a real system, this would update the DATA array and database.)`);
-            
-            // Clear form fields
-            $('#new-inventory-form')[0].reset();
-            
-            // Re-render the archive list (to reflect potential real-world update)
-            renderArchiveList($('.archive-letter.active').data('letter') || 'all');
-        }
-
-        // --- Archive (Inventory Index) Functions ---
-
-        function renderArchiveLinks() {
-            const container = $('#anime-archive-links');
-            container.empty();
-            const letters = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
-            
-            const letterHtml = letters.map(letter => `
-                <span class="archive-letter inline-block w-8 h-8 flex items-center justify-center font-bold text-sm rounded-full bg-gray-100 text-gray-700 hover:bg-blue-600 hover:text-white transition cursor-pointer" data-letter="${letter}">
-                    ${letter}
-                </span>
-            `).join('');
-
-            container.html(`
-                <span class="archive-letter inline-block w-8 h-8 flex items-center justify-center font-bold text-sm rounded-full bg-blue-600 text-white active transition cursor-pointer" data-letter="all">All</span>
-                ${letterHtml}
-            `);
-
-            $('.archive-letter').on('click', function() {
-                $('.archive-letter').removeClass('active').removeClass('bg-blue-600').addClass('bg-gray-100').removeClass('text-white').addClass('text-gray-700');
-                $(this).addClass('active').removeClass('bg-gray-100').addClass('bg-blue-600').removeClass('text-gray-700').addClass('text-white');
-                renderArchiveList($(this).data('letter'));
-            });
-        }
-
-        function renderArchiveList(filterLetter = 'all') {
-            const tableBody = $('#anime-archive-table');
-            tableBody.empty();
-
-            $('#archive-title').text(filterLetter === 'all' ? 'All Products' : `Products starting with '${filterLetter}'`);
-
-            let filteredData = DATA.filter(t => 
-                filterLetter === 'all' || t.title.toUpperCase().startsWith(filterLetter)
-            );
-            
-            const sortBy = $('#archive-sort-by').val();
-            const sortOrder = $('#archive-sort-order').val();
-
-            filteredData.sort((a, b) => {
-                let comparison = 0;
-                let valA = a[sortBy] || '';
-                let valB = b[sortBy] || '';
-
-                if (sortBy === 'title' || sortBy === 'type') {
-                    comparison = valA.localeCompare(valB);
-                } else if (sortBy === 'date') {
-                    // Placeholder for date sorting (using date from low stock items)
-                    const dateA = new Date(a.date || '1/1/1970');
-                    const dateB = new Date(b.date || '1/1/1970');
-                    comparison = dateA - dateB;
-                }
-                
-                return sortOrder === 'asc' ? comparison : -comparison;
-            });
-
-            $('#archive-result-count').text(`${filteredData.length} results`);
-
-            if (filteredData.length === 0) {
-                tableBody.append(`<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No products found matching the filter.</td></tr>`);
-                return;
-            }
-
-            filteredData.forEach(item => {
-                // Placeholder logic for Stock Level and Last Sale
-                const stockLevel = item.id === 201 ? `<span class="text-red-600 font-bold">5 (Low)</span>` : item.id === 101 ? `<span class="text-green-600 font-bold">48 (Good)</span>` : `N/A`;
-                const lastSale = item.date || 'N/A';
-                
-                const html = `
-                    <tr class="hover:bg-gray-50 cursor-pointer" onclick="showTopicModal(${item.id})">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.title} (${item.id})</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stockLevel}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.type}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${lastSale}</td>
-                    </tr>
-                `;
-                tableBody.append(html);
-            });
-        }
-
-        // --- Filter (Search) Functions (Unchanged) ---
-        // ... (setupFilterDropdowns, applyFilter, renderPaginationControls, filterLatest)
-
-        // --- History (Transaction) Functions ---
-        // markTransaction, getTransactionHistory, renderWatchedHistory, clearHistory (Unchanged)
-
-        // --- POS Logic Functions (NEW) ---
-
-        function calculateTotals() {
-            let subtotal = 0;
-            posCart.forEach(item => {
-                subtotal += item.price * item.quantity;
-            });
-
-            const tax = subtotal * TAX_RATE;
-            const total = subtotal + tax;
-
-            $('#pos-subtotal').text(`$${subtotal.toFixed(2)}`);
-            $('#pos-tax').text(`$${tax.toFixed(2)}`);
-            $('#pos-total').text(`$${total.toFixed(2)}`);
-            
-            // Calculate Change Due
-            const tendered = parseFloat($('#pos-cash-tendered').val()) || 0;
-            const change = tendered - total;
-            $('#pos-change-due').text(`$${Math.max(0, change).toFixed(2)}`);
-
-            return { total: total, subtotal: subtotal };
-        }
-
-        function renderCart() {
-            const cartBody = $('#pos-cart-body');
-            cartBody.empty();
-            
-            if (posCart.length === 0) {
-                cartBody.append('<tr><td colspan="4" class="py-4 text-center text-gray-500">Cart is empty.</td></tr>');
-            } else {
-                posCart.forEach((item, index) => {
-                    const total = item.price * item.quantity;
-                    const html = `
-                        <tr>
-                            <td class="px-3 py-2 text-sm text-gray-900 font-medium">${item.name} <span class="text-xs text-gray-500">(SKU: ${item.sku})</span></td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                                <input type="number" min="1" value="${item.quantity}" onchange="updateCartQuantity(${index}, this.value)" class="w-12 p-1 text-center border rounded">
-                            </td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm text-right text-gray-500">$${item.price.toFixed(2)}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-sm text-right font-semibold text-gray-800">$${total.toFixed(2)}</td>
-                        </tr>
-                    `;
-                    cartBody.append(html);
-                });
-            }
-
-            calculateTotals();
-        }
-
-        function addItemToCart(skuOrName) {
-            if (!skuOrName) return;
-
-            skuOrName = skuOrName.toLowerCase().trim();
-            
-            // Placeholder logic to find an item in our DATA structure
-            const product = DATA.find(item => 
-                item.title.toLowerCase().includes(skuOrName) || 
-                item.id.toString() === skuOrName
-            );
-
-            if (product) {
-                // Determine price based on ID (placeholder)
-                const price = product.id === 101 ? 1299.99 : (product.id === 102 ? 19.99 : (product.id === 201 ? 9.99 : 24.99)); 
-
-                // If the item is already in the cart, increment quantity
-                const existingItemIndex = posCart.findIndex(item => item.sku === product.id);
-                if (existingItemIndex > -1) {
-                    posCart[existingItemIndex].quantity += 1;
-                } else {
-                    // Add new item 
-                    posCart.push({
-                        sku: product.id,
-                        name: product.title,
-                        price: price, 
-                        quantity: 1
-                    });
-                }
-
-                renderCart();
-                $('#pos-scan-input').val(''); // Clear input after adding
-                // markTransaction(product.id); // Optionally log every item added
-            } else {
-                alert(`Product not found for "${skuOrName}". Please try a different SKU or name.`);
-            }
-        }
-
-        function updateCartQuantity(index, quantity) {
-            quantity = parseInt(quantity);
-            if (quantity > 0) {
-                posCart[index].quantity = quantity;
-            } else {
-                posCart.splice(index, 1); // Remove item if quantity is zero
-            }
-            renderCart();
-        }
-
-        function processTransaction() {
-            if (posCart.length === 0) {
-                alert("The cart is empty. Please add items to process a sale.");
-                return;
-            }
-
-            const { total } = calculateTotals();
-            const tendered = parseFloat($('#pos-cash-tendered').val()) || 0;
-            const paymentMethod = $('#pos-payment-method').val();
-
-            if (paymentMethod === 'cash' && tendered < total) {
-                alert(`Tendered amount ($${tendered.toFixed(2)}) is less than the total ($${total.toFixed(2)}).`);
-                return;
-            }
-
-            // Confirmation logic
-            const change = Math.max(0, tendered - total).toFixed(2);
-            alert(`Transaction Successful! \nTotal: $${total.toFixed(2)}\nPayment Method: ${paymentMethod}\nChange Due: $${change}`);
-
-            // Log the sale of the first item for history tab (simple implementation)
-            if(posCart.length > 0) markTransaction(posCart[0].sku);
-
-            clearCart();
-            $('#pos-cash-tendered').val(''); // Clear cash tendered field
-        }
-
-        function clearCart() {
-            posCart = [];
-            renderCart();
-        }
-        
-        function markTransaction(id) {
-            const history = getTransactionHistory();
-            const topic = DATA.find(t => t.id === id);
-            if (!topic) return;
-
-            const newEntry = {
-                id: topic.id,
-                title: topic.title,
-                timestamp: new Date().toISOString()
-            };
-
-            history.unshift(newEntry);
-            localStorage.setItem('posTransactionHistory', JSON.stringify(history.slice(0, STEPS_PER_PAGE))); 
-            renderWatchedHistory();
-        }
-
-        function getTransactionHistory() {
+        // Loads inventory data from localStorage (Inventory starts empty, not using mock data)
+        const loadInventoryFromStorage = () => {
             try {
-                const history = JSON.parse(localStorage.getItem('posTransactionHistory')) || [];
-                return history;
-            } catch (e) {
-                console.error("Error parsing history from localStorage", e);
-                return [];
+                const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+                currentInventory = data ? JSON.parse(data) : [];
+                
+                renderInventoryList(currentInventory);
+            } catch (error) {
+                console.error("Error loading inventory from local storage:", error);
+                showMessage("Error loading inventory data. Starting empty.", 'error');
+                currentInventory = [];
+                renderInventoryList(currentInventory);
             }
-        }
+        };
 
-        function renderWatchedHistory() {
-            const list = $('#watched-history-list');
-            list.empty();
-            const history = getTransactionHistory();
+        // Saves inventory data to localStorage and re-renders the list
+        const saveInventoryToStorage = () => {
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentInventory));
+                renderInventoryList(currentInventory);
+            } catch (error) {
+                console.error("Error saving inventory to local storage:", error);
+                showMessage("Error saving inventory data.", 'error');
+            }
+        };
 
-            if (history.length === 0) {
-                $('#empty-history-message').removeClass('hidden');
-                $('#clear-history').addClass('hidden');
-                return;
+
+        // --- Modal/UI Handlers ---
+        const showConfirmModal = (message, itemId) => { 
+            pendingDeleteId = itemId;
+            $('#confirm-message').text(message);
+            $('#confirm-ok').text('Confirm Delete');
+            $('#confirm-modal').removeClass('hidden').addClass('active flex');
+        };
+
+        const hideConfirmModal = () => { 
+            $('#confirm-modal').removeClass('active flex').addClass('hidden');
+            pendingDeleteId = null;
+        };
+        
+        // Modal logic uses catalog data if available to prefill
+        const showUnknownItemModal = (barcode, catalogItem = null) => {
+            $('#modal-barcode-display').text(barcode);
+            $('#modal-barcode-input').val(barcode);
+            
+            // Prefill from catalog if available (or empty strings)
+            $('#modal-name').val(catalogItem ? catalogItem.name : '');
+            $('#modal-price').val(catalogItem ? catalogItem.price : 0.00); 
+            $('#modal-quantity').val(1); 
+            
+            $('#unknown-item-modal').removeClass('hidden').addClass('active flex');
+
+            $('html, body').animate({
+                scrollTop: $('#item-form').offset().top
+            }, 500);
+
+            resetAutofillForm();
+        };
+
+        const hideUnknownItemModal = () => {
+            $('#unknown-item-modal').removeClass('active flex').addClass('hidden');
+        };
+
+
+        // --- Data Operations (Stock Tracking Logic) ---
+
+        const saveItem = (itemData) => {
+            const existingItem = currentInventory.find(item => item.barcode === itemData.barcode);
+
+            if (existingItem) {
+                // UPDATE: Increase quantity
+                const newQuantity = existingItem.quantity + itemData.quantity;
+                existingItem.quantity = newQuantity;
+
+                // Update name/price only if different (allows for corrections)
+                if (itemData.name !== existingItem.name) existingItem.name = itemData.name;
+                if (itemData.price !== existingItem.price) existingItem.price = itemData.price;
+
+
+                showMessage(`Added ${itemData.quantity} of ${existingItem.name}. New Qty: ${existingItem.quantity}`, 'info');
+            } else {
+                // ADD new item to inventory
+                const newItem = {
+                    id: crypto.randomUUID(),
+                    ...itemData,
+                    timestamp: Date.now()
+                };
+                currentInventory.push(newItem);
+                showMessage(`Added new item to inventory: ${newItem.name}`, 'success');
             }
             
-            $('#empty-history-message').addClass('hidden');
-            $('#clear-history').removeClass('hidden');
+            saveInventoryToStorage();
+        };
 
-            history.forEach(item => {
-                const date = new Date(item.timestamp);
-                const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                const dateString = date.toLocaleDateString();
-                
-                const html = `
-                    <li class="flex justify-between items-center p-3 bg-gray-100 rounded hover:bg-gray-200 transition cursor-pointer border border-gray-200" onclick="showTopicModal(${item.id})">
-                        <span class="font-semibold text-gray-800">${item.title}</span>
-                        <span class="text-xs text-gray-500">${dateString} at ${timeString}</span>
-                    </li>
-                `;
-                list.append(html);
+        const deleteItem = (itemId) => {
+            const initialLength = currentInventory.length;
+            currentInventory = currentInventory.filter(item => item.id !== itemId);
+
+            if (currentInventory.length < initialLength) {
+                saveInventoryToStorage();
+                showMessage("Item deleted successfully!", 'success');
+            } else {
+                showMessage("Error: Item not found.", 'error');
+            }
+        };
+
+        // --- UI Rendering ---
+
+        const renderInventoryList = (items) => {
+            const $listBody = $('#inventory-list');
+            $listBody.empty(); // Clear existing list
+
+            if (items.length === 0) {
+                $listBody.append('<tr><td colspan="5" class="text-center py-4 text-gray-500">Inventory is empty. Scan an item to add stock.</td></tr>');
+                return;
+            }
+
+            items.forEach(item => {
+                const row = `
+                                <tr class="hover:bg-gray-50 transition duration-150 ease-in-out">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.name}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.barcode}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.quantity}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$${(item.price || 0).toFixed(2)}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <button data-id="${item.id}" data-name="${item.name}" class="delete-btn text-red-600 hover:text-red-900 transition duration-150 ease-in-out p-1 rounded-lg hover:bg-red-100">
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                $listBody.append(row);
+            });
+
+            // Attach delete listener using the custom modal
+            $('.delete-btn').off('click').on('click', function () {
+                const itemId = $(this).data('id');
+                const itemName = $(this).data('name');
+                showConfirmModal(`Are you sure you want to delete "${itemName}" from the inventory?`, itemId);
+            });
+        };
+
+        // --- Barcode Scanner Logic (Quagga2) ---
+        const stopScanner = () => {
+             const QuaggaRef = window.Quagga;
+             if (typeof QuaggaRef !== 'undefined' && QuaggaRef.initialized) {
+                 if (QuaggaRef.stop) {
+                     QuaggaRef.stop();
+                 }
+                 $('#interactive').empty(); 
+                 $('#scanner-status').text('Scanner stopped.');
+                 $('#start-scanner-btn').prop('disabled', false).removeClass('bg-gray-400').addClass('theme-blue-600');
+                 $('#stop-scanner-btn').prop('disabled', true);
+                 scannerRunning = false;
+                 console.log("Scanner stopped.");
+             } else if (scannerRunning) {
+                 $('#scanner-status').text('Scanner stopped (manual halt).');
+                 $('#start-scanner-btn').prop('disabled', false).removeClass('bg-gray-400').addClass('theme-blue-600');
+                 $('#stop-scanner-btn').prop('disabled', true);
+                 scannerRunning = false;
+             }
+        }
+
+        const startScanner = () => { 
+            if (scannerRunning) return;
+
+            const QuaggaRef = window.Quagga;
+
+            if (typeof QuaggaRef === 'undefined') {
+                showMessage("Barcode scanner library failed to load. Please try refreshing.", 'error');
+                $('#scanner-status').text('Error: Scanner library not available.');
+                return;
+            }
+
+            QuaggaRef.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector('#interactive'),
+                    constraints: {
+                        facingMode: "environment", // Use rear camera on mobile
+                        width: { min: 640, ideal: 1280 },
+                        height: { min: 480, ideal: 720 },
+                        singleChannel: true
+                    }
+                },
+                decoder: {
+                    readers: ["ean_reader", "upc_reader", "ean_8_reader", "code_128_reader"],
+                    multiple: false
+                },
+                locator: {
+                    patchSize: "medium",
+                    halfSample: true,
+                    minConfidence: 0.8
+                },
+                numOfWorkers: 0,
+                frequency: 10,
+            }, function (err) {
+                if (err) {
+                    console.error(err);
+                    $('#scanner-status').text(`Error initializing scanner: ${err.name}. Try starting again.`);
+                    showMessage(`Camera error: ${err.message || 'Cannot access camera. Check permissions.'}`, 'error');
+                    return
+                }
+                QuaggaRef.start();
+                scannerRunning = true;
+                $('#scanner-status').text('Scanning... Point camera at a barcode.');
+                $('#start-scanner-btn').prop('disabled', true).removeClass('theme-blue-600').addClass('bg-gray-400');
+                $('#stop-scanner-btn').prop('disabled', false);
+            });
+
+            // Handle detection success
+            QuaggaRef.onDetected(function (result) {
+                const code = result.codeResult.code;
+                console.log("Barcode detected:", code);
+
+                stopScanner(); // Stop the scanner immediately upon detection
+                handleScannedBarcode(code); // Process the scanned code
+
+                showMessage(`Barcode detected: ${code}`, 'info');
+            });
+            
+            // Handle drawing on the canvas 
+            QuaggaRef.onProcessed(function (result) {
+                if (typeof window.Quagga === 'undefined' || !window.Quagga.canvas) return;
+
+                const drawingCtx = window.Quagga.canvas.ctx.overlay,
+                    drawingCanvas = window.Quagga.canvas.dom.overlay;
+
+                if (result) {
+                    drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                    if (result.box) {
+                        window.Quagga.ImageDebug.drawPath(result.box, { x: 0, y: 1 }, drawingCtx, { color: "#00F", lineWidth: 2 });
+                    }
+                    if (result.codeResult && result.codeResult.code) {
+                        window.Quagga.ImageDebug.drawPath(result.line, { x: 'x', y: 'y' }, drawingCtx, { color: "red", lineWidth: 3 });
+                    }
+                }
             });
         }
 
-        function clearHistory() {
-            localStorage.removeItem('posTransactionHistory');
-            renderWatchedHistory();
-        }
-        
-        // --- Initialization ---
+        // Resets and clears the autofill form section
+        const resetAutofillForm = () => {
+            $('#item-form').trigger('reset'); // Clear form
+            $('#barcode').val('').prop('readonly', true);
+            $('#name').val('');
+            $('#quantity').val(1);
+            $('#price').val('');
+        };
+
+        // Main logic to handle a scanned barcode
+        const handleScannedBarcode = (barcode) => {
+            const existingItem = currentInventory.find(item => item.barcode === barcode);
+            const catalogItem = productCatalog.find(item => item.barcode === barcode); // Check catalog for metadata
+
+            if (existingItem) {
+                // EXISTING STOCK: Auto-fill form for quick adding of stock (+1)
+                $('#barcode').val(barcode).prop('readonly', true);
+                $('#name').val(existingItem.name);
+                $('#quantity').val(1); // Default to adding 1
+                $('#price').val(existingItem.price);
+
+                showMessage(`Existing stock detected: ${existingItem.name}. Ready to add stock.`, 'info');
+
+            } else {
+                 // NEW ITEM: Use catalog data if available, otherwise prompt via modal
+                if (catalogItem) {
+                    // Item exists in Catalog, auto-fill form for adding initial stock
+                    $('#barcode').val(barcode).prop('readonly', true);
+                    $('#name').val(catalogItem.name);
+                    $('#quantity').val(1); 
+                    $('#price').val(catalogItem.price);
+                    
+                    showMessage(`Product found in catalog: ${catalogItem.name}. Ready to add initial stock.`, 'info');
+                } else {
+                    // Item not in Catalog or Inventory, show modal
+                    showUnknownItemModal(barcode);
+                }
+            }
+            
+            // Scroll to the form
+            $('html, body').animate({
+                scrollTop: $('#item-form').offset().top
+            }, 500);
+        };
+
+        // --- Document Ready and Event Binding ---
 
         $(document).ready(function () {
-            let retryCount = 0;
-            const MAX_RETRIES = 15;
-            const RETRY_DELAY_MS = 1000;
-            
-            async function initializeApp() {
-                console.log(`Attempting to load POS JSON data (Attempt ${retryCount + 1})...`);
-                
-                try {
-                    const jsonData = await loadJsonData('assets/pos_data.json'); 
-            
-                    // --- Data Processing ---
-                    EMERGENCY_HOTLINES = jsonData.emergencyHotlines;
-                    ALL_CATEGORIES = jsonData.categories;
-                    TOPIC_TYPES = jsonData.types;
-                    SURVIVAL_RULES = jsonData.survivalRules;
-                    popularGuides = jsonData.popularSurvivalGuides;
-                    guidesData = jsonData.survivalGuides;
-                    DATA = [...guidesData, ...popularGuides];
-            
-                    const randomIndex = Math.floor(Math.random() * popularGuides.length);
-                    const randomGuide = popularGuides[randomIndex];
-                    currentFeaturedTopicId = randomGuide.id;
-            
-                    if (currentFeaturedTopicId) {
-                        renderFeaturedTopic(currentFeaturedTopicId);
-                    }
-            
-                    renderHotlines('head_store'); 
-            
-                    // Initial Content Rendering
-                    renderSurvivalTopicList(guidesData.slice(0, ITEMS_PER_PAGE), '#latest-episodes');
-                    renderSurvivalTopicList(popularGuides, '#popular-series');
-                    renderWatchedHistory();
-                    renderAllCategoryBadges();
-            
-                    // Render Archive Links (A-Z)
-                    renderArchiveLinks();
-                    
-                    // NEW: Populate the Add New Item Category dropdown
-                    populateNewItemCategoryDropdown();
-            
-                    // Setup and Render Emergency Hotline List
-                    setupHotlineDropdown();
-            
-                    // Setup Filter/Search Page (functions omitted for brevity but assumed present)
-                    // setupFilterDropdowns(); 
-            
-                    const year = new Date().getFullYear();
-                    const yearElement = document.getElementById('currentYear');
-                    if (yearElement) {
-                        yearElement.textContent = year;
-                    }
-                    
-                    console.log("POS data loaded and app initialized successfully.");
-                    retryCount = 0;
-            
-                } catch (error) {
-                    console.error("Error loading POS data:", error);
-                    
-                    if (retryCount < MAX_RETRIES) {
-                        retryCount++;
-                        setTimeout(initializeApp, RETRY_DELAY_MS);
-                    } else {
-                        $('#featured-title').text('Error: Data failed to load.');
-                        $('#featured-explanation').text('The POS system data could not be initialized after multiple attempts. Please check the data source.');
-                    }
-                }
-            }
 
-            initializeApp();
+            // Load inventory on startup (inventory starts empty)
+            loadInventoryFromStorage();
 
-            // --- Event Handlers ---
-            $('#apply-filter').on('click', applyFilter);
-            $('#search-apply-button').on('click', applyFilter);
-            $('#filter-search-input').on('keypress', function (e) { if (e.which === 13) { applyFilter(); } });
-            $('#reset-filter').on('click', function () {
-                $('#filter-day').val('');
-                $('#filter-month').val('');
-                $('#filter-year').val('');
-                $('#filter-category').val('');
-                $('#filter-search-input').val('');
-                applyFilter();
-            });
-            $('#apply-archive-sort').on('click', function () {
-                renderArchiveList($('.archive-letter.active').data('letter') || 'all');
-            });
-            $('#prev-featured').on('click', () => {
-                const allIds = DATA.map(t => t.id);
-                const currentIndex = allIds.indexOf(currentFeaturedTopicId);
-                if (currentIndex > 0) {
-                    renderFeaturedTopic(allIds[currentIndex - 1]);
-                }
-            });
-            $('#next-featured').on('click', () => {
-                const allIds = DATA.map(t => t.id);
-                const currentIndex = allIds.indexOf(currentFeaturedTopicId);
-                if (currentIndex < allIds.length - 1) {
-                    renderFeaturedTopic(allIds[currentIndex + 1]);
-                }
-            });
-            $('#close-modal').on('click', () => {
-                $('#detail-modal').addClass('hidden').removeClass('flex');
-            });
-            $('#detail-modal').on('click', function (e) {
-                if ($(e.target).is(this)) {
-                    $('#detail-modal').addClass('hidden').removeClass('flex');
-                }
-            });
-            $('#show-details-modal').on('click', () => {
-                showTopicModal(currentFeaturedTopicId);
-            });
-            $('.nav-item').on('click', function (e) {
+            // Bind scanner buttons
+            $('#start-scanner-btn').on('click', startScanner);
+            $('#stop-scanner-btn').on('click', stopScanner); 
+
+            // Bind manual form submission (for existing items or manual entry)
+            $('#item-form').on('submit', function (e) {
                 e.preventDefault();
-                const page = $(this).data('page');
-                if (page === 'history') { renderWatchedHistory(); }
-                showPage('page-' + page);
-                smoothScrollToTop();
+
+                const barcode = $('#barcode').val();
+                if (!barcode) {
+                    showMessage("Please scan a barcode or enter a SKU manually.", 'warning');
+                    return;
+                }
+                
+                // Form data to JSON object (Stock fields)
+                const itemData = {
+                    barcode: barcode,
+                    name: $('#name').val(),
+                    quantity: parseInt($('#quantity').val() || 0),
+                    price: parseFloat($('#price').val() || 0),
+                };
+
+                // Validate
+                if (itemData.quantity <= 0 || itemData.price < 0 || !itemData.name) {
+                    showMessage("Please ensure all fields are filled correctly (Qty > 0, Price >= 0).", 'error');
+                    return;
+                }
+
+                saveItem(itemData);
+                resetAutofillForm(); // Clear the form after saving
             });
-            $('#clear-history').on('click', clearHistory);
-            
-            // NEW POS Handler: Recalculate totals on cash input
-            $('#pos-cash-tendered').on('input', calculateTotals);
-            
-            showPage('page-home');
-            // Initial call to ensure cart is correctly displayed (empty)
-            renderCart(); 
+
+
+            // Bind Unknown Item Modal submission
+            $('#unknown-item-form').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Form data to JSON object (Stock fields)
+                const itemData = {
+                    barcode: $('#modal-barcode-input').val(),
+                    name: $('#modal-name').val(),
+                    quantity: parseInt($('#modal-quantity').val() || 0),
+                    price: parseFloat($('#modal-price').val() || 0),
+                };
+
+                // Validate
+                if (itemData.quantity <= 0 || itemData.price < 0 || !itemData.name) {
+                    showMessage("Please ensure all fields are filled correctly.", 'error');
+                    return;
+                }
+                
+                saveItem(itemData);
+                hideUnknownItemModal(); // Close the modal
+            });
+
+            // Bind Unknown Item Modal Cancel Button
+            $('#modal-cancel-btn').on('click', function() {
+                hideUnknownItemModal();
+                showMessage("New item entry cancelled.", 'warning');
+            });
+
+
+            // Confirmation Modal Event Handlers
+            $('#confirm-cancel').on('click', hideConfirmModal);
+            $('#confirm-ok').on('click', function () {
+                if (pendingDeleteId) {
+                    deleteItem(pendingDeleteId);
+                }
+                hideConfirmModal();
+            });
         });
-        
-        // --- Dummy/Incomplete Functions (Required by other functions, omitted for brevity) ---
-        function setupFilterDropdowns() {} 
-        function applyFilter() {} 
+
+        // Ensure scanner stops when the page is unloaded (best practice)
+        window.onbeforeunload = function () {
+            stopScanner();
+        };
     </script>
 </body>
-
 </html>
