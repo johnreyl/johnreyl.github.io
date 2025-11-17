@@ -1,0 +1,1769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS System - Inventory & Sales Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+    <style>
+        /* Custom Tailwind Configuration (White & Blue Theme) */
+        :root {
+            --accent-color: #2563eb; /* Blue-600 for primary color */
+            --accent-light: #3b82f6; /* Blue-500 for hover */
+            --background-dark: #f3f4f6; /* Gray-100 for sections */
+            --text-dark: #1f2937; /* Gray-800 for main text */
+        }
+
+        /* Custom scrollbar to match the new light theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; /* Light gray track */
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 4px;
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: var(--accent-light);
+            }
+
+        /* Specific style for active/selected nav item (Desktop) */
+        .nav-item.active {
+            color: var(--accent-color);
+        }
+
+        /* Specific style for active report tab */
+        .report-tab.active-tab-class {
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        /* FIX for desktop nav underline */
+        @media (min-width: 768px) {
+            .nav-item.active .nav-text-desktop {
+                border-bottom: 2px solid var(--accent-color);
+            }
+        }
+
+        /* FIX: Minimum height and aspect ratio for product images */
+        .topic-item img {
+            min-height: 150px;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+        }
+        /* Style for selected archive letter */
+        .archive-letter.active {
+            background-color: var(--accent-color);
+            color: white; /* Text is white on blue background */
+        }
+
+        /* Custom list style for POS transaction steps */
+        .instruction-step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            background-color: #e5e7eb; /* Gray-200 for steps */
+            color: var(--text-dark);
+        }
+
+        .instruction-step-number {
+            flex-shrink: 0;
+            width: 2rem;
+            height: 2rem;
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 0.75rem;
+        }
+
+        /* Utility for limiting lines of text */
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Custom style for Inventory Stock/Sales Performance list */
+        .dos-list {
+            list-style-type: '📈 ';
+            margin-left: 1.5rem;
+        }
+
+        .donts-list {
+            list-style-type: '📉 ';
+            margin-left: 1.5rem;
+        }
+
+        /* --- STYLES FOR SCANNER AND MODALS --- */
+
+        /* Focus styles for inputs */
+        .theme-focus-blue-500:focus {
+            border-color: var(--accent-color); /* Blue-600 */
+            ring-color: var(--accent-color);
+        }
+
+        /* Custom CSS for the camera feed and responsiveness */
+        #scanner-container, #inventory-scanner-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+            background: #1f2937; /* Dark background */
+            border-radius: 0.5rem;
+        }
+
+            #scanner-container video, #inventory-scanner-container video {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+            /* The canvas used by Quagga2 for drawing detection lines */
+            #scanner-container canvas.drawingBuffer, #inventory-scanner-container canvas.drawingBuffer {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+            }
+
+        /* Modal Overlays Styling */
+        .modal-overlay {
+            background-color: rgba(17, 24, 39, 0.9); /* Darker overlay */
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none;
+        }
+
+            .modal-overlay.active {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+        .modal-dialog {
+            transform: scale(0.95);
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .modal-overlay.active .modal-dialog {
+            transform: scale(1);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-800">
+
+    <div id="confirm-modal" class="modal-overlay fixed inset-0 hidden items-center justify-center z-50" aria-modal="true" role="dialog">
+        <div class="modal-dialog bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full">
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">Confirm Action</h3>
+            <p id="confirm-message" class="text-sm text-gray-600 mb-6">Are you sure you want to proceed?</p>
+            <div class="flex justify-end space-x-3">
+                <button id="confirm-cancel" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition duration-150">Cancel</button>
+                <button id="confirm-ok" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-150">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="unknown-item-modal" class="modal-overlay fixed inset-0 hidden items-center justify-center z-50" aria-modal="true" role="dialog">
+        <div class="modal-dialog bg-white p-6 rounded-xl shadow-2xl max-w-lg w-full">
+            <h3 class="text-2xl font-bold text-gray-900 mb-2">Item Not Found</h3>
+            <p class="text-sm text-gray-600 mb-6">This item is not in the POS catalog. Please enter essential details to add it.</p>
+            <form id="unknown-item-form" class="space-y-4">
+                <input type="hidden" id="modal-barcode-input" name="barcode">
+                <div>
+                    <label for="modal-name" class="block text-sm font-medium text-gray-700">Product Name</label>
+                    <input type="text" id="modal-name" name="name" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition duration-150 ease-in-out">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="modal-quantity" class="block text-sm font-medium text-gray-700">Initial Stock Quantity</label>
+                        <input type="number" id="modal-quantity" name="quantity" required min="1" value="1" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition duration-150 ease-in-out">
+                    </div>
+                    <div>
+                        <label for="modal-price" class="block text-sm font-medium text-gray-700">Base Price ($)</label>
+                        <input type="number" id="modal-price" name="price" required min="0.01" step="0.01" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition duration-150 ease-in-out" placeholder="0.00">
+                    </div>
+                </div>
+                <button type="submit" id="save-item-btn" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition duration-150 ease-in-out">
+                    Add to Catalog & Cart
+                </button>
+            </form>
+            <div class="mt-4 text-center">
+                <button id="modal-cancel-btn" class="text-sm text-gray-500 hover:text-gray-700 transition duration-150">Cancel Transaction</button>
+            </div>
+        </div>
+    </div>
+
+
+    <header class="bg-gray-100 shadow-md sticky top-0 z-10">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-wrap md:flex-nowrap justify-between items-center py-4">
+                <div class="flex items-center space-x-2 order-1">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2h-1a2 2 0 00-2 2v2M4 7h16M4 17h16M8 4h8M4 20h16M6 7v10m12-10v10"></path></svg>
+                    <span class="text-xl font-bold text-gray-800">POS & Inventory</span>
+                </div>
+
+                <nav class="order-3 md:order-2 w-full mt-3 md:w-auto md:flex-grow md:mt-0 flex justify-between text-sm font-semibold md:border-t-0 md:border-b-0">
+
+                    <a href="#dashboard" class="nav-item active flex-1 flex flex-col items-center px-2 py-2 hover:text-blue-600 transition" data-page="home" title="Dashboard">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m13-2h-3.84L15 22h-6l-2.16-5H5a2 2 0 01-2-2V8a2 2 0 012-2h14a2 2 0 012 2v7z"></path></svg>
+                        <span class="nav-text-desktop hidden md:inline-block text-xs mt-1 pb-2">DASHBOARD</span>
+                        <span class="md:hidden text-xs mt-1">Home</span>
+                    </a>
+
+                    <a href="#sell" class="nav-item flex-1 flex flex-col items-center px-2 py-2 hover:text-blue-600 transition" data-page="sell" title="POS Terminal">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v1a3 3 0 01-3 3h-2a3 3 0 01-3-3v-1m3-4h.01M17 10h.01M12 10h.01M17 14h.01M12 14h.01M15 19H8.5a1.5 1.5 0 01-1.5-1.5v-10A1.5 1.5 0 018.5 6h7A1.5 1.5 0 0117 7.5v10A1.5 1.5 0 0115.5 19H15z"></path></svg>
+                        <span class="nav-text-desktop hidden md:inline-block text-xs mt-1 pb-2">POS SELL</span>
+                        <span class="md:hidden text-xs mt-1">POS</span>
+                    </a>
+
+                    <a href="#inventory" class="nav-item flex-1 flex flex-col items-center px-2 py-2 hover:text-blue-600 transition" data-page="topics" title="Inventory Index">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10m0-10l8-4m-8 4l-8-4"></path></svg>
+                        <span class="nav-text-desktop hidden md:inline-block text-xs mt-1 pb-2">INVENTORY</span>
+                        <span class="md:hidden text-xs mt-1">Stock</span>
+                    </a>
+
+                    <a href="#reports" class="nav-item flex-1 flex flex-col items-center px-2 py-2 hover:text-blue-600 transition" data-page="reports" title="Sales Reports">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+                        <span class="nav-text-desktop hidden md:inline-block text-xs mt-1 pb-2">REPORTS</span>
+                        <span class="md:hidden text-xs mt-1">Reports</span>
+                    </a>
+
+                    <a href="#suppliers" class="nav-item flex-1 flex flex-col items-center px-2 py-2 hover:text-blue-600 transition" data-page="suppliers" title="Supplier Management">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5m-5 0a2 2 0 100-4m0 4a2 2 0 110-4m-9-2h10m0-6a2 2 0 110-4m0 4a2 2 0 100-4m-9 14h6l2-2h-8m0 4h6l2-2h-8"></path></svg>
+                        <span class="nav-text-desktop hidden md:inline-block text-xs mt-1 pb-2">SUPPLIERS</span>
+                        <span class="md:hidden text-xs mt-1">Suppliers</span>
+                    </a>
+
+                    <a href="#transactions" class="nav-item flex-1 flex flex-col items-center px-2 py-2 hover:text-blue-600 transition" data-page="history" title="Recent Transactions">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zM9 13h6"></path></svg>
+                        <span class="nav-text-desktop hidden md:inline-block text-xs mt-1 pb-2">HISTORY</span>
+                        <span class="md:hidden text-xs mt-1">Sales</span>
+                    </a>
+                </nav>
+
+                <div class="flex items-center space-x-4 order-2 md:order-3">
+                    <button class="text-gray-600 hover:text-blue-600 transition hidden md:block">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.405L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    </button>
+                    <button id="fullscreen-btn" onclick="toggleFullScreen()" class="text-gray-600 hover:text-blue-600 transition hidden md:block">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 mb-20 md:mb-0">
+        <div id="message-container" class="fixed top-20 right-4 z-50 hidden"></div>
+        <div id="page-content">
+
+            <div id="page-home" class="page">
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Dashboard Summary 📊</h1>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-blue-600 text-white p-6 rounded-xl shadow-lg">
+                        <p class="text-sm font-medium opacity-80">Today's Sales</p>
+                        <p class="text-3xl font-extrabold mt-1">$<span id="stat-sales">1,250.00</span></p>
+                        <p class="text-xs mt-2 opacity-70">+4.5% vs Yesterday</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                        <p class="text-sm font-medium text-gray-500">Items Sold</p>
+                        <p class="text-3xl font-extrabold mt-1 text-gray-800"><span id="stat-items">145</span> units</p>
+                        <p class="text-xs mt-2 text-green-500">Top Seller: Headphones</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                        <p class="text-sm font-medium text-gray-500">Low Stock Alerts</p>
+                        <p class="text-3xl font-extrabold mt-1 text-red-600"><span id="stat-alerts">3</span> Items</p>
+                        <p class="text-xs mt-2 text-gray-500">Critical: Mechanical Keyboards</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 p-6 rounded-xl shadow-md border border-gray-200">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4 border-b border-gray-300 pb-2">Low Stock Items ⚠️</h2>
+                        <ul id="low-stock-list" class="divide-y divide-gray-200">
+                        </ul>
+                    </div>
+
+                    <div class="bg-gray-50 p-6 rounded-xl shadow-md border border-gray-200">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4 border-b border-gray-300 pb-2">Weekly Sales Performance Summary</h2>
+                        <div id="sales-performance">
+                            <ul class="space-y-3">
+                                <li class="dos-list text-gray-700">Highest grossing day was **Friday** ($4,500).</li>
+                                <li class="dos-list text-gray-700">Average transaction value increased by **12%** this week.</li>
+                                <li class="donts-list text-gray-700">Headphones stock is down to **45** units, reorder needed.</li>
+                                <li class="donts-list text-gray-700">USB-C Chargers had **15%** return rate due to packaging issues.</li>
+                            </ul>
+                            <p class="text-sm text-gray-500 mt-4 italic">Focus on maximizing Friday sales and addressing return issues.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-sell" class="page hidden">
+                <div class="lg:flex lg:space-x-8">
+
+                    <div class="lg:w-2/3">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-blue-600 pb-2">POS Terminal</h2>
+
+                        <div class="mt-4 p-4 bg-white rounded-lg shadow-md border border-gray-200">
+                            <h3 class="text-lg font-semibold mb-3 border-b pb-2 flex justify-between items-center">
+                                <span class="text-gray-800">Scan or Enter Barcode</span>
+                                <button id="scanner-toggle-btn" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                    <svg class="w-5 h-5 inline-block align-text-bottom mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664.89l1.366.505 1.761 1.056 1.761-1.056 1.366-.505A2 2 0 0017.07 7h.93a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                                    <span id="scanner-btn-text">Start Camera Scan</span>
+                                </button>
+                            </h3>
+                            <div id="scanner-panel" class="hidden mb-4">
+                                <div id="scanner-container">
+                                    <video class="border border-gray-300 rounded-lg shadow-inner"></video>
+                                    <canvas class="drawingBuffer w-full h-full"></canvas>
+                                </div>
+                                <p id="scanner-status" class="text-sm text-gray-500 mt-2">Ready to scan...</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <input type="text" id="pos-scan-input" placeholder="Enter Barcode or SKU" onkeyup="if(event.key === 'Enter') handleBarcodeInput(this.value)" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition">
+                                <button onclick="handleBarcodeInput($('#pos-scan-input').val());" class="bg-blue-600 text-white p-3 rounded hover:bg-blue-500 transition font-bold">Add Item</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-lg shadow-md border border-gray-200 mt-6">
+                            <h3 class="text-xl font-semibold mb-3 border-b border-gray-200 pb-2">Shopping Cart (<span id="cart-count">0</span> Items)</h3>
+                            <ul id="pos-cart-list" class="space-y-3 overflow-y-auto max-h-96">
+                                <li class="text-center text-gray-500 py-6" id="cart-empty-message">Cart is empty. Scan or enter an item.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="lg:w-1/3 p-4 bg-gray-50 border-l border-gray-200 rounded-lg shadow-md mt-6 lg:mt-0 sticky top-20 h-fit">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-blue-400 pb-2">Checkout</h3>
+
+                        <div class="space-y-2 text-gray-700 font-semibold mb-6">
+                            <div class="flex justify-between">
+                                <span>Subtotal:</span>
+                                <span id="pos-subtotal">$0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Tax (8%):</span>
+                                <span id="pos-tax">$0.00</span>
+                            </div>
+                            <div class="flex justify-between text-2xl font-extrabold text-blue-600 pt-2 border-t border-gray-300">
+                                <span>TOTAL:</span>
+                                <span id="pos-total">$0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label for="pos-cash-tendered" class="block text-sm font-medium text-gray-700">Cash Tendered ($)</label>
+                                <input type="number" id="pos-cash-tendered" placeholder="0.00" min="0" step="0.01" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <div class="flex justify-between font-bold text-lg">
+                                <span>Change Due:</span>
+                                <span id="pos-change-due" class="text-green-600">$0.00</span>
+                            </div>
+
+                            <button id="process-transaction-btn" onclick="processTransaction()" disabled class="w-full py-3 px-4 rounded-lg text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 transition font-bold text-lg shadow-lg">
+                                Process Transaction
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-topics" class="page hidden">
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Inventory Catalog 📦</h1>
+
+                <div class="flex justify-end space-x-3 mb-4">
+                    <button onclick="showScanItemModalForInventory()" class="bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 transition font-semibold flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 17h16M8 4h8M4 20h16M6 7v10m12-10v10"></path></svg>
+                        <span>Scan Item</span>
+                    </button>
+                    <button onclick="showInventoryModal()" class="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition font-semibold flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>Add Item</span>
+                    </button>
+                </div>
+
+                <div class="mb-6 p-4 bg-gray-100 rounded-xl shadow-inner border border-gray-200">
+                    <h2 class="text-xl font-semibold mb-3 text-gray-800">Search & Filter</h2>
+                    <div class="flex flex-col md:flex-row gap-3">
+                        <input type="text" id="inventory-search-input" onkeyup="filterInventory()" placeholder="Search by Name, Barcode, or SKU..." class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition">
+                        <select id="inventory-stock-filter" onchange="filterInventory()" class="p-3 border border-gray-300 rounded-lg md:w-1/4">
+                            <option value="all">Stock: All</option>
+                            <option value="low">Stock: Low (&lt;50)</option>
+                            <option value="out">Stock: Out (0)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="topic-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                </div>
+            </div>
+
+            <div id="page-reports" class="page hidden">
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Sales & Inventory Reports 📈</h1>
+
+                <div class="border-b border-gray-200">
+                    <nav class="flex space-x-4 -mb-px" id="reports-tabs">
+                        <button data-tab="duration" class="report-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-blue-600 hover:border-gray-300 transition duration-150 active-tab-class" onclick="showReportTab('duration')">Date Range</button>
+                        <button data-tab="daily" class="report-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-blue-600 hover:border-gray-300 transition duration-150" onclick="showReportTab('daily')">Daily</button>
+                        <button data-tab="weekly" class="report-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-blue-600 hover:border-gray-300 transition duration-150" onclick="showReportTab('weekly')">Weekly</button>
+                        <button data-tab="monthly" class="report-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-blue-600 hover:border-gray-300 transition duration-150" onclick="showReportTab('monthly')">Monthly</button>
+                    </nav>
+                </div>
+
+                <div id="report-content" class="mt-6 bg-gray-50 p-6 rounded-xl shadow-md border border-gray-200">
+
+                    <div id="tab-duration" class="report-tab-content">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Custom Date Range Report</h3>
+                        <div class="flex flex-col md:flex-row gap-4 mb-6">
+                            <input type="date" id="report-start-date" class="p-3 border rounded-lg md:w-1/3 theme-focus-blue-500" placeholder="Start Date">
+                            <input type="date" id="report-end-date" class="p-3 border rounded-lg md:w-1/3 theme-focus-blue-500" placeholder="End Date">
+                            <button onclick="generateCustomReport()" class="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 md:w-1/3 transition font-semibold">Generate Report</button>
+                        </div>
+                        <div id="duration-report-output" class="text-gray-600">
+                            <p>Use the date inputs to generate a report for a specific period.</p>
+                            <div class="mt-4 p-4 border rounded-lg bg-white">
+                                <p class="font-bold">Total Sales:</p>
+                                <p class="text-3xl text-blue-600">$0.00</p>
+                                <p class="mt-2 font-bold">Top Selling Item:</p>
+                                <p>N/A</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-daily" class="report-tab-content hidden">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Daily Sales Summary (Last 7 Days)</h3>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex justify-between p-2 border-b border-gray-200"><span>Today (Nov 18, 2025):</span> <span class="font-bold text-green-600">$1,250.00</span></li>
+                            <li class="flex justify-between p-2 border-b border-gray-200"><span>Yesterday (Nov 17, 2025):</span> <span class="font-bold">$1,200.00</span></li>
+                            <li class="flex justify-between p-2 border-b border-gray-200"><span>Sunday (Nov 16, 2025):</span> <span class="font-bold">$850.50</span></li>
+                            <li class="flex justify-between p-2 border-b border-gray-200"><span>Saturday (Nov 15, 2025):</span> <span class="font-bold">$1,550.00</span></li>
+                            <li class="text-sm text-gray-500 mt-4 italic">This mock data shows typical daily variance.</li>
+                        </ul>
+                    </div>
+
+                    <div id="tab-weekly" class="report-tab-content hidden">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Weekly Performance</h3>
+                        <p>Summaries for the last 4 weeks:</p>
+                        <ul class="space-y-2 text-gray-700 mt-2">
+                            <li class="flex justify-between p-2 border-b border-gray-200"><span>This Week:</span> <span class="font-bold text-green-600">$6,450.00</span></li>
+                            <li class="flex justify-between p-2 border-b border-gray-200"><span>Last Week:</span> <span class="font-bold">$5,800.00</span></li>
+                            <li class="flex justify-between p-2 border-b border-gray-200"><span>2 Weeks Ago:</span> <span class="font-bold">$6,120.00</span></li>
+                            <li class="text-sm text-gray-500 mt-4 italic">View total sales, average transaction value, and top-performing items by week.</li>
+                        </ul>
+                    </div>
+
+                    <div id="tab-monthly" class="report-tab-content hidden">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Monthly Sales Overview</h3>
+                        <p>Data by month:</p>
+                        <ul class="space-y-2 text-gray-700 mt-2">
+                            <li class="flex justify-between p-2 border-b border-gray-200"><span>November 2025 (Partial):</span> <span class="font-bold text-green-600">$25,100.00</span></li>
+                            <li class="flex justify-between p-2 border-b border-gray-200"><span>October 2025:</span> <span class="font-bold">$32,500.00</span></li>
+                            <li class="flex justify-between p-2 border-b border-gray-200"><span>September 2025:</span> <span class="font-bold">$30,800.00</span></li>
+                            <li class="text-sm text-gray-500 mt-4 italic">Compare stock turn rate and gross profit month-over-month.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-suppliers" class="page hidden">
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Supplier Management 🤝</h1>
+
+                <div class="border-b border-gray-200">
+                    <nav class="flex space-x-4 -mb-px" id="suppliers-tabs">
+                        <button data-tab="list" class="supplier-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-blue-600 hover:border-gray-300 transition duration-150 active-tab-class" onclick="showSupplierTab('list')">Supplier List</button>
+                        <button data-tab="add" class="supplier-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-blue-600 hover:border-gray-300 transition duration-150" onclick="showSupplierTab('add')">Add / Edit Supplier</button>
+                    </nav>
+                </div>
+
+                <div id="supplier-content" class="mt-6 bg-gray-50 p-6 rounded-xl shadow-md border border-gray-200">
+
+                    <div id="tab-list" class="supplier-tab-content">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Registered Suppliers</h3>
+                        <div class="mb-4">
+                            <input type="text" id="supplier-search-input" placeholder="Search suppliers..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition">
+                        </div>
+                        <ul id="supplier-list" class="divide-y divide-gray-200 bg-white rounded-lg shadow-sm">
+                            <li class="text-center text-gray-500 py-6" id="no-suppliers-message">No suppliers found.</li>
+                        </ul>
+                    </div>
+
+                    <div id="tab-add" class="supplier-tab-content hidden">
+                        <h3 id="add-supplier-title" class="text-xl font-semibold mb-4 text-gray-800">Register New Supplier</h3>
+                        <form id="add-supplier-form" class="space-y-4">
+                            <input type="hidden" id="supplier-id-input">
+                            <div>
+                                <label for="supplier-name" class="block text-sm font-medium text-gray-700">Supplier Name <span class="text-red-500">*</span></label>
+                                <input type="text" id="supplier-name" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition">
+                            </div>
+                            <div>
+                                <label for="supplier-contact" class="block text-sm font-medium text-gray-700">Contact Person</label>
+                                <input type="text" id="supplier-contact" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="supplier-phone" class="block text-sm font-medium text-gray-700">Phone</label>
+                                    <input type="tel" id="supplier-phone" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition">
+                                </div>
+                                <div>
+                                    <label for="supplier-email" class="block text-sm font-medium text-gray-700">Email <span class="text-red-500">*</span></label>
+                                    <input type="email" id="supplier-email" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="supplier-category" class="block text-sm font-medium text-gray-700">Category (e.g., 'Electronics', 'Peripherals')</label>
+                                <input type="text" id="supplier-category" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition">
+                            </div>
+                            <button type="submit" id="add-supplier-button" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition">
+                                Register Supplier
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-history" class="page hidden">
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Sales History 📜</h1>
+
+                <div class="flex justify-between items-center mb-4">
+                    <p class="text-lg text-gray-600">Review of past transactions:</p>
+                    <button id="clear-history" class="text-red-600 hover:text-red-800 text-sm font-medium" onclick="clearHistory()">Clear All History</button>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow-md border border-gray-200">
+                    <ul id="watched-history-list" class="divide-y divide-gray-200">
+                        <li class="text-center text-gray-500 py-6">No transactions recorded yet.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="detail-modal" class="fixed inset-0 hidden items-center justify-center z-50 modal-overlay" aria-modal="true" role="dialog">
+        <div class="modal-dialog bg-white p-8 rounded-xl shadow-2xl max-w-2xl w-full">
+            <div class="flex justify-between items-start mb-4">
+                <h3 id="modal-title" class="text-3xl font-bold text-gray-900"></h3>
+                <div class="flex items-center space-x-3">
+                    <div id="modal-header-actions">
+                    </div>
+                    <button id="close-modal" class="text-gray-400 hover:text-gray-600 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="flex space-x-6">
+                <img id="modal-image" src="" alt="Product Image" class="w-40 h-40 object-cover rounded-lg shadow">
+                <div>
+                    <p id="modal-price-stock" class="text-xl font-semibold text-blue-600 mb-3"></p>
+                    <p id="modal-description" class="text-gray-700 mb-4"></p>
+                    <p class="text-sm text-gray-500">ID: <span id="modal-id"></span> | Barcode: <span id="modal-barcode"></span> | Type: <span id="modal-type"></span></p>
+
+                </div>
+            </div>
+            <div class="mt-6 border-t pt-4">
+                <div id="inventory-actions"></div>
+                <h4 class="text-lg font-semibold mb-2">Inventory Actions:</h4>
+                <div id="modal-instructions" class="space-y-2">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="inventory-modal" class="modal-overlay fixed inset-0 hidden items-center justify-center z-50" aria-modal="true" role="dialog">
+        <div class="modal-dialog bg-white p-6 rounded-xl shadow-2xl max-w-xl w-full">
+            <div class="flex justify-between items-start mb-4">
+                <h3 id="inventory-modal-title" class="text-2xl font-bold text-gray-900">Add New Inventory Item</h3>
+                <button id="close-inventory-modal" class="text-gray-400 hover:text-gray-600 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="inventory-item-form" class="space-y-4">
+                <input type="hidden" id="inventory-item-id">
+                <div>
+                    <label for="item-name" class="block text-sm font-medium text-gray-700">Product Name <span class="text-red-500">*</span></label>
+                    <input type="text" id="item-name" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition">
+                </div>
+                <div>
+                    <label for="item-barcode" class="block text-sm font-medium text-gray-700">Barcode / SKU <span class="text-red-500">*</span></label>
+                    <input type="text" id="item-barcode" required class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition">
+                    <p class="text-xs text-gray-500 mt-1">Required for POS scanning.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="item-price" class="block text-sm font-medium text-gray-700">Base Price ($) <span class="text-red-500">*</span></label>
+                        <input type="number" id="item-price" required min="0.01" step="0.01" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition">
+                    </div>
+                    <div>
+                        <label for="item-stock" class="block text-sm font-medium text-gray-700">Stock Level <span class="text-red-500">*</span></label>
+                        <input type="number" id="item-stock" required min="-1" value="0" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition">
+                    </div>
+                </div>
+                <div>
+                    <label for="item-description" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea id="item-description" rows="3" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition"></textarea>
+                </div>
+
+                <button type="submit" id="save-item-button" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition">
+                    Save Inventory Item
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="quantity-modal" class="modal-overlay fixed inset-0 hidden items-center justify-center z-50" aria-modal="true" role="dialog">
+        <div class="modal-dialog bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full">
+            <h3 id="quantity-modal-title" class="text-xl font-semibold text-gray-900 mb-4">Update Quantity</h3>
+            <form id="quantity-update-form" class="space-y-4">
+                <input type="hidden" id="quantity-item-id">
+                <input type="hidden" id="quantity-max-stock">
+                <div>
+                    <label for="new-quantity" class="block text-sm font-medium text-gray-700">Set New Quantity</label>
+                    <input type="number" id="new-quantity" name="new_quantity" required min="1" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border theme-focus-blue-500 transition duration-150 ease-in-out">
+                    <p id="quantity-stock-info" class="text-xs text-gray-500 mt-1"></p>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="quantity-cancel-btn" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition duration-150">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-150">Update Cart</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="inventory-scan-modal" class="modal-overlay fixed inset-0 hidden items-center justify-center z-50" aria-modal="true" role="dialog">
+        <div class="modal-dialog bg-white p-6 rounded-xl shadow-2xl max-w-lg w-full">
+            <h3 class="text-2xl font-bold text-gray-900 mb-4">Scan Barcode for Inventory</h3>
+            <div id="inventory-scanner-container">
+                <video class="border border-gray-300 rounded-lg shadow-inner"></video>
+                <canvas class="drawingBuffer w-full h-full"></canvas>
+            </div>
+            <p id="inventory-scanner-status" class="text-sm text-gray-500 mt-2 text-center">Scanning...</p>
+            <div class="mt-6 flex justify-end">
+                <button id="inventory-scanner-cancel-btn" onclick="stopInventoryScanner()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition duration-150">Cancel Scan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let DATA = []; // Placeholder for JSON Data
+        let SUPPLIERS = [ // New array for supplier data
+            { id: 1, name: 'Tech Distributors Inc.', contact: 'Jane Doe', phone: '(555) 123-4567', email: 'jane@techdist.com', category: 'Hardware, Gadgets' },
+            { id: 2, name: 'Software Solutions Co.', contact: 'John Smith', phone: '(555) 987-6543', email: 'john@softsol.net', category: 'Software, Services' }
+        ];
+        let QuaggaRef = null;
+        let scannerRunning = false;
+        let inventoryScannerRunning = false;
+        let posCart = [];
+        let transactionHistory = [];
+
+        // --- Utility Functions ---
+
+        function showMessage(message, type = 'info') {
+            const container = $('#message-container');
+            container.empty();
+            const bgClass = type === 'error' ? 'bg-red-500' : (type === 'success' ? 'bg-green-500' : (type === 'warning' ? 'bg-yellow-500' : 'bg-blue-600'));
+            const html = `<div class="p-3 text-sm rounded-lg text-white ${bgClass} shadow-xl">${message}</div>`;
+            container.html(html).removeClass('hidden');
+            setTimeout(() => container.addClass('hidden'), 3000);
+        }
+
+        function showConfirmModal(message, callback) {
+            $('#confirm-message').html(message); // Use html() to allow formatting like **bold**
+            $('#confirm-ok').off('click').on('click', function () {
+                callback(true);
+                hideConfirmModal();
+            });
+            $('#confirm-cancel').off('click').on('click', function () {
+                callback(false);
+                hideConfirmModal();
+            });
+            $('#confirm-modal').addClass('active').removeClass('hidden').css('display', 'flex');
+        }
+
+        function hideConfirmModal() {
+            $('#confirm-modal').removeClass('active').addClass('hidden').css('display', 'none');
+        }
+
+        function showUnknownItemModal(barcode) {
+            $('#modal-barcode-input').val(barcode);
+            $('#unknown-item-modal').addClass('active').removeClass('hidden').css('display', 'flex');
+        }
+
+        function hideUnknownItemModal() {
+            $('#unknown-item-modal').removeClass('active').addClass('hidden').css('display', 'none');
+            $('#unknown-item-form')[0].reset();
+        }
+
+        function findProductInCatalog(identifier) {
+            const idLower = identifier ? identifier.toString().toLowerCase() : '';
+            if (!idLower) return null;
+
+            // Search by barcode, ID, or partial title match
+            const product = DATA.find(item =>
+                (item.barcode && item.barcode.toLowerCase() === idLower) || // Exact barcode match
+                (item.id && item.id.toString() === idLower) || // Exact ID match
+                (item.id && item.id.toString() === identifier.toString()) || // Search by ID (numeric or string)
+                (item.title && item.title.toLowerCase().includes(idLower)) // Partial title match
+            );
+            return product;
+        }
+
+        function saveDataToStorage() {
+            // Placeholder: In a real app, this saves to a database.
+            console.log("Catalog updated. New item added/updated in DATA.");
+        }
+
+        function saveItem(itemData) {
+            let existingItem = findProductInCatalog(itemData.barcode);
+
+            if (existingItem) {
+                if (itemData.name && itemData.name !== existingItem.title) existingItem.title = itemData.name;
+                if (itemData.price > 0 && itemData.price !== existingItem.basePrice) existingItem.basePrice = itemData.price;
+                showMessage(`Updated catalog item and adding to cart: ${existingItem.title}`, 'info');
+            } else {
+                const newId = DATA.length > 0 ? Math.max(...DATA.map(i => i.id)) + 1 : 1000;
+                const newItem = {
+                    id: newId,
+                    title: itemData.name,
+                    type: 'SKU',
+                    basePrice: itemData.price,
+                    stockLevel: itemData.quantity,
+                    barcode: itemData.barcode,
+                    image: 'https://placehold.co/150x150/2563eb/ffffff?text=NEW+ITEM',
+                    description: 'Newly added item via POS terminal scan.',
+                };
+                DATA.push(newItem);
+                existingItem = newItem;
+                showMessage(`New item added to catalog: ${newItem.title}`, 'success');
+            }
+
+            saveDataToStorage();
+            addItemToCart(existingItem.barcode);
+            filterInventory(); // Rerender inventory list if needed
+        }
+
+        // --- Scanner Logic ---
+
+        function startScanner() {
+            if (scannerRunning || !window.Quagga) return;
+
+            QuaggaRef = window.Quagga;
+
+            const config = {
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector('#scanner-container'),
+                    constraints: {
+                        width: { min: 640, ideal: 1280 },
+                        height: { min: 480, ideal: 720 },
+                        facingMode: "environment"
+                    },
+                },
+                decoder: {
+                    readers: ["ean_reader", "upc_reader", "ean_8_reader", "upc_e_reader", "code_39_reader", "code_128_reader"],
+                    multiple: false
+                },
+                locator: { patchSize: "medium", halfSample: true },
+                numOfWorkers: (navigator.hardwareConcurrency || 4) / 2,
+                locate: true
+            };
+
+            QuaggaRef.init(config, function (err) {
+                if (err) {
+                    console.error("Quagga initialization error:", err);
+                    showMessage('Camera failed to start. Check permissions.', 'error');
+                    $('#scanner-toggle-btn').prop('disabled', true);
+                    return;
+                }
+                QuaggaRef.start();
+                scannerRunning = true;
+                $('#scanner-panel').slideDown();
+                $('#scanner-btn-text').text('Stop Camera Scan');
+                $('#scanner-status').text('Scanning for barcodes...');
+            });
+
+            QuaggaRef.onDetected(handleScannedBarcode);
+        }
+
+        function stopScanner() {
+            console.log(scannerRunning);
+            if (scannerRunning && QuaggaRef) {
+                QuaggaRef.stop();
+                scannerRunning = false;
+                $('#scanner-panel').slideUp();
+                $('#scanner-btn-text').text('Start Camera Scan');
+                $('#scanner-status').text('Ready to scan...');
+                QuaggaRef = null;
+            }
+        }
+
+        let lastScanTime = 0;
+        const scanInterval = 1000;
+
+        function handleScannedBarcode(result) {
+            const currentTime = Date.now();
+
+            if (currentTime - lastScanTime < scanInterval) {
+                return;
+            }
+            lastScanTime = currentTime;
+
+            const barcode = result.codeResult.code;
+
+            showMessage(`Scanned: ${barcode}. Adding to cart.`, 'success');
+            stopScanner();
+            handleBarcodeInput(barcode);
+        }
+
+        function handleBarcodeInput(identifier) {
+            if (!identifier || identifier.trim() === '') {
+                showMessage('Please enter a barcode or SKU.', 'error');
+                return;
+            }
+            $('#pos-scan-input').val('');
+
+            const product = findProductInCatalog(identifier);
+
+            if (product) {
+                addItemToCart(identifier);
+            } else {
+                showUnknownItemModal(identifier);
+            }
+        }
+
+        // --- POS & Cart Logic ---
+        function stopInventoryScanner() {
+            if (inventoryScannerRunning && window.Quagga) {
+                window.Quagga.stop();
+                inventoryScannerRunning = false;
+                $('#inventory-scan-modal').removeClass('active').addClass('hidden').css('display', 'none');
+                showMessage('Inventory scan stopped.', 'info');
+            }
+        }
+
+        function handleInventoryScanResult(barcode) {
+            stopInventoryScanner(); // Stop scanning after successful detection
+
+            if (!barcode) {
+                showMessage('Barcode scan failed. Please try again.', 'error');
+                return;
+            }
+
+            const product = findProductInCatalog(barcode);
+
+            if (product) {
+                // Item exists -> Show Edit Item Modal
+                showMessage(`Item **${product.title}** found. Opening edit modal.`, 'success');
+                showInventoryModal(product.id); // Show edit modal for existing item
+            } else {
+                // Item is new / not found -> Show Add Item Modal with barcode prefilled
+                showMessage(`Barcode **${barcode}** not found. Opening Add Item modal.`, 'warning');
+                showInventoryModal(null, barcode); // Show add item modal with prefilled barcode
+            }
+        }
+
+        function startInventoryScanner() {
+            if (inventoryScannerRunning || !window.Quagga) return;
+
+            QuaggaRef = window.Quagga;
+
+            const config = {
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector('#inventory-scanner-container'),
+                    constraints: {
+                        width: { min: 640, ideal: 1280 },
+                        height: { min: 480, ideal: 720 },
+                        facingMode: "environment"
+                    },
+                },
+                decoder: {
+                    readers: ["ean_reader", "upc_reader", "ean_8_reader", "upc_e_reader", "code_39_reader", "code_128_reader"],
+                    multiple: false
+                },
+                locator: { patchSize: "medium", halfSample: true },
+                numOfWorkers: (navigator.hardwareConcurrency || 4) / 2,
+                locate: true
+            };
+
+            QuaggaRef.init(config, function (err) {
+                if (err) {
+                    console.error(err);
+                    $('#inventory-scanner-status').text('Error starting scanner: ' + err.message);
+                    showMessage('Error starting camera for scan. Please check permissions.', 'error');
+                    return;
+                }
+                QuaggaRef.start();
+                inventoryScannerRunning = true;
+                $('#inventory-scanner-status').text('Scanning for barcode...');
+                $('#inventory-scan-modal').removeClass('hidden').addClass('active').css('display', 'flex');
+            });
+
+            // Barcode detection event listener
+            /*QuaggaRef.onDetected(function (result) {
+                if (inventoryScannerRunning) {
+                    const barcode = result.codeResult.code;
+                    handleInventoryScanResult(barcode);
+                }
+            });*/
+
+            QuaggaRef.onDetected(handleInventoryScanResult);
+        }
+
+        function showScanItemModalForInventory() {
+            startInventoryScanner();
+        }
+
+        function addItemToCart(identifier, quantity = 1) {
+            const product = findProductInCatalog(identifier);
+
+            if (!product) {
+                showMessage('Item not found in catalog.', 'error');
+                return;
+            }
+
+            // Check stock availability
+            if (product.stockLevel >= 0 && product.stockLevel < 1) {
+                showMessage(`Item **${product.title}** is currently out of stock.`, 'error');
+                return;
+            }
+
+            const existingItem = posCart.find(item => item.id === product.id);
+
+            if (existingItem) {
+                if (product.stockLevel >= 0 && existingItem.quantity + quantity > product.stockLevel) {
+                    showMessage(`Cannot add more. Only ${product.stockLevel} units of **${product.title}** in stock.`, 'error');
+                    return;
+                }
+                existingItem.quantity += quantity;
+                showMessage(`Added 1 more of ${product.title}`, 'info');
+            } else {
+                if (product.stockLevel >= 0 && quantity > product.stockLevel) {
+                    showMessage(`Cannot add. Only ${product.stockLevel} units of **${product.title}** in stock.`, 'error');
+                    return;
+                }
+                posCart.push({
+                    id: product.id,
+                    title: product.title,
+                    price: product.basePrice,
+                    quantity: quantity
+                });
+                showMessage(`Added ${product.title} to cart.`, 'success');
+            }
+            renderCart();
+        }
+
+        function updateCartQuantity(id, value, type = 'change') {
+            const item = posCart.find(item => item.id === id);
+            const product = findProductInCatalog(id); // Check product for stock
+            if (item) {
+                let newQuantity;
+                if (type === 'change') {
+                    newQuantity = item.quantity + value;
+                } else if (type === 'set') {
+                    newQuantity = value;
+                }
+
+                // Stock check
+                if (product.stockLevel >= 0 && newQuantity > product.stockLevel) {
+                    showMessage(`Cannot set quantity to ${newQuantity}. Only ${product.stockLevel} available in stock.`, 'error');
+                    return;
+                }
+
+                item.quantity = newQuantity;
+
+                if (item.quantity <= 0) {
+                    posCart = posCart.filter(i => i.id !== id);
+                }
+                renderCart();
+            }
+        }
+
+        function renderCart() {
+            const list = $('#pos-cart-list');
+            list.empty();
+
+            if (posCart.length === 0) {
+                $('#cart-empty-message').remove();
+                list.append('<li class="text-center text-gray-500 py-6" id="cart-empty-message">Cart is empty. Scan or enter an item.</li>');
+                $('#cart-count').text('0');
+            } else {
+                $('#cart-empty-message').remove();
+                let totalItems = 0;
+                posCart.forEach(item => {
+                    totalItems += item.quantity;
+                    const itemTotal = (item.quantity * item.price);
+
+                    // Note: The item details area is now clickable to open the quantity modal
+                    const html = `
+                                    <li class="flex justify-between items-center p-3 bg-gray-100 rounded hover:bg-gray-200 transition">
+                                        <div class="flex-grow cursor-pointer" onclick="showQuantityModal(${item.id})">
+                                            <p class="font-medium text-gray-800">${item.title}</p>
+                                            <p class="text-sm text-gray-500">$${item.price.toFixed(2)} x <span class="font-bold text-blue-600">${item.quantity}</span></p>
+                                        </div>
+                                        <div class="flex items-center space-x-3 flex-shrink-0">
+                                            <span class="text-lg font-semibold text-gray-800">$${itemTotal.toFixed(2)}</span>
+                                            <button onclick="updateCartQuantity(${item.id}, 1)" title="Add one more" class="text-blue-600 hover:text-blue-800 w-6 h-6 rounded-full bg-white border border-blue-600 leading-none">+</button>
+                                            <button onclick="updateCartQuantity(${item.id}, -1)" title="Remove one" class="text-red-600 hover:text-red-800 w-6 h-6 rounded-full bg-white border border-red-600 leading-none">-</button>
+                                        </div>
+                                    </li>
+                                `;
+                    list.append(html);
+                });
+                $('#cart-count').text(totalItems);
+            }
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            let subtotal = posCart.reduce((sum, item) => sum + item.quantity * item.price, 0);
+            const taxRate = 0.08;
+            const tax = subtotal * taxRate;
+            const total = subtotal + tax;
+
+            $('#pos-subtotal').text(`$${subtotal.toFixed(2)}`);
+            $('#pos-tax').text(`$${tax.toFixed(2)}`);
+            $('#pos-total').text(`$${total.toFixed(2)}`);
+
+            const cashTendered = parseFloat($('#pos-cash-tendered').val()) || 0;
+            const changeDue = cashTendered - total;
+
+            $('#pos-change-due').text(`$${Math.max(0, changeDue).toFixed(2)}`);
+            $('#pos-change-due').toggleClass('text-red-600', changeDue < 0).toggleClass('text-green-600', changeDue >= 0);
+
+            const canProcess = total > 0 && changeDue >= 0;
+            $('#process-transaction-btn').prop('disabled', !canProcess);
+        }
+
+        function processTransaction() {
+            if (posCart.length === 0) {
+                showMessage('Cart is empty. Cannot process transaction.', 'error');
+                return;
+            }
+            const total = parseFloat($('#pos-total').text().replace('$', ''));
+            const cashTendered = parseFloat($('#pos-cash-tendered').val()) || 0;
+            const changeDue = cashTendered - total;
+
+            if (changeDue < 0) {
+                showMessage('Insufficient cash tendered.', 'error');
+                return;
+            }
+
+            const transaction = {
+                id: Date.now(),
+                items: posCart,
+                total: total,
+                tendered: cashTendered,
+                change: changeDue,
+                date: new Date().toISOString()
+            };
+            transactionHistory.push(transaction);
+
+            // Deduct stock (simplified)
+            posCart.forEach(cartItem => {
+                const catalogItem = DATA.find(d => d.id === cartItem.id);
+                if (catalogItem && catalogItem.stockLevel >= 0) { // Only deduct for non-service items
+                    catalogItem.stockLevel -= cartItem.quantity;
+                }
+            });
+
+            posCart = [];
+            $('#pos-cash-tendered').val('');
+            renderCart();
+            renderWatchedHistory();
+            filterInventory(); // Re-render inventory to show updated stock levels
+
+            showMessage(`Transaction Complete! Change Due: $${changeDue.toFixed(2)}`, 'success');
+        }
+
+        // --- Quantity Modal Logic ---
+
+        function showQuantityModal(id) {
+            const cartItem = posCart.find(item => item.id === id);
+            if (!cartItem) return;
+
+            const catalogItem = findProductInCatalog(id);
+            // Use 9999 as a sentinel value for unlimited stock (service items or unmanaged)
+            const maxStock = catalogItem && catalogItem.stockLevel >= 0 ? catalogItem.stockLevel : 9999;
+
+            $('#quantity-modal-title').text(`Update Quantity for: ${cartItem.title}`);
+            $('#quantity-item-id').val(cartItem.id);
+            $('#new-quantity').val(cartItem.quantity);
+            $('#new-quantity').attr('max', maxStock !== 9999 ? maxStock : ''); // Set max if it's a stocked item
+            $('#quantity-max-stock').val(maxStock);
+
+            const stockInfo = maxStock === 9999 ? 'Non-stocked item (service or unlimited stock).' : `Max stock available: ${maxStock}`;
+            $('#quantity-stock-info').text(stockInfo);
+
+            $('#quantity-modal').addClass('active').removeClass('hidden').css('display', 'flex');
+        }
+
+        function hideQuantityModal() {
+            $('#quantity-modal').removeClass('active').addClass('hidden').css('display', 'none');
+        }
+
+
+        // --- Inventory Logic ---
+
+        function renderInventory(filteredData = DATA) {
+            const list = $('#topic-list');
+            list.empty();
+
+            if (filteredData.length === 0) {
+                list.append('<p class="col-span-full text-center text-gray-500 py-10">No items match the current search or filter criteria.</p>');
+                return;
+            }
+
+            filteredData.forEach(item => {
+                let stockColor = 'bg-green-500';
+                if (item.stockLevel <= 50 && item.stockLevel > 0) {
+                    stockColor = 'bg-yellow-500';
+                } else if (item.stockLevel === 0) {
+                    stockColor = 'bg-red-500';
+                } else if (item.stockLevel < 0) {
+                    stockColor = 'bg-gray-500';
+                }
+
+                const stockText = item.stockLevel >= 0 ? `${item.stockLevel} in Stock` : 'Service Item';
+                const stockBadge = `<span class="absolute top-0 right-0 px-3 py-1 text-xs font-semibold rounded-full text-white ${stockColor} shadow-md">${stockText}</span>`;
+                /*const imageSection = `<div class="relative">
+                            <img src="${item.image}" onerror="this.onerror=null;this.src='https://placehold.co/400x300/e0e0e0/333333?text=Image';" alt="${item.title}" class="w-full h-40 object-cover">
+                            ${stockBadge}
+                        </div>`;*/
+                const html = `
+                                <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300 overflow-hidden border border-gray-100 cursor-pointer topic-item" onclick="showTopicModal(${item.id})">
+
+                                    <div class="p-4 relative">
+                                        ${stockBadge}
+                                        <h3 class="text-lg font-bold text-gray-800 mb-1 line-clamp-2 mt-2" title="${item.title}">${item.title} </h3>
+                                        <p class="text-2xl font-extrabold text-blue-600 mb-2">$${item.basePrice.toFixed(2)}</p>
+                                        <p class="text-sm text-gray-500 line-clamp-3">${item.description}</p>
+                                        <button onclick="event.stopPropagation(); addItemToCart('${item.barcode}', 1)" class="mt-3 w-full bg-blue-100 text-blue-700 py-2 rounded-lg text-sm font-semibold hover:bg-blue-200 transition">
+                                            Add to Cart
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                list.append(html);
+            });
+        }
+
+        function filterInventory() {
+            const searchTerm = $('#inventory-search-input').val().toLowerCase().trim();
+            const stockFilter = $('#inventory-stock-filter').val();
+
+            let filteredData = DATA.filter(item => {
+                // 1. Search by Term
+                const matchesSearch = item.title.toLowerCase().includes(searchTerm) ||
+                    (item.barcode && item.barcode.toLowerCase().includes(searchTerm)) ||
+                    (item.id && item.id.toString().includes(searchTerm));
+
+                if (!matchesSearch) return false;
+
+                // 2. Filter by Stock Level
+                if (stockFilter === 'low') {
+                    return item.stockLevel > 0 && item.stockLevel <= 50;
+                } else if (stockFilter === 'out') {
+                    return item.stockLevel === 0;
+                }
+                return true;
+            });
+
+            renderInventory(filteredData);
+            // Also update the low stock list on the dashboard
+            const lowStockIds = DATA.filter(item => item.stockLevel > 0 && item.stockLevel <= 50).map(item => item.id);
+            renderLowStockItems(lowStockIds);
+        }
+
+        function deleteInventoryItem(id, title) {
+            showConfirmModal(`Are you sure you want to **permanently delete** the inventory item: **${title}**? This action is irreversible and will remove it from the catalog.`, (confirmed) => {
+                if (confirmed) {
+                    DATA = DATA.filter(item => item.id !== id);
+                    filterInventory(); // Re-render the list
+                    $('#detail-modal').removeClass('active').addClass('hidden').css('display', 'none'); // Close detail modal
+                    showMessage(`Item "${title}" deleted from catalog.`, 'success');
+                }
+            });
+        }
+
+        // --- History Logic ---
+
+        function renderWatchedHistory() {
+            const list = $('#watched-history-list');
+            list.empty();
+
+            if (transactionHistory.length === 0) {
+                list.append('<li class="text-center text-gray-500 py-6">No transactions recorded yet.</li>');
+                return;
+            }
+
+            // Render in reverse chronological order
+            [...transactionHistory].reverse().forEach(transaction => {
+                const date = new Date(transaction.date).toLocaleString();
+                const totalItems = transaction.items.reduce((sum, item) => sum + item.quantity, 0);
+
+                const html = `
+                                <li class="p-4 hover:bg-gray-50 transition">
+                                    <div class="flex justify-between items-center">
+                                        <p class="font-semibold text-gray-800">Transaction #${transaction.id}</p>
+                                        <span class="text-xl font-bold text-green-600">$${transaction.total.toFixed(2)}</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-1">
+                                        ${totalItems} items sold | ${date}
+                                    </p>
+                                    <ul class="text-xs text-gray-500 mt-2 list-disc list-inside">
+                                        ${transaction.items.map(item => `<li>${item.title} x${item.quantity} ($${item.price.toFixed(2)} each)</li>`).join('')}
+                                    </ul>
+                                </li>
+                            `;
+                list.append(html);
+            });
+        }
+
+        function clearHistory() {
+            showConfirmModal("Are you sure you want to delete all sales history? This action cannot be undone.", (confirmed) => {
+                if (confirmed) {
+                    transactionHistory = [];
+                    renderWatchedHistory();
+                    showMessage("Sales history cleared.", 'success');
+                }
+            });
+        }
+
+        // --- Reports Logic ---
+
+        function showReportTab(tabName) {
+            $('.report-tab-content').addClass('hidden');
+            $(`#tab-${tabName}`).removeClass('hidden');
+
+            $('.report-tab').removeClass('active-tab-class').addClass('border-transparent');
+            $(`.report-tab[data-tab="${tabName}"]`).addClass('active-tab-class').removeClass('border-transparent');
+        }
+
+        function generateCustomReport() {
+            const startDate = $('#report-start-date').val();
+            const endDate = $('#report-end-date').val();
+
+            if (!startDate || !endDate) {
+                showMessage('Please select both a start and end date for the custom report.', 'warning');
+                return;
+            }
+
+            // Mock calculation and display
+            const days = Math.round((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24));
+            const totalSales = (days * 1500 + Math.random() * 500).toFixed(2);
+            const topItem = DATA[Math.floor(Math.random() * DATA.length)].title;
+
+            $('#duration-report-output').html(`
+                            <p class="text-gray-700">Report generated for **${startDate}** to **${endDate}** (${days + 1} days).</p>
+                            <div class="mt-4 p-4 border border-blue-200 rounded-lg bg-white shadow-md">
+                                <p class="font-bold text-gray-800">Total Sales:</p>
+                                <p class="text-4xl font-extrabold text-blue-600">$${totalSales}</p>
+                                <p class="mt-4 font-bold text-gray-800">Top Selling Item:</p>
+                                <p class="text-lg text-green-600">${topItem}</p>
+                            </div>
+                        `);
+            showMessage('Custom Report Generated.', 'success');
+        }
+
+        // --- Supplier Logic ---
+
+        function showSupplierTab(tabName) {
+            $('.supplier-tab-content').addClass('hidden');
+            $(`#tab-${tabName}`).removeClass('hidden');
+
+            // If switching away from the add/edit tab, reset its state
+            if (tabName !== 'add') {
+                $('#add-supplier-form')[0].reset();
+                $('#supplier-id-input').val(''); // Clear the hidden ID input
+                $('#add-supplier-button').text('Register Supplier'); // Reset button text
+                $('#add-supplier-title').text('Register New Supplier'); // Reset title
+            }
+
+            $('.supplier-tab').removeClass('active-tab-class').addClass('border-transparent');
+            $(`.supplier-tab[data-tab="${tabName}"]`).addClass('active-tab-class').removeClass('border-transparent');
+        }
+
+        function renderSuppliers(filteredData = SUPPLIERS) {
+            const list = $('#supplier-list');
+            list.empty();
+
+            if (filteredData.length === 0) {
+                list.append('<li class="text-center text-gray-500 py-6" id="no-suppliers-message">No suppliers found.</li>');
+                return;
+            }
+            $('#no-suppliers-message').remove();
+
+            filteredData.forEach(supplier => {
+                const html = `
+                            <li class="flex justify-between items-center p-4 hover:bg-gray-100 transition">
+                                <div class="flex-grow">
+                                    <p class="font-bold text-lg text-gray-800">${supplier.name}</p>
+                                    <p class="text-sm text-gray-500">Contact: ${supplier.contact} | ${supplier.phone || supplier.email}</p>
+                                    <p class="text-xs text-blue-600 font-semibold mt-1">${supplier.category || 'General'}</p>
+                                </div>
+                                <div class="flex space-x-2 flex-shrink-0">
+                                    <button onclick="editSupplier(${supplier.id})" class="px-3 py-1 text-xs font-semibold rounded-lg bg-yellow-400 text-gray-800 hover:bg-yellow-500 transition">Edit</button>
+                                    <button onclick="deleteSupplier(${supplier.id}, '${supplier.name}')" class="px-3 py-1 text-xs font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 transition">Delete</button>
+                                </div>
+                            </li>
+                        `;
+                list.append(html);
+            });
+        }
+
+        function filterSuppliers() {
+            const searchTerm = $('#supplier-search-input').val().toLowerCase().trim();
+
+            let filteredData = SUPPLIERS.filter(supplier => {
+                return supplier.name.toLowerCase().includes(searchTerm) ||
+                    supplier.contact.toLowerCase().includes(searchTerm) ||
+                    (supplier.category && supplier.category.toLowerCase().includes(searchTerm));
+            });
+
+            renderSuppliers(filteredData);
+        }
+
+        function handleSupplierFormSubmit(name, contact, phone, email, category, id = null) {
+            if (id) {
+                // Update existing supplier
+                const index = SUPPLIERS.findIndex(s => s.id === id);
+                if (index !== -1) {
+                    SUPPLIERS[index] = { ...SUPPLIERS[index], name, contact, phone, email, category };
+                    showMessage(`Supplier "${name}" updated successfully.`, 'success');
+                }
+            } else {
+                // Add new supplier
+                const newId = SUPPLIERS.length > 0 ? Math.max(...SUPPLIERS.map(s => s.id)) + 1 : 1;
+                const newSupplier = { id: newId, name, contact, phone, email, category };
+                SUPPLIERS.push(newSupplier);
+                showMessage(`Supplier "${name}" added successfully.`, 'success');
+            }
+
+            renderSuppliers();
+            showSupplierTab('list'); // Switch to the list view
+        }
+
+        function editSupplier(id) {
+            const supplier = SUPPLIERS.find(s => s.id === id);
+            if (!supplier) {
+                showMessage('Supplier not found.', 'error');
+                return;
+            }
+
+            // Set form fields for edit
+            $('#supplier-name').val(supplier.name);
+            $('#supplier-contact').val(supplier.contact);
+            $('#supplier-phone').val(supplier.phone);
+            $('#supplier-email').val(supplier.email);
+            $('#supplier-category').val(supplier.category);
+            $('#supplier-id-input').val(supplier.id); // Hidden field to hold ID
+
+            // Change UI for edit mode
+            $('#add-supplier-button').text('Update Supplier');
+            $('#add-supplier-title').text(`Edit Supplier: ${supplier.name}`);
+
+            showSupplierTab('add');
+        }
+
+        function deleteSupplier(id, name) {
+            showConfirmModal(`Are you sure you want to delete supplier: **${name}**? This action is irreversible.`, (confirmed) => {
+                if (confirmed) {
+                    SUPPLIERS = SUPPLIERS.filter(s => s.id !== id);
+                    renderSuppliers();
+                    showMessage(`Supplier "${name}" deleted.`, 'success');
+                }
+            });
+        }
+
+        // --- Inventory Modal Logic ---
+
+        function showInventoryModal(id = null) {
+            const modal = $('#inventory-modal');
+            const form = $('#inventory-item-form');
+            form[0].reset(); // Clear form
+
+            if (id) {
+                const item = DATA.find(i => i.id === id);
+                if (!item) {
+                    showMessage('Item not found for editing.', 'error');
+                    return;
+                }
+                $('#inventory-modal-title').text(`Edit Item: ${item.title}`);
+                $('#inventory-item-id').val(item.id);
+                $('#item-name').val(item.title);
+                $('#item-barcode').val(item.barcode);
+                $('#item-price').val(item.basePrice);
+                $('#item-stock').val(item.stockLevel);
+                $('#item-description').val(item.description);
+                $('#save-item-button').text('Update Inventory Item');
+            } else {
+                $('#inventory-modal-title').text('Add New Inventory Item');
+                $('#inventory-item-id').val('');
+                $('#save-item-button').text('Save Inventory Item');
+            }
+
+            modal.addClass('active').removeClass('hidden').css('display', 'flex');
+        }
+
+        function editItemFromDetail(id) {
+            $('#detail-modal').removeClass('active').addClass('hidden').css('display', 'none');
+            showInventoryModal(id);
+        }
+
+        function saveInventoryItem(itemData) {
+            const isUpdate = itemData.id !== null;
+
+            if (isUpdate) {
+                // Update existing item
+                const index = DATA.findIndex(i => i.id === itemData.id);
+                if (index !== -1) {
+                    DATA[index] = {
+                        ...DATA[index],
+                        title: itemData.title,
+                        barcode: itemData.barcode,
+                        basePrice: itemData.basePrice,
+                        stockLevel: itemData.stockLevel,
+                        description: itemData.description,
+                        type: itemData.stockLevel < 0 ? 'Service' : 'SKU' // Auto-detect type
+                    };
+                    showMessage(`Inventory item "${itemData.title}" updated successfully.`, 'success');
+                }
+            } else {
+                // Add new item
+                const newId = DATA.length > 0 ? Math.max(...DATA.map(i => i.id)) + 1 : 1000;
+                const newItem = {
+                    id: newId,
+                    title: itemData.title,
+                    type: itemData.stockLevel < 0 ? 'Service' : 'SKU',
+                    basePrice: itemData.basePrice,
+                    stockLevel: itemData.stockLevel,
+                    barcode: itemData.barcode,
+                    image: 'https://placehold.co/150x150/065f46/ffffff?text=CUSTOM+ITEM', // New default image
+                    description: itemData.description,
+                };
+                DATA.push(newItem);
+                showMessage(`New inventory item "${itemData.title}" added to catalog.`, 'success');
+            }
+
+            // After saving, re-render the inventory list
+            filterInventory();
+
+            // Close modal
+            $('#inventory-modal').removeClass('active').addClass('hidden').css('display', 'none');
+        }
+
+
+        // --- Navigation & Page Control ---
+
+        function smoothScrollToTop() {
+            $('html, body').animate({ scrollTop: 0 }, 300);
+        }
+
+        function showPage(pageId) {
+            $('.page').addClass('hidden');
+            $('#' + pageId).removeClass('hidden');
+
+            $('.nav-item').removeClass('active');
+            $(`.nav-item[data-page="${pageId.replace('page-', '')}"]`).addClass('active');
+
+            if (pageId === 'page-topics') {
+                filterInventory(); // Rerender inventory when page is shown
+            } else if (pageId === 'page-reports') {
+                showReportTab('duration'); // Ensure default tab is active
+            } else if (pageId === 'page-suppliers') {
+                showSupplierTab('list'); // Ensure default tab is active
+                renderSuppliers();
+            }
+
+            if (pageId !== 'page-sell' && scannerRunning) {
+                stopScanner();
+            }
+        }
+
+        function renderLowStockItems(lowStockIds) {
+            const list = $('#low-stock-list');
+            list.empty();
+            if (lowStockIds.length === 0) {
+                list.append('<li class="py-3 text-gray-500">No low stock alerts.</li>');
+                return;
+            }
+            lowStockIds.forEach(id => {
+                const item = DATA.find(i => i.id === id);
+                if (item) {
+                    list.append(`
+                                    <li class="flex justify-between items-center py-3">
+                                        <span class="font-medium text-gray-800">${item.title}</span>
+                                        <span class="text-sm text-red-600 font-bold">${item.stockLevel} units left</span>
+                                    </li>
+                                `);
+                }
+            });
+        }
+
+        function renderDashboard(featuredTopics, lowStockItems, survivalRules) {
+            renderLowStockItems(lowStockItems);
+            $('#stat-sales').text((1000 + (Math.random() * 500)).toFixed(2));
+            $('#stat-items').text(Math.floor(100 + (Math.random() * 50)));
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        function showTopicModal(id) {
+            const item = DATA.find(i => i.id === id);
+            if (!item) return;
+
+            $('#modal-title').text(item.title);
+            $('#modal-image').attr('src', item.image);
+            $('#modal-price-stock').html(`$${item.basePrice.toFixed(2)} | <span class="${item.stockLevel <= 50 ? 'text-red-600' : 'text-green-600'}">${item.stockLevel >= 0 ? item.stockLevel + ' in Stock' : 'Service Item'}</span>`);
+            $('#modal-description').text(item.description);
+            $('#modal-id').text(item.id);
+            $('#modal-barcode').text(item.barcode || 'N/A');
+            $('#modal-type').text(item.type);
+
+            // Clear previous header actions
+            $('#modal-header-actions').empty();
+
+            // 1. Define the Delete Icon (Above Inventory Actions)
+            const deleteIcon = `<button onclick="deleteInventoryItem(${item.id}, '${item.title}')"
+                                        class="text-red-600 hover:text-red-700 transition p-2 rounded-full hover:bg-red-100"
+                                        title="Delete Item from Catalog">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>`;
+
+            // Inject the Delete Icon into the header actions container, but only for stocked/normal items (stockLevel >= 0)
+            if (item.stockLevel >= 0) {
+                $('#inventory-actions').html(deleteIcon);
+            }
+
+            // 2. Define the Inventory Actions buttons (Edit button remains in 'Inventory Actions' section)
+            const editButton = `<button onclick="editItemFromDetail(${item.id})" class="mt-3 w-full bg-yellow-400 text-gray-800 py-2 rounded-lg text-sm font-semibold hover:bg-yellow-500 transition">
+                                            Edit Item Details
+                                        </button>`;
+
+            // 3. Define the main instructions content (excluding the delete button)
+            const instructions = `
+                             <div class="instruction-step">
+                                 <span class="instruction-step-number">1</span>
+                                 <p>Verify the item's current price and stock level before selling.</p>
+                             </div>
+                             ${editButton}
+                         `;
+            $('#modal-instructions').html(instructions);
+
+            $('#detail-modal').addClass('active').removeClass('hidden').css('display', 'flex');
+        }
+
+        // --- Data Loading ---
+
+        function loadJsonData() {
+            return new Promise(resolve => {
+                const jsonData = {
+                    DATA: [
+                        { id: 101, title: 'Premium Wireless Headphones', type: 'SKU', basePrice: 129.99, stockLevel: 45, barcode: '4006381333931', image: 'https://images.unsplash.com/photo-1546435770-ce2c1d9b350e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzMzczODZ8MHwxfGFsbHwxfHx8fHx8fHx8MTY3Mzk3MTQwNQ&ixlib=rb-4.0.3&q=80&w=400', description: 'High-fidelity sound, noise-cancelling, 20-hour battery life. Perfect for travel and daily commute.' },
+                        { id: 102, title: 'Ergonomic Mouse Pad', type: 'SKU', basePrice: 19.99, stockLevel: 150, barcode: '8859099933333', image: 'https://images.unsplash.com/photo-1559888800-47432f22824e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzMzczODZ8MHwxfGFsbHwxfHx8fHx8fHx8MTY3Mzk3MTQwNQ&ixlib=rb-4.0.3&q=80&w=400', description: 'Non-slip rubber base, comfortable wrist support, large surface area for professional gaming.' },
+                        { id: 201, title: 'USB-C Fast Charger (65W)', type: 'SKU', basePrice: 39.50, stockLevel: 75, barcode: '1234567890128', image: 'https://images.unsplash.com/photo-1627445733355-6b4d32a8a1a3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzMzczODZ8MHwxfGFsbHwxfHx8fHx8fHx8MTY3Mzk3MTQwNQ&ixlib=rb-4.0.3&q=80&w=400', description: 'GaN technology, compact and powerful, compatible with most laptops and phones. High return rate item.' },
+                        { id: 202, title: 'Mechanical Keyboard (Blue Switch)', type: 'SKU', basePrice: 89.00, stockLevel: 30, barcode: '9876543210987', image: 'https://images.unsplash.com/photo-1587843844883-7724a8e26c6d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzMzczODZ8MHwxfGFsbHwxfHx8fHx8fHx8MTY3Mzk3MTQwNQ&ixlib=rb-4.0.3&q=80&w=400', description: 'Full-size layout, tactile and clicky feedback. Requires urgent reorder due to low stock.' },
+                        { id: 301, title: 'Product Setup Service (30 min)', type: 'Service', basePrice: 25.00, stockLevel: -1, barcode: '0000000000001', image: 'https://placehold.co/150x150/2563eb/ffffff?text=SERVICE', description: 'Initial device setup and software installation. Non-physical item.' },
+                        { id: 401, title: 'External SSD (1TB)', type: 'SKU', basePrice: 99.99, stockLevel: 5, barcode: '1112223334445', image: 'https://images.unsplash.com/photo-1628126084047-9751e1279075?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=400', description: 'Portable 1TB Solid State Drive for fast data transfer. Critically low stock.' },
+                        { id: 402, title: 'Monitor Stand Riser', type: 'SKU', basePrice: 45.00, stockLevel: 0, barcode: '5556667778889', image: 'https://images.unsplash.com/photo-1598263592666-4177b947c615?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=400', description: 'Ergonomic wooden stand for dual monitors. Currently out of stock.' },
+                    ],
+                    featuredTopics: [101, 201, 401],
+                    lowStockItems: [402, 401, 202],
+                    survivalRules: []
+                };
+                DATA = jsonData.DATA;
+                resolve(jsonData);
+            });
+        }
+
+        // --- Document Ready and Event Bindings ---
+        $(document).ready(function () {
+            // Load the mock data on startup
+            loadJsonData().then(data => {
+                // Initialize dashboard and other views after data is loaded
+                renderDashboard(data.featuredTopics, data.lowStockItems, data.survivalRules);
+                renderInventory(); // Initial render of the inventory list
+                renderSuppliers(); // Initial render of the supplier list
+                console.log("POS Catalog Data Loaded.");
+            });
+
+            // Bind the "Save Item" button in the Unknown Item Modal
+            $('#unknown-item-form').on('submit', function (e) {
+                e.preventDefault();
+                const itemData = {
+                    barcode: $('#modal-barcode-input').val(),
+                    name: $('#modal-name').val(),
+                    quantity: parseInt($('#modal-quantity').val() || 0),
+                    price: parseFloat($('#modal-price').val() || 0),
+                };
+
+                if (itemData.quantity < 1 || itemData.price <= 0 || !itemData.name) {
+                    showMessage("Please ensure Product Name, Quantity (>=1), and Price (>0) are filled correctly.", 'error');
+                    return;
+                }
+
+                saveItem(itemData);
+                hideUnknownItemModal();
+            });
+
+            // Bind Unknown Item Modal Cancel Button
+            $('#modal-cancel-btn').on('click', function () {
+                hideUnknownItemModal();
+                showMessage("New item entry cancelled.", 'warning');
+            });
+
+            // Bind Detail Modal Close Buttons
+            $('#close-modal').on('click', () => { $('#detail-modal').removeClass('active').addClass('hidden').css('display', 'none'); });
+            $('#detail-modal').on('click', function (e) {
+                if ($(e.target).is(this)) {
+                    $('#detail-modal').removeClass('active').addClass('hidden').css('display', 'none');
+                }
+            });
+
+            // Bind Inventory Modal Close Button
+            $('#close-inventory-modal').on('click', () => { $('#inventory-modal').removeClass('active').addClass('hidden').css('display', 'none'); });
+
+            // Bind Inventory Modal form submit
+            $('#inventory-item-form').on('submit', function (e) {
+                e.preventDefault();
+                const itemData = {
+                    id: $('#inventory-item-id').val() ? parseInt($('#inventory-item-id').val()) : null,
+                    title: $('#item-name').val().trim(),
+                    barcode: $('#item-barcode').val().trim(),
+                    basePrice: parseFloat($('#item-price').val()),
+                    stockLevel: parseInt($('#item-stock').val()),
+                    description: $('#item-description').val().trim(),
+                };
+
+                if (!itemData.title || !itemData.barcode || isNaN(itemData.basePrice) || itemData.basePrice <= 0 || isNaN(itemData.stockLevel)) {
+                    showMessage("Please fill all required fields (Name, Barcode, Price, Stock) correctly.", 'error');
+                    return;
+                }
+
+                saveInventoryItem(itemData);
+            });
+
+            // Bind Quantity Modal Close Buttons
+            $('#quantity-cancel-btn').on('click', hideQuantityModal);
+            $('#quantity-modal').on('click', function (e) {
+                if ($(e.target).is(this)) {
+                    hideQuantityModal();
+                }
+            });
+
+            // Bind Quantity Modal form submit
+            $('#quantity-update-form').on('submit', function (e) {
+                e.preventDefault();
+                const itemId = parseInt($('#quantity-item-id').val());
+                const newQuantity = parseInt($('#new-quantity').val());
+                const maxStock = parseInt($('#quantity-max-stock').val());
+
+                if (newQuantity < 1) {
+                    showMessage("Quantity must be at least 1.", 'error');
+                    return;
+                }
+
+                if (maxStock !== 9999 && newQuantity > maxStock) {
+                    showMessage(`Cannot set quantity to ${newQuantity}. Only ${maxStock} available in stock.`, 'error');
+                    return;
+                }
+
+                updateCartQuantity(itemId, newQuantity, 'set');
+                hideQuantityModal();
+                showMessage(`Updated quantity to ${newQuantity}.`, 'info');
+            });
+
+
+            // Bind the toggle button for the scanner panel
+            $('#scanner-toggle-btn').on('click', function () {
+                if (scannerRunning) {
+                    stopScanner();
+                } else {
+                    startScanner();
+                }
+            });
+
+            // POS Handler: Recalculate totals on cash input
+            $('#pos-cash-tendered').on('input', calculateTotals);
+
+            // Supplier Handler: Add/Update new supplier form submit
+            $('#add-supplier-form').on('submit', function (e) {
+                e.preventDefault();
+                const name = $('#supplier-name').val().trim();
+                const contact = $('#supplier-contact').val().trim();
+                const phone = $('#supplier-phone').val().trim();
+                const email = $('#supplier-email').val().trim();
+                const category = $('#supplier-category').val().trim();
+                const id = $('#supplier-id-input').val(); // Get ID for update
+
+                if (!name || !email) {
+                    showMessage("Supplier Name and Email are required.", 'error');
+                    return;
+                }
+
+                handleSupplierFormSubmit(name, contact, phone, email, category, id ? parseInt(id) : null);
+            });
+
+            // Supplier Handler: Search input
+            $('#supplier-search-input').on('keyup', filterSuppliers);
+
+
+            // Navigation Handlers
+            $('.nav-item').on('click', function (e) {
+                e.preventDefault();
+                const page = $(this).data('page');
+                if (page === 'history') { renderWatchedHistory(); }
+                showPage('page-' + page);
+                smoothScrollToTop();
+            });
+
+            // Initial view
+            showPage('page-home');
+            renderCart();
+        });
+
+        // Ensure scanner stops when the page is unloaded
+        window.onbeforeunload = function () {
+            stopScanner();
+        };
+    </script>
+</body>
+</html>
