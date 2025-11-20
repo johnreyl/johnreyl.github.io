@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☀️ Solar Analyzer - Gogoanime Theme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'orange-gogo': '#ea580c', // Matches orange-600 for consistency
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Custom scrollbar for table on smaller screens and mobile touch fix */
+        .scroll-table-x {
+            overflow-x: auto;
+            /* Fixes touch scrolling on mobile devices (iOS/Webkit) */
+            -webkit-overflow-scrolling: touch; 
+        }
+        /* Highlighted rows for selected time range */
+        .highlighted-row {
+            background-color: #333d47; /* Darker row for selection */
+            font-weight: 500;
+        }
+        /* Active Tab Styling (Gogoanime Orange) */
+        .tab-active {
+            background-color: #ea580c !important; /* bg-orange-600 */
+            color: white !important;
+            border-bottom: 2px solid #ea580c;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 p-4 md:p-10">
+
+    <div class="max-w-6xl mx-auto bg-gray-800 p-6 rounded-lg shadow-2xl">
+        <h1 class="text-3xl font-bold text-orange-gogo mb-6 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 mr-2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-2.678l-1.591 1.591M3 12h2.25m-.386-6.364l1.591 1.591M12 12a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" />
+            </svg>
+            Solar Charging Analyzer
+        </h1>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-6 mb-8 p-4 bg-gray-700 rounded-md border border-gray-600">
+            
+            <div class="col-span-1 sm:col-span-2">
+                <label for="solar-panel-select" class="block text-sm font-medium text-gray-300 mb-1">Solar Panel (W)</label>
+                <select id="solar-panel-select" class="w-full p-2 border border-gray-600 rounded-md focus:ring-orange-600 focus:border-orange-600 bg-gray-900 text-gray-100">
+                    <option value="100">Jackery SolarSaga 100W / NSS 100W</option>
+                    <option value="28">EcoFlow 28W Portable</option>
+                    <option value="60">EcoFlow 60W / Goal Zero Nomad 50</option>
+                    <option value="20">Goal Zero Nomad 20W / NSS 20W</option>
+                    <option value="50">BigBlue/NSS 50W Panel</option>
+                    <option value="30">Anker Solix 30W / BigBlue 30W</option>
+                    <option value="custom-panel">Custom Array (Total W)</option>
+                </select>
+            </div>
+
+            <div id="custom-panel-wattage-container" class="hidden col-span-1 sm:col-span-2">
+                <label for="custom-panel-wattage" class="block text-sm font-medium text-gray-300 mb-1">Array Total Wattage (W)</label>
+                <input type="number" id="custom-panel-wattage" value="500" min="1" class="w-full p-2 border border-gray-600 rounded-md focus:ring-orange-600 focus:border-orange-600 bg-gray-900 text-gray-100" placeholder="e.g., 500, 1000">
+            </div>
+
+            <div>
+                <label for="port-type-select" class="block text-sm font-medium text-gray-300 mb-1">Port Limit (W)</label>
+                <select id="port-type-select" class="w-full p-2 border border-gray-600 rounded-md focus:ring-orange-600 focus:border-orange-600 bg-gray-900 text-gray-100">
+                    <option value="20">USB-C (20W Max)</option>
+                    <option value="18">USB-A (18W Max)</option>
+                    <option value="30">DC/Other (30W Max)</option>
+                    <option value="custom">Custom Max Output</option>
+                </select>
+            </div>
+
+            <div id="custom-wattage-container" class="hidden">
+                <label for="max-output-wattage" class="block text-sm font-medium text-gray-300 mb-1">Custom Max Output (W)</label>
+                <input type="number" id="max-output-wattage" value="20" min="1" class="w-full p-2 border border-gray-600 rounded-md focus:ring-orange-600 focus:border-orange-600 bg-gray-900 text-gray-100" placeholder="e.g., 20">
+            </div>
+
+            <div>
+                <label for="time-range-select" class="block text-sm font-medium text-gray-300 mb-1">Calculate Range</label>
+                <select id="time-range-select" class="w-full p-2 border border-gray-600 rounded-md focus:ring-orange-600 focus:border-orange-600 bg-gray-900 text-gray-100">
+                    <option value="peak">Peak Hours (10 AM - 2 PM)</option>
+                    <option value="morning-peak">Morning Peak (9 AM - 12 PM)</option>
+                    <option value="afternoon-peak">Afternoon Peak (1 PM - 3 PM)</option>
+                    <option value="mid-day">Mid-Day (9 AM - 4 PM)</option>
+                    <option value="day">Full Daylight (8 AM - 4 PM)</option>
+                    <option value="all">Full Day (6 AM - 6 PM)</option>
+                </select>
+            </div>
+            
+             <div>
+                <label for="charging-voltage" class="block text-sm font-medium text-gray-300 mb-1">Charging Voltage (V)</label>
+                <input type="number" id="charging-voltage" value="9" min="3" step="0.1" class="w-full p-2 border border-gray-600 rounded-md focus:ring-orange-600 focus:border-orange-600 bg-gray-900 text-gray-100" placeholder="e.g., 5, 9, 12">
+            </div>
+
+        </div>
+
+        <div class="mt-8">
+            <div class="flex flex-wrap sm:flex-nowrap border-b border-gray-600">
+                
+                <button id="tab-mah-output-btn" data-target="tab-mah-output" class="tab-btn flex-1 py-2 px-3 sm:px-4 text-sm font-semibold text-gray-300 border-r border-gray-600 bg-gray-700 hover:bg-gray-600 transition-colors tab-active rounded-tl-lg">
+                    <span class="flex items-center justify-center md:hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                        </svg>
+                    </span>
+                    <span class="hidden md:inline">⚡ Wh & mAh Output</span>
+                </button>
+                
+                <button id="tab-analysis-btn" data-target="tab-analysis" class="tab-btn flex-1 py-2 px-3 sm:px-4 text-sm font-semibold text-gray-300 border-r border-gray-600 bg-gray-700 hover:bg-gray-600 transition-colors">
+                    <span class="flex items-center justify-center md:hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H10.5V6a7.5 7.5 0 00-4.717 1.832c-.396.22-.68.618-.847 1.056h.001z" />
+                        </svg>
+                    </span>
+                    <span class="hidden md:inline">📊 Analysis & Recomm.</span>
+                </button>
+                
+                <button id="tab-table-btn" data-target="tab-table" class="tab-btn flex-1 py-2 px-3 sm:px-4 text-sm font-semibold text-gray-300 border-r border-gray-600 bg-gray-700 hover:bg-gray-600 transition-colors">
+                    <span class="flex items-center justify-center md:hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                        </svg>
+                    </span>
+                    <span class="hidden md:inline">📈 Hourly Table</span>
+                </button>
+                
+                <button id="tab-definitions-btn" data-target="tab-definitions" class="tab-btn flex-1 py-2 px-3 sm:px-4 text-sm font-semibold text-gray-300 bg-gray-700 hover:bg-gray-600 transition-colors rounded-tr-lg sm:rounded-tl-none">
+                    <span class="flex items-center justify-center md:hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                        </svg>
+                    </span>
+                    <span class="hidden md:inline">💡 Column Definitions</span>
+                </button>
+                
+            </div>
+
+            <div class="p-6 bg-gray-700 rounded-b-lg border border-t-0 border-gray-600">
+
+                <div id="tab-mah-output" class="tab-content">
+                    <h2 class="text-xl font-bold text-orange-gogo mb-3">
+                        Wh & mAh Energy Output
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 bg-gray-800 rounded-md shadow-inner border border-gray-600">
+                            <p class="text-sm font-medium text-gray-300">Total Output in Selected Range (<span id="range-display">Peak Hours</span>)</p>
+                            <p id="total-wh-output" class="text-2xl font-bold text-gray-100 mt-1">-- Wh</p>
+                            <p id="total-mah-output" class="text-3xl font-bold text-orange-600 mt-1">-- mAh</p>
+                            <p class="text-sm font-medium text-gray-300 mt-2">Total Hours: <span id="total-hours-output" class="font-bold text-gray-100">-- hrs</span></p>
+                        </div>
+
+                        <div class="p-4 bg-gray-800 rounded-md shadow-inner border border-gray-600">
+                            <p class="text-sm font-medium text-gray-300">Instantaneous Max Charging</p>
+                            <div class="mt-2 space-y-1">
+                                <p class="text-lg text-gray-100">
+                                    Wattage: <span id="max-charging-wattage" class="font-bold text-orange-gogo">-- W</span>
+                                </p>
+                                <p class="text-lg text-gray-100">
+                                    Voltage: <span id="mah-voltage-display" class="font-bold text-gray-100">9.0 V</span>
+                                </p>
+                                <p class="text-lg text-gray-100">
+                                    Amperage: <span id="max-charging-amps" class="font-bold text-orange-gogo">-- A</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-4 italic">
+                        *The mAh calculation estimates the capacity added to your power bank at the specified charging voltage. The displayed **Wattage** and **Amperage** reflect the estimated maximum instantaneous charging rate during peak production hours, limited by the smallest of the panel's theoretical output or the port limit.
+                    </p>
+                </div>
+
+                <div id="tab-analysis" class="tab-content hidden">
+                    <h2 class="text-xl font-bold text-orange-gogo mb-3">
+                        Analysis & Recommendations
+                    </h2>
+                    <p id="analysis-text" class="text-sm text-gray-200 italic">
+                        Analysis will appear here after calculation.
+                    </p>
+                </div>
+                
+                <div id="tab-table" class="tab-content hidden">
+                    <h2 class="text-xl font-bold text-orange-gogo mb-3">
+                        Hourly Generation Breakdown
+                    </h2>
+                    <div class="scroll-table-x border border-gray-600 rounded-lg overflow-hidden">
+                        <table class="min-w-full divide-y divide-gray-700">
+                            <thead class="bg-gray-900 text-gray-100 sticky top-0">
+                                <tr>
+                                    <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold">Hour</th>
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold">Angle & Irradiance</th>
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold">Gen Rate (%)</th>
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold" id="theoretical-header-table">Theoretical Gen (W)</th>
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold" id="output-header-table">Output Wattage (Max 20W)</th>
+                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold">Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-700 bg-gray-800 text-gray-300" id="solar-data-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="tab-definitions" class="tab-content hidden">
+                    <h2 class="text-xl font-bold text-orange-gogo mb-3">
+                        Column Definitions
+                    </h2>
+                    <ul class="text-sm text-gray-200 space-y-2">
+                        <li>**Gen Rate (%):** Estimated percentage of the panel's maximum capacity produced at that time, based on solar angle and irradiance.</li>
+                        <li>**Theoretical Gen (W):** Maximum power *the solar panel can physically generate* in that hour ($\text{Panel W} \times \text{Gen Rate}$).</li>
+                        <li>**Output Wattage (W):** Maximum power *the connected device receives*. This is the minimum of the **Theoretical Gen** and the **Port Limit**.</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+        </div>
+
+    <script>
+        $(document).ready(function() {
+            // --- 1. DATA STRUCTURE (FIXED) ---
+            const solarData = [
+                // 'morning-peak' added to 12 PM, 'afternoon-peak' added to 3 PM for range accuracy.
+                { time: "6:00 AM", rangeKey: "all", angle: "Low (Sunrise)", rate: "0% – 5%", min: 0, max: 0.05, notes: "Sun just appears, low light intensity." },
+                { time: "7:00 AM", rangeKey: "all", angle: "Low to Moderate", rate: "10% – 20%", min: 0.10, max: 0.20, notes: "Horizon angle, light still weak." },
+                { time: "8:00 AM", rangeKey: "day,all", angle: "Moderate", rate: "30% – 50%", min: 0.30, max: 0.50, notes: "Output increases quickly." },
+                { time: "9:00 AM", rangeKey: "morning-peak,mid-day,day,all", angle: "High", rate: "60% – 75%", min: 0.60, max: 0.75, notes: "Strong sunlight, nearing optimal angle." },
+                { time: "10:00 AM", rangeKey: "peak,morning-peak,mid-day,day,all", angle: "Near Peak", rate: "80% – 90%", min: 0.80, max: 0.90, notes: "High irradiance, very close to full power." },
+                { time: "11:00 AM", rangeKey: "peak,morning-peak,mid-day,day,all", angle: "PEAK", rate: "95% – 100%", min: 0.95, max: 1.00, notes: "Highest solar intensity/irradiance." },
+                // FIX: Added 'morning-peak' here to cover the 9 AM - 12 PM range accurately (4 hours total)
+                { time: "12:00 PM (Solar Noon)", rangeKey: "peak,morning-peak,mid-day,day,all", angle: "PEAK", rate: "95% – 100%", min: 0.95, max: 1.00, notes: "Maximum production hour." },
+                { time: "1:00 PM", rangeKey: "peak,afternoon-peak,mid-day,day,all", angle: "PEAK", rate: "90% – 95%", min: 0.90, max: 0.95, notes: "Slight drop, still near peak." },
+                { time: "2:00 PM", rangeKey: "peak,afternoon-peak,mid-day,day,all", angle: "High", rate: "80% – 90%", min: 0.80, max: 0.90, notes: "Sun angle is decreasing." },
+                // FIX: Added 'afternoon-peak' here to cover the 1 PM - 3 PM range accurately (3 hours total)
+                { time: "3:00 PM", rangeKey: "afternoon-peak,mid-day,day,all", angle: "Moderate", rate: "60% – 75%", min: 0.60, max: 0.75, notes: "Production decreases noticeably." },
+                { time: "4:00 PM", rangeKey: "mid-day,day,all", angle: "Moderate to Low", rate: "30% – 50%", min: 0.30, max: 0.50, notes: "Significantly lower angle and intensity." },
+                { time: "5:00 PM", rangeKey: "all", angle: "Low", rate: "10% – 20%", min: 0.10, max: 0.20, notes: "Rapid drop-off in production." },
+                { time: "6:00 PM", rangeKey: "all", angle: "Very Low (Sunset)", rate: "0% – 5%", min: 0, max: 0.05, notes: "Minimal power generation." },
+                { time: "Night", rangeKey: "", angle: "None", rate: "0%", min: 0, max: 0, notes: "No sunlight, panel is inactive." }
+            ];
+
+            // --- 2. CORE LOGIC (UNCHANGED, BUT NOW CORRECT) ---
+            function getPanelWattage() {
+                const selectedPanelType = $('#solar-panel-select').val();
+                if (selectedPanelType === 'custom-panel') {
+                    // Return the value from the new custom input
+                    return parseFloat($('#custom-panel-wattage').val());
+                } else {
+                    // Return the value from the dropdown option
+                    return parseFloat(selectedPanelType);
+                }
+            }
+            
+            function calculateAndRenderTable() {
+                const panelWatts = getPanelWattage(); // Use the new function to get wattage
+                let portLimit = 0;
+
+                // Determine the Port Limit
+                if ($('#port-type-select').val() === 'custom') {
+                    portLimit = parseFloat($('#max-output-wattage').val());
+                } else {
+                    portLimit = parseFloat($('#port-type-select').val());
+                }
+
+                const chargingVoltage = parseFloat($('#charging-voltage').val());
+                const selectedRange = $('#time-range-select').val();
+                
+                // Get display name for the panel
+                let panelName = $('#solar-panel-select option:selected').text();
+                if ($('#solar-panel-select').val() === 'custom-panel') {
+                    panelName = `${panelWatts.toFixed(0)}W Custom Array`;
+                }
+
+
+                // Input validation
+                if (isNaN(panelWatts) || panelWatts <= 0 || isNaN(portLimit) || portLimit <= 0 || isNaN(chargingVoltage) || chargingVoltage <= 0) {
+                    $('#solar-data-body').html('<tr class="h-10"><td colspan="6" class="text-center py-4 text-red-400">⚠️ Please enter valid positive values for all inputs.</td></tr>');
+                    $('#analysis-text').text('Cannot perform analysis due to invalid input.');
+                    $('#total-wh-output').text('-- Wh');
+                    $('#total-mah-output').text('-- mAh');
+                    $('#total-hours-output').text('-- hrs'); 
+                    $('#max-charging-wattage').text('-- W');
+                    $('#max-charging-amps').text('-- A');
+                    $('#mah-voltage-display').text('-- V');
+                    return;
+                }
+
+                // Update UI elements
+                $('#theoretical-header-table').text(`Theoretical Gen (${panelWatts.toFixed(0)}W)`);
+                $('#output-header-table').text(`Output Wattage (Max ${portLimit.toFixed(0)}W)`);
+                $('#mah-voltage-display').text(`${chargingVoltage.toFixed(1)} V`);
+
+
+                let tableHtml = '';
+                let totalEnergyWh = 0; 
+                let cappedHours = 0;
+                let maxOutputAchieved = 0; 
+                let totalHours = 0; 
+
+                solarData.forEach(hour => {
+                    // 1. Theoretical Generation (min and max)
+                    let theoreticalMin = (hour.min * panelWatts);
+                    let theoreticalMax = (hour.max * panelWatts);
+                    
+                    let theoreticalRangeText = `${theoreticalMin.toFixed(1)}W – ${theoreticalMax.toFixed(1)}W`;
+                    if (hour.min === hour.max) theoreticalRangeText = `${theoreticalMin.toFixed(1)}W`;
+
+                    // 2. Actual Output Wattage (min and max)
+                    let outputMin = Math.min(theoreticalMin, portLimit);
+                    let outputMax = Math.min(theoreticalMax, portLimit);
+
+                    // Track maximum output achieved during peak hours for instantaneous display
+                    if (outputMax > maxOutputAchieved) {
+                        maxOutputAchieved = outputMax;
+                    }
+
+
+                    let outputRangeText = `${outputMin.toFixed(1)}W – ${outputMax.toFixed(1)}W`;
+                    if (outputMin.toFixed(1) === outputMax.toFixed(1)) outputRangeText = `${outputMin.toFixed(1)}W`;
+                    
+                    let noteText = hour.notes;
+                    let exceedsLimit = false;
+
+                    // 3. Add notes about capping and calculate energy
+                    if (theoreticalMax > portLimit && hour.max > 0) {
+                        noteText = `Generation exceeds Max Output. Output capped at ${portLimit.toFixed(0)}W.`;
+                        exceedsLimit = true;
+                        // Check if capping occurred in any daytime range for the analysis text
+                        if(hour.rangeKey.includes("day") || hour.rangeKey.includes("peak") || hour.rangeKey.includes("mid-day") || hour.rangeKey.includes("morning-peak") || hour.rangeKey.includes("afternoon-peak")) {
+                            cappedHours++;
+                        }
+                    }
+
+                    // Estimate Wh for the hour and tally for the selected range
+                    if (hour.max > 0 && hour.rangeKey.includes(selectedRange)) {
+                        const averageOutput = (outputMin + outputMax) / 2;
+                        totalEnergyWh += averageOutput;
+                        totalHours++; // Increment hour count for the selected range
+                    }
+
+                    if (hour.time === "Night") {
+                         noteText = hour.notes;
+                         theoreticalRangeText = "0W";
+                         outputRangeText = "0W";
+                         exceedsLimit = false; // Reset for night
+                    }
+                    
+                    // Build the table row
+                    tableHtml += `
+                        <tr class="${hour.rangeKey.includes(selectedRange) ? 'highlighted-row' : 'hover:bg-gray-700'} transition-colors ${exceedsLimit ? 'bg-red-900/40' : ''}">
+                            <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-100">${hour.time}</td>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">${hour.angle}</td>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-400">${hour.rate}</td>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm font-semibold text-gray-200">${theoreticalRangeText}</td>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm font-bold text-orange-gogo">${outputRangeText}</td>
+                            <td class="px-3 py-4 text-xs text-gray-400">${noteText}</td>
+                        </tr>
+                    `;
+                });
+
+                $('#solar-data-body').html(tableHtml);
+
+                // --- 3. ANALYSIS & OUTPUT PANEL LOGIC (UNCHANGED) ---
+                let analysisText = '';
+                
+                // Wh to mAh Conversion
+                const totalEnergyMah = (totalEnergyWh * 1000) / chargingVoltage;
+                
+                // Instantaneous Amperage (A = W / V)
+                const maxChargingAmps = maxOutputAchieved / chargingVoltage;
+                
+                // Update Total Hours Display
+                $('#total-hours-output').text(`${totalHours} hrs`); 
+
+                // Update Instantaneous Output Stats
+                $('#max-charging-wattage').text(`${maxOutputAchieved.toFixed(1)} W`);
+                $('#max-charging-amps').text(`${maxChargingAmps.toFixed(2)} A`);
+
+
+                // Show total Wh and mAh
+                $('#total-wh-output').text(`${totalEnergyWh.toFixed(1)} Wh`);
+                $('#total-mah-output').text(`${totalEnergyMah.toFixed(0)} mAh`);
+                
+                // Update the range display name
+                $('#range-display').text($('#time-range-select option:selected').text());
+
+
+                if (cappedHours > 0) {
+                    analysisText += `🛑 **Capping Detected:** The selected **${panelName}**'s generation is being capped by the **${portLimit.toFixed(0)}W** port for approximately **${cappedHours} hours** during the day. You are losing potential power generation during peak sunlight hours.`;
+                } else if (portLimit >= panelWatts) {
+                    analysisText += `✅ **Optimal Match:** The port's maximum input of **${portLimit.toFixed(0)}W** is equal to or greater than the **${panelName}**'s maximum output. You are utilizing the full potential of your solar panel in ideal conditions.`;
+                } else {
+                    analysisText += `⚠️ **Potential Bottleneck (Minimal):** The panel's full rated output (${panelWatts.toFixed(0)}W) is higher than the port limit (${portLimit.toFixed(0)}W). The maximum output is still limited by the port, but capping is **not detected** based on the hourly estimates.`;
+                }
+                
+                analysisText += `<br><br>💡 **Recommendation:** The most efficient charging range is the **Peak Hours**. Ensure your panel is angled towards the sun and free of shade during these times to achieve the maximum output of **${maxOutputAchieved.toFixed(1)}W**.`;
+
+                $('#analysis-text').html(analysisText);
+            }
+
+            // --- 4. EVENT HANDLERS (UNCHANGED) ---
+            
+            // Central function to update on any input change
+            const inputsToWatch = '#solar-panel-select, #port-type-select, #max-output-wattage, #time-range-select, #charging-voltage, #custom-panel-wattage';
+            $(inputsToWatch).on('change input', function() {
+                // Show/Hide custom port wattage input
+                if ($('#port-type-select').val() === 'custom') {
+                    $('#custom-wattage-container').removeClass('hidden');
+                } else {
+                    $('#custom-wattage-container').addClass('hidden');
+                }
+
+                // Show/Hide custom panel wattage input
+                if ($('#solar-panel-select').val() === 'custom-panel') {
+                    $('#custom-panel-wattage-container').removeClass('hidden');
+                } else {
+                    $('#custom-panel-wattage-container').addClass('hidden');
+                }
+
+                // Update DC port option logic (still relevant for non-custom panels)
+                const newPanelWatts = getPanelWattage();
+                
+                // Keep the DC option label relevant to the panel size
+                if(newPanelWatts > 60 && $('#port-type-select option[value="30"]').length > 0) {
+                    $('#port-type-select option[value="30"]').remove();
+                    $('#port-type-select').append('<option value="50">DC/Other (50W Max)</option>');
+                } else if (newPanelWatts <= 60 && $('#port-type-select option[value="50"]').length > 0) {
+                    $('#port-type-select option[value="50"]').remove();
+                    $('#port-type-select').append('<option value="30">DC/Other (30W Max)</option>');
+                }
+                
+                calculateAndRenderTable();
+            });
+
+            // Tab Switching Logic
+            $('.tab-btn').on('click', function() {
+                // Remove active class from all buttons
+                $('.tab-btn').removeClass('tab-active');
+                // Add active class to the clicked button
+                $(this).addClass('tab-active');
+                
+                // Hide all content and show the target content
+                $('.tab-content').addClass('hidden');
+                const targetId = $(this).data('target');
+                $('#' + targetId).removeClass('hidden');
+            });
+
+
+            // Initial load: Set the 'Wh & mAh Output' tab as active on page load
+            $('#tab-definitions').addClass('hidden'); // Hide definitions (non-default)
+            $('#tab-mah-output').removeClass('hidden'); // Show output (default)
+            $('#tab-definitions-btn').removeClass('tab-active'); // Deactivate definitions button
+            $('#tab-mah-output-btn').addClass('tab-active'); // Activate output button
+            
+            calculateAndRenderTable();
+        });
+    </script>
+
+</body>
+</html>
